@@ -1,0 +1,15 @@
+@if (me.isLoading()) {
+  <p class="mt-4 text-slate-500">Loading…</p>
+} @else if (me.error()) {
+  <p class="mt-4 text-red-600">Could not load your identity.</p>
+} @else if (me.value(); as identity) {
+  <p class="mt-2 text-slate-600">{{ identity.email }}</p>
+  <ul class="mt-3 flex flex-wrap justify-center gap-2">
+    @for (role of identity.roles; track role) {
+      <li class="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">{{ role }}</li>
+    }
+  </ul>
+  <a [href]="logoutUrl" class="mt-6 inline-block text-sm font-medium text-blue-600 hover:underline"
+    >Logout</a
+  >
+}
