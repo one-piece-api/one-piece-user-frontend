@@ -1,3 +1,109 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+/*
+ * One Piece–themed design tokens (see docs/ui-ux-guidelines.md in the root
+ * repo): a warm treasure-map palette instead of the neutral gray/blue of a
+ * generic admin dashboard. Tailwind v4's CSS-first `@theme` turns each of
+ * these into utility classes, e.g. `bg-treasure-500`, `text-ocean-900`.
+ */
+@theme {
+  --color-ocean-950: #051c2c;
+  --color-ocean-900: #0b2e46;
+  --color-ocean-700: #124a70;
+  --color-ocean-500: #1c6b9c;
+
+  --color-treasure-600: #b8781a;
+  --color-treasure-500: #e0a530;
+  --color-treasure-400: #eec36b;
+  --color-treasure-100: #fbead0;
+
+  --color-flag-600: #a01423;
+  --color-flag-500: #d6293b;
+
+  --color-parchment-50: #fdf6e6;
+  --color-parchment-100: #f7ecd0;
+  --color-parchment-200: #efdcac;
+
+  --font-display: 'Pirata One', 'Georgia', serif;
+  --font-heading: 'Baloo 2', 'Trebuchet MS', sans-serif;
+}
+
+body {
+  background-color: var(--color-parchment-50);
+  background-image:
+    radial-gradient(
+      circle at 10% 20%,
+      color-mix(in srgb, var(--color-treasure-400) 12%, transparent) 0,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      color-mix(in srgb, var(--color-ocean-500) 10%, transparent) 0,
+      transparent 45%
+    );
+}
+
+@keyframes card-slam {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) rotate(-3deg) translateY(24px);
+  }
+  70% {
+    transform: scale(1.02) rotate(1deg) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-1deg) translateY(0);
+  }
+}
+
+@keyframes badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+}
+
+.anim-card-enter {
+  animation: card-slam 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.anim-badge-enter {
+  animation: badge-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.anim-toast-enter {
+  animation: toast-in 0.25s ease-out both;
+}
+
+.anim-toast-leave {
+  animation: toast-out 0.2s ease-in both;
+}
