@@ -12,6 +12,9 @@
         </li>
       }
     </ul>
+    @if (identity.roles.includes('ADMIN')) {
+      <a routerLink="/admin/users" [class]="adminLinkClasses" class="mt-8 mr-3">📜 Crew Manifest</a>
+    }
     <a [href]="logoutUrl" [class]="logoutClasses" class="mt-8">⚓ Abandon Ship</a>
   }
 </app-card>

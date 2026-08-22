@@ -1,0 +1,73 @@
+<app-card [wide]="true">
+  <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <a routerLink="/" [class]="navClasses" class="inline-block">⚓ Back to Ship</a>
+    <h2 class="font-display text-2xl font-bold text-ocean-900">📜 Crew Manifest</h2>
+    <span class="font-heading text-sm text-ocean-700">{{ range() }}</span>
+  </div>
+
+  @if (users.isLoading()) {
+    <p class="animate-pulse font-heading text-lg text-ocean-700">🧭 Charting the crew…</p>
+  } @else if (users.error()) {
+    <p class="font-heading text-lg text-flag-600">☠️ Lost the manifest. Could not load the crew.</p>
+  } @else if (users.value(); as page) {
+    @if (page.content.length === 0) {
+      <p class="font-heading text-ocean-700">No crew members yet.</p>
+    } @else {
+      <div class="overflow-x-auto rounded-xl border-2 border-treasure-300">
+        <table class="w-full min-w-[32rem] border-collapse text-left">
+          <thead>
+            <tr class="bg-ocean-950 font-heading text-sm tracking-wide text-parchment-100">
+              <th class="px-4 py-3 font-bold" scope="col">Pirate</th>
+              <th class="px-4 py-3 font-bold" scope="col">Status</th>
+              <th class="px-4 py-3 font-bold" scope="col">Roles</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of page.content; track user.userId; let i = $index) {
+              <tr
+                animate.enter="anim-row-enter"
+                [style.animation-delay.ms]="i * 40"
+                class="border-t-2 border-treasure-200 odd:bg-parchment-50 even:bg-parchment-100"
+              >
+                <td class="px-4 py-3 font-heading font-semibold break-all text-ocean-900">
+                  {{ user.email }}
+                </td>
+                <td class="px-4 py-3">
+                  <app-badge [tone]="statusTone[user.status]">{{
+                    statusLabel[user.status]
+                  }}</app-badge>
+                </td>
+                <td class="px-4 py-3">
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (role of user.roles; track role) {
+                      <app-badge tone="gold">{{ role }}</app-badge>
+                    } @empty {
+                      <span class="font-heading text-sm text-ocean-700/60">—</span>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <div class="mt-6 flex items-center justify-center gap-3">
+      <button
+        type="button"
+        [class]="navClasses"
+        [disabled]="!hasPrevious()"
+        (click)="previousPage()"
+      >
+        ◀ Prev
+      </button>
+      <span class="font-heading text-sm text-ocean-700"
+        >Page {{ page.page + 1 }} of {{ page.totalPages || 1 }}</span
+      >
+      <button type="button" [class]="navClasses" [disabled]="!hasNext()" (click)="nextPage()">
+        Next ▶
+      </button>
+    </div>
+  }
+</app-card>

@@ -1,5 +1,6 @@
 import { httpResource } from '@angular/common/http';
 import { Component, effect, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ToastService } from '../shared/toast/toast';
 import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
@@ -16,7 +17,7 @@ interface Me {
 @Component({
   selector: 'app-who-am-i',
   templateUrl: './who-am-i.html',
-  imports: [Card, Badge],
+  imports: [Card, Badge, RouterLink],
 })
 export class WhoAmI {
   private readonly toastService = inject(ToastService);
@@ -24,6 +25,7 @@ export class WhoAmI {
   protected readonly me = httpResource<Me>(() => ME_ENDPOINT);
   protected readonly logoutUrl = logoutUrl();
   protected readonly logoutClasses = buttonClasses('danger');
+  protected readonly adminLinkClasses = buttonClasses('secondary');
 
   constructor() {
     effect(() => {

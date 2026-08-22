@@ -70,6 +70,17 @@ body {
   }
 }
 
+@keyframes row-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -98,6 +109,12 @@ body {
 
 .anim-badge-enter {
   animation: badge-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* A calmer entrance than .anim-card-enter's rotated "slam" - fits a repeated table row
+   better than a poster-style flourish, which looks chaotic once multiplied down a list. */
+.anim-row-enter {
+  animation: row-rise 0.3s ease-out both;
 }
 
 .anim-toast-enter {

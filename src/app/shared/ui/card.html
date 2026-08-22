@@ -1,6 +1,7 @@
 <div
   animate.enter="anim-card-enter"
-  class="w-full max-w-md rounded-2xl border-4 border-treasure-500 bg-parchment-100 p-8 text-center shadow-xl"
+  class="w-full rounded-2xl border-4 border-treasure-500 bg-parchment-100 p-8 text-center shadow-xl"
+  [class]="widthClass()"
 >
   <ng-content />
 </div>

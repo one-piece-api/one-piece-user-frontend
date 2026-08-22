@@ -2,14 +2,14 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { WhoAmI } from './who-am-i';
+import { AdminUserList } from './user-list';
 
-describe('WhoAmI', () => {
+describe('AdminUserList', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WhoAmI],
+      imports: [AdminUserList],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);
@@ -19,34 +19,38 @@ describe('WhoAmI', () => {
     httpTesting.verify();
   });
 
-  it('shows the email and roles returned by /api/me, and links Logout to oauth2-proxy sign_out', async () => {
-    const fixture = TestBed.createComponent(WhoAmI);
+  it('lists users with their status and roles', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/me').flush({ email: 'luffy@onepiece.local', roles: ['ADMIN'] });
+    httpTesting.expectOne('/api/admin/users?page=0').flush({
+      content: [{ userId: '1', email: 'luffy@onepiece.local', status: 'ACTIVE', roles: ['ADMIN'] }],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    });
     await fixture.whenStable();
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('luffy@onepiece.local');
+    expect(root.textContent).toContain('Active');
     expect(root.textContent).toContain('ADMIN');
-    const links = Array.from(root.querySelectorAll('a'));
-    const logoutLink = links.find((link) =>
-      link.getAttribute('href')?.includes('/oauth2/sign_out'),
-    );
-    expect(logoutLink).toBeDefined();
+    expect(root.textContent).toContain('1–1 of 1');
   });
 
-  it('links to the crew manifest only for an ADMIN', async () => {
-    const fixture = TestBed.createComponent(WhoAmI);
+  it('shows an error toast message when the request fails', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/me').flush({ email: 'nami@onepiece.local', roles: ['EDITOR'] });
+    httpTesting
+      .expectOne('/api/admin/users?page=0')
+      .flush('nope', { status: 403, statusText: 'Forbidden' });
     await fixture.whenStable();
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const links = Array.from(root.querySelectorAll('a'));
-    expect(links.some((link) => link.getAttribute('href') === '/admin/users')).toBe(false);
+    expect(root.textContent).toContain('Lost the manifest');
   });
 });
