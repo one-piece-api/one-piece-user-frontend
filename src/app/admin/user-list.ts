@@ -5,6 +5,7 @@ import { ToastService } from '../shared/toast/toast';
 import { Badge, type BadgeTone } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
+import { InviteUserForm } from './invite-user-form';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
 
@@ -37,11 +38,11 @@ const STATUS_LABEL: Record<AccountStatus, string> = {
   DISABLED: '🔒 Disabled',
 };
 
-/** The admin user listing (Step 3, UF-IDU-17): read-only for now. */
+/** The admin user listing (Step 3, UF-IDU-17) plus the Step 4 invite form. */
 @Component({
   selector: 'app-admin-user-list',
   templateUrl: './user-list.html',
-  imports: [Card, Badge, RouterLink],
+  imports: [Card, Badge, RouterLink, InviteUserForm],
 })
 export class AdminUserList {
   private readonly toastService = inject(ToastService);
@@ -91,5 +92,10 @@ export class AdminUserList {
 
   protected nextPage(): void {
     this.page.update((current) => current + 1);
+  }
+
+  /** A fresh invite lands as a PENDING row - no new concept, just re-fetch the current page. */
+  protected onInvited(): void {
+    this.users.reload();
   }
 }

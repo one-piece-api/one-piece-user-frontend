@@ -1,0 +1,100 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Component, inject, output, signal } from '@angular/core';
+import { email, form, FormField, required, submit, validate } from '@angular/forms/signals';
+import { firstValueFrom } from 'rxjs';
+import { ToastService } from '../shared/toast/toast';
+import { buttonClasses } from '../shared/ui/button-variants';
+import { Card } from '../shared/ui/card';
+
+const INVITE_ENDPOINT = '/api/admin/users';
+
+interface InviteFormModel {
+  email: string;
+  adminRole: boolean;
+  reviewerRole: boolean;
+  editorRole: boolean;
+}
+
+interface InvitedUser {
+  userId: string;
+  email: string;
+}
+
+const EMPTY_MODEL: InviteFormModel = {
+  email: '',
+  adminRole: false,
+  reviewerRole: false,
+  editorRole: false,
+};
+
+/** Maps the checkbox trio back onto the `RealmRole` set the BE (UF-IDU-01) accepts. */
+function selectedRoles(value: InviteFormModel): string[] {
+  return [
+    ...(value.adminRole ? ['ADMIN'] : []),
+    ...(value.reviewerRole ? ['REVIEWER'] : []),
+    ...(value.editorRole ? ['EDITOR'] : []),
+  ];
+}
+
+/**
+ * "Invite User" (Step 4, UF-IDU-01): posts straight to `POST /admin/users`. There is no
+ * local invitation record to show here - a successful invite just makes the new PENDING
+ * row appear in the Step 3 crew manifest, so this only needs to signal the parent to reload it.
+ */
+@Component({
+  selector: 'app-invite-user-form',
+  templateUrl: './invite-user-form.html',
+  imports: [Card, FormField],
+})
+export class InviteUserForm {
+  private readonly http = inject(HttpClient);
+  private readonly toastService = inject(ToastService);
+
+  readonly invited = output<void>();
+
+  protected readonly model = signal<InviteFormModel>({ ...EMPTY_MODEL });
+  protected readonly inviteForm = form(this.model, (path) => {
+    required(path.email, { message: 'An email address be needed, matey.' });
+    email(path.email, { message: 'That be no proper email address.' });
+    validate(path, (ctx) => {
+      const value = ctx.value();
+      return value.adminRole || value.reviewerRole || value.editorRole
+        ? null
+        : { kind: 'rolesRequired', message: 'Pick at least one role for the new crewmate.' };
+    });
+  });
+
+  protected readonly submitClasses = buttonClasses('primary');
+
+  protected onSubmit(event: Event): void {
+    event.preventDefault();
+    void submit(this.inviteForm, async (field) => {
+      const value = field().value();
+      try {
+        const invitedUser = await firstValueFrom(
+          this.http.post<InvitedUser>(INVITE_ENDPOINT, {
+            email: value.email,
+            roles: selectedRoles(value),
+          }),
+        );
+        this.toastService.show(`✉️ Invitation sent to ${invitedUser.email}!`, 'success');
+        this.inviteForm().reset({ ...EMPTY_MODEL });
+        this.invited.emit();
+        return null;
+      } catch (err) {
+        if (err instanceof HttpErrorResponse && err.status === 409) {
+          return {
+            kind: 'emailAlreadyRegistered',
+            message: 'That pirate already sails with the crew - email already registered.',
+            fieldTree: field.email,
+          };
+        }
+        this.toastService.show(
+          'Arrr! Could not send the invitation - try again in a moment.',
+          'error',
+        );
+        return { kind: 'inviteFailed', message: 'Something went wrong sending the invite.' };
+      }
+    });
+  }
+}
