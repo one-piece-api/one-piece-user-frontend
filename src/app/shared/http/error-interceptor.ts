@@ -30,13 +30,13 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
 
 function genericMessageFor(status: number): string | null {
   if (status === 401) {
-    return 'Your session has expired. Please log in again.';
+    return "Arrr! Yer session's sunk to Davy Jones' Locker — log in again to keep sailing.";
   }
   if (status === 403) {
-    return "You don't have permission to perform this action.";
+    return "Arrr! Ye don't have clearance for that, matey.";
   }
   if (status === 0 || status >= 500) {
-    return 'Something went wrong. Please try again.';
+    return 'Arrr! Something broke on our end — try again in a moment.';
   }
   return null;
 }

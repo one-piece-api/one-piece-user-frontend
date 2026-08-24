@@ -10,10 +10,10 @@
  * classes, e.g. `bg-treasure-500`, `text-ocean-900`.
  */
 @theme {
-  --color-ocean-950: #071a28;
-  --color-ocean-900: #0e2c42;
-  --color-ocean-700: #23496a;
-  --color-ocean-500: #4a7396;
+  --color-ocean-950: #0c2a40;
+  --color-ocean-900: #163f5c;
+  --color-ocean-700: #2f5a7c;
+  --color-ocean-500: #5586a8;
 
   --color-treasure-700: #7a5a28;
   --color-treasure-600: #a17f3f;

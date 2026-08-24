@@ -40,6 +40,6 @@ describe('WhoAmI', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain('Unable to load your profile');
+    expect(root.textContent).toContain('Lost at sea');
   });
 });

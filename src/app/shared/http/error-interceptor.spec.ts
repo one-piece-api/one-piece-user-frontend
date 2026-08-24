@@ -27,10 +27,10 @@ describe('apiErrorInterceptor', () => {
   });
 
   it.each([
-    [401, 'session has expired'],
-    [403, "don't have permission"],
-    [500, 'went wrong'],
-    [0, 'went wrong'],
+    [401, "session's sunk"],
+    [403, "don't have clearance"],
+    [500, 'broke on our end'],
+    [0, 'broke on our end'],
   ])('shows a themed toast for a %d response', async (status, expectedSnippet) => {
     const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
 

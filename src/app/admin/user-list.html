@@ -11,9 +11,9 @@
     </div>
 
     @if (users.isLoading()) {
-      <p class="font-heading text-ocean-700">Loading…</p>
+      <p class="font-heading text-ocean-700">Charting the crew…</p>
     } @else if (users.error()) {
-      <p class="font-heading text-flag-700">Unable to load the crew manifest. Please try again.</p>
+      <p class="font-heading text-flag-700">Lost the manifest. Could not load the crew.</p>
     } @else if (users.value(); as page) {
       @if (page.content.length === 0) {
         <p class="font-heading text-ocean-700">No crew members yet.</p>
@@ -22,7 +22,7 @@
           <table class="w-full min-w-[32rem] border-collapse text-left">
             <thead>
               <tr
-                class="bg-ocean-950 font-heading text-xs tracking-wide text-parchment-100 uppercase"
+                class="bg-ocean-900 font-heading text-xs tracking-wide text-parchment-100 uppercase"
               >
                 <th class="px-4 py-3 font-semibold" scope="col">Email</th>
                 <th class="px-4 py-3 font-semibold" scope="col">Status</th>

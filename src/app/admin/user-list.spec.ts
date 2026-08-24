@@ -68,7 +68,7 @@ describe('AdminUserList', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain('Unable to load the crew manifest');
+    expect(root.textContent).toContain('Lost the manifest');
   });
 
   it('keeps the invite form hidden until "New User" is selected', async () => {

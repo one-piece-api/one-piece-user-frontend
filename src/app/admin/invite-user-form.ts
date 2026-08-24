@@ -57,13 +57,13 @@ export class InviteUserForm {
 
   protected readonly model = signal<InviteFormModel>({ ...EMPTY_MODEL });
   protected readonly inviteForm = form(this.model, (path) => {
-    required(path.email, { message: 'Email is required.' });
-    email(path.email, { message: 'Enter a valid email address.' });
+    required(path.email, { message: 'An email address be needed, matey.' });
+    email(path.email, { message: 'That be no proper email address.' });
     validate(path, (ctx) => {
       const value = ctx.value();
       return value.adminRole || value.reviewerRole || value.editorRole
         ? null
-        : { kind: 'rolesRequired', message: 'Select at least one role.' };
+        : { kind: 'rolesRequired', message: 'Pick at least one role for the new crewmate.' };
     });
   });
 
@@ -80,7 +80,7 @@ export class InviteUserForm {
             roles: selectedRoles(value),
           }),
         );
-        this.toastService.show(`Invitation sent to ${invitedUser.email}.`, 'success');
+        this.toastService.show(`Invitation sent to ${invitedUser.email}!`, 'success');
         this.inviteForm().reset({ ...EMPTY_MODEL });
         this.invited.emit();
         return null;
@@ -91,14 +91,14 @@ export class InviteUserForm {
         ) {
           return {
             kind: 'emailAlreadyRegistered',
-            message: 'This email is already registered.',
+            message: 'That pirate already sails with the crew - email already registered.',
             fieldTree: field.email,
           };
         }
         // Authentication/authorization/server failures already get a themed toast from
         // apiErrorInterceptor - this inline message covers the rest (e.g. a validation
         // failure the client-side checks above didn't catch).
-        return { kind: 'inviteFailed', message: 'Something went wrong sending the invite.' };
+        return { kind: 'inviteFailed', message: 'Arrr! Something went wrong sending the invite.' };
       }
     });
   }

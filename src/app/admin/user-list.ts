@@ -81,7 +81,10 @@ export class AdminUserList {
   constructor() {
     effect(() => {
       if (this.users.error()) {
-        this.toastService.show('Unable to load the crew manifest. Please try again.', 'error');
+        this.toastService.show(
+          'Arrr! Could not load the crew manifest — try again in a moment.',
+          'error',
+        );
       }
     });
   }
