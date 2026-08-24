@@ -2,11 +2,13 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, output, signal } from '@angular/core';
 import { email, form, FormField, required, submit, validate } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
+import { hasErrorCode } from '../shared/http/api-error';
 import { ToastService } from '../shared/toast/toast';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 
 const INVITE_ENDPOINT = '/api/admin/users';
+const EMAIL_ALREADY_REGISTERED_ERROR_CODE = 'USER_EMAIL_ALREADY_REGISTERED';
 
 interface InviteFormModel {
   email: string;
@@ -82,17 +84,19 @@ export class InviteUserForm {
         this.invited.emit();
         return null;
       } catch (err) {
-        if (err instanceof HttpErrorResponse && err.status === 409) {
+        if (
+          err instanceof HttpErrorResponse &&
+          hasErrorCode(err, EMAIL_ALREADY_REGISTERED_ERROR_CODE)
+        ) {
           return {
             kind: 'emailAlreadyRegistered',
             message: 'That pirate already sails with the crew - email already registered.',
             fieldTree: field.email,
           };
         }
-        this.toastService.show(
-          'Arrr! Could not send the invitation - try again in a moment.',
-          'error',
-        );
+        // Authentication/authorization/server failures already get a themed toast from
+        // apiErrorInterceptor - this inline message covers the rest (e.g. a validation
+        // failure the client-side checks above didn't catch).
         return { kind: 'inviteFailed', message: 'Something went wrong sending the invite.' };
       }
     });

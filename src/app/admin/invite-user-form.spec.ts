@@ -87,12 +87,39 @@ describe('InviteUserForm', () => {
 
     httpTesting
       .expectOne('/api/admin/users')
-      .flush({ detail: 'Email already registered' }, { status: 409, statusText: 'Conflict' });
+      .flush(
+        { detail: 'Email already registered', errorCode: 'USER_EMAIL_ALREADY_REGISTERED' },
+        { status: 409, statusText: 'Conflict' },
+      );
     await fixture.whenStable();
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect(root.textContent).toContain('already sails with the crew');
+  });
+
+  it('shows a generic inline error for a failure other than email-already-registered', async () => {
+    const fixture = TestBed.createComponent(InviteUserForm);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    setValue(root.querySelector('#invite-email')!, 'usopp@onepiece.local');
+    check(root.querySelector('input[type=checkbox]')!);
+    root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await fixture.whenStable();
+
+    httpTesting
+      .expectOne('/api/admin/users')
+      .flush(
+        { detail: 'Something exploded', errorCode: 'INTERNAL_ERROR' },
+        { status: 500, statusText: 'Internal Server Error' },
+      );
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain('Something went wrong sending the invite');
   });
 });
