@@ -1,0 +1,24 @@
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -- backdrop-click-to-dismiss on the dialog itself; ESC already closes it natively (showModal()'s built-in keyboard behavior), no separate key handler needed -->
+<dialog
+  #dialog
+  (close)="onClose()"
+  (click)="onBackdropClick($event, dialog)"
+  class="m-auto w-full max-w-lg rounded-xl border border-ocean-900/10 bg-parchment-50 p-0 shadow-2xl backdrop:bg-ocean-950/40"
+>
+  <div>
+    <div class="flex items-center justify-between border-b border-ocean-900/10 px-6 py-4">
+      <h2 class="font-display text-xl font-semibold text-ocean-900">{{ heading() }}</h2>
+      <button
+        type="button"
+        class="cursor-pointer rounded-md p-1 text-ocean-700 transition-colors hover:bg-ocean-900/5 hover:text-ocean-900"
+        (click)="dialog.close()"
+        aria-label="Close"
+      >
+        ✕
+      </button>
+    </div>
+    <div class="max-h-[70vh] overflow-y-auto p-6">
+      <ng-content />
+    </div>
+  </div>
+</dialog>

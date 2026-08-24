@@ -1,58 +1,51 @@
-<app-card [wide]="true">
-  <div class="text-left">
-    <h2 class="mb-5 text-center font-display text-2xl font-bold text-ocean-900">
-      🏴‍☠️ Recruit a New Crewmate
-    </h2>
-    <form (submit)="onSubmit($event)" novalidate class="flex flex-col gap-4">
-      <div>
-        <label for="invite-email" class="mb-1 block font-heading font-semibold text-ocean-900"
-          >Email</label
-        >
-        <input
-          id="invite-email"
-          type="email"
-          [formField]="inviteForm.email"
-          placeholder="e.g. usopp@onepiece.local"
-          class="w-full rounded-lg border-2 border-treasure-300 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
-        />
-        @if (inviteForm.email().touched() && inviteForm.email().errors().length > 0) {
-          <p class="mt-1 font-heading text-sm text-flag-600">
-            ☠️ {{ inviteForm.email().errors()[0].message }}
-          </p>
-        }
-      </div>
-
-      <div>
-        <span class="mb-1 block font-heading font-semibold text-ocean-900">Roles</span>
-        <div class="flex flex-wrap gap-4">
-          <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
-            <input type="checkbox" [formField]="inviteForm.adminRole" />
-            ADMIN
-          </label>
-          <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
-            <input type="checkbox" [formField]="inviteForm.reviewerRole" />
-            REVIEWER
-          </label>
-          <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
-            <input type="checkbox" [formField]="inviteForm.editorRole" />
-            EDITOR
-          </label>
-        </div>
-        @if (inviteForm().touched() && inviteForm().errors().length > 0) {
-          <p class="mt-1 font-heading text-sm text-flag-600">
-            ☠️ {{ inviteForm().errors()[0].message }}
-          </p>
-        }
-      </div>
-
-      <button
-        type="submit"
-        [class]="submitClasses"
-        [disabled]="inviteForm().submitting()"
-        class="self-start"
-      >
-        {{ inviteForm().submitting() ? '📨 Sending…' : '✉️ Send Invitation' }}
-      </button>
-    </form>
+<form (submit)="onSubmit($event)" novalidate class="flex flex-col gap-4 text-left">
+  <div>
+    <label for="invite-email" class="mb-1 block font-heading text-sm font-semibold text-ocean-900"
+      >Email</label
+    >
+    <input
+      id="invite-email"
+      type="email"
+      [formField]="inviteForm.email"
+      placeholder="e.g. usopp@onepiece.local"
+      class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
+    />
+    @if (inviteForm.email().touched() && inviteForm.email().errors().length > 0) {
+      <p class="mt-1 font-heading text-sm text-flag-700">
+        {{ inviteForm.email().errors()[0].message }}
+      </p>
+    }
   </div>
-</app-card>
+
+  <div>
+    <span class="mb-1 block font-heading text-sm font-semibold text-ocean-900">Roles</span>
+    <div class="flex flex-wrap gap-4">
+      <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
+        <input type="checkbox" [formField]="inviteForm.adminRole" />
+        ADMIN
+      </label>
+      <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
+        <input type="checkbox" [formField]="inviteForm.reviewerRole" />
+        REVIEWER
+      </label>
+      <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
+        <input type="checkbox" [formField]="inviteForm.editorRole" />
+        EDITOR
+      </label>
+    </div>
+    @if (inviteForm().touched() && inviteForm().errors().length > 0) {
+      <p class="mt-1 font-heading text-sm text-flag-700">
+        {{ inviteForm().errors()[0].message }}
+      </p>
+    }
+  </div>
+
+  <button
+    type="submit"
+    [class]="submitClasses"
+    [disabled]="inviteForm().submitting()"
+    class="self-start"
+  >
+    {{ inviteForm().submitting() ? 'Sending…' : 'Send Invitation' }}
+  </button>
+</form>

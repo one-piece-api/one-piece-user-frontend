@@ -1,11 +1,12 @@
 import { Component, computed, input } from '@angular/core';
 
-export type BadgeTone = 'gold' | 'navy' | 'flag';
+export type BadgeTone = 'gold' | 'navy' | 'success' | 'neutral';
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  gold: 'border-treasure-500 bg-treasure-100 text-treasure-600',
-  navy: 'border-ocean-700 bg-ocean-900/5 text-ocean-900',
-  flag: 'border-flag-600 bg-flag-500/10 text-flag-600',
+  gold: 'border-treasure-400 bg-treasure-100 text-treasure-700',
+  navy: 'border-ocean-700/30 bg-ocean-900/5 text-ocean-900',
+  success: 'border-success-500/40 bg-success-100 text-success-700',
+  neutral: 'border-ocean-900/15 bg-ocean-900/5 text-ocean-700',
 };
 
 @Component({
@@ -19,6 +20,6 @@ export class Badge {
 
   protected readonly classes = computed(
     () =>
-      `inline-block rounded-full border-2 px-3 py-1 font-heading text-sm font-bold ${TONE_CLASSES[this.tone()]}`,
+      `inline-block rounded-full border px-3 py-1 font-heading text-xs font-semibold ${TONE_CLASSES[this.tone()]}`,
   );
 }

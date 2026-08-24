@@ -1,7 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { WhoAmI } from './who-am-i';
 
 describe('WhoAmI', () => {
@@ -10,7 +9,7 @@ describe('WhoAmI', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WhoAmI],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);
   });
@@ -19,7 +18,7 @@ describe('WhoAmI', () => {
     httpTesting.verify();
   });
 
-  it('shows the email and roles returned by /api/me, and links Logout to oauth2-proxy sign_out', async () => {
+  it('shows the email and roles returned by /api/me', async () => {
     const fixture = TestBed.createComponent(WhoAmI);
     fixture.detectChanges();
 
@@ -30,23 +29,17 @@ describe('WhoAmI', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('luffy@onepiece.local');
     expect(root.textContent).toContain('ADMIN');
-    const links = Array.from(root.querySelectorAll('a'));
-    const logoutLink = links.find((link) =>
-      link.getAttribute('href')?.includes('/oauth2/sign_out'),
-    );
-    expect(logoutLink).toBeDefined();
   });
 
-  it('links to the crew manifest only for an ADMIN', async () => {
+  it('shows an error state when the identity request fails', async () => {
     const fixture = TestBed.createComponent(WhoAmI);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/me').flush({ email: 'nami@onepiece.local', roles: ['EDITOR'] });
+    httpTesting.expectOne('/api/me').flush('nope', { status: 500, statusText: 'Error' });
     await fixture.whenStable();
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const links = Array.from(root.querySelectorAll('a'));
-    expect(links.some((link) => link.getAttribute('href') === '/admin/users')).toBe(false);
+    expect(root.textContent).toContain('Unable to load your profile');
   });
 });

@@ -39,8 +39,8 @@ describe('InviteUserForm', () => {
     fixture.detectChanges();
 
     httpTesting.expectNone('/api/admin/users');
-    expect(root.textContent).toContain('email address be needed');
-    expect(root.textContent).toContain('Pick at least one role');
+    expect(root.textContent).toContain('Email is required.');
+    expect(root.textContent).toContain('Select at least one role.');
   });
 
   it('invites a user, emits invited, resets the form, and shows a success toast', async () => {
@@ -68,7 +68,7 @@ describe('InviteUserForm', () => {
     expect(invitedEmitted).toBe(true);
     expect(toastService.toasts()).toContainEqual(
       expect.objectContaining({
-        message: '✉️ Invitation sent to usopp@onepiece.local!',
+        message: 'Invitation sent to usopp@onepiece.local.',
         tone: 'success',
       }),
     );
@@ -96,7 +96,7 @@ describe('InviteUserForm', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(root.textContent).toContain('already sails with the crew');
+    expect(root.textContent).toContain('This email is already registered.');
   });
 
   it('shows a generic inline error for a failure other than email-already-registered', async () => {

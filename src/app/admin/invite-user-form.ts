@@ -5,7 +5,6 @@ import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
 import { ToastService } from '../shared/toast/toast';
 import { buttonClasses } from '../shared/ui/button-variants';
-import { Card } from '../shared/ui/card';
 
 const INVITE_ENDPOINT = '/api/admin/users';
 const EMAIL_ALREADY_REGISTERED_ERROR_CODE = 'USER_EMAIL_ALREADY_REGISTERED';
@@ -42,11 +41,13 @@ function selectedRoles(value: InviteFormModel): string[] {
  * "Invite User" (Step 4, UF-IDU-01): posts straight to `POST /admin/users`. There is no
  * local invitation record to show here - a successful invite just makes the new PENDING
  * row appear in the Step 3 crew manifest, so this only needs to signal the parent to reload it.
+ * Rendered inside `AdminUserList`'s `app-modal`, which already provides the panel chrome
+ * and heading - this component is just the form itself.
  */
 @Component({
   selector: 'app-invite-user-form',
   templateUrl: './invite-user-form.html',
-  imports: [Card, FormField],
+  imports: [FormField],
 })
 export class InviteUserForm {
   private readonly http = inject(HttpClient);
@@ -56,13 +57,13 @@ export class InviteUserForm {
 
   protected readonly model = signal<InviteFormModel>({ ...EMPTY_MODEL });
   protected readonly inviteForm = form(this.model, (path) => {
-    required(path.email, { message: 'An email address be needed, matey.' });
-    email(path.email, { message: 'That be no proper email address.' });
+    required(path.email, { message: 'Email is required.' });
+    email(path.email, { message: 'Enter a valid email address.' });
     validate(path, (ctx) => {
       const value = ctx.value();
       return value.adminRole || value.reviewerRole || value.editorRole
         ? null
-        : { kind: 'rolesRequired', message: 'Pick at least one role for the new crewmate.' };
+        : { kind: 'rolesRequired', message: 'Select at least one role.' };
     });
   });
 
@@ -79,7 +80,7 @@ export class InviteUserForm {
             roles: selectedRoles(value),
           }),
         );
-        this.toastService.show(`✉️ Invitation sent to ${invitedUser.email}!`, 'success');
+        this.toastService.show(`Invitation sent to ${invitedUser.email}.`, 'success');
         this.inviteForm().reset({ ...EMPTY_MODEL });
         this.invited.emit();
         return null;
@@ -90,7 +91,7 @@ export class InviteUserForm {
         ) {
           return {
             kind: 'emailAlreadyRegistered',
-            message: 'That pirate already sails with the crew - email already registered.',
+            message: 'This email is already registered.',
             fieldTree: field.email,
           };
         }

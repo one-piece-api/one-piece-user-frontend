@@ -1,20 +1,19 @@
 <app-card>
-  @if (me.isLoading()) {
-    <p class="animate-pulse font-heading text-lg text-ocean-700">🧭 Charting your course…</p>
-  } @else if (me.error()) {
-    <p class="font-heading text-lg text-flag-600">☠️ Lost at sea. Could not load your identity.</p>
-  } @else if (me.value(); as identity) {
-    <p class="font-heading text-xl font-bold text-ocean-900">{{ identity.email }}</p>
-    <ul class="mt-4 flex flex-wrap justify-center gap-2">
+  @if (currentUser.me.isLoading()) {
+    <p class="font-heading text-ocean-700">Loading…</p>
+  } @else if (currentUser.me.error()) {
+    <p class="font-heading text-flag-700">Unable to load your profile. Please try again.</p>
+  } @else if (currentUser.me.value(); as identity) {
+    <p class="font-heading text-xs font-semibold tracking-widest text-ocean-700/70 uppercase">
+      Signed in as
+    </p>
+    <p class="mt-1 font-display text-2xl font-semibold text-ocean-900">{{ identity.email }}</p>
+    <ul class="mt-5 flex flex-wrap justify-center gap-2">
       @for (role of identity.roles; track role; let i = $index) {
         <li>
           <app-badge [tone]="i === 0 ? 'gold' : 'navy'" [delayMs]="i * 80">{{ role }}</app-badge>
         </li>
       }
     </ul>
-    @if (identity.roles.includes('ADMIN')) {
-      <a routerLink="/admin/users" [class]="adminLinkClasses" class="mt-8 mr-3">📜 Crew Manifest</a>
-    }
-    <a [href]="logoutUrl" [class]="logoutClasses" class="mt-8">⚓ Abandon Ship</a>
   }
 </app-card>
