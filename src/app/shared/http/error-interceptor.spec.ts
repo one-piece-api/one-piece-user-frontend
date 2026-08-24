@@ -9,6 +9,8 @@ describe('apiErrorInterceptor', () => {
   let http: HttpClient;
   let httpTesting: HttpTestingController;
   let toastService: ToastService;
+  let locationAssign: ReturnType<typeof vi.fn>;
+  const originalLocation = window.location;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -20,10 +22,19 @@ describe('apiErrorInterceptor', () => {
     http = TestBed.inject(HttpClient);
     httpTesting = TestBed.inject(HttpTestingController);
     toastService = TestBed.inject(ToastService);
+
+    // jsdom's `location.assign` is non-configurable, so it can't be spied on directly -
+    // the whole `window.location` is replaced with a stub instead.
+    locationAssign = vi.fn();
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { pathname: '/admin/users', search: '?tab=roles', assign: locationAssign },
+    });
   });
 
   afterEach(() => {
     httpTesting.verify();
+    Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
   });
 
   it.each([
@@ -40,6 +51,26 @@ describe('apiErrorInterceptor', () => {
     expect(toastService.toasts()).toHaveLength(1);
     expect(toastService.toasts()[0].message).toContain(expectedSnippet);
     expect(toastService.toasts()[0].tone).toBe('error');
+  });
+
+  it('sends the browser back through login on a 401, returning to the current page', async () => {
+    const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
+
+    httpTesting.expectOne('/api/whatever').flush('', { status: 401, statusText: 'Unauthorized' });
+    await request;
+
+    expect(locationAssign).toHaveBeenCalledWith(
+      '/oauth2/start?rd=' + encodeURIComponent('/admin/users?tab=roles'),
+    );
+  });
+
+  it.each([403, 500, 0])('does not redirect to login for a %d response', async (status) => {
+    const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
+
+    httpTesting.expectOne('/api/whatever').flush('', { status, statusText: 'Error' });
+    await request;
+
+    expect(locationAssign).not.toHaveBeenCalled();
   });
 
   it.each([400, 404, 409])(

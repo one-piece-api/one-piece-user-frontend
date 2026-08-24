@@ -1,6 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
+import { loginUrl } from '../../identity/auth-urls';
 import { ToastService } from '../toast/toast';
 
 /**
@@ -11,6 +12,10 @@ import { ToastService } from '../toast/toast';
  * contextual handling (an inline field error, a "not found" message in place) that only
  * the calling code can provide, so they stay each component's job (see
  * `InviteUserForm.onSubmit`'s `USER_EMAIL_ALREADY_REGISTERED` check).
+ *
+ * A 401 additionally sends the browser through login again (UF-IDU-09: no valid
+ * refresh left, oauth2-proxy itself rejected the request) - a toast alone would leave
+ * the user stuck on a page that can never succeed again without a full reload.
  */
 export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
   const toastService = inject(ToastService);
@@ -22,11 +27,18 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
         if (message) {
           toastService.show(message, 'error');
         }
+        if (error.status === 401) {
+          redirectToLogin();
+        }
       }
       return throwError(() => error);
     }),
   );
 };
+
+function redirectToLogin(): void {
+  window.location.assign(loginUrl(window.location.pathname + window.location.search));
+}
 
 function genericMessageFor(status: number): string | null {
   if (status === 401) {
