@@ -96,7 +96,10 @@ export class InviteUserForm {
             fieldTree: field.email,
           };
         }
-        if (err instanceof HttpErrorResponse && hasErrorCode(err, EMAIL_DELIVERY_FAILED_ERROR_CODE)) {
+        if (
+          err instanceof HttpErrorResponse &&
+          hasErrorCode(err, EMAIL_DELIVERY_FAILED_ERROR_CODE)
+        ) {
           return {
             kind: 'emailDeliveryFailed',
             message: "Arrr! The invitation couldn't be delivered - check the ship's mail settings.",

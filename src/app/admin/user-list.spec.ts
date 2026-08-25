@@ -184,16 +184,19 @@ describe('AdminUserList', () => {
     resendButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users/1/resend-invitation').flush(
-      { detail: 'Could not send the invitation email', errorCode: 'USER_EMAIL_DELIVERY_FAILED' },
-      { status: 422, statusText: 'Unprocessable Entity' },
-    );
+    httpTesting
+      .expectOne('/api/admin/users/1/resend-invitation')
+      .flush(
+        { detail: 'Could not send the invitation email', errorCode: 'USER_EMAIL_DELIVERY_FAILED' },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
     await fixture.whenStable();
     fixture.detectChanges();
 
     expect(toastService.toasts()).toContainEqual(
       expect.objectContaining({
-        message: 'Arrr! Could not resend the invitation to usopp@onepiece.local - the message bird got lost.',
+        message:
+          'Arrr! Could not resend the invitation to usopp@onepiece.local - the message bird got lost.',
         tone: 'error',
       }),
     );
