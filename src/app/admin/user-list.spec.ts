@@ -105,7 +105,9 @@ describe('AdminUserList', () => {
     const toastService = TestBed.inject(ToastService);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [{ userId: '1', email: 'usopp@onepiece.local', status: 'PENDING', roles: ['EDITOR'] }],
+      content: [
+        { userId: '1', email: 'usopp@onepiece.local', status: 'PENDING', roles: ['EDITOR'] },
+      ],
       page: 0,
       size: 20,
       totalElements: 1,
