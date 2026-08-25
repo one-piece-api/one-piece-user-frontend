@@ -8,6 +8,7 @@ import { buttonClasses } from '../shared/ui/button-variants';
 
 const INVITE_ENDPOINT = '/api/admin/users';
 const EMAIL_ALREADY_REGISTERED_ERROR_CODE = 'USER_EMAIL_ALREADY_REGISTERED';
+const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
 
 interface InviteFormModel {
   email: string;
@@ -93,6 +94,12 @@ export class InviteUserForm {
             kind: 'emailAlreadyRegistered',
             message: 'That pirate already sails with the crew - email already registered.',
             fieldTree: field.email,
+          };
+        }
+        if (err instanceof HttpErrorResponse && hasErrorCode(err, EMAIL_DELIVERY_FAILED_ERROR_CODE)) {
+          return {
+            kind: 'emailDeliveryFailed',
+            message: "Arrr! The invitation couldn't be delivered - check the ship's mail settings.",
           };
         }
         // Authentication/authorization/server failures already get a themed toast from

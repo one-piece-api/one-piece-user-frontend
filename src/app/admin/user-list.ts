@@ -11,6 +11,7 @@ import { InviteUserForm } from './invite-user-form';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
 const INVITATION_NOT_RESENDABLE_ERROR_CODE = 'USER_INVITATION_NOT_RESENDABLE';
+const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
 
 type AccountStatus = 'PENDING' | 'INVITATION_EXPIRED' | 'ACTIVE' | 'DISABLED';
 
@@ -136,6 +137,11 @@ export class AdminUserList {
         } else if (err.status === 404) {
           this.toastService.show(`Arrr! ${user.email} be gone from the manifest.`, 'error');
           this.users.reload();
+        } else if (apiErrorOf(err)?.errorCode === EMAIL_DELIVERY_FAILED_ERROR_CODE) {
+          this.toastService.show(
+            `Arrr! Could not resend the invitation to ${user.email} - the message bird got lost.`,
+            'error',
+          );
         }
         // 401/403/5xx already get a themed toast from apiErrorInterceptor.
       }

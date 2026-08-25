@@ -99,6 +99,30 @@ describe('InviteUserForm', () => {
     expect(root.textContent).toContain('already sails with the crew');
   });
 
+  it('shows an inline error when the invitation email cannot be delivered', async () => {
+    const fixture = TestBed.createComponent(InviteUserForm);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    setValue(root.querySelector('#invite-email')!, 'usopp@onepiece.local');
+    check(root.querySelector('input[type=checkbox]')!);
+    root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await fixture.whenStable();
+
+    httpTesting
+      .expectOne('/api/admin/users')
+      .flush(
+        { detail: 'Could not send the invitation email', errorCode: 'USER_EMAIL_DELIVERY_FAILED' },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain("couldn't be delivered");
+  });
+
   it('shows a generic inline error for a failure other than email-already-registered', async () => {
     const fixture = TestBed.createComponent(InviteUserForm);
     fixture.detectChanges();
