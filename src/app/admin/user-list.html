@@ -27,6 +27,9 @@
                 <th class="px-4 py-3 font-semibold" scope="col">Email</th>
                 <th class="px-4 py-3 font-semibold" scope="col">Status</th>
                 <th class="px-4 py-3 font-semibold" scope="col">Roles</th>
+                <th class="px-4 py-3 font-semibold" scope="col">
+                  <span class="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -52,6 +55,18 @@
                         <span class="font-heading text-sm text-ocean-700/50">—</span>
                       }
                     </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    @if (user.status === 'PENDING') {
+                      <button
+                        type="button"
+                        [class]="navClasses"
+                        [disabled]="resendingUserId() === user.userId"
+                        (click)="resendInvitation(user)"
+                      >
+                        {{ resendingUserId() === user.userId ? 'Resending…' : 'Resend Invitation' }}
+                      </button>
+                    }
                   </td>
                 </tr>
               }

@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { By } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { ToastService } from '../shared/toast/toast';
 import { Modal } from '../shared/ui/modal';
 import { AdminUserList } from './user-list';
 
@@ -96,5 +97,60 @@ describe('AdminUserList', () => {
     fixture.detectChanges();
 
     expect(modal.open()).toBe(true);
+  });
+
+  it('resends an invitation for a pending user', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    const toastService = TestBed.inject(ToastService);
+
+    httpTesting.expectOne('/api/admin/users?page=0').flush({
+      content: [{ userId: '1', email: 'usopp@onepiece.local', status: 'PENDING', roles: ['EDITOR'] }],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const resendButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Resend Invitation',
+    );
+    resendButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users/1/resend-invitation').flush(null);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(toastService.toasts()).toContainEqual(
+      expect.objectContaining({
+        message: 'Resent the invitation to usopp@onepiece.local!',
+        tone: 'success',
+      }),
+    );
+  });
+
+  it('does not show a resend action for an active user', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users?page=0').flush({
+      content: [{ userId: '1', email: 'luffy@onepiece.local', status: 'ACTIVE', roles: ['ADMIN'] }],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const resendButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Resend Invitation',
+    );
+    expect(resendButton).toBeUndefined();
   });
 });

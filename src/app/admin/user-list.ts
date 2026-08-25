@@ -1,5 +1,7 @@
-import { httpResource } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { apiErrorOf } from '../shared/http/api-error';
 import { ToastService } from '../shared/toast/toast';
 import { Badge, type BadgeTone } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
@@ -8,6 +10,7 @@ import { Modal } from '../shared/ui/modal';
 import { InviteUserForm } from './invite-user-form';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
+const INVITATION_NOT_PENDING_ERROR_CODE = 'USER_INVITATION_NOT_PENDING';
 
 type AccountStatus = 'PENDING' | 'ACTIVE' | 'DISABLED';
 
@@ -45,6 +48,7 @@ const STATUS_LABEL: Record<AccountStatus, string> = {
   imports: [Card, Badge, Modal, InviteUserForm],
 })
 export class AdminUserList {
+  private readonly http = inject(HttpClient);
   private readonly toastService = inject(ToastService);
 
   protected readonly page = signal(0);
@@ -53,6 +57,7 @@ export class AdminUserList {
   );
 
   protected readonly showInviteModal = signal(false);
+  protected readonly resendingUserId = signal<string | null>(null);
 
   protected readonly statusTone = STATUS_TONE;
   protected readonly statusLabel = STATUS_LABEL;
@@ -101,5 +106,32 @@ export class AdminUserList {
   protected onInvited(): void {
     this.users.reload();
     this.showInviteModal.set(false);
+  }
+
+  /** UF-IDU-03: re-triggers Keycloak's invitation email for a still-PENDING row. */
+  protected async resendInvitation(user: AdminUserSummary): Promise<void> {
+    this.resendingUserId.set(user.userId);
+    try {
+      await firstValueFrom(
+        this.http.post<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/resend-invitation`, {}),
+      );
+      this.toastService.show(`Resent the invitation to ${user.email}!`, 'success');
+    } catch (err) {
+      if (err instanceof HttpErrorResponse) {
+        if (apiErrorOf(err)?.errorCode === INVITATION_NOT_PENDING_ERROR_CODE) {
+          this.toastService.show(
+            `Arrr! ${user.email} already came aboard — no need to resend.`,
+            'error',
+          );
+          this.users.reload();
+        } else if (err.status === 404) {
+          this.toastService.show(`Arrr! ${user.email} be gone from the manifest.`, 'error');
+          this.users.reload();
+        }
+        // 401/403/5xx already get a themed toast from apiErrorInterceptor.
+      }
+    } finally {
+      this.resendingUserId.set(null);
+    }
   }
 }
