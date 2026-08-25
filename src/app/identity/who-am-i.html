@@ -7,7 +7,7 @@
     <p class="font-heading text-xs font-semibold tracking-widest text-ocean-700/70 uppercase">
       Signed in as
     </p>
-    <p class="mt-1 font-display text-2xl font-semibold text-ocean-900">{{ identity.email }}</p>
+    <p class="mt-1 font-display text-2xl font-semibold text-ocean-900">{{ identity.username }}</p>
     <ul class="mt-5 flex flex-wrap justify-center gap-2">
       @for (role of identity.roles; track role; let i = $index) {
         <li>

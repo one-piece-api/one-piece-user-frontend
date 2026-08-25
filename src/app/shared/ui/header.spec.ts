@@ -19,16 +19,18 @@ describe('Header', () => {
     httpTesting.verify();
   });
 
-  it('shows the signed-in email and links Log Out to oauth2-proxy sign_out', async () => {
+  it('shows the signed-in username and links Log Out to oauth2-proxy sign_out', async () => {
     const fixture = TestBed.createComponent(Header);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/me').flush({ email: 'luffy@onepiece.local', roles: ['ADMIN'] });
+    httpTesting
+      .expectOne('/api/me')
+      .flush({ username: 'luffy', email: 'luffy@onepiece.local', roles: ['ADMIN'] });
     await fixture.whenStable();
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain('luffy@onepiece.local');
+    expect(root.textContent).toContain('luffy');
     const links = Array.from(root.querySelectorAll('a'));
     const logoutLink = links.find((link) =>
       link.getAttribute('href')?.includes('/oauth2/sign_out'),

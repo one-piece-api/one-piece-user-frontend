@@ -42,7 +42,15 @@ describe('AdminUserList', () => {
     fixture.detectChanges();
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [{ userId: '1', email: 'luffy@onepiece.local', status: 'ACTIVE', roles: ['ADMIN'] }],
+      content: [
+        {
+          userId: '1',
+          username: 'luffy',
+          email: 'luffy@onepiece.local',
+          status: 'ACTIVE',
+          roles: ['ADMIN'],
+        },
+      ],
       page: 0,
       size: 20,
       totalElements: 1,
@@ -52,7 +60,7 @@ describe('AdminUserList', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain('luffy@onepiece.local');
+    expect(root.textContent).toContain('luffy');
     expect(root.textContent).toContain('Active');
     expect(root.textContent).toContain('ADMIN');
     expect(root.textContent).toContain('1–1 of 1');

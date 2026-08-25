@@ -24,7 +24,7 @@
               <tr
                 class="bg-ocean-900 font-heading text-xs tracking-wide text-parchment-100 uppercase"
               >
-                <th class="px-4 py-3 font-semibold" scope="col">Email</th>
+                <th class="px-4 py-3 font-semibold" scope="col">Username</th>
                 <th class="px-4 py-3 font-semibold" scope="col">Status</th>
                 <th class="px-4 py-3 font-semibold" scope="col">Roles</th>
                 <th class="px-4 py-3 font-semibold" scope="col">
@@ -40,7 +40,7 @@
                   class="border-t border-ocean-900/10 odd:bg-parchment-50 even:bg-parchment-100"
                 >
                   <td class="px-4 py-3 font-heading font-medium break-all text-ocean-900">
-                    {{ user.email }}
+                    {{ user.username }}
                   </td>
                   <td class="px-4 py-3">
                     <app-badge [tone]="statusTone[user.status]">{{

@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 const ME_ENDPOINT = '/api/me';
 
 export interface Me {
+  username: string;
   email: string;
   roles: string[];
 }

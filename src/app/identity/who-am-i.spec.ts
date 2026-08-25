@@ -18,16 +18,18 @@ describe('WhoAmI', () => {
     httpTesting.verify();
   });
 
-  it('shows the email and roles returned by /api/me', async () => {
+  it('shows the username and roles returned by /api/me', async () => {
     const fixture = TestBed.createComponent(WhoAmI);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/me').flush({ email: 'luffy@onepiece.local', roles: ['ADMIN'] });
+    httpTesting
+      .expectOne('/api/me')
+      .flush({ username: 'luffy', email: 'luffy@onepiece.local', roles: ['ADMIN'] });
     await fixture.whenStable();
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain('luffy@onepiece.local');
+    expect(root.textContent).toContain('luffy');
     expect(root.textContent).toContain('ADMIN');
   });
 

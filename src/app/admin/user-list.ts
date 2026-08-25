@@ -17,6 +17,7 @@ type AccountStatus = 'PENDING' | 'INVITATION_EXPIRED' | 'ACTIVE' | 'DISABLED';
 
 interface AdminUserSummary {
   userId: string;
+  username: string;
   email: string;
   status: AccountStatus;
   roles: string[];
