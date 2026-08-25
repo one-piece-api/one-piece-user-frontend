@@ -99,14 +99,19 @@ describe('AdminUserList', () => {
     expect(modal.open()).toBe(true);
   });
 
-  it('resends an invitation for a pending user', async () => {
+  it('resends an invitation for an expired invitation', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
     const toastService = TestBed.inject(ToastService);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
       content: [
-        { userId: '1', email: 'usopp@onepiece.local', status: 'PENDING', roles: ['EDITOR'] },
+        {
+          userId: '1',
+          email: 'usopp@onepiece.local',
+          status: 'INVITATION_EXPIRED',
+          roles: ['EDITOR'],
+        },
       ],
       page: 0,
       size: 20,
@@ -133,6 +138,21 @@ describe('AdminUserList', () => {
         tone: 'success',
       }),
     );
+
+    httpTesting.expectOne('/api/admin/users?page=0').flush({
+      content: [
+        {
+          userId: '1',
+          email: 'usopp@onepiece.local',
+          status: 'PENDING',
+          roles: ['EDITOR'],
+        },
+      ],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    });
   });
 
   it('does not show a resend action for an active user', async () => {
@@ -141,6 +161,29 @@ describe('AdminUserList', () => {
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
       content: [{ userId: '1', email: 'luffy@onepiece.local', status: 'ACTIVE', roles: ['ADMIN'] }],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const resendButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Resend Invitation',
+    );
+    expect(resendButton).toBeUndefined();
+  });
+
+  it('does not show a resend action for a still-pending (not yet expired) user', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users?page=0').flush({
+      content: [
+        { userId: '1', email: 'usopp@onepiece.local', status: 'PENDING', roles: ['EDITOR'] },
+      ],
       page: 0,
       size: 20,
       totalElements: 1,

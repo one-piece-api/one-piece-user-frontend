@@ -1,12 +1,13 @@
 import { Component, computed, input } from '@angular/core';
 
-export type BadgeTone = 'gold' | 'navy' | 'success' | 'neutral';
+export type BadgeTone = 'gold' | 'navy' | 'success' | 'neutral' | 'danger';
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
   gold: 'border-treasure-400 bg-treasure-100 text-treasure-700',
   navy: 'border-ocean-700/30 bg-ocean-900/5 text-ocean-900',
   success: 'border-success-500/40 bg-success-100 text-success-700',
   neutral: 'border-ocean-900/15 bg-ocean-900/5 text-ocean-700',
+  danger: 'border-flag-500/40 bg-flag-500/10 text-flag-700',
 };
 
 @Component({

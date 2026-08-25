@@ -10,9 +10,9 @@ import { Modal } from '../shared/ui/modal';
 import { InviteUserForm } from './invite-user-form';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
-const INVITATION_NOT_PENDING_ERROR_CODE = 'USER_INVITATION_NOT_PENDING';
+const INVITATION_NOT_RESENDABLE_ERROR_CODE = 'USER_INVITATION_NOT_RESENDABLE';
 
-type AccountStatus = 'PENDING' | 'ACTIVE' | 'DISABLED';
+type AccountStatus = 'PENDING' | 'INVITATION_EXPIRED' | 'ACTIVE' | 'DISABLED';
 
 interface AdminUserSummary {
   userId: string;
@@ -32,12 +32,14 @@ interface PageResponse<T> {
 const STATUS_TONE: Record<AccountStatus, BadgeTone> = {
   ACTIVE: 'success',
   PENDING: 'gold',
+  INVITATION_EXPIRED: 'danger',
   DISABLED: 'neutral',
 };
 
 const STATUS_LABEL: Record<AccountStatus, string> = {
   ACTIVE: 'Active',
   PENDING: 'Pending',
+  INVITATION_EXPIRED: 'Invite Expired',
   DISABLED: 'Disabled',
 };
 
@@ -108,7 +110,13 @@ export class AdminUserList {
     this.showInviteModal.set(false);
   }
 
-  /** UF-IDU-03: re-triggers Keycloak's invitation email for a still-PENDING row. */
+  /**
+   * UF-IDU-03: re-triggers Keycloak's invitation email for a row whose current invitation
+   * has gone stale (INVITATION_EXPIRED) - the backend rejects this for a still-PENDING row
+   * (a valid link is still outstanding) exactly like an already-ACTIVE one, so the button
+   * is only ever shown for INVITATION_EXPIRED rows in the first place; the 409 branch below
+   * is just the (rare) race where the row changed between page load and this click.
+   */
   protected async resendInvitation(user: AdminUserSummary): Promise<void> {
     this.resendingUserId.set(user.userId);
     try {
@@ -116,11 +124,12 @@ export class AdminUserList {
         this.http.post<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/resend-invitation`, {}),
       );
       this.toastService.show(`Resent the invitation to ${user.email}!`, 'success');
+      this.users.reload();
     } catch (err) {
       if (err instanceof HttpErrorResponse) {
-        if (apiErrorOf(err)?.errorCode === INVITATION_NOT_PENDING_ERROR_CODE) {
+        if (apiErrorOf(err)?.errorCode === INVITATION_NOT_RESENDABLE_ERROR_CODE) {
           this.toastService.show(
-            `Arrr! ${user.email} already came aboard — no need to resend.`,
+            `Arrr! ${user.email}'s invitation isn't resendable anymore — refresh the manifest.`,
             'error',
           );
           this.users.reload();
