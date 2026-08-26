@@ -65,10 +65,14 @@
                           [disabled]="resendingUserId() === user.userId"
                           (click)="resendInvitation(user)"
                         >
-                          {{ resendingUserId() === user.userId ? 'Resending…' : 'Resend Invitation' }}
+                          {{
+                            resendingUserId() === user.userId ? 'Resending…' : 'Resend Invitation'
+                          }}
                         </button>
                       }
-                      <a [class]="navClasses" [routerLink]="['/admin/users', user.userId]">Manage Roles</a>
+                      <a [class]="navClasses" [routerLink]="['/admin/users', user.userId]"
+                        >Manage Roles</a
+                      >
                     </div>
                   </td>
                 </tr>

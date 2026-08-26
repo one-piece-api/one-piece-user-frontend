@@ -236,7 +236,15 @@ describe('AdminUserList', () => {
     fixture.detectChanges();
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [{ userId: '1', username: 'luffy', email: 'luffy@onepiece.local', status: 'ACTIVE', roles: ['ADMIN'] }],
+      content: [
+        {
+          userId: '1',
+          username: 'luffy',
+          email: 'luffy@onepiece.local',
+          status: 'ACTIVE',
+          roles: ['ADMIN'],
+        },
+      ],
       page: 0,
       size: 20,
       totalElements: 1,
