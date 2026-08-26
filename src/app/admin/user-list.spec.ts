@@ -231,6 +231,27 @@ describe('AdminUserList', () => {
     expect(resendButton).toBeUndefined();
   });
 
+  it('links each row to its Step 6 role editor', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users?page=0').flush({
+      content: [{ userId: '1', username: 'luffy', email: 'luffy@onepiece.local', status: 'ACTIVE', roles: ['ADMIN'] }],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const manageRolesLink = Array.from(root.querySelectorAll('a')).find(
+      (link) => link.textContent?.trim() === 'Manage Roles',
+    );
+    expect(manageRolesLink?.getAttribute('href')).toBe('/admin/users/1');
+  });
+
   it('does not show a resend action for a still-pending (not yet expired) user', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();

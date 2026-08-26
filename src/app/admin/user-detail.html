@@ -1,0 +1,56 @@
+<div class="flex w-full flex-col gap-6">
+  <app-card [wide]="true">
+    @if (user.isLoading()) {
+      <p class="font-heading text-ocean-700">Charting the crew…</p>
+    } @else if (user.error()) {
+      <p class="font-heading text-flag-700">Lost the manifest. Could not load this crewmate.</p>
+    } @else if (user.value(); as u) {
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="font-display text-2xl font-semibold text-ocean-900">{{ u.username }}</h2>
+          <p class="font-heading text-sm text-ocean-700">{{ u.email }}</p>
+        </div>
+        <app-badge [tone]="statusTone[u.status]">{{ statusLabel[u.status] }}</app-badge>
+      </div>
+
+      <h3 class="mb-3 font-heading text-xs font-semibold tracking-wide text-ocean-900 uppercase">
+        Roles
+      </h3>
+      <ul class="flex flex-col gap-3">
+        @for (role of assignableRoles; track role) {
+          <li
+            class="flex items-center justify-between rounded-lg border border-ocean-900/10 px-4 py-3 odd:bg-parchment-50 even:bg-parchment-100"
+          >
+            <app-badge [tone]="u.roles.includes(role) ? 'gold' : 'neutral'">{{ role }}</app-badge>
+            @if (u.roles.includes(role)) {
+              <button
+                type="button"
+                [class]="dangerClasses"
+                [disabled]="pendingRole() === role"
+                (click)="revokeRole(u, role)"
+              >
+                {{ pendingRole() === role ? 'Working…' : 'Revoke' }}
+              </button>
+            } @else {
+              <button
+                type="button"
+                [class]="navClasses"
+                [disabled]="pendingRole() === role"
+                (click)="assignRole(u, role)"
+              >
+                {{ pendingRole() === role ? 'Working…' : 'Grant' }}
+              </button>
+            }
+          </li>
+        }
+      </ul>
+
+      <a
+        routerLink="/admin/users"
+        class="mt-6 inline-block font-heading text-sm text-ocean-700 transition-colors hover:text-ocean-900"
+      >
+        ← Back to Crew Manifest
+      </a>
+    }
+  </app-card>
+</div>

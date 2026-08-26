@@ -57,16 +57,19 @@
                     </div>
                   </td>
                   <td class="px-4 py-3 text-right">
-                    @if (user.status === 'INVITATION_EXPIRED') {
-                      <button
-                        type="button"
-                        [class]="navClasses"
-                        [disabled]="resendingUserId() === user.userId"
-                        (click)="resendInvitation(user)"
-                      >
-                        {{ resendingUserId() === user.userId ? 'Resending…' : 'Resend Invitation' }}
-                      </button>
-                    }
+                    <div class="flex justify-end gap-2">
+                      @if (user.status === 'INVITATION_EXPIRED') {
+                        <button
+                          type="button"
+                          [class]="navClasses"
+                          [disabled]="resendingUserId() === user.userId"
+                          (click)="resendInvitation(user)"
+                        >
+                          {{ resendingUserId() === user.userId ? 'Resending…' : 'Resend Invitation' }}
+                        </button>
+                      }
+                      <a [class]="navClasses" [routerLink]="['/admin/users', user.userId]">Manage Roles</a>
+                    </div>
                   </td>
                 </tr>
               }

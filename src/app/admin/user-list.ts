@@ -1,27 +1,19 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { apiErrorOf } from '../shared/http/api-error';
 import { ToastService } from '../shared/toast/toast';
-import { Badge, type BadgeTone } from '../shared/ui/badge';
+import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { Modal } from '../shared/ui/modal';
+import { STATUS_LABEL, STATUS_TONE, type AdminUserSummary } from './admin-user.model';
 import { InviteUserForm } from './invite-user-form';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
 const INVITATION_NOT_RESENDABLE_ERROR_CODE = 'USER_INVITATION_NOT_RESENDABLE';
 const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
-
-type AccountStatus = 'PENDING' | 'INVITATION_EXPIRED' | 'ACTIVE' | 'DISABLED';
-
-interface AdminUserSummary {
-  userId: string;
-  username: string;
-  email: string;
-  status: AccountStatus;
-  roles: string[];
-}
 
 interface PageResponse<T> {
   content: T[];
@@ -31,25 +23,11 @@ interface PageResponse<T> {
   totalPages: number;
 }
 
-const STATUS_TONE: Record<AccountStatus, BadgeTone> = {
-  ACTIVE: 'success',
-  PENDING: 'gold',
-  INVITATION_EXPIRED: 'danger',
-  DISABLED: 'neutral',
-};
-
-const STATUS_LABEL: Record<AccountStatus, string> = {
-  ACTIVE: 'Active',
-  PENDING: 'Pending',
-  INVITATION_EXPIRED: 'Invite Expired',
-  DISABLED: 'Disabled',
-};
-
 /** The admin user listing (Step 3, UF-IDU-17) plus the Step 4 invite form. */
 @Component({
   selector: 'app-admin-user-list',
   templateUrl: './user-list.html',
-  imports: [Card, Badge, Modal, InviteUserForm],
+  imports: [Card, Badge, Modal, InviteUserForm, RouterLink],
 })
 export class AdminUserList {
   private readonly http = inject(HttpClient);
