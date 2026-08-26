@@ -5,6 +5,21 @@ import { provideRouter } from '@angular/router';
 import { ToastService } from '../shared/toast/toast';
 import { AdminUserDetail } from './user-detail';
 
+// jsdom doesn't implement <dialog>'s showModal()/close() yet - every real browser this app
+// targets does, so this is purely a test-environment gap, polyfilled here rather than
+// worked around in Modal itself.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement): void {
+    this.setAttribute('open', '');
+  };
+}
+if (!HTMLDialogElement.prototype.close) {
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement): void {
+    this.removeAttribute('open');
+    this.dispatchEvent(new Event('close'));
+  };
+}
+
 describe('AdminUserDetail', () => {
   let httpTesting: HttpTestingController;
 
@@ -216,7 +231,213 @@ describe('AdminUserDetail', () => {
 
     expect(toastService.toasts()).toContainEqual(
       expect.objectContaining({
-        message: "Arrr! nami needs at least one role - grant another before revoking this one.",
+        message: 'Arrr! nami needs at least one role - grant another before revoking this one.',
+        tone: 'error',
+      }),
+    );
+  });
+
+  it('shows Revoke Access for an active crewmate and Reactivate for a disabled one', async () => {
+    const fixture = createWithUserId('1');
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      status: 'ACTIVE',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    let root = fixture.nativeElement as HTMLElement;
+    let buttons = Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim());
+    expect(buttons).toContain('Revoke Access');
+    expect(buttons).not.toContain('Reactivate');
+
+    fixture.componentRef.setInput('userId', '2');
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/users/2').flush({
+      userId: '2',
+      username: 'chopper',
+      email: 'chopper@onepiece.local',
+      status: 'DISABLED',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    root = fixture.nativeElement as HTMLElement;
+    buttons = Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim());
+    expect(buttons).toContain('Reactivate');
+    expect(buttons).not.toContain('Revoke Access');
+  });
+
+  it('revokes access after confirmation and reloads the crewmate', async () => {
+    const fixture = createWithUserId('1');
+    const toastService = TestBed.inject(ToastService);
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      status: 'ACTIVE',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const revokeAccessButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Revoke Access',
+    );
+    revokeAccessButton!.click();
+    fixture.detectChanges();
+
+    const confirmButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Confirm',
+    );
+    expect(confirmButton).toBeTruthy();
+    confirmButton!.click();
+    fixture.detectChanges();
+
+    const postRequest = httpTesting.expectOne('/api/admin/users/1/revoke-access');
+    expect(postRequest.request.method).toBe('POST');
+    postRequest.flush(null);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(toastService.toasts()).toContainEqual(
+      expect.objectContaining({ message: "nami's access has been revoked!", tone: 'success' }),
+    );
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      status: 'DISABLED',
+      roles: ['EDITOR'],
+    });
+  });
+
+  it('cancelling the confirmation makes no request', async () => {
+    const fixture = createWithUserId('1');
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      status: 'ACTIVE',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const revokeAccessButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Revoke Access',
+    );
+    revokeAccessButton!.click();
+    fixture.detectChanges();
+
+    const cancelButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Cancel',
+    );
+    cancelButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectNone('/api/admin/users/1/revoke-access');
+  });
+
+  it('reactivates a disabled crewmate after confirmation', async () => {
+    const fixture = createWithUserId('1');
+    const toastService = TestBed.inject(ToastService);
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'chopper',
+      email: 'chopper@onepiece.local',
+      status: 'DISABLED',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const reactivateButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Reactivate',
+    );
+    reactivateButton!.click();
+    fixture.detectChanges();
+
+    const confirmButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Confirm',
+    );
+    confirmButton!.click();
+    fixture.detectChanges();
+
+    const postRequest = httpTesting.expectOne('/api/admin/users/1/reactivate');
+    expect(postRequest.request.method).toBe('POST');
+    postRequest.flush(null);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(toastService.toasts()).toContainEqual(
+      expect.objectContaining({
+        message: 'chopper may sail with the crew once more!',
+        tone: 'success',
+      }),
+    );
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'chopper',
+      email: 'chopper@onepiece.local',
+      status: 'PENDING',
+      roles: ['EDITOR'],
+    });
+  });
+
+  it('shows a themed error toast when revoking access would leave zero administrators', async () => {
+    const fixture = createWithUserId('1');
+    const toastService = TestBed.inject(ToastService);
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'luffy',
+      email: 'luffy@onepiece.local',
+      status: 'ACTIVE',
+      roles: ['ADMIN'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const revokeAccessButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Revoke Access',
+    );
+    revokeAccessButton!.click();
+    fixture.detectChanges();
+
+    const confirmButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Confirm',
+    );
+    confirmButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users/1/revoke-access').flush(
+      {
+        detail: 'Cannot leave the realm with zero ADMIN users',
+        errorCode: 'USER_LAST_ADMINISTRATOR',
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(toastService.toasts()).toContainEqual(
+      expect.objectContaining({
+        message: 'Arrr! At least one ADMIN must remain in the crew - this one cannot be revoked.',
         tone: 'error',
       }),
     );

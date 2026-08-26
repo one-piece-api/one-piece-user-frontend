@@ -10,7 +10,22 @@
           <h2 class="font-display text-2xl font-semibold text-ocean-900">{{ u.username }}</h2>
           <p class="font-heading text-sm text-ocean-700">{{ u.email }}</p>
         </div>
-        <app-badge [tone]="statusTone[u.status]">{{ statusLabel[u.status] }}</app-badge>
+        <div class="flex items-center gap-3">
+          <app-badge [tone]="statusTone[u.status]">{{ statusLabel[u.status] }}</app-badge>
+          @if (u.status === 'ACTIVE') {
+            <button type="button" [class]="dangerClasses" (click)="confirmingAction.set('revoke')">
+              Revoke Access
+            </button>
+          } @else if (u.status === 'DISABLED') {
+            <button
+              type="button"
+              [class]="primaryClasses"
+              (click)="confirmingAction.set('reactivate')"
+            >
+              Reactivate
+            </button>
+          }
+        </div>
       </div>
 
       <h3 class="mb-3 font-heading text-xs font-semibold tracking-wide text-ocean-900 uppercase">
@@ -51,6 +66,37 @@
       >
         ← Back to Crew Manifest
       </a>
+
+      <app-modal
+        [open]="confirmingAction() !== null"
+        [heading]="confirmingAction() === 'revoke' ? 'Revoke Access' : 'Reactivate Crewmate'"
+        (closed)="confirmingAction.set(null)"
+      >
+        @if (confirmingAction() === 'revoke') {
+          <p class="font-heading text-ocean-900">
+            Arrr! This will maroon <strong>{{ u.username }}</strong> - every active session ends at
+            once and they cannot log back in until reactivated.
+          </p>
+        } @else {
+          <p class="font-heading text-ocean-900">
+            Arrr! Welcome <strong>{{ u.username }}</strong> back aboard - they will need to log in
+            again to resume their post.
+          </p>
+        }
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" [class]="navClasses" (click)="confirmingAction.set(null)">
+            Cancel
+          </button>
+          <button
+            type="button"
+            [class]="confirmingAction() === 'revoke' ? dangerClasses : primaryClasses"
+            [disabled]="accessActionPending()"
+            (click)="confirmAccessAction(u)"
+          >
+            {{ accessActionPending() ? 'Working…' : 'Confirm' }}
+          </button>
+        </div>
+      </app-modal>
     }
   </app-card>
 </div>
