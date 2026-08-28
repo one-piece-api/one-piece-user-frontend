@@ -230,5 +230,5 @@
 </div>
 
 <app-modal [open]="showInviteModal()" heading="New User" (closed)="showInviteModal.set(false)">
-  <app-invite-user-form (invited)="onInvited()" />
+  <app-invite-user-form (invited)="onInvited()" (cancelled)="showInviteModal.set(false)" />
 </app-modal>

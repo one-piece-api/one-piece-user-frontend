@@ -1,6 +1,6 @@
 <form (submit)="onSubmit($event)" novalidate class="flex flex-col gap-4 text-left">
   <div>
-    <label for="invite-email" class="mb-1 block font-heading text-sm font-semibold text-ocean-900"
+    <label for="invite-email" class="mb-1.5 block font-heading text-xs font-bold text-ocean-500"
       >Email</label
     >
     <input
@@ -18,18 +18,24 @@
   </div>
 
   <div>
-    <span class="mb-1 block font-heading text-sm font-semibold text-ocean-900">Roles</span>
-    <div class="flex flex-wrap gap-4">
-      <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
-        <input type="checkbox" [formField]="inviteForm.adminRole" />
+    <span class="mb-1.5 block font-heading text-xs font-bold text-ocean-500">Initial Roles</span>
+    <div class="flex flex-wrap gap-2">
+      <label
+        class="flex cursor-pointer items-center gap-2 rounded-full border-2 border-dashed border-ocean-700/30 bg-parchment-50 px-3.5 py-2 font-heading text-sm font-bold text-ocean-900 transition-colors has-[:checked]:border-ocean-700 has-[:checked]:bg-ocean-700 has-[:checked]:text-white"
+      >
+        <input type="checkbox" [formField]="inviteForm.adminRole" class="sr-only" />
         ADMIN
       </label>
-      <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
-        <input type="checkbox" [formField]="inviteForm.reviewerRole" />
+      <label
+        class="flex cursor-pointer items-center gap-2 rounded-full border-2 border-dashed border-ocean-700/30 bg-parchment-50 px-3.5 py-2 font-heading text-sm font-bold text-ocean-900 transition-colors has-[:checked]:border-ocean-700 has-[:checked]:bg-ocean-700 has-[:checked]:text-white"
+      >
+        <input type="checkbox" [formField]="inviteForm.reviewerRole" class="sr-only" />
         REVIEWER
       </label>
-      <label class="flex cursor-pointer items-center gap-2 font-heading text-ocean-900">
-        <input type="checkbox" [formField]="inviteForm.editorRole" />
+      <label
+        class="flex cursor-pointer items-center gap-2 rounded-full border-2 border-dashed border-ocean-700/30 bg-parchment-50 px-3.5 py-2 font-heading text-sm font-bold text-ocean-900 transition-colors has-[:checked]:border-ocean-700 has-[:checked]:bg-ocean-700 has-[:checked]:text-white"
+      >
+        <input type="checkbox" [formField]="inviteForm.editorRole" class="sr-only" />
         EDITOR
       </label>
     </div>
@@ -40,12 +46,10 @@
     }
   </div>
 
-  <button
-    type="submit"
-    [class]="submitClasses"
-    [disabled]="inviteForm().submitting()"
-    class="self-start"
-  >
-    {{ inviteForm().submitting() ? 'Sending…' : 'Send Invitation' }}
-  </button>
+  <div class="mt-2 flex justify-end gap-3">
+    <button type="button" [class]="cancelClasses" (click)="cancelled.emit()">Cancel</button>
+    <button type="submit" [class]="submitClasses" [disabled]="inviteForm().submitting()">
+      {{ inviteForm().submitting() ? 'Sending…' : 'Send Invitation' }}
+    </button>
+  </div>
 </form>

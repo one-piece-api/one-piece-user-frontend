@@ -55,6 +55,7 @@ export class InviteUserForm {
   private readonly toastService = inject(ToastService);
 
   readonly invited = output<void>();
+  readonly cancelled = output<void>();
 
   protected readonly model = signal<InviteFormModel>({ ...EMPTY_MODEL });
   protected readonly inviteForm = form(this.model, (path) => {
@@ -69,6 +70,7 @@ export class InviteUserForm {
   });
 
   protected readonly submitClasses = buttonClasses('primary');
+  protected readonly cancelClasses = buttonClasses('secondary');
 
   protected onSubmit(event: Event): void {
     event.preventDefault();

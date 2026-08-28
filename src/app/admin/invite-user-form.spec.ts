@@ -43,6 +43,23 @@ describe('InviteUserForm', () => {
     expect(root.textContent).toContain('Pick at least one role');
   });
 
+  it('emits cancelled when the Cancel button is clicked, without calling the backend', async () => {
+    const fixture = TestBed.createComponent(InviteUserForm);
+    fixture.detectChanges();
+    let cancelledEmitted = false;
+    fixture.componentInstance.cancelled.subscribe(() => (cancelledEmitted = true));
+
+    const root = fixture.nativeElement as HTMLElement;
+    const cancelButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Cancel',
+    );
+    cancelButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectNone('/api/admin/users');
+    expect(cancelledEmitted).toBe(true);
+  });
+
   it('invites a user, emits invited, resets the form, and shows a success toast', async () => {
     const fixture = TestBed.createComponent(InviteUserForm);
     fixture.detectChanges();
