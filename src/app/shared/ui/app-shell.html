@@ -1,4 +1,4 @@
-<div class="flex min-h-screen">
+<div class="flex h-screen overflow-hidden">
   @if (drawerOpen()) {
     <button
       type="button"
@@ -75,7 +75,7 @@
     }
   </aside>
 
-  <div class="flex min-w-0 flex-1 flex-col">
+  <div class="flex min-w-0 flex-1 flex-col overflow-y-auto">
     <div
       class="flex items-center gap-3 border-b border-ocean-900/10 bg-ocean-900 px-4 py-3 lg:hidden"
     >
