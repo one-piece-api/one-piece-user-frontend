@@ -24,7 +24,7 @@ export const TONE_BORDER_CLASS: Record<BadgeTone, string> = {
   gold: 'border-l-treasure-500',
   navy: 'border-l-ocean-700',
   success: 'border-l-success-500',
-  neutral: 'border-l-ocean-900/30',
+  neutral: 'border-l-ocean-900/50',
   danger: 'border-l-flag-500',
 };
 

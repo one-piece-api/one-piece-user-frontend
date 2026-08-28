@@ -1,4 +1,4 @@
-<div class="flex w-full flex-col gap-6">
+<div class="flex w-full max-w-4xl flex-col gap-6">
   <div class="flex flex-wrap items-end justify-between gap-4">
     <app-page-header eyebrow="Admin Only · users:read">Crew Manifest</app-page-header>
     <button type="button" [class]="primaryClasses" (click)="showInviteModal.set(true)">
@@ -86,15 +86,12 @@
             animate.enter="anim-row-enter"
             [style.animation-delay.ms]="i * 40"
             [class]="
-              'flex flex-col gap-2.5 rounded-xl border-l-4 p-3 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:gap-4 sm:p-3.5 ' +
+              'grid items-center gap-3 rounded-xl border-l-[6px] p-3 shadow-sm transition-shadow hover:shadow-md sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] sm:gap-4 sm:p-3.5 ' +
               statusBorderClass(user.status) +
               (user.status === 'DISABLED' ? ' bg-parchment-50' : ' bg-parchment-100')
             "
           >
-            <a
-              [routerLink]="['/admin/users', user.userId]"
-              class="flex min-w-0 items-center gap-3 sm:flex-1"
-            >
+            <a [routerLink]="['/admin/users', user.userId]" class="flex min-w-0 items-center gap-3">
               <span
                 class="grid size-9 flex-none place-items-center rounded-full bg-parchment-200 font-display text-sm font-bold text-ocean-700"
               >
@@ -110,7 +107,7 @@
               </span>
             </a>
 
-            <div class="flex flex-wrap items-center gap-1.5 sm:flex-1">
+            <div class="flex flex-wrap items-center gap-1.5">
               @for (role of user.roles; track role) {
                 <span
                   class="inline-flex items-center rounded-full bg-parchment-200 px-2.5 py-1 font-heading text-xs font-bold text-ocean-900"
@@ -122,10 +119,11 @@
               }
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
-              <app-badge [tone]="statusTone[user.status]" [dot]="true">{{
-                statusLabel[user.status]
-              }}</app-badge>
+            <app-badge [tone]="statusTone[user.status]" [dot]="true">{{
+              statusLabel[user.status]
+            }}</app-badge>
+
+            <div class="flex flex-wrap items-center gap-2 justify-self-start sm:justify-self-end">
               @if (user.status === 'INVITATION_EXPIRED') {
                 <button
                   type="button"
