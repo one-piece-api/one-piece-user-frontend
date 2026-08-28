@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { logoutUrl } from '../../identity/auth-urls';
 import { CurrentUserService } from '../../identity/current-user';
 import { NAV_GROUPS, type NavGroup } from '../nav/nav-items';
+import { initialsOf } from './initials';
 
 /**
  * The application's page shell: a persistent sidebar (desktop) / off-canvas drawer
@@ -40,7 +41,5 @@ export class AppShell {
     this.drawerOpen.set(false);
   }
 
-  protected initials(username: string): string {
-    return username.slice(0, 2).toUpperCase();
-  }
+  protected readonly initials = initialsOf;
 }

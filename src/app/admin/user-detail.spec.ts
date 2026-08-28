@@ -7,7 +7,10 @@ import type { RolePermissions } from './admin-user.model';
 import { AdminUserDetail } from './user-detail';
 
 const DEFAULT_ROLE_REGISTRY: RolePermissions[] = [
-  { role: 'ADMIN', permissions: ['users:read', 'users:invite', 'roles:write', 'access:write', 'audit:read'] },
+  {
+    role: 'ADMIN',
+    permissions: ['users:read', 'users:invite', 'roles:write', 'access:write', 'audit:read'],
+  },
   { role: 'REVIEWER', permissions: ['docs:read', 'docs:review'] },
   { role: 'EDITOR', permissions: ['docs:read', 'docs:write'] },
 ];
@@ -42,7 +45,10 @@ describe('AdminUserDetail', () => {
     httpTesting.verify();
   });
 
-  function createWithUserId(userId: string, roleRegistry: RolePermissions[] = DEFAULT_ROLE_REGISTRY) {
+  function createWithUserId(
+    userId: string,
+    roleRegistry: RolePermissions[] = DEFAULT_ROLE_REGISTRY,
+  ) {
     const fixture = TestBed.createComponent(AdminUserDetail);
     fixture.componentRef.setInput('userId', userId);
     fixture.detectChanges();
@@ -91,13 +97,13 @@ describe('AdminUserDetail', () => {
       (h) => h.textContent?.trim() === 'Effective Permissions',
     );
     const panel = heading!.nextElementSibling as HTMLElement;
-    const permissionBadges = Array.from(panel.querySelectorAll('app-badge')).map((b) =>
-      b.textContent?.trim(),
+    const permissionChips = Array.from(panel.querySelectorAll('span')).map((s) =>
+      s.textContent?.trim(),
     );
-    expect(permissionBadges).toEqual(['docs:read', 'docs:review', 'docs:write']);
+    expect(permissionChips).toEqual(['docs:read', 'docs:review', 'docs:write']);
   });
 
-  it('shows Grant for a role the crewmate does not hold and Revoke for one it does', async () => {
+  it('offers to add a role the crewmate does not hold and to revoke one it does', async () => {
     const fixture = createWithUserId('1');
 
     httpTesting.expectOne('/api/admin/users/1').flush({
@@ -112,8 +118,8 @@ describe('AdminUserDetail', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const buttons = Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim());
-    expect(buttons).toContain('Grant');
-    expect(buttons).toContain('Revoke');
+    expect(buttons).toContain('+ ADMIN');
+    expect(root.querySelector('button[aria-label="Revoke role EDITOR"]')).toBeTruthy();
   });
 
   it('grants a role and reloads the crewmate', async () => {
@@ -132,7 +138,7 @@ describe('AdminUserDetail', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const grantButton = Array.from(root.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Grant',
+      (button) => button.textContent?.trim() === '+ ADMIN',
     );
     grantButton!.click();
     fixture.detectChanges();
@@ -171,8 +177,8 @@ describe('AdminUserDetail', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const revokeButton = Array.from(root.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Revoke',
+    const revokeButton = root.querySelector<HTMLButtonElement>(
+      'button[aria-label="Revoke role EDITOR"]',
     );
     revokeButton!.click();
     fixture.detectChanges();
@@ -211,8 +217,8 @@ describe('AdminUserDetail', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const revokeButton = Array.from(root.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Revoke',
+    const revokeButton = root.querySelector<HTMLButtonElement>(
+      'button[aria-label="Revoke role ADMIN"]',
     );
     revokeButton!.click();
     fixture.detectChanges();
@@ -249,8 +255,8 @@ describe('AdminUserDetail', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const revokeButton = Array.from(root.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Revoke',
+    const revokeButton = root.querySelector<HTMLButtonElement>(
+      'button[aria-label="Revoke role EDITOR"]',
     );
     revokeButton!.click();
     fixture.detectChanges();

@@ -1,3 +1,6 @@
 <span animate.enter="anim-badge-enter" [style.animation-delay.ms]="delayMs()" [class]="classes()">
+  @if (dot()) {
+    <span class="mr-1.5 inline-block size-2 rounded-full" [class]="dotClass()"></span>
+  }
   <ng-content />
 </span>
