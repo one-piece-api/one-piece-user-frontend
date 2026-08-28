@@ -92,6 +92,108 @@ describe('AdminUserList', () => {
     expect(root.textContent).toContain('docs:read · docs:write');
   });
 
+  function emptyPage() {
+    return { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 };
+  }
+
+  it('narrows the manifest by search text, resetting to page 0', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const searchInput = root.querySelector('#crew-search') as HTMLInputElement;
+    searchInput.value = 'nami';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users?page=0&q=nami').flush(emptyPage());
+  });
+
+  it('narrows the manifest by role', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const roleSelect = root.querySelector('#crew-role') as HTMLSelectElement;
+    roleSelect.value = 'ADMIN';
+    roleSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users?page=0&role=ADMIN').flush(emptyPage());
+  });
+
+  it('narrows the manifest by status', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const statusSelect = root.querySelector('#crew-status') as HTMLSelectElement;
+    statusSelect.value = 'DISABLED';
+    statusSelect.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users?page=0&status=DISABLED').flush(emptyPage());
+  });
+
+  it('resets every filter back to the unfiltered listing', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const searchInput = root.querySelector('#crew-search') as HTMLInputElement;
+    searchInput.value = 'nami';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/users?page=0&q=nami').flush(emptyPage());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const resetButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Reset',
+    );
+    resetButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+  });
+
+  it('shows a filter-aware empty state instead of "no crew members yet" when a filter is active', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const searchInput = root.querySelector('#crew-search') as HTMLInputElement;
+    searchInput.value = 'nobody';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/users?page=0&q=nobody').flush(emptyPage());
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain('No one answers the roll call');
+    expect(root.textContent).not.toContain('No crew members yet.');
+  });
+
   it('shows an error toast message when the request fails', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();

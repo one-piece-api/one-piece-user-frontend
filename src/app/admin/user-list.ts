@@ -9,8 +9,10 @@ import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { Modal } from '../shared/ui/modal';
 import {
+  ASSIGNABLE_ROLES,
   STATUS_LABEL,
   STATUS_TONE,
+  type AccountStatus,
   type AdminUserSummary,
   type RolePermissions,
 } from './admin-user.model';
@@ -18,6 +20,9 @@ import { InviteUserForm } from './invite-user-form';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
 const ADMIN_ROLES_ENDPOINT = '/api/admin/roles';
+
+type RoleFilter = 'ALL' | (typeof ASSIGNABLE_ROLES)[number];
+type StatusFilter = 'ALL' | AccountStatus;
 const INVITATION_NOT_RESENDABLE_ERROR_CODE = 'USER_INVITATION_NOT_RESENDABLE';
 const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
 
@@ -40,9 +45,30 @@ export class AdminUserList {
   private readonly toastService = inject(ToastService);
 
   protected readonly page = signal(0);
-  protected readonly users = httpResource<PageResponse<AdminUserSummary>>(
-    () => `${ADMIN_USERS_ENDPOINT}?page=${this.page()}`,
+  protected readonly query = signal('');
+  protected readonly roleFilter = signal<RoleFilter>('ALL');
+  protected readonly statusFilter = signal<StatusFilter>('ALL');
+  protected readonly hasActiveFilter = computed(
+    () =>
+      this.query().trim().length > 0 ||
+      this.roleFilter() !== 'ALL' ||
+      this.statusFilter() !== 'ALL',
   );
+
+  protected readonly users = httpResource<PageResponse<AdminUserSummary>>(() => {
+    const params = new URLSearchParams({ page: String(this.page()) });
+    const query = this.query().trim();
+    if (query) {
+      params.set('q', query);
+    }
+    if (this.roleFilter() !== 'ALL') {
+      params.set('role', this.roleFilter());
+    }
+    if (this.statusFilter() !== 'ALL') {
+      params.set('status', this.statusFilter());
+    }
+    return `${ADMIN_USERS_ENDPOINT}?${params.toString()}`;
+  });
 
   /** Powers the read-only "Roles &amp; Permissions" panel below the manifest (ADR-0007). */
   protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ADMIN_ROLES_ENDPOINT);
@@ -52,6 +78,8 @@ export class AdminUserList {
 
   protected readonly statusTone = STATUS_TONE;
   protected readonly statusLabel = STATUS_LABEL;
+  protected readonly assignableRoles = ASSIGNABLE_ROLES;
+  protected readonly statuses = Object.keys(STATUS_LABEL) as AccountStatus[];
   protected readonly navClasses = buttonClasses('secondary');
   protected readonly primaryClasses = buttonClasses('primary');
 
@@ -91,6 +119,28 @@ export class AdminUserList {
 
   protected nextPage(): void {
     this.page.update((current) => current + 1);
+  }
+
+  protected setQuery(value: string): void {
+    this.query.set(value);
+    this.page.set(0);
+  }
+
+  protected setRoleFilter(value: string): void {
+    this.roleFilter.set(value as RoleFilter);
+    this.page.set(0);
+  }
+
+  protected setStatusFilter(value: string): void {
+    this.statusFilter.set(value as StatusFilter);
+    this.page.set(0);
+  }
+
+  protected resetFilters(): void {
+    this.query.set('');
+    this.roleFilter.set('ALL');
+    this.statusFilter.set('ALL');
+    this.page.set(0);
   }
 
   /** A fresh invite lands as a PENDING row - no new concept, just re-fetch the current page. */
