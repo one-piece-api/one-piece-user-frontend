@@ -30,6 +30,7 @@ describe('WhoAmI', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('luffy');
+    expect(root.textContent).toContain('luffy@onepiece.local');
     expect(root.textContent).toContain('ADMIN');
   });
 
