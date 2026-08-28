@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
 import { ToastService } from '../shared/toast/toast';
-import { Badge, TONE_BORDER_CLASS } from '../shared/ui/badge';
+import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { initialsOf } from '../shared/ui/initials';
@@ -13,7 +13,7 @@ import {
   ASSIGNABLE_ROLES,
   STATUS_LABEL,
   STATUS_TONE,
-  type AccountStatus,
+  statusBorderClass,
   type AdminUserSummary,
   type RolePermissions,
 } from './admin-user.model';
@@ -78,15 +78,11 @@ export class AdminUserDetail {
   protected readonly dangerClasses = buttonClasses('danger');
   protected readonly primaryClasses = buttonClasses('primary');
   protected readonly initials = initialsOf;
+  protected readonly statusBorderClass = statusBorderClass;
 
   protected readonly pendingRole = signal<string | null>(null);
   protected readonly confirmingAction = signal<AccessAction | null>(null);
   protected readonly accessActionPending = signal(false);
-
-  /** The status pill's dot/left-border stripe color - reuses the Badge tone accent map. */
-  protected statusBorderClass(status: AccountStatus): string {
-    return TONE_BORDER_CLASS[STATUS_TONE[status]];
-  }
 
   /** The assignable roles this crewmate does not already hold - offered as "add a role" chips. */
   protected availableRoles(user: AdminUserSummary): readonly string[] {

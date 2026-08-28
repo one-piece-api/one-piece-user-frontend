@@ -247,6 +247,7 @@ describe('AdminUserList', () => {
       content: [
         {
           userId: '1',
+          username: 'usopp',
           email: 'usopp@onepiece.local',
           status: 'INVITATION_EXPIRED',
           roles: ['EDITOR'],
@@ -282,6 +283,7 @@ describe('AdminUserList', () => {
       content: [
         {
           userId: '1',
+          username: 'usopp',
           email: 'usopp@onepiece.local',
           status: 'PENDING',
           roles: ['EDITOR'],
@@ -304,6 +306,7 @@ describe('AdminUserList', () => {
       content: [
         {
           userId: '1',
+          username: 'usopp',
           email: 'usopp@onepiece.local',
           status: 'INVITATION_EXPIRED',
           roles: ['EDITOR'],
@@ -348,7 +351,15 @@ describe('AdminUserList', () => {
     httpTesting.expectOne('/api/admin/roles').flush([]);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [{ userId: '1', email: 'luffy@onepiece.local', status: 'ACTIVE', roles: ['ADMIN'] }],
+      content: [
+        {
+          userId: '1',
+          username: 'luffy',
+          email: 'luffy@onepiece.local',
+          status: 'ACTIVE',
+          roles: ['ADMIN'],
+        },
+      ],
       page: 0,
       size: 20,
       totalElements: 1,
@@ -388,10 +399,53 @@ describe('AdminUserList', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const manageRolesLink = Array.from(root.querySelectorAll('a')).find(
-      (link) => link.textContent?.trim() === 'Manage Roles',
+    const detailLinks = Array.from(root.querySelectorAll('a')).filter(
+      (link) => link.getAttribute('href') === '/admin/users/1',
     );
-    expect(manageRolesLink?.getAttribute('href')).toBe('/admin/users/1');
+    expect(detailLinks.length).toBeGreaterThan(0);
+    expect(detailLinks.some((link) => link.textContent?.includes('Details'))).toBe(true);
+  });
+
+  it('shows numbered pagination buttons and lets you jump directly to a page', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
+
+    httpTesting.expectOne('/api/admin/users?page=0').flush({
+      content: [
+        {
+          userId: '1',
+          username: 'luffy',
+          email: 'luffy@onepiece.local',
+          status: 'ACTIVE',
+          roles: ['ADMIN'],
+        },
+      ],
+      page: 0,
+      size: 1,
+      totalElements: 3,
+      totalPages: 3,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const pageButtons = Array.from(root.querySelectorAll('button')).filter((b) =>
+      ['1', '2', '3'].includes(b.textContent?.trim() ?? ''),
+    );
+    expect(pageButtons.map((b) => b.textContent?.trim())).toEqual(['1', '2', '3']);
+
+    const pageThreeButton = pageButtons.find((b) => b.textContent?.trim() === '3');
+    pageThreeButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users?page=2').flush({
+      content: [],
+      page: 2,
+      size: 1,
+      totalElements: 3,
+      totalPages: 3,
+    });
   });
 
   it('does not show a resend action for a still-pending (not yet expired) user', async () => {
@@ -401,7 +455,13 @@ describe('AdminUserList', () => {
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
       content: [
-        { userId: '1', email: 'usopp@onepiece.local', status: 'PENDING', roles: ['EDITOR'] },
+        {
+          userId: '1',
+          username: 'usopp',
+          email: 'usopp@onepiece.local',
+          status: 'PENDING',
+          roles: ['EDITOR'],
+        },
       ],
       page: 0,
       size: 20,

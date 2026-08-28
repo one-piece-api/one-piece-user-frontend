@@ -7,11 +7,14 @@ import { ToastService } from '../shared/toast/toast';
 import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
+import { initialsOf } from '../shared/ui/initials';
 import { Modal } from '../shared/ui/modal';
+import { PageHeader } from '../shared/ui/page-header';
 import {
   ASSIGNABLE_ROLES,
   STATUS_LABEL,
   STATUS_TONE,
+  statusBorderClass,
   type AccountStatus,
   type AdminUserSummary,
   type RolePermissions,
@@ -38,7 +41,7 @@ interface PageResponse<T> {
 @Component({
   selector: 'app-admin-user-list',
   templateUrl: './user-list.html',
-  imports: [Card, Badge, Modal, InviteUserForm, RouterLink],
+  imports: [Card, Badge, Modal, InviteUserForm, RouterLink, PageHeader],
 })
 export class AdminUserList {
   private readonly http = inject(HttpClient);
@@ -82,6 +85,10 @@ export class AdminUserList {
   protected readonly statuses = Object.keys(STATUS_LABEL) as AccountStatus[];
   protected readonly navClasses = buttonClasses('secondary');
   protected readonly primaryClasses = buttonClasses('primary');
+  protected readonly initials = initialsOf;
+  protected readonly statusBorderClass = statusBorderClass;
+  protected readonly pageArrowClasses =
+    'cursor-pointer rounded-lg border-2 border-ocean-900/15 bg-parchment-100 px-3 py-2 font-heading text-sm font-bold text-ocean-700 transition-colors hover:border-ocean-900/30 disabled:cursor-not-allowed disabled:opacity-40';
 
   protected readonly hasPrevious = computed(() => this.page() > 0);
   protected readonly hasNext = computed(
@@ -119,6 +126,23 @@ export class AdminUserList {
 
   protected nextPage(): void {
     this.page.update((current) => current + 1);
+  }
+
+  protected goToPage(pageNumber: number): void {
+    this.page.set(pageNumber);
+  }
+
+  protected pageNumbers(totalPages: number): number[] {
+    return Array.from({ length: totalPages }, (_, i) => i);
+  }
+
+  /** Highlights the current page among the numbered pagination buttons. */
+  protected pageButtonClasses(pageNumber: number): string {
+    const base =
+      'flex size-9 cursor-pointer items-center justify-center rounded-lg font-display text-sm font-bold transition-colors';
+    return this.page() === pageNumber
+      ? `${base} bg-treasure-500 text-ocean-950`
+      : `${base} bg-parchment-100 text-ocean-900 ring-1 ring-ocean-900/15 hover:ring-ocean-900/30`;
   }
 
   protected setQuery(value: string): void {

@@ -1,4 +1,4 @@
-import type { BadgeTone } from '../shared/ui/badge';
+import { TONE_BORDER_CLASS, type BadgeTone } from '../shared/ui/badge';
 
 export type AccountStatus = 'PENDING' | 'INVITATION_EXPIRED' | 'ACTIVE' | 'DISABLED';
 
@@ -26,6 +26,11 @@ export const STATUS_LABEL: Record<AccountStatus, string> = {
   INVITATION_EXPIRED: 'Invite Expired',
   DISABLED: 'Disabled',
 };
+
+/** A status's accent as a left-border color - the Crew Manifest rows and the User Detail card stripe. */
+export function statusBorderClass(status: AccountStatus): string {
+  return TONE_BORDER_CLASS[STATUS_TONE[status]];
+}
 
 /** One realm role and the permissions it currently bundles - see `GET /admin/roles` (ADR-0007). */
 export interface RolePermissions {

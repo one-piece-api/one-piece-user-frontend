@@ -1,16 +1,13 @@
 <div class="flex w-full flex-col gap-6">
-  <app-card [wide]="true">
-    <div class="mb-6 flex flex-wrap items-center justify-between gap-3 text-left">
-      <h2 class="font-display text-2xl font-semibold text-ocean-900">Crew Manifest</h2>
-      <div class="flex items-center gap-4">
-        <span class="font-heading text-sm text-ocean-700">{{ range() }}</span>
-        <button type="button" [class]="primaryClasses" (click)="showInviteModal.set(true)">
-          New User
-        </button>
-      </div>
-    </div>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <app-page-header eyebrow="Admin Only · users:read">Crew Manifest</app-page-header>
+    <button type="button" [class]="primaryClasses" (click)="showInviteModal.set(true)">
+      New User
+    </button>
+  </div>
 
-    <div class="mb-6 grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
+  <app-card [wide]="true">
+    <div class="grid gap-3 text-left sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
       <div>
         <label for="crew-search" class="mb-1 block font-heading text-xs font-bold text-ocean-500"
           >Search</label
@@ -58,13 +55,22 @@
       </div>
       <button type="button" [class]="navClasses" (click)="resetFilters()">Reset</button>
     </div>
+    @if (range(); as r) {
+      <p class="mt-3 font-heading text-sm font-semibold text-ocean-500">{{ r }}</p>
+    }
+  </app-card>
 
-    @if (users.isLoading()) {
+  @if (users.isLoading()) {
+    <app-card [wide]="true">
       <p class="font-heading text-ocean-700">Charting the crew…</p>
-    } @else if (users.error()) {
+    </app-card>
+  } @else if (users.error()) {
+    <app-card [wide]="true">
       <p class="font-heading text-flag-700">Lost the manifest. Could not load the crew.</p>
-    } @else if (users.value(); as page) {
-      @if (page.content.length === 0) {
+    </app-card>
+  } @else if (users.value(); as page) {
+    @if (page.content.length === 0) {
+      <app-card [wide]="true">
         @if (hasActiveFilter()) {
           <p class="font-heading text-ocean-700">
             No one answers the roll call. Try clearing the filters.
@@ -72,89 +78,112 @@
         } @else {
           <p class="font-heading text-ocean-700">No crew members yet.</p>
         }
-      } @else {
-        <div class="overflow-x-auto rounded-lg border border-ocean-900/10">
-          <table class="w-full min-w-[32rem] border-collapse text-left">
-            <thead>
-              <tr
-                class="bg-ocean-900 font-heading text-xs tracking-wide text-parchment-100 uppercase"
+      </app-card>
+    } @else {
+      <div class="flex flex-col gap-3">
+        @for (user of page.content; track user.userId; let i = $index) {
+          <div
+            animate.enter="anim-row-enter"
+            [style.animation-delay.ms]="i * 40"
+            [class]="
+              'grid items-center gap-4 rounded-2xl border-l-4 p-4 shadow-sm transition-shadow hover:shadow-md sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:p-5 ' +
+              statusBorderClass(user.status) +
+              (user.status === 'DISABLED' ? ' bg-parchment-50' : ' bg-parchment-100')
+            "
+          >
+            <a [routerLink]="['/admin/users', user.userId]" class="flex min-w-0 items-center gap-3">
+              <span
+                class="grid size-11 flex-none place-items-center rounded-full bg-parchment-200 font-display text-sm font-bold text-ocean-700"
               >
-                <th class="px-4 py-3 font-semibold" scope="col">Username</th>
-                <th class="px-4 py-3 font-semibold" scope="col">Status</th>
-                <th class="px-4 py-3 font-semibold" scope="col">Roles</th>
-                <th class="px-4 py-3 font-semibold" scope="col">
-                  <span class="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (user of page.content; track user.userId; let i = $index) {
-                <tr
-                  animate.enter="anim-row-enter"
-                  [style.animation-delay.ms]="i * 40"
-                  class="border-t border-ocean-900/10 odd:bg-parchment-50 even:bg-parchment-100"
+                {{ initials(user.username) }}
+              </span>
+              <span class="min-w-0">
+                <span class="block truncate font-display text-lg font-semibold text-ocean-900">{{
+                  user.username
+                }}</span>
+                <span class="block truncate font-heading text-sm font-semibold text-ocean-700">{{
+                  user.email
+                }}</span>
+              </span>
+            </a>
+
+            <div class="flex flex-wrap items-center gap-1.5">
+              @for (role of user.roles; track role) {
+                <span
+                  class="inline-flex items-center rounded-full bg-parchment-200 px-3 py-1.5 font-heading text-xs font-bold text-ocean-900"
                 >
-                  <td class="px-4 py-3 font-heading font-medium break-all text-ocean-900">
-                    {{ user.username }}
-                  </td>
-                  <td class="px-4 py-3">
-                    <app-badge [tone]="statusTone[user.status]">{{
-                      statusLabel[user.status]
-                    }}</app-badge>
-                  </td>
-                  <td class="px-4 py-3">
-                    <div class="flex flex-wrap gap-1.5">
-                      @for (role of user.roles; track role) {
-                        <app-badge tone="gold">{{ role }}</app-badge>
-                      } @empty {
-                        <span class="font-heading text-sm text-ocean-700/50">—</span>
-                      }
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 text-right">
-                    <div class="flex justify-end gap-2">
-                      @if (user.status === 'INVITATION_EXPIRED') {
-                        <button
-                          type="button"
-                          [class]="navClasses"
-                          [disabled]="resendingUserId() === user.userId"
-                          (click)="resendInvitation(user)"
-                        >
-                          {{
-                            resendingUserId() === user.userId ? 'Resending…' : 'Resend Invitation'
-                          }}
-                        </button>
-                      }
-                      <a [class]="navClasses" [routerLink]="['/admin/users', user.userId]"
-                        >Manage Roles</a
-                      >
-                    </div>
-                  </td>
-                </tr>
+                  {{ role }}
+                </span>
+              } @empty {
+                <span class="font-heading text-sm text-ocean-700/50">—</span>
               }
-            </tbody>
-          </table>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-start gap-2 sm:justify-end">
+              <app-badge [tone]="statusTone[user.status]" [dot]="true">{{
+                statusLabel[user.status]
+              }}</app-badge>
+              @if (user.status === 'INVITATION_EXPIRED') {
+                <button
+                  type="button"
+                  [class]="primaryClasses"
+                  [disabled]="resendingUserId() === user.userId"
+                  (click)="resendInvitation(user)"
+                >
+                  {{ resendingUserId() === user.userId ? 'Resending…' : 'Resend Invitation' }}
+                </button>
+              }
+              <a
+                [routerLink]="['/admin/users', user.userId]"
+                class="flex-none rounded-lg bg-parchment-200 px-3 py-1.5 font-heading text-xs font-bold text-ocean-700 transition-colors hover:bg-parchment-200/70"
+              >
+                Details →
+              </a>
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (page.totalPages > 1) {
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              [class]="pageArrowClasses"
+              [disabled]="!hasPrevious()"
+              (click)="previousPage()"
+            >
+              ←
+            </button>
+            <div class="flex items-center gap-1.5">
+              @for (pageNumber of pageNumbers(page.totalPages); track pageNumber) {
+                <button
+                  type="button"
+                  [class]="pageButtonClasses(pageNumber)"
+                  (click)="goToPage(pageNumber)"
+                >
+                  {{ pageNumber + 1 }}
+                </button>
+              }
+            </div>
+            <button
+              type="button"
+              [class]="pageArrowClasses"
+              [disabled]="!hasNext()"
+              (click)="nextPage()"
+            >
+              →
+            </button>
+          </div>
+          <span
+            class="inline-flex rounded-full bg-ocean-900 px-3.5 py-1.5 font-heading text-xs font-bold text-white"
+          >
+            Page {{ page.page + 1 }} of {{ page.totalPages }}
+          </span>
         </div>
       }
-
-      <div class="mt-6 flex items-center justify-center gap-3">
-        <button
-          type="button"
-          [class]="navClasses"
-          [disabled]="!hasPrevious()"
-          (click)="previousPage()"
-        >
-          Previous
-        </button>
-        <span class="font-heading text-sm text-ocean-700"
-          >Page {{ page.page + 1 }} of {{ page.totalPages || 1 }}</span
-        >
-        <button type="button" [class]="navClasses" [disabled]="!hasNext()" (click)="nextPage()">
-          Next
-        </button>
-      </div>
     }
-  </app-card>
+  }
 
   <div class="grid gap-6 sm:grid-cols-2">
     <app-card [wide]="true">
