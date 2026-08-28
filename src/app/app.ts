@@ -1,10 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastViewport } from './shared/toast/toast-viewport';
-import { Header } from './shared/ui/header';
+import { AppShell } from './shared/ui/app-shell';
 
 @Component({
-  imports: [RouterOutlet, Header, ToastViewport],
+  imports: [RouterOutlet, AppShell, ToastViewport],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',

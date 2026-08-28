@@ -22,18 +22,23 @@ describe('App', () => {
   it('should create the app', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/me').flush({ email: 'luffy@onepiece.local', roles: ['ADMIN'] });
+    httpTesting
+      .expectOne('/api/me')
+      .flush({ username: 'luffy', email: 'luffy@onepiece.local', roles: ['ADMIN'] });
 
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the navbar brand', async () => {
+  it('renders the shell brand mark', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/me').flush({ email: 'luffy@onepiece.local', roles: ['ADMIN'] });
+    httpTesting
+      .expectOne('/api/me')
+      .flush({ username: 'luffy', email: 'luffy@onepiece.local', roles: ['ADMIN'] });
     await fixture.whenStable();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('One Piece API');
+    const logos = Array.from(compiled.querySelectorAll('img[alt="One Piece API"]'));
+    expect(logos.length).toBeGreaterThan(0);
   });
 });

@@ -1,0 +1,97 @@
+<div class="flex min-h-screen">
+  @if (drawerOpen()) {
+    <button
+      type="button"
+      aria-label="Close menu"
+      class="fixed inset-0 z-30 bg-ocean-950/50 lg:hidden"
+      (click)="closeDrawer()"
+    ></button>
+  }
+
+  <aside [class]="asideClasses()">
+    <div class="flex items-center justify-between gap-3 px-1">
+      <a routerLink="/" (click)="closeDrawer()" class="shrink-0">
+        <img src="assets/logo.png" alt="One Piece API" class="h-11 w-auto object-contain" />
+      </a>
+      <button
+        type="button"
+        aria-label="Close menu"
+        class="grid size-8 cursor-pointer place-items-center rounded-lg bg-white/10 text-parchment-100 lg:hidden"
+        (click)="closeDrawer()"
+      >
+        ✕
+      </button>
+    </div>
+
+    <nav class="flex flex-1 flex-col gap-5">
+      @for (group of navGroups; track group.label) {
+        @if (visibleItems(group).length > 0) {
+          <div class="flex flex-col gap-1">
+            <div
+              class="px-3 pb-1 font-heading text-[11px] font-bold tracking-widest text-parchment-100/40 uppercase"
+            >
+              {{ group.label }}
+            </div>
+            @for (item of visibleItems(group); track item.id) {
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="bg-white/10 text-parchment-100"
+                [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+                (click)="closeDrawer()"
+                class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-parchment-100/70 transition-colors hover:bg-white/5 hover:text-parchment-100"
+              >
+                <span class="w-5 text-center text-treasure-500">{{ item.icon }}</span>
+                <span>{{ item.label }}</span>
+              </a>
+            }
+          </div>
+        }
+      }
+    </nav>
+
+    @if (currentUser.me.value(); as identity) {
+      <div class="mt-auto border-t border-white/10 pt-4">
+        <div class="mb-3 flex items-center gap-3">
+          <div
+            class="grid size-9 shrink-0 place-items-center rounded-full bg-treasure-500 font-display text-sm font-semibold text-ocean-950"
+          >
+            {{ initials(identity.username) }}
+          </div>
+          <div class="min-w-0">
+            <div class="truncate font-display text-sm font-semibold text-parchment-100">
+              {{ identity.username }}
+            </div>
+            <div class="truncate font-heading text-xs font-extrabold text-treasure-500">
+              {{ identity.roles.join(' · ') }}
+            </div>
+          </div>
+        </div>
+        <a
+          [href]="logoutUrl"
+          class="block rounded-xl bg-white/10 px-3 py-2 text-center font-display text-sm font-semibold text-parchment-100 transition-colors hover:bg-white/15"
+          >Log Out</a
+        >
+      </div>
+    }
+  </aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <div
+      class="flex items-center gap-3 border-b border-ocean-900/10 bg-ocean-900 px-4 py-3 lg:hidden"
+    >
+      <button
+        type="button"
+        aria-label="Open menu"
+        class="grid size-9 cursor-pointer place-items-center rounded-lg bg-white/10 text-parchment-100"
+        (click)="openDrawer()"
+      >
+        ☰
+      </button>
+      <img src="assets/logo.png" alt="One Piece API" class="h-7 w-auto object-contain" />
+    </div>
+
+    <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
+      <ng-content />
+    </main>
+  </div>
+</div>
