@@ -3,7 +3,14 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ToastService } from '../shared/toast/toast';
+import type { RolePermissions } from './admin-user.model';
 import { AdminUserDetail } from './user-detail';
+
+const DEFAULT_ROLE_REGISTRY: RolePermissions[] = [
+  { role: 'ADMIN', permissions: ['users:read', 'users:invite', 'roles:write', 'access:write', 'audit:read'] },
+  { role: 'REVIEWER', permissions: ['docs:read', 'docs:review'] },
+  { role: 'EDITOR', permissions: ['docs:read', 'docs:write'] },
+];
 
 // jsdom doesn't implement <dialog>'s showModal()/close() yet - every real browser this app
 // targets does, so this is purely a test-environment gap, polyfilled here rather than
@@ -35,10 +42,11 @@ describe('AdminUserDetail', () => {
     httpTesting.verify();
   });
 
-  function createWithUserId(userId: string) {
+  function createWithUserId(userId: string, roleRegistry: RolePermissions[] = DEFAULT_ROLE_REGISTRY) {
     const fixture = TestBed.createComponent(AdminUserDetail);
     fixture.componentRef.setInput('userId', userId);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush(roleRegistry);
     return fixture;
   }
 
@@ -60,6 +68,33 @@ describe('AdminUserDetail', () => {
     expect(root.textContent).toContain('nami@onepiece.local');
     expect(root.textContent).toContain('Active');
     expect(root.textContent).toContain('EDITOR');
+  });
+
+  it('shows the union of every held roles permissions, with duplicates removed', async () => {
+    const fixture = createWithUserId('1', [
+      { role: 'REVIEWER', permissions: ['docs:read', 'docs:review'] },
+      { role: 'EDITOR', permissions: ['docs:read', 'docs:write'] },
+    ]);
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      status: 'ACTIVE',
+      roles: ['REVIEWER', 'EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const heading = Array.from(root.querySelectorAll('h3')).find(
+      (h) => h.textContent?.trim() === 'Effective Permissions',
+    );
+    const panel = heading!.nextElementSibling as HTMLElement;
+    const permissionBadges = Array.from(panel.querySelectorAll('app-badge')).map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(permissionBadges).toEqual(['docs:read', 'docs:review', 'docs:write']);
   });
 
   it('shows Grant for a role the crewmate does not hold and Revoke for one it does', async () => {

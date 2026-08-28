@@ -60,6 +60,23 @@
         }
       </ul>
 
+      <h3 class="mt-6 mb-3 font-heading text-xs font-semibold tracking-wide text-ocean-900 uppercase">
+        Effective Permissions
+      </h3>
+      @if (effectivePermissions(); as permissions) {
+        <div class="flex flex-wrap gap-1.5">
+          @for (permission of permissions; track permission) {
+            <app-badge tone="gold">{{ permission }}</app-badge>
+          } @empty {
+            <span class="font-heading text-sm text-ocean-700/50">
+              No roles held - no permissions granted.
+            </span>
+          }
+        </div>
+      } @else {
+        <p class="font-heading text-sm text-ocean-700">Charting permissions…</p>
+      }
+
       <a
         routerLink="/admin/users"
         class="mt-6 inline-block font-heading text-sm text-ocean-700 transition-colors hover:text-ocean-900"

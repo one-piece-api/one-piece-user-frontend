@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
@@ -13,9 +13,11 @@ import {
   STATUS_LABEL,
   STATUS_TONE,
   type AdminUserSummary,
+  type RolePermissions,
 } from './admin-user.model';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
+const ADMIN_ROLES_ENDPOINT = '/api/admin/roles';
 const LAST_ADMINISTRATOR_ERROR_CODE = 'USER_LAST_ADMINISTRATOR';
 const LAST_ROLE_ERROR_CODE = 'USER_LAST_ROLE';
 
@@ -45,6 +47,27 @@ export class AdminUserDetail {
   protected readonly user = httpResource<AdminUserSummary>(
     () => `${ADMIN_USERS_ENDPOINT}/${this.userId()}`,
   );
+
+  /** Same registry the Crew Manifest reads (ADR-0007) - unioned below into this user's permissions. */
+  protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ADMIN_ROLES_ENDPOINT);
+
+  /** The union of every permission granted by any role this user currently holds, deduplicated. */
+  protected readonly effectivePermissions = computed(() => {
+    const roles = this.user.value()?.roles;
+    const registry = this.roleRegistry.value();
+    if (!roles || !registry) {
+      return null;
+    }
+    const permissions = new Set<string>();
+    for (const entry of registry) {
+      if (roles.includes(entry.role)) {
+        for (const permission of entry.permissions) {
+          permissions.add(permission);
+        }
+      }
+    }
+    return [...permissions].sort();
+  });
 
   protected readonly assignableRoles = ASSIGNABLE_ROLES;
   protected readonly statusTone = STATUS_TONE;
