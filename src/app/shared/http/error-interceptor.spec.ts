@@ -1,6 +1,7 @@
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { Router, provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ToastService } from '../toast/toast';
 import { apiErrorInterceptor } from './error-interceptor';
@@ -9,26 +10,33 @@ describe('apiErrorInterceptor', () => {
   let http: HttpClient;
   let httpTesting: HttpTestingController;
   let toastService: ToastService;
-  let locationAssign: ReturnType<typeof vi.fn>;
+  let router: Router;
+  let navigateByUrl: ReturnType<typeof spyOnNavigateByUrl>;
   const originalLocation = window.location;
+
+  function spyOnNavigateByUrl(target: Router) {
+    return vi.spyOn(target, 'navigateByUrl').mockResolvedValue(true);
+  }
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([apiErrorInterceptor])),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     });
     http = TestBed.inject(HttpClient);
     httpTesting = TestBed.inject(HttpTestingController);
     toastService = TestBed.inject(ToastService);
+    router = TestBed.inject(Router);
+    navigateByUrl = spyOnNavigateByUrl(router);
 
-    // jsdom's `location.assign` is non-configurable, so it can't be spied on directly -
-    // the whole `window.location` is replaced with a stub instead.
-    locationAssign = vi.fn();
+    // jsdom's `location` is non-configurable, so it can't be spied on directly - the
+    // whole `window.location` is replaced with a stub instead.
     Object.defineProperty(window, 'location', {
       configurable: true,
-      value: { pathname: '/admin/users', search: '?tab=roles', assign: locationAssign },
+      value: { pathname: '/admin/users', search: '?tab=roles' },
     });
   });
 
@@ -38,7 +46,6 @@ describe('apiErrorInterceptor', () => {
   });
 
   it.each([
-    [401, "session's sunk"],
     [403, "don't have clearance"],
     [500, 'broke on our end'],
     [0, 'broke on our end'],
@@ -53,25 +60,37 @@ describe('apiErrorInterceptor', () => {
     expect(toastService.toasts()[0].tone).toBe('error');
   });
 
-  it('sends the browser back through login on a 401, returning to the current page', async () => {
+  it('shows no toast for a 401, sending the browser through the Session Expired page instead', async () => {
     const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
 
     httpTesting.expectOne('/api/whatever').flush('', { status: 401, statusText: 'Unauthorized' });
     await request;
 
-    expect(locationAssign).toHaveBeenCalledWith(
-      '/oauth2/start?rd=' + encodeURIComponent('/admin/users?tab=roles'),
+    expect(toastService.toasts()).toHaveLength(0);
+  });
+
+  it('navigates to Session Expired on a 401, carrying the current page as returnTo', async () => {
+    const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
+
+    httpTesting.expectOne('/api/whatever').flush('', { status: 401, statusText: 'Unauthorized' });
+    await request;
+
+    expect(navigateByUrl).toHaveBeenCalledWith(
+      '/session-expired?returnTo=' + encodeURIComponent('/admin/users?tab=roles'),
     );
   });
 
-  it.each([403, 500, 0])('does not redirect to login for a %d response', async (status) => {
-    const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
+  it.each([403, 500, 0])(
+    'does not navigate to Session Expired for a %d response',
+    async (status) => {
+      const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
 
-    httpTesting.expectOne('/api/whatever').flush('', { status, statusText: 'Error' });
-    await request;
+      httpTesting.expectOne('/api/whatever').flush('', { status, statusText: 'Error' });
+      await request;
 
-    expect(locationAssign).not.toHaveBeenCalled();
-  });
+      expect(navigateByUrl).not.toHaveBeenCalled();
+    },
+  );
 
   it.each([400, 404, 409])(
     'does not show a toast for a %d response, leaving it to the caller',

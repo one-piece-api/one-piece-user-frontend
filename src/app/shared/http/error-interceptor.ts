@@ -1,7 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { loginUrl } from '../../identity/auth-urls';
 import { ToastService } from '../toast/toast';
 
 /**
@@ -13,22 +13,27 @@ import { ToastService } from '../toast/toast';
  * the calling code can provide, so they stay each component's job (see
  * `InviteUserForm.onSubmit`'s `USER_EMAIL_ALREADY_REGISTERED` check).
  *
- * A 401 additionally sends the browser through login again (UF-IDU-09: no valid
- * refresh left, oauth2-proxy itself rejected the request) - a toast alone would leave
- * the user stuck on a page that can never succeed again without a full reload.
+ * A 401 sends the browser through the Session Expired interstitial (UF-IDU-09: no valid
+ * refresh left, oauth2-proxy itself rejected the request) instead of a toast - a toast
+ * alone would leave the user stuck on a page that can never succeed again without a full
+ * reload, and an instant `window.location.assign` would flash straight to Keycloak with
+ * no explanation.
  */
 export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
   const toastService = inject(ToastService);
+  const router = inject(Router);
 
   return next(request).pipe(
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse) {
-        const message = genericMessageFor(error.status);
-        if (message) {
-          toastService.show(message, 'error');
-        }
         if (error.status === 401) {
-          redirectToLogin();
+          const returnTo = window.location.pathname + window.location.search;
+          router.navigateByUrl(`/session-expired?returnTo=${encodeURIComponent(returnTo)}`);
+        } else {
+          const message = genericMessageFor(error.status);
+          if (message) {
+            toastService.show(message, 'error');
+          }
         }
       }
       return throwError(() => error);
@@ -36,14 +41,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
   );
 };
 
-function redirectToLogin(): void {
-  window.location.assign(loginUrl(window.location.pathname + window.location.search));
-}
-
 function genericMessageFor(status: number): string | null {
-  if (status === 401) {
-    return "Arrr! Yer session's sunk to Davy Jones' Locker — log in again to keep sailing.";
-  }
   if (status === 403) {
     return "Arrr! Ye don't have clearance for that, matey.";
   }
