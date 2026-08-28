@@ -4,52 +4,58 @@
 
 /*
  * One Piece–themed design tokens (see docs/ui-ux-guidelines.md in the root
- * repo): an elegant navy/gold maritime palette - the theme lives in naming,
- * a restrained gold accent and typography, not in loud saturated color.
- * Tailwind v4's CSS-first `@theme` turns each of these into utility
- * classes, e.g. `bg-treasure-500`, `text-ocean-900`.
+ * repo): the "Sunny Deck" identity - a vivid indigo/gold palette, the theme
+ * expressed openly in color, type and motion, not just in naming. Tailwind
+ * v4's CSS-first `@theme` turns each of these into utility classes, e.g.
+ * `bg-treasure-500`, `text-ocean-900`.
  */
 @theme {
-  --color-ocean-950: #0c2a40;
-  --color-ocean-900: #163f5c;
-  --color-ocean-700: #2f5a7c;
-  --color-ocean-500: #5586a8;
+  --color-ocean-950: #123243;
+  --color-ocean-900: #1a2360;
+  --color-ocean-700: #1e4fc4;
+  --color-ocean-500: #4a6a7c;
 
-  --color-treasure-700: #7a5a28;
-  --color-treasure-600: #a17f3f;
-  --color-treasure-500: #b8935a;
-  --color-treasure-400: #cfb078;
-  --color-treasure-100: #f1e7d4;
+  --color-treasure-700: #8a6212;
+  --color-treasure-600: #d9a715;
+  --color-treasure-500: #ffd23f;
+  --color-treasure-400: #ffdc6b;
+  --color-treasure-100: #fff5e0;
 
-  --color-flag-700: #6e2a30;
-  --color-flag-600: #8c3a3f;
-  --color-flag-500: #a84f52;
+  --color-flag-700: #9c3325;
+  --color-flag-600: #e2472e;
+  --color-flag-500: #e2472e;
 
-  --color-success-700: #275542;
-  --color-success-600: #366f56;
-  --color-success-500: #48896e;
-  --color-success-100: #dfe9e2;
+  --color-success-700: #136c3a;
+  --color-success-600: #25b062;
+  --color-success-500: #25b062;
+  --color-success-100: #e6f7ec;
 
-  --color-parchment-50: #faf8f3;
-  --color-parchment-100: #f2ede1;
-  --color-parchment-200: #e6ddc8;
+  --color-parchment-50: #dfe3f7;
+  --color-parchment-100: #ffffff;
+  --color-parchment-200: #eef1fb;
 
-  --font-display: 'Cormorant Garamond', 'Georgia', serif;
-  --font-heading: 'Inter', 'Source Sans 3', sans-serif;
+  --font-display: 'Baloo 2', cursive, sans-serif;
+  --font-heading: 'Nunito', 'Source Sans 3', sans-serif;
 }
 
 body {
   background-color: var(--color-parchment-50);
+  background-image:
+    linear-gradient(180deg, rgba(223, 227, 247, 0.08), rgba(223, 227, 247, 0.15)),
+    url('/assets/diamond-blue.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 @keyframes card-enter {
   0% {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(10px) scale(0.98);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -78,11 +84,11 @@ body {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(12px) scale(0.97);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -94,6 +100,16 @@ body {
   to {
     opacity: 0;
     transform: translateY(12px);
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }
 
@@ -115,4 +131,23 @@ body {
 
 .anim-toast-leave {
   animation: toast-out 0.15s ease-in both;
+}
+
+.anim-bob {
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+@keyframes wave-drift {
+  0%,
+  100% {
+    transform: scale(1.08) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.14) translate(-1.5%, -1%);
+  }
+}
+
+.anim-wave-drift {
+  animation: wave-drift 18s ease-in-out infinite;
+  will-change: transform;
 }
