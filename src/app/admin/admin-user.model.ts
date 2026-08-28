@@ -26,3 +26,9 @@ export const STATUS_LABEL: Record<AccountStatus, string> = {
   INVITATION_EXPIRED: 'Invite Expired',
   DISABLED: 'Disabled',
 };
+
+/** One realm role and the permissions it currently bundles - see `GET /admin/roles` (ADR-0007). */
+export interface RolePermissions {
+  role: string;
+  permissions: string[];
+}

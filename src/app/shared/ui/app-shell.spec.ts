@@ -23,9 +23,12 @@ describe('AppShell', () => {
     const fixture = TestBed.createComponent(AppShell);
     fixture.detectChanges();
 
-    httpTesting
-      .expectOne('/api/me')
-      .flush({ username: 'luffy', email: 'luffy@onepiece.local', roles: ['ADMIN'] });
+    httpTesting.expectOne('/api/me').flush({
+      username: 'luffy',
+      email: 'luffy@onepiece.local',
+      roles: ['ADMIN'],
+      permissions: ['users:read'],
+    });
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -38,13 +41,16 @@ describe('AppShell', () => {
     expect(logoutLink).toBeDefined();
   });
 
-  it('links to the crew manifest only for an ADMIN', async () => {
+  it('links to the crew manifest only when the caller has users:read', async () => {
     const fixture = TestBed.createComponent(AppShell);
     fixture.detectChanges();
 
-    httpTesting
-      .expectOne('/api/me')
-      .flush({ username: 'nami', email: 'nami@onepiece.local', roles: ['EDITOR'] });
+    httpTesting.expectOne('/api/me').flush({
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      roles: ['EDITOR'],
+      permissions: ['docs:read', 'docs:write'],
+    });
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -56,9 +62,12 @@ describe('AppShell', () => {
   it('opens and closes the mobile drawer', async () => {
     const fixture = TestBed.createComponent(AppShell);
     fixture.detectChanges();
-    httpTesting
-      .expectOne('/api/me')
-      .flush({ username: 'luffy', email: 'luffy@onepiece.local', roles: ['ADMIN'] });
+    httpTesting.expectOne('/api/me').flush({
+      username: 'luffy',
+      email: 'luffy@onepiece.local',
+      roles: ['ADMIN'],
+      permissions: ['users:read'],
+    });
     await fixture.whenStable();
     fixture.detectChanges();
 

@@ -1,0 +1,18 @@
+<div class="flex min-h-[60vh] items-center justify-center">
+  <app-card>
+    <div class="font-display text-6xl font-bold text-flag-600">403</div>
+    <h1 class="mt-2 font-display text-2xl font-semibold text-ocean-900">This cabin is locked</h1>
+    <p class="mt-3 font-heading text-sm text-ocean-500">
+      You tried to open <strong>{{ route }}</strong
+      >, but you're missing the <strong>{{ permission }}</strong> permission.
+    </p>
+    <p class="mt-2 font-heading text-sm text-ocean-500">
+      Your current roles are {{ roles.join(', ') || 'none' }}. Ask an ADMIN to grant it — it'll be
+      available next time you sign in.
+    </p>
+    <div class="mt-6 flex flex-wrap justify-center gap-3">
+      <a routerLink="/" [class]="primaryClasses">Back to Profile</a>
+      <button type="button" [class]="navClasses" (click)="requestAccess()">Request Access</button>
+    </div>
+  </app-card>
+</div>

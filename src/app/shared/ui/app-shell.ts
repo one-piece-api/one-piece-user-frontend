@@ -29,8 +29,7 @@ export class AppShell {
   );
 
   protected visibleItems(group: NavGroup) {
-    const roles = this.currentUser.me.value()?.roles ?? [];
-    return group.items.filter((item) => !item.requiredRole || roles.includes(item.requiredRole));
+    return group.items.filter((item) => this.currentUser.hasPermission(item.permission));
   }
 
   protected openDrawer(): void {

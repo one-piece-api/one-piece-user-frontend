@@ -8,10 +8,16 @@ import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { Modal } from '../shared/ui/modal';
-import { STATUS_LABEL, STATUS_TONE, type AdminUserSummary } from './admin-user.model';
+import {
+  STATUS_LABEL,
+  STATUS_TONE,
+  type AdminUserSummary,
+  type RolePermissions,
+} from './admin-user.model';
 import { InviteUserForm } from './invite-user-form';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
+const ADMIN_ROLES_ENDPOINT = '/api/admin/roles';
 const INVITATION_NOT_RESENDABLE_ERROR_CODE = 'USER_INVITATION_NOT_RESENDABLE';
 const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
 
@@ -37,6 +43,9 @@ export class AdminUserList {
   protected readonly users = httpResource<PageResponse<AdminUserSummary>>(
     () => `${ADMIN_USERS_ENDPOINT}?page=${this.page()}`,
   );
+
+  /** Powers the read-only "Roles &amp; Permissions" panel below the manifest (ADR-0007). */
+  protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ADMIN_ROLES_ENDPOINT);
 
   protected readonly showInviteModal = signal(false);
   protected readonly resendingUserId = signal<string | null>(null);

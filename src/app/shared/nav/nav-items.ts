@@ -3,12 +3,8 @@ export interface NavItem {
   readonly label: string;
   readonly icon: string;
   readonly route: string;
-  /**
-   * Gates visibility on a role name for now. Superseded by a `permission` field once the
-   * real permission model lands (see docs/implementation-plan.md Step 14) - this registry's
-   * shape is meant to survive that swap, only the gating check changes.
-   */
-  readonly requiredRole?: string;
+  /** No permission required (undefined) means every signed-in user sees the item. */
+  readonly permission?: string;
 }
 
 export interface NavGroup {
@@ -29,7 +25,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         label: 'Crew Manifest',
         icon: '⚑',
         route: '/admin/users',
-        requiredRole: 'ADMIN',
+        permission: 'users:read',
       },
     ],
   },

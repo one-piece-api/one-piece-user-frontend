@@ -40,6 +40,7 @@ describe('AdminUserList', () => {
   it('lists users with their status and roles', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
       content: [
@@ -66,9 +67,35 @@ describe('AdminUserList', () => {
     expect(root.textContent).toContain('1–1 of 1');
   });
 
+  it('shows the role/permission registry', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([
+      { role: 'ADMIN', permissions: ['users:read', 'audit:read'] },
+      { role: 'EDITOR', permissions: ['docs:read', 'docs:write'] },
+    ]);
+
+    httpTesting.expectOne('/api/admin/users?page=0').flush({
+      content: [],
+      page: 0,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('ADMIN');
+    expect(root.textContent).toContain('users:read · audit:read');
+    expect(root.textContent).toContain('EDITOR');
+    expect(root.textContent).toContain('docs:read · docs:write');
+  });
+
   it('shows an error toast message when the request fails', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
 
     httpTesting
       .expectOne('/api/admin/users?page=0')
@@ -83,6 +110,7 @@ describe('AdminUserList', () => {
   it('keeps the invite form hidden until "New User" is selected', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
       content: [],
@@ -110,6 +138,7 @@ describe('AdminUserList', () => {
   it('resends an invitation for an expired invitation', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
     const toastService = TestBed.inject(ToastService);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
@@ -166,6 +195,7 @@ describe('AdminUserList', () => {
   it('shows a themed error toast when the invitation email cannot be delivered', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
     const toastService = TestBed.inject(ToastService);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
@@ -213,6 +243,7 @@ describe('AdminUserList', () => {
   it('does not show a resend action for an active user', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
       content: [{ userId: '1', email: 'luffy@onepiece.local', status: 'ACTIVE', roles: ['ADMIN'] }],
@@ -234,6 +265,7 @@ describe('AdminUserList', () => {
   it('links each row to its Step 6 role editor', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
       content: [
@@ -263,6 +295,7 @@ describe('AdminUserList', () => {
   it('does not show a resend action for a still-pending (not yet expired) user', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/admin/roles').flush([]);
 
     httpTesting.expectOne('/api/admin/users?page=0').flush({
       content: [
