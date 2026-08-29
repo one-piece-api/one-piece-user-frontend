@@ -1,0 +1,35 @@
+<div class="flex w-full max-w-4xl flex-col gap-6">
+  <app-page-header eyebrow="Admin Only · audit:read">Ship's Log</app-page-header>
+
+  @if (events.isLoading()) {
+    <app-card [wide]="true">
+      <p class="font-heading text-ocean-700">Unrolling the log…</p>
+    </app-card>
+  } @else if (events.error()) {
+    <app-card [wide]="true">
+      <p class="font-heading text-flag-700">Lost the log. Could not load the trail.</p>
+    </app-card>
+  } @else if (events.value(); as page) {
+    <app-audit-pagination
+      [range]="range()"
+      [currentPage]="page.page"
+      [totalPages]="page.totalPages"
+      (previous)="previousPage()"
+      (next)="nextPage()"
+      (jumpTo)="goToPage($event)"
+    />
+
+    <app-card [wide]="true">
+      <app-audit-list [events]="page.content" emptyMessage="Not a single entry in the log yet." />
+    </app-card>
+
+    <app-audit-pagination
+      [range]="range()"
+      [currentPage]="page.page"
+      [totalPages]="page.totalPages"
+      (previous)="previousPage()"
+      (next)="nextPage()"
+      (jumpTo)="goToPage($event)"
+    />
+  }
+</div>

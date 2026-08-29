@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ToastService } from '../shared/toast/toast';
 import type { RolePermissions } from './admin-user.model';
+import type { AuditEvent } from './audit.model';
 import { AdminUserDetail } from './user-detail';
 
 const DEFAULT_ROLE_REGISTRY: RolePermissions[] = [
@@ -48,11 +49,13 @@ describe('AdminUserDetail', () => {
   function createWithUserId(
     userId: string,
     roleRegistry: RolePermissions[] = DEFAULT_ROLE_REGISTRY,
+    auditEvents: AuditEvent[] = [],
   ) {
     const fixture = TestBed.createComponent(AdminUserDetail);
     fixture.componentRef.setInput('userId', userId);
     fixture.detectChanges();
     httpTesting.expectOne('/api/admin/roles').flush(roleRegistry);
+    httpTesting.expectOne(`/api/admin/audit?userId=${userId}`).flush({ content: auditEvents });
     return fixture;
   }
 
@@ -160,6 +163,22 @@ describe('AdminUserDetail', () => {
       status: 'ACTIVE',
       roles: ['EDITOR', 'ADMIN'],
     });
+    httpTesting.expectOne('/api/admin/audit?userId=1').flush({
+      content: [
+        {
+          action: 'ROLE_ASSIGNED',
+          actorUserId: 'a1',
+          actorEmail: 'luffy@onepiece.local',
+          targetUserId: '1',
+          targetEmail: 'nami@onepiece.local',
+          occurredAt: '2026-08-23T10:00:00Z',
+        },
+      ],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain('Granted Role');
   });
 
   it('revokes a role and reloads the crewmate', async () => {
@@ -200,6 +219,7 @@ describe('AdminUserDetail', () => {
       status: 'ACTIVE',
       roles: [],
     });
+    httpTesting.expectOne('/api/admin/audit?userId=1').flush({ content: [] });
   });
 
   it('shows a themed error toast when revoking would leave zero administrators', async () => {
@@ -305,6 +325,7 @@ describe('AdminUserDetail', () => {
       status: 'DISABLED',
       roles: ['EDITOR'],
     });
+    httpTesting.expectOne('/api/admin/audit?userId=2').flush({ content: [] });
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -375,6 +396,7 @@ describe('AdminUserDetail', () => {
       status: 'PENDING',
       roles: ['EDITOR'],
     });
+    httpTesting.expectOne('/api/admin/audit?userId=1').flush({ content: [] });
   });
 
   it('shows a themed error toast when the invitation email cannot be delivered', async () => {
@@ -461,6 +483,7 @@ describe('AdminUserDetail', () => {
       status: 'DISABLED',
       roles: ['EDITOR'],
     });
+    httpTesting.expectOne('/api/admin/audit?userId=1').flush({ content: [] });
   });
 
   it('cancelling the confirmation makes no request', async () => {
@@ -539,6 +562,7 @@ describe('AdminUserDetail', () => {
       status: 'PENDING',
       roles: ['EDITOR'],
     });
+    httpTesting.expectOne('/api/admin/audit?userId=1').flush({ content: [] });
   });
 
   it('shows a themed error toast when revoking access would leave zero administrators', async () => {
@@ -584,5 +608,35 @@ describe('AdminUserDetail', () => {
         tone: 'error',
       }),
     );
+  });
+
+  it("shows this crewmate's own slice of the audit trail", async () => {
+    const auditEvents: AuditEvent[] = [
+      {
+        action: 'ROLE_ASSIGNED',
+        actorUserId: 'a1',
+        actorEmail: 'luffy@onepiece.local',
+        targetUserId: '1',
+        targetEmail: 'nami@onepiece.local',
+        occurredAt: '2026-08-23T10:00:00Z',
+      },
+    ];
+    const fixture = createWithUserId('1', DEFAULT_ROLE_REGISTRY, auditEvents);
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      status: 'ACTIVE',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain("Ship's Log");
+    expect(root.textContent).toContain('Granted Role');
+    expect(root.textContent).toContain('luffy@onepiece.local');
+    expect(root.textContent).toContain('nami@onepiece.local');
   });
 });

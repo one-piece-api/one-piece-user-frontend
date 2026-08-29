@@ -17,15 +17,22 @@ import {
   type AdminUserSummary,
   type RolePermissions,
 } from './admin-user.model';
+import { AuditList } from './audit-list';
+import type { AuditEvent } from './audit.model';
 import { ResendInvitationService } from './resend-invitation.service';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
 const ADMIN_ROLES_ENDPOINT = '/api/admin/roles';
+const ADMIN_AUDIT_ENDPOINT = '/api/admin/audit';
 const LAST_ADMINISTRATOR_ERROR_CODE = 'USER_LAST_ADMINISTRATOR';
 const LAST_ROLE_ERROR_CODE = 'USER_LAST_ROLE';
 
 /** Which confirmation dialog (UF-IDU-13/14) is currently open, if any. */
 type AccessAction = 'revoke' | 'reactivate';
+
+interface PageResponse<T> {
+  content: T[];
+}
 
 /**
  * The role editor (Step 6, UF-IDU-15/16) - the first per-user route in this app (see
@@ -39,7 +46,7 @@ type AccessAction = 'revoke' | 'reactivate';
 @Component({
   selector: 'app-admin-user-detail',
   templateUrl: './user-detail.html',
-  imports: [Card, Badge, RouterLink, Modal],
+  imports: [Card, Badge, RouterLink, Modal, AuditList],
 })
 export class AdminUserDetail {
   private readonly http = inject(HttpClient);
@@ -50,6 +57,16 @@ export class AdminUserDetail {
 
   protected readonly user = httpResource<AdminUserSummary>(
     () => `${ADMIN_USERS_ENDPOINT}/${this.userId()}`,
+  );
+
+  /**
+   * This crewmate's own slice of the Step 17 audit trail, reusing its row rendering. Not
+   * gated client-side on `audit:read`: this whole route already requires `users:read`,
+   * and today's only role with `users:read` (ADMIN) also has `audit:read` (ADR-0007's
+   * mapping) - a real split would need its own decision, not a speculative check.
+   */
+  protected readonly auditEvents = httpResource<PageResponse<AuditEvent>>(
+    () => `${ADMIN_AUDIT_ENDPOINT}?userId=${this.userId()}`,
   );
 
   /** Same registry the Crew Manifest reads (ADR-0007) - unioned below into this user's permissions. */
@@ -100,6 +117,7 @@ export class AdminUserDetail {
       );
       this.toastService.show(`Granted ${role} to ${user.username}!`, 'success');
       this.user.reload();
+      this.auditEvents.reload();
     } catch (err) {
       this.handleRoleError(err, user);
     } finally {
@@ -115,6 +133,7 @@ export class AdminUserDetail {
       );
       this.toastService.show(`Revoked ${role} from ${user.username}!`, 'success');
       this.user.reload();
+      this.auditEvents.reload();
     } catch (err) {
       this.handleRoleError(err, user);
     } finally {
@@ -148,6 +167,7 @@ export class AdminUserDetail {
     const shouldReload = await this.resendInvitationService.resend(user);
     if (shouldReload) {
       this.user.reload();
+      this.auditEvents.reload();
     }
     this.resendingInvitation.set(false);
   }
@@ -171,6 +191,7 @@ export class AdminUserDetail {
         this.toastService.show(`${user.username} may sail with the crew once more!`, 'success');
       }
       this.user.reload();
+      this.auditEvents.reload();
     } catch (err) {
       this.handleAccessError(err, user);
     } finally {

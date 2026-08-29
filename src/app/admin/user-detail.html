@@ -142,6 +142,20 @@
       </div>
     </div>
 
+    @if (auditEvents.value(); as auditPage) {
+      <app-card [wide]="true">
+        <div class="text-left">
+          <h3 class="font-display text-lg font-semibold text-ocean-900">Ship's Log</h3>
+          <div class="mt-3">
+            <app-audit-list
+              [events]="auditPage.content"
+              [emptyMessage]="'No log entries for ' + u.username + ' yet.'"
+            />
+          </div>
+        </div>
+      </app-card>
+    }
+
     <app-modal
       [open]="confirmingAction() !== null"
       [heading]="confirmingAction() === 'revoke' ? 'Revoke Access' : 'Reactivate Crewmate'"

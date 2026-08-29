@@ -1,0 +1,48 @@
+@if (range(); as r) {
+  <div class="flex items-center justify-between gap-3">
+    <span
+      class="inline-flex shrink-0 rounded-full bg-treasure-500 px-3.5 py-1.5 font-heading text-xs font-bold text-ocean-950"
+    >
+      {{ r }}
+    </span>
+
+    @if (totalPages() > 1) {
+      <div class="flex min-w-0 items-center gap-3">
+        <span
+          class="hidden shrink-0 rounded-full bg-ocean-900 px-3.5 py-1.5 font-heading text-xs font-bold text-white sm:inline-flex"
+        >
+          Page {{ currentPage() + 1 }} of {{ totalPages() }}
+        </span>
+        <div class="flex min-w-0 flex-1 items-center gap-2">
+          <button
+            type="button"
+            [class]="pageArrowClasses"
+            [disabled]="!hasPrevious()"
+            (click)="previous.emit()"
+          >
+            ←
+          </button>
+          <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
+            @for (pageNumber of pageNumbers(); track pageNumber) {
+              <button
+                type="button"
+                [class]="pageButtonClasses(pageNumber)"
+                (click)="jumpTo.emit(pageNumber)"
+              >
+                {{ pageNumber + 1 }}
+              </button>
+            }
+          </div>
+          <button
+            type="button"
+            [class]="pageArrowClasses"
+            [disabled]="!hasNext()"
+            (click)="next.emit()"
+          >
+            →
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}

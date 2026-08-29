@@ -27,6 +27,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         route: '/admin/users',
         permission: 'users:read',
       },
+      {
+        id: 'audit',
+        label: "Ship's Log",
+        icon: '▤',
+        route: '/admin/audit',
+        permission: 'audit:read',
+      },
     ],
   },
 ];

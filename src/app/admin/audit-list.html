@@ -1,0 +1,29 @@
+@if (events().length === 0) {
+  <p class="font-heading text-ocean-700">{{ emptyMessage() }}</p>
+} @else {
+  <div class="flex flex-col gap-2">
+    @for (
+      event of events();
+      track event.occurredAt + event.action + event.targetUserId;
+      let i = $index
+    ) {
+      <div
+        animate.enter="anim-row-enter"
+        [style.animation-delay.ms]="i * 30"
+        class="grid items-center gap-3 rounded-xl bg-parchment-100 p-3 shadow-sm sm:grid-cols-[auto_1fr_1fr] sm:gap-4"
+      >
+        <span class="font-heading text-xs font-semibold whitespace-nowrap text-ocean-500">{{
+          formatOccurredAt(event.occurredAt)
+        }}</span>
+        <app-badge [tone]="actionTone[event.action] ?? 'neutral'">{{
+          actionLabel[event.action] ?? event.action
+        }}</app-badge>
+        <span class="font-heading text-sm text-ocean-900">
+          <span class="text-ocean-500">{{ event.actorEmail }}</span>
+          →
+          <span class="font-semibold">{{ event.targetEmail }}</span>
+        </span>
+      </div>
+    }
+  </div>
+}
