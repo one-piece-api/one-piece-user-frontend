@@ -41,7 +41,7 @@
 body {
   background-color: var(--color-parchment-50);
   background-image:
-    linear-gradient(180deg, rgba(223, 227, 247, 0.08), rgba(223, 227, 247, 0.15)),
+    linear-gradient(180deg, rgba(223, 227, 247, 0.04), rgba(223, 227, 247, 0.08)),
     url('/assets/diamond-blue.jpg');
   background-position: center;
   background-repeat: no-repeat;
