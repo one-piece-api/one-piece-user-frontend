@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { ToastService } from '../shared/toast/toast';
+import { MascotService } from '../shared/mascot/mascot';
 import type { RolePermissions } from './admin-user.model';
 import type { AuditEvent } from './audit.model';
 import { AdminUserDetail } from './user-detail';
@@ -127,7 +127,7 @@ describe('AdminUserDetail', () => {
 
   it('grants a role and reloads the crewmate', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -152,8 +152,8 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
-      expect.objectContaining({ message: 'Granted ADMIN to nami!', tone: 'success' }),
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({ text: 'Granted ADMIN to nami!', tone: 'success' }),
     );
 
     httpTesting.expectOne('/api/admin/users/1').flush({
@@ -183,7 +183,7 @@ describe('AdminUserDetail', () => {
 
   it('revokes a role and reloads the crewmate', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -208,8 +208,8 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
-      expect.objectContaining({ message: 'Revoked EDITOR from nami!', tone: 'success' }),
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({ text: 'Revoked EDITOR from nami!', tone: 'success' }),
     );
 
     httpTesting.expectOne('/api/admin/users/1').flush({
@@ -224,7 +224,7 @@ describe('AdminUserDetail', () => {
 
   it('shows a themed error toast when revoking would leave zero administrators', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -252,9 +252,9 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
+    expect(mascotService.message()).toEqual(
       expect.objectContaining({
-        message: 'Arrr! At least one ADMIN must remain in the crew - this one cannot be revoked.',
+        text: 'Arrr! At least one ADMIN must remain in the crew - this one cannot be revoked.',
         tone: 'error',
       }),
     );
@@ -262,7 +262,7 @@ describe('AdminUserDetail', () => {
 
   it('shows a themed error toast when revoking would leave the crewmate with no roles', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -290,9 +290,9 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
+    expect(mascotService.message()).toEqual(
       expect.objectContaining({
-        message: 'Arrr! nami needs at least one role - grant another before revoking this one.',
+        text: 'Arrr! nami needs at least one role - grant another before revoking this one.',
         tone: 'error',
       }),
     );
@@ -357,7 +357,7 @@ describe('AdminUserDetail', () => {
 
   it('resends an invitation and reloads the crewmate', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -380,9 +380,9 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
+    expect(mascotService.message()).toEqual(
       expect.objectContaining({
-        message: 'Resent the invitation to usopp@onepiece.local!',
+        text: 'Resent the invitation to usopp@onepiece.local!',
         tone: 'success',
       }),
     );
@@ -401,7 +401,7 @@ describe('AdminUserDetail', () => {
 
   it('shows a themed error toast when the invitation email cannot be delivered', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -429,9 +429,9 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
+    expect(mascotService.message()).toEqual(
       expect.objectContaining({
-        message:
+        text:
           'Arrr! Could not resend the invitation to usopp@onepiece.local - the message bird got lost.',
         tone: 'error',
       }),
@@ -440,7 +440,7 @@ describe('AdminUserDetail', () => {
 
   it('revokes access after confirmation and reloads the crewmate', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -472,8 +472,8 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
-      expect.objectContaining({ message: "nami's access has been revoked!", tone: 'success' }),
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({ text: "nami's access has been revoked!", tone: 'success' }),
     );
 
     httpTesting.expectOne('/api/admin/users/1').flush({
@@ -517,7 +517,7 @@ describe('AdminUserDetail', () => {
 
   it('reactivates a disabled crewmate after confirmation', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -548,9 +548,9 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
+    expect(mascotService.message()).toEqual(
       expect.objectContaining({
-        message: 'chopper may sail with the crew once more!',
+        text: 'chopper may sail with the crew once more!',
         tone: 'success',
       }),
     );
@@ -567,7 +567,7 @@ describe('AdminUserDetail', () => {
 
   it('shows a themed error toast when revoking access would leave zero administrators', async () => {
     const fixture = createWithUserId('1');
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     httpTesting.expectOne('/api/admin/users/1').flush({
       userId: '1',
@@ -602,9 +602,9 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(toastService.toasts()).toContainEqual(
+    expect(mascotService.message()).toEqual(
       expect.objectContaining({
-        message: 'Arrr! At least one ADMIN must remain in the crew - this one cannot be revoked.',
+        text: 'Arrr! At least one ADMIN must remain in the crew - this one cannot be revoked.',
         tone: 'error',
       }),
     );

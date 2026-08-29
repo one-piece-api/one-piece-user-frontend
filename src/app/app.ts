@@ -1,10 +1,10 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ToastViewport } from './shared/toast/toast-viewport';
+import { MascotWidget } from './shared/mascot/mascot-widget';
 import { AppShell } from './shared/ui/app-shell';
 
 @Component({
-  imports: [RouterOutlet, AppShell, ToastViewport],
+  imports: [RouterOutlet, AppShell, MascotWidget],
   selector: 'app-root',
   styleUrl: './app.css',
   templateUrl: './app.html',

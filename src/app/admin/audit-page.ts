@@ -1,6 +1,6 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { ToastService } from '../shared/toast/toast';
+import { MascotService } from '../shared/mascot/mascot';
 import { AuditList } from './audit-list';
 import { AuditPagination } from './audit-pagination';
 import type { AuditEvent } from './audit.model';
@@ -24,7 +24,7 @@ interface PageResponse<T> {
   imports: [Card, PageHeader, AuditList, AuditPagination],
 })
 export class AdminAuditPage {
-  private readonly toastService = inject(ToastService);
+  private readonly mascotService = inject(MascotService);
 
   protected readonly page = signal(0);
 
@@ -49,7 +49,7 @@ export class AdminAuditPage {
   constructor() {
     effect(() => {
       if (this.events.error()) {
-        this.toastService.show(
+        this.mascotService.show(
           "Arrr! Could not load the ship's log — try again in a moment.",
           'error',
         );

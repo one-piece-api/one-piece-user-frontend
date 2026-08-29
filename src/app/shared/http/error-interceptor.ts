@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { ToastService } from '../toast/toast';
+import { MascotService } from '../mascot/mascot';
 
 /**
  * Centralizes the one part of HTTP error handling that is the same regardless of which
@@ -20,7 +20,7 @@ import { ToastService } from '../toast/toast';
  * no explanation.
  */
 export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
-  const toastService = inject(ToastService);
+  const mascotService = inject(MascotService);
   const router = inject(Router);
 
   return next(request).pipe(
@@ -32,7 +32,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
         } else {
           const message = genericMessageFor(error.status);
           if (message) {
-            toastService.show(message, 'error');
+            mascotService.show(message, 'error');
           }
         }
       }

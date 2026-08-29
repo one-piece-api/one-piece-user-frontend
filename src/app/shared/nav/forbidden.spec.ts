@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { ToastService } from '../toast/toast';
+import { MascotService } from '../mascot/mascot';
 import { Forbidden } from './forbidden';
 import type { ForbiddenState } from './permission.guard';
 
@@ -38,10 +38,10 @@ describe('Forbidden', () => {
     expect(root.textContent).toContain('none');
   });
 
-  it('shows a confirmation toast when requesting access', () => {
+  it('shows a confirmation message when requesting access', () => {
     const fixture = createWithState({ route: '/admin/users', permission: 'users:read', roles: [] });
     fixture.detectChanges();
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
 
     const root = fixture.nativeElement as HTMLElement;
     const button = Array.from(root.querySelectorAll('button')).find(
@@ -49,6 +49,6 @@ describe('Forbidden', () => {
     );
     button!.click();
 
-    expect(toastService.toasts()).toHaveLength(1);
+    expect(mascotService.open()).toBe(true);
   });
 });

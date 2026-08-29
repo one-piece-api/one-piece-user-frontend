@@ -3,7 +3,7 @@ import { Component, inject, output, signal } from '@angular/core';
 import { email, form, FormField, required, submit, validate } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
-import { ToastService } from '../shared/toast/toast';
+import { MascotService } from '../shared/mascot/mascot';
 import { buttonClasses } from '../shared/ui/button-variants';
 
 const INVITE_ENDPOINT = '/api/admin/users';
@@ -52,7 +52,7 @@ function selectedRoles(value: InviteFormModel): string[] {
 })
 export class InviteUserForm {
   private readonly http = inject(HttpClient);
-  private readonly toastService = inject(ToastService);
+  private readonly mascotService = inject(MascotService);
 
   readonly invited = output<void>();
   readonly cancelled = output<void>();
@@ -83,7 +83,7 @@ export class InviteUserForm {
             roles: selectedRoles(value),
           }),
         );
-        this.toastService.show(`Invitation sent to ${invitedUser.email}!`, 'success');
+        this.mascotService.show(`Invitation sent to ${invitedUser.email}!`, 'success');
         this.inviteForm().reset({ ...EMPTY_MODEL });
         this.invited.emit();
         return null;

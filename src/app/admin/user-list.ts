@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ToastService } from '../shared/toast/toast';
+import { MascotService } from '../shared/mascot/mascot';
 import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
@@ -40,7 +40,7 @@ interface PageResponse<T> {
   imports: [Card, Badge, Modal, InviteUserForm, RouterLink, PageHeader],
 })
 export class AdminUserList {
-  private readonly toastService = inject(ToastService);
+  private readonly mascotService = inject(MascotService);
 
   protected readonly page = signal(0);
   protected readonly query = signal('');
@@ -106,7 +106,7 @@ export class AdminUserList {
   constructor() {
     effect(() => {
       if (this.users.error()) {
-        this.toastService.show(
+        this.mascotService.show(
           'Arrr! Could not load the crew manifest — try again in a moment.',
           'error',
         );

@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { ToastService } from '../shared/toast/toast';
+import { MascotService } from '../shared/mascot/mascot';
 import { InviteUserForm } from './invite-user-form';
 
 function setValue(input: HTMLInputElement, value: string): void {
@@ -60,10 +60,10 @@ describe('InviteUserForm', () => {
     expect(cancelledEmitted).toBe(true);
   });
 
-  it('invites a user, emits invited, resets the form, and shows a success toast', async () => {
+  it('invites a user, emits invited, resets the form, and shows a success message', async () => {
     const fixture = TestBed.createComponent(InviteUserForm);
     fixture.detectChanges();
-    const toastService = TestBed.inject(ToastService);
+    const mascotService = TestBed.inject(MascotService);
     let invitedEmitted = false;
     fixture.componentInstance.invited.subscribe(() => (invitedEmitted = true));
 
@@ -83,9 +83,9 @@ describe('InviteUserForm', () => {
     fixture.detectChanges();
 
     expect(invitedEmitted).toBe(true);
-    expect(toastService.toasts()).toContainEqual(
+    expect(mascotService.message()).toEqual(
       expect.objectContaining({
-        message: 'Invitation sent to usopp@onepiece.local!',
+        text: 'Invitation sent to usopp@onepiece.local!',
         tone: 'success',
       }),
     );

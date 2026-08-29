@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ToastService } from '../toast/toast';
+import { MascotService } from '../mascot/mascot';
 import { buttonClasses } from '../ui/button-variants';
 import { Card } from '../ui/card';
 import type { ForbiddenState } from './permission.guard';
@@ -14,7 +14,7 @@ import type { ForbiddenState } from './permission.guard';
 })
 export class Forbidden {
   private readonly location = inject(Location);
-  private readonly toastService = inject(ToastService);
+  private readonly mascotService = inject(MascotService);
 
   protected readonly primaryClasses = buttonClasses('primary');
   protected readonly navClasses = buttonClasses('secondary');
@@ -26,7 +26,7 @@ export class Forbidden {
   protected readonly roles = this.state.roles ?? [];
 
   protected requestAccess(): void {
-    this.toastService.show(
+    this.mascotService.show(
       'Request sent to the ADMINs. It’ll be available next time you sign in.',
       'success',
     );

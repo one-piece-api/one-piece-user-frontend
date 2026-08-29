@@ -3,13 +3,13 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { ToastService } from '../toast/toast';
+import { MascotService } from '../mascot/mascot';
 import { apiErrorInterceptor } from './error-interceptor';
 
 describe('apiErrorInterceptor', () => {
   let http: HttpClient;
   let httpTesting: HttpTestingController;
-  let toastService: ToastService;
+  let mascotService: MascotService;
   let router: Router;
   let navigateByUrl: ReturnType<typeof spyOnNavigateByUrl>;
   const originalLocation = window.location;
@@ -28,7 +28,7 @@ describe('apiErrorInterceptor', () => {
     });
     http = TestBed.inject(HttpClient);
     httpTesting = TestBed.inject(HttpTestingController);
-    toastService = TestBed.inject(ToastService);
+    mascotService = TestBed.inject(MascotService);
     router = TestBed.inject(Router);
     navigateByUrl = spyOnNavigateByUrl(router);
 
@@ -49,24 +49,24 @@ describe('apiErrorInterceptor', () => {
     [403, "don't have clearance"],
     [500, 'broke on our end'],
     [0, 'broke on our end'],
-  ])('shows a themed toast for a %d response', async (status, expectedSnippet) => {
+  ])('shows a themed message for a %d response', async (status, expectedSnippet) => {
     const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
 
     httpTesting.expectOne('/api/whatever').flush('', { status, statusText: 'Error' });
     await request;
 
-    expect(toastService.toasts()).toHaveLength(1);
-    expect(toastService.toasts()[0].message).toContain(expectedSnippet);
-    expect(toastService.toasts()[0].tone).toBe('error');
+    expect(mascotService.open()).toBe(true);
+    expect(mascotService.message().text).toContain(expectedSnippet);
+    expect(mascotService.message().tone).toBe('error');
   });
 
-  it('shows no toast for a 401, sending the browser through the Session Expired page instead', async () => {
+  it('shows no message for a 401, sending the browser through the Session Expired page instead', async () => {
     const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
 
     httpTesting.expectOne('/api/whatever').flush('', { status: 401, statusText: 'Unauthorized' });
     await request;
 
-    expect(toastService.toasts()).toHaveLength(0);
+    expect(mascotService.open()).toBe(false);
   });
 
   it('navigates to Session Expired on a 401, carrying the current page as returnTo', async () => {
@@ -93,14 +93,14 @@ describe('apiErrorInterceptor', () => {
   );
 
   it.each([400, 404, 409])(
-    'does not show a toast for a %d response, leaving it to the caller',
+    'does not show a message for a %d response, leaving it to the caller',
     async (status) => {
       const request = firstValueFrom(http.get('/api/whatever')).catch(() => undefined);
 
       httpTesting.expectOne('/api/whatever').flush('', { status, statusText: 'Error' });
       await request;
 
-      expect(toastService.toasts()).toHaveLength(0);
+      expect(mascotService.open()).toBe(false);
     },
   );
 

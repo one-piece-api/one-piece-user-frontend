@@ -1,0 +1,53 @@
+<div class="pointer-events-none fixed right-4 bottom-4 z-50 flex flex-col items-end">
+  @if (mascotService.open()) {
+    @let msg = mascotService.message();
+    <div
+      role="status"
+      aria-live="polite"
+      animate.enter="anim-pop-enter"
+      animate.leave="anim-pop-leave"
+      class="pointer-events-auto w-72 max-w-[calc(100vw-2rem)] rounded-[22px] border-[3px] bg-white p-4 shadow-2xl"
+      [class]="toneBorderClasses[msg.tone]"
+    >
+      <div class="mb-1.5 flex items-center justify-between gap-3">
+        <span
+          class="inline-flex items-center gap-2 font-display text-sm font-bold"
+          [class]="toneTitleClasses[msg.tone]"
+        >
+          <span class="size-2 rounded-full" [class]="toneDotClasses[msg.tone]"></span>
+          {{ msg.title }}
+        </span>
+        <button
+          type="button"
+          (click)="mascotService.close()"
+          aria-label="Minimize the Den Den Mushi"
+          class="grid size-6 shrink-0 cursor-pointer place-items-center rounded-full text-sm leading-none font-bold"
+          [class]="toneMinimizeClasses[msg.tone]"
+        >
+          −
+        </button>
+      </div>
+      <p class="font-heading text-sm font-bold text-ocean-950">{{ msg.text }}</p>
+      @if (msg.code) {
+        <p class="mt-1.5 font-heading text-[11px] font-extrabold text-ocean-500/60">
+          {{ msg.code }}
+        </p>
+      }
+    </div>
+    <img
+      src="assets/denden.png"
+      alt="Den Den Mushi"
+      class="anim-bob mt-1 mr-2.5 w-16 drop-shadow-lg"
+    />
+  } @else {
+    <button
+      type="button"
+      (click)="mascotService.toggle()"
+      aria-label="Open the Den Den Mushi"
+      animate.enter="anim-pop-enter"
+      class="pointer-events-auto grid size-14 cursor-pointer place-items-center rounded-full border-[3px] border-treasure-500 bg-white shadow-lg transition-transform hover:scale-105"
+    >
+      <img src="assets/denden.png" alt="" class="w-9" />
+    </button>
+  }
+</div>

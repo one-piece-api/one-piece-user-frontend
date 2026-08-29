@@ -3,7 +3,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
-import { ToastService } from '../shared/toast/toast';
+import { MascotService } from '../shared/mascot/mascot';
 import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
@@ -50,7 +50,7 @@ interface PageResponse<T> {
 })
 export class AdminUserDetail {
   private readonly http = inject(HttpClient);
-  private readonly toastService = inject(ToastService);
+  private readonly mascotService = inject(MascotService);
   private readonly resendInvitationService = inject(ResendInvitationService);
 
   readonly userId = input.required<string>();
@@ -115,7 +115,7 @@ export class AdminUserDetail {
       await firstValueFrom(
         this.http.put<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/roles/${role}`, {}),
       );
-      this.toastService.show(`Granted ${role} to ${user.username}!`, 'success');
+      this.mascotService.show(`Granted ${role} to ${user.username}!`, 'success');
       this.user.reload();
       this.auditEvents.reload();
     } catch (err) {
@@ -131,7 +131,7 @@ export class AdminUserDetail {
       await firstValueFrom(
         this.http.delete<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/roles/${role}`),
       );
-      this.toastService.show(`Revoked ${role} from ${user.username}!`, 'success');
+      this.mascotService.show(`Revoked ${role} from ${user.username}!`, 'success');
       this.user.reload();
       this.auditEvents.reload();
     } catch (err) {
@@ -146,17 +146,17 @@ export class AdminUserDetail {
       return;
     }
     if (hasErrorCode(err, LAST_ADMINISTRATOR_ERROR_CODE)) {
-      this.toastService.show(
+      this.mascotService.show(
         'Arrr! At least one ADMIN must remain in the crew - this one cannot be revoked.',
         'error',
       );
     } else if (hasErrorCode(err, LAST_ROLE_ERROR_CODE)) {
-      this.toastService.show(
+      this.mascotService.show(
         `Arrr! ${user.username} needs at least one role - grant another before revoking this one.`,
         'error',
       );
     } else if (err.status === 404) {
-      this.toastService.show(`Arrr! ${user.username} be gone from the manifest.`, 'error');
+      this.mascotService.show(`Arrr! ${user.username} be gone from the manifest.`, 'error');
       this.user.reload();
     }
     // 401/403/5xx already get a themed toast from apiErrorInterceptor.
@@ -183,12 +183,12 @@ export class AdminUserDetail {
         await firstValueFrom(
           this.http.post<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/revoke-access`, {}),
         );
-        this.toastService.show(`${user.username}'s access has been revoked!`, 'success');
+        this.mascotService.show(`${user.username}'s access has been revoked!`, 'success');
       } else {
         await firstValueFrom(
           this.http.post<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/reactivate`, {}),
         );
-        this.toastService.show(`${user.username} may sail with the crew once more!`, 'success');
+        this.mascotService.show(`${user.username} may sail with the crew once more!`, 'success');
       }
       this.user.reload();
       this.auditEvents.reload();
@@ -205,12 +205,12 @@ export class AdminUserDetail {
       return;
     }
     if (hasErrorCode(err, LAST_ADMINISTRATOR_ERROR_CODE)) {
-      this.toastService.show(
+      this.mascotService.show(
         'Arrr! At least one ADMIN must remain in the crew - this one cannot be revoked.',
         'error',
       );
     } else if (err.status === 404) {
-      this.toastService.show(`Arrr! ${user.username} be gone from the manifest.`, 'error');
+      this.mascotService.show(`Arrr! ${user.username} be gone from the manifest.`, 'error');
       this.user.reload();
     }
     // 401/403/5xx already get a themed toast from apiErrorInterceptor.
