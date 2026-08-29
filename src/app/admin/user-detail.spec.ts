@@ -431,8 +431,7 @@ describe('AdminUserDetail', () => {
 
     expect(mascotService.message()).toEqual(
       expect.objectContaining({
-        text:
-          'Arrr! Could not resend the invitation to usopp@onepiece.local - the message bird got lost.',
+        text: 'Arrr! Could not resend the invitation to usopp@onepiece.local - the message bird got lost.',
         tone: 'error',
       }),
     );
