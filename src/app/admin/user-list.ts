@@ -82,7 +82,7 @@ export class AdminUserList {
   protected readonly initials = initialsOf;
   protected readonly statusBorderClass = statusBorderClass;
   protected readonly pageArrowClasses =
-    'cursor-pointer rounded-lg border-2 border-ocean-900/15 bg-parchment-100 px-3 py-2 font-heading text-sm font-bold text-ocean-700 transition-colors hover:border-ocean-900/30 disabled:cursor-not-allowed disabled:opacity-40';
+    'cursor-pointer rounded-lg border-2 border-ocean-900/15 bg-parchment-100 px-3 py-2 font-heading text-sm font-bold text-ocean-700 shadow-sm transition-all duration-150 ease-out hover:-translate-y-0.5 hover:border-ocean-700/40 hover:shadow-md active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-sm';
 
   protected readonly hasPrevious = computed(() => this.page() > 0);
   protected readonly hasNext = computed(
@@ -133,10 +133,10 @@ export class AdminUserList {
   /** Highlights the current page among the numbered pagination buttons. */
   protected pageButtonClasses(pageNumber: number): string {
     const base =
-      'flex size-9 cursor-pointer items-center justify-center rounded-lg font-display text-sm font-bold transition-colors';
+      'flex size-9 cursor-pointer items-center justify-center rounded-lg font-display text-sm font-bold shadow-sm transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-md active:translate-y-0';
     return this.page() === pageNumber
       ? `${base} bg-treasure-500 text-ocean-950`
-      : `${base} bg-parchment-100 text-ocean-900 ring-1 ring-ocean-900/15 hover:ring-ocean-900/30`;
+      : `${base} bg-parchment-100 text-ocean-900 ring-1 ring-ocean-900/15 hover:ring-ocean-700/40`;
   }
 
   protected setQuery(value: string): void {
