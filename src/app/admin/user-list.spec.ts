@@ -3,7 +3,6 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { By } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { ToastService } from '../shared/toast/toast';
 import { Modal } from '../shared/ui/modal';
 import { AdminUserList } from './user-list';
 
@@ -237,144 +236,6 @@ describe('AdminUserList', () => {
     expect(modal.open()).toBe(true);
   });
 
-  it('resends an invitation for an expired invitation', async () => {
-    const fixture = TestBed.createComponent(AdminUserList);
-    fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-    const toastService = TestBed.inject(ToastService);
-
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [
-        {
-          userId: '1',
-          username: 'usopp',
-          email: 'usopp@onepiece.local',
-          status: 'INVITATION_EXPIRED',
-          roles: ['EDITOR'],
-        },
-      ],
-      page: 0,
-      size: 20,
-      totalElements: 1,
-      totalPages: 1,
-    });
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const resendButton = Array.from(root.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Resend Invitation',
-    );
-    resendButton!.click();
-    fixture.detectChanges();
-
-    httpTesting.expectOne('/api/admin/users/1/resend-invitation').flush(null);
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(toastService.toasts()).toContainEqual(
-      expect.objectContaining({
-        message: 'Resent the invitation to usopp@onepiece.local!',
-        tone: 'success',
-      }),
-    );
-
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [
-        {
-          userId: '1',
-          username: 'usopp',
-          email: 'usopp@onepiece.local',
-          status: 'PENDING',
-          roles: ['EDITOR'],
-        },
-      ],
-      page: 0,
-      size: 20,
-      totalElements: 1,
-      totalPages: 1,
-    });
-  });
-
-  it('shows a themed error toast when the invitation email cannot be delivered', async () => {
-    const fixture = TestBed.createComponent(AdminUserList);
-    fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-    const toastService = TestBed.inject(ToastService);
-
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [
-        {
-          userId: '1',
-          username: 'usopp',
-          email: 'usopp@onepiece.local',
-          status: 'INVITATION_EXPIRED',
-          roles: ['EDITOR'],
-        },
-      ],
-      page: 0,
-      size: 20,
-      totalElements: 1,
-      totalPages: 1,
-    });
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const resendButton = Array.from(root.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Resend Invitation',
-    );
-    resendButton!.click();
-    fixture.detectChanges();
-
-    httpTesting
-      .expectOne('/api/admin/users/1/resend-invitation')
-      .flush(
-        { detail: 'Could not send the invitation email', errorCode: 'USER_EMAIL_DELIVERY_FAILED' },
-        { status: 422, statusText: 'Unprocessable Entity' },
-      );
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(toastService.toasts()).toContainEqual(
-      expect.objectContaining({
-        message:
-          'Arrr! Could not resend the invitation to usopp@onepiece.local - the message bird got lost.',
-        tone: 'error',
-      }),
-    );
-  });
-
-  it('does not show a resend action for an active user', async () => {
-    const fixture = TestBed.createComponent(AdminUserList);
-    fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [
-        {
-          userId: '1',
-          username: 'luffy',
-          email: 'luffy@onepiece.local',
-          status: 'ACTIVE',
-          roles: ['ADMIN'],
-        },
-      ],
-      page: 0,
-      size: 20,
-      totalElements: 1,
-      totalPages: 1,
-    });
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const resendButton = Array.from(root.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Resend Invitation',
-    );
-    expect(resendButton).toBeUndefined();
-  });
-
   it('links each row to its Step 6 role editor', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
@@ -446,35 +307,5 @@ describe('AdminUserList', () => {
       totalElements: 3,
       totalPages: 3,
     });
-  });
-
-  it('does not show a resend action for a still-pending (not yet expired) user', async () => {
-    const fixture = TestBed.createComponent(AdminUserList);
-    fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
-      content: [
-        {
-          userId: '1',
-          username: 'usopp',
-          email: 'usopp@onepiece.local',
-          status: 'PENDING',
-          roles: ['EDITOR'],
-        },
-      ],
-      page: 0,
-      size: 20,
-      totalElements: 1,
-      totalPages: 1,
-    });
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const resendButton = Array.from(root.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'Resend Invitation',
-    );
-    expect(resendButton).toBeUndefined();
   });
 });

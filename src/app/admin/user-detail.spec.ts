@@ -314,6 +314,108 @@ describe('AdminUserDetail', () => {
     expect(buttons).not.toContain('Revoke Access');
   });
 
+  it('shows Resend Invitation only for a crewmate with an expired invitation', async () => {
+    const fixture = createWithUserId('1');
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'usopp',
+      email: 'usopp@onepiece.local',
+      status: 'INVITATION_EXPIRED',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const buttons = Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim());
+    expect(buttons).toContain('Resend Invitation');
+    expect(buttons).not.toContain('Revoke Access');
+    expect(buttons).not.toContain('Reactivate');
+  });
+
+  it('resends an invitation and reloads the crewmate', async () => {
+    const fixture = createWithUserId('1');
+    const toastService = TestBed.inject(ToastService);
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'usopp',
+      email: 'usopp@onepiece.local',
+      status: 'INVITATION_EXPIRED',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const resendButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Resend Invitation',
+    );
+    resendButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users/1/resend-invitation').flush(null);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(toastService.toasts()).toContainEqual(
+      expect.objectContaining({
+        message: 'Resent the invitation to usopp@onepiece.local!',
+        tone: 'success',
+      }),
+    );
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'usopp',
+      email: 'usopp@onepiece.local',
+      status: 'PENDING',
+      roles: ['EDITOR'],
+    });
+  });
+
+  it('shows a themed error toast when the invitation email cannot be delivered', async () => {
+    const fixture = createWithUserId('1');
+    const toastService = TestBed.inject(ToastService);
+
+    httpTesting.expectOne('/api/admin/users/1').flush({
+      userId: '1',
+      username: 'usopp',
+      email: 'usopp@onepiece.local',
+      status: 'INVITATION_EXPIRED',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const resendButton = Array.from(root.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Resend Invitation',
+    );
+    resendButton!.click();
+    fixture.detectChanges();
+
+    httpTesting
+      .expectOne('/api/admin/users/1/resend-invitation')
+      .flush(
+        { detail: 'Could not send the invitation email', errorCode: 'USER_EMAIL_DELIVERY_FAILED' },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(toastService.toasts()).toContainEqual(
+      expect.objectContaining({
+        message:
+          'Arrr! Could not resend the invitation to usopp@onepiece.local - the message bird got lost.',
+        tone: 'error',
+      }),
+    );
+  });
+
   it('revokes access after confirmation and reloads the crewmate', async () => {
     const fixture = createWithUserId('1');
     const toastService = TestBed.inject(ToastService);

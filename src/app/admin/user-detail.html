@@ -129,6 +129,15 @@
           >
             Reactivate
           </button>
+        } @else if (u.status === 'INVITATION_EXPIRED') {
+          <button
+            type="button"
+            [class]="primaryClasses"
+            [disabled]="resendingInvitation()"
+            (click)="resendInvitation(u)"
+          >
+            {{ resendingInvitation() ? 'Resending…' : 'Resend Invitation' }}
+          </button>
         }
       </div>
     </div>

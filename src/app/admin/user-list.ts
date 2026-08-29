@@ -1,8 +1,6 @@
-import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
+import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
-import { apiErrorOf } from '../shared/http/api-error';
 import { ToastService } from '../shared/toast/toast';
 import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
@@ -26,8 +24,6 @@ const ADMIN_ROLES_ENDPOINT = '/api/admin/roles';
 
 type RoleFilter = 'ALL' | (typeof ASSIGNABLE_ROLES)[number];
 type StatusFilter = 'ALL' | AccountStatus;
-const INVITATION_NOT_RESENDABLE_ERROR_CODE = 'USER_INVITATION_NOT_RESENDABLE';
-const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
 
 interface PageResponse<T> {
   content: T[];
@@ -44,7 +40,6 @@ interface PageResponse<T> {
   imports: [Card, Badge, Modal, InviteUserForm, RouterLink, PageHeader],
 })
 export class AdminUserList {
-  private readonly http = inject(HttpClient);
   private readonly toastService = inject(ToastService);
 
   protected readonly page = signal(0);
@@ -77,7 +72,6 @@ export class AdminUserList {
   protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ADMIN_ROLES_ENDPOINT);
 
   protected readonly showInviteModal = signal(false);
-  protected readonly resendingUserId = signal<string | null>(null);
 
   protected readonly statusTone = STATUS_TONE;
   protected readonly statusLabel = STATUS_LABEL;
@@ -171,44 +165,5 @@ export class AdminUserList {
   protected onInvited(): void {
     this.users.reload();
     this.showInviteModal.set(false);
-  }
-
-  /**
-   * UF-IDU-03: re-triggers Keycloak's invitation email for a row whose current invitation
-   * has gone stale (INVITATION_EXPIRED) - the backend rejects this for a still-PENDING row
-   * (a valid link is still outstanding) exactly like an already-ACTIVE one, so the button
-   * is only ever shown for INVITATION_EXPIRED rows in the first place; the 409 branch below
-   * is just the (rare) race where the row changed between page load and this click.
-   */
-  protected async resendInvitation(user: AdminUserSummary): Promise<void> {
-    this.resendingUserId.set(user.userId);
-    try {
-      await firstValueFrom(
-        this.http.post<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/resend-invitation`, {}),
-      );
-      this.toastService.show(`Resent the invitation to ${user.email}!`, 'success');
-      this.users.reload();
-    } catch (err) {
-      if (err instanceof HttpErrorResponse) {
-        if (apiErrorOf(err)?.errorCode === INVITATION_NOT_RESENDABLE_ERROR_CODE) {
-          this.toastService.show(
-            `Arrr! ${user.email}'s invitation isn't resendable anymore — refresh the manifest.`,
-            'error',
-          );
-          this.users.reload();
-        } else if (err.status === 404) {
-          this.toastService.show(`Arrr! ${user.email} be gone from the manifest.`, 'error');
-          this.users.reload();
-        } else if (apiErrorOf(err)?.errorCode === EMAIL_DELIVERY_FAILED_ERROR_CODE) {
-          this.toastService.show(
-            `Arrr! Could not resend the invitation to ${user.email} - the message bird got lost.`,
-            'error',
-          );
-        }
-        // 401/403/5xx already get a themed toast from apiErrorInterceptor.
-      }
-    } finally {
-      this.resendingUserId.set(null);
-    }
   }
 }

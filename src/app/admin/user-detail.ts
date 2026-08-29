@@ -17,6 +17,7 @@ import {
   type AdminUserSummary,
   type RolePermissions,
 } from './admin-user.model';
+import { ResendInvitationService } from './resend-invitation.service';
 
 const ADMIN_USERS_ENDPOINT = '/api/admin/users';
 const ADMIN_ROLES_ENDPOINT = '/api/admin/roles';
@@ -43,6 +44,7 @@ type AccessAction = 'revoke' | 'reactivate';
 export class AdminUserDetail {
   private readonly http = inject(HttpClient);
   private readonly toastService = inject(ToastService);
+  private readonly resendInvitationService = inject(ResendInvitationService);
 
   readonly userId = input.required<string>();
 
@@ -83,6 +85,7 @@ export class AdminUserDetail {
   protected readonly pendingRole = signal<string | null>(null);
   protected readonly confirmingAction = signal<AccessAction | null>(null);
   protected readonly accessActionPending = signal(false);
+  protected readonly resendingInvitation = signal(false);
 
   /** The assignable roles this crewmate does not already hold - offered as "add a role" chips. */
   protected availableRoles(user: AdminUserSummary): readonly string[] {
@@ -138,6 +141,15 @@ export class AdminUserDetail {
       this.user.reload();
     }
     // 401/403/5xx already get a themed toast from apiErrorInterceptor.
+  }
+
+  protected async resendInvitation(user: AdminUserSummary): Promise<void> {
+    this.resendingInvitation.set(true);
+    const shouldReload = await this.resendInvitationService.resend(user);
+    if (shouldReload) {
+      this.user.reload();
+    }
+    this.resendingInvitation.set(false);
   }
 
   protected async confirmAccessAction(user: AdminUserSummary): Promise<void> {

@@ -124,16 +124,6 @@
             }}</app-badge>
 
             <div class="flex flex-wrap items-center gap-2 justify-self-start sm:justify-self-end">
-              @if (user.status === 'INVITATION_EXPIRED') {
-                <button
-                  type="button"
-                  [class]="primaryClasses"
-                  [disabled]="resendingUserId() === user.userId"
-                  (click)="resendInvitation(user)"
-                >
-                  {{ resendingUserId() === user.userId ? 'Resending…' : 'Resend Invitation' }}
-                </button>
-              }
               <a
                 [routerLink]="['/admin/users', user.userId]"
                 class="flex-none rounded-lg bg-parchment-200 px-2.5 py-1 font-heading text-xs font-bold text-ocean-700 transition-colors hover:bg-parchment-200/70"
