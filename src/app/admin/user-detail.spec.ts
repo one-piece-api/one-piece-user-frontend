@@ -10,7 +10,7 @@ import { AdminUserDetail } from './user-detail';
 const DEFAULT_ROLE_REGISTRY: RolePermissions[] = [
   {
     role: 'ADMIN',
-    permissions: ['users:read', 'users:invite', 'roles:write', 'access:write', 'audit:read'],
+    permissions: ['users:read', 'users:invite', 'roles:read', 'roles:assign', 'access:write', 'audit:read'],
   },
   { role: 'REVIEWER', permissions: ['docs:read', 'docs:review'] },
   { role: 'EDITOR', permissions: ['docs:read', 'docs:write'] },
