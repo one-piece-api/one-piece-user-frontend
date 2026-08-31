@@ -56,8 +56,8 @@ describe('AppShell', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const links = Array.from(root.querySelectorAll('a'));
-    expect(links.some((link) => link.getAttribute('href') === '/admin/users')).toBe(false);
-    expect(links.some((link) => link.getAttribute('href') === '/admin/audit')).toBe(false);
+    expect(links.some((link) => link.getAttribute('href') === '/users')).toBe(false);
+    expect(links.some((link) => link.getAttribute('href') === '/audit')).toBe(false);
   });
 
   it("links to the ship's log only when the caller has audit:read", async () => {
@@ -75,7 +75,7 @@ describe('AppShell', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const links = Array.from(root.querySelectorAll('a'));
-    expect(links.some((link) => link.getAttribute('href') === '/admin/audit')).toBe(true);
+    expect(links.some((link) => link.getAttribute('href') === '/audit')).toBe(true);
   });
 
   it('opens and closes the mobile drawer', async () => {

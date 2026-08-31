@@ -32,7 +32,7 @@ export function statusBorderClass(status: AccountStatus): string {
   return TONE_BORDER_CLASS[STATUS_TONE[status]];
 }
 
-/** One realm role and the permissions it currently bundles - see `GET /admin/roles` (ADR-0007). */
+/** One realm role and the permissions it currently bundles - see `GET /roles` (ADR-0007). */
 export interface RolePermissions {
   role: string;
   permissions: string[];

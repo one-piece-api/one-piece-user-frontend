@@ -7,7 +7,7 @@ import type { AuditEvent } from './audit.model';
 import { Card } from '../shared/ui/card';
 import { PageHeader } from '../shared/ui/page-header';
 
-const ADMIN_AUDIT_ENDPOINT = '/api/admin/audit';
+const AUDIT_ENDPOINT = '/api/audit';
 
 interface PageResponse<T> {
   content: T[];
@@ -29,7 +29,7 @@ export class AdminAuditPage {
   protected readonly page = signal(0);
 
   protected readonly events = httpResource<PageResponse<AuditEvent>>(
-    () => `${ADMIN_AUDIT_ENDPOINT}?page=${this.page()}`,
+    () => `${AUDIT_ENDPOINT}?page=${this.page()}`,
   );
 
   /** "1–20 of 37", framing the current page against the full trail. */

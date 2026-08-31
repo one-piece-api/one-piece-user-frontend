@@ -21,9 +21,9 @@ import { AuditList } from './audit-list';
 import type { AuditEvent } from './audit.model';
 import { ResendInvitationService } from './resend-invitation.service';
 
-const ADMIN_USERS_ENDPOINT = '/api/admin/users';
-const ADMIN_ROLES_ENDPOINT = '/api/admin/roles';
-const ADMIN_AUDIT_ENDPOINT = '/api/admin/audit';
+const USERS_ENDPOINT = '/api/users';
+const ROLES_ENDPOINT = '/api/roles';
+const AUDIT_ENDPOINT = '/api/audit';
 const LAST_ADMINISTRATOR_ERROR_CODE = 'USER_LAST_ADMINISTRATOR';
 const LAST_ROLE_ERROR_CODE = 'USER_LAST_ROLE';
 
@@ -56,7 +56,7 @@ export class AdminUserDetail {
   readonly userId = input.required<string>();
 
   protected readonly user = httpResource<AdminUserSummary>(
-    () => `${ADMIN_USERS_ENDPOINT}/${this.userId()}`,
+    () => `${USERS_ENDPOINT}/${this.userId()}`,
   );
 
   /**
@@ -66,11 +66,11 @@ export class AdminUserDetail {
    * mapping) - a real split would need its own decision, not a speculative check.
    */
   protected readonly auditEvents = httpResource<PageResponse<AuditEvent>>(
-    () => `${ADMIN_AUDIT_ENDPOINT}?userId=${this.userId()}`,
+    () => `${AUDIT_ENDPOINT}?userId=${this.userId()}`,
   );
 
   /** Same registry the Crew Manifest reads (ADR-0007) - unioned below into this user's permissions. */
-  protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ADMIN_ROLES_ENDPOINT);
+  protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ROLES_ENDPOINT);
 
   /** The union of every permission granted by any role this user currently holds, deduplicated. */
   protected readonly effectivePermissions = computed(() => {
@@ -113,7 +113,7 @@ export class AdminUserDetail {
     this.pendingRole.set(role);
     try {
       await firstValueFrom(
-        this.http.put<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/roles/${role}`, {}),
+        this.http.put<void>(`${USERS_ENDPOINT}/${user.userId}/roles/${role}`, {}),
       );
       this.mascotService.show(`Granted ${role} to ${user.username}!`, 'success');
       this.user.reload();
@@ -129,7 +129,7 @@ export class AdminUserDetail {
     this.pendingRole.set(role);
     try {
       await firstValueFrom(
-        this.http.delete<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/roles/${role}`),
+        this.http.delete<void>(`${USERS_ENDPOINT}/${user.userId}/roles/${role}`),
       );
       this.mascotService.show(`Revoked ${role} from ${user.username}!`, 'success');
       this.user.reload();
@@ -181,12 +181,12 @@ export class AdminUserDetail {
     try {
       if (action === 'revoke') {
         await firstValueFrom(
-          this.http.post<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/revoke-access`, {}),
+          this.http.post<void>(`${USERS_ENDPOINT}/${user.userId}/revoke-access`, {}),
         );
         this.mascotService.show(`${user.username}'s access has been revoked!`, 'success');
       } else {
         await firstValueFrom(
-          this.http.post<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/reactivate`, {}),
+          this.http.post<void>(`${USERS_ENDPOINT}/${user.userId}/reactivate`, {}),
         );
         this.mascotService.show(`${user.username} may sail with the crew once more!`, 'success');
       }

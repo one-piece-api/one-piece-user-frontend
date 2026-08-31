@@ -60,14 +60,14 @@ describe('MascotWidget', () => {
 
   it('pipes up on its own with a contextual tip for a known route', async () => {
     vi.useFakeTimers();
-    const fixture = await createAt('/admin/users');
+    const fixture = await createAt('/users');
     const mascotService = TestBed.inject(MascotService);
 
     vi.advanceTimersByTime(24_000);
     fixture.detectChanges();
 
     expect(mascotService.open()).toBe(true);
-    expect(mascotService.message().code).toBe('POST /admin/users/:id/resend-invitation');
+    expect(mascotService.message().code).toBe('POST /users/:id/resend-invitation');
   });
 
   it('stays quiet on routes with no tip topic', async () => {
@@ -82,7 +82,7 @@ describe('MascotWidget', () => {
 
   it('stops ticking once destroyed', async () => {
     vi.useFakeTimers();
-    const fixture = await createAt('/admin/audit');
+    const fixture = await createAt('/audit');
     const mascotService = TestBed.inject(MascotService);
     fixture.destroy();
 

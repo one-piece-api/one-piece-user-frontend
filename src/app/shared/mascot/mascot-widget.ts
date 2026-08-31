@@ -19,7 +19,7 @@ const TIPS: Record<TipTopic, readonly (readonly [string, string])[]> = {
   users: [
     [
       "An expired invitation isn't lost at sea - resend it and the clock resets to seven days.",
-      'POST /admin/users/:id/resend-invitation',
+      'POST /users/:id/resend-invitation',
     ],
     [
       'Grant a role now? The crewmate sees it shortly, not instantly - even gull-mail takes its time.',
@@ -45,8 +45,8 @@ const TIPS: Record<TipTopic, readonly (readonly [string, string])[]> = {
 const TIP_INTERVAL_MS = 24_000;
 
 function topicForUrl(url: string): TipTopic | null {
-  if (url.startsWith('/admin/users')) return 'users';
-  if (url.startsWith('/admin/audit')) return 'audit';
+  if (url.startsWith('/users')) return 'users';
+  if (url.startsWith('/audit')) return 'audit';
   if (url === '/' || url.startsWith('/?')) return 'profile';
   return null;
 }

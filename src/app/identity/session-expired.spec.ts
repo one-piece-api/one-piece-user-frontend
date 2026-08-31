@@ -36,13 +36,13 @@ describe('SessionExpired', () => {
   }
 
   it('redirects to login with the given returnTo after a short delay', () => {
-    createWithReturnTo('/admin/users?tab=roles');
+    createWithReturnTo('/users?tab=roles');
     expect(locationAssign).not.toHaveBeenCalled();
 
     vi.runAllTimers();
 
     expect(locationAssign).toHaveBeenCalledWith(
-      '/oauth2/start?rd=' + encodeURIComponent('/admin/users?tab=roles'),
+      '/oauth2/start?rd=' + encodeURIComponent('/users?tab=roles'),
     );
   });
 

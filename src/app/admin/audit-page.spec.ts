@@ -23,7 +23,7 @@ describe('AdminAuditPage', () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/audit?page=0').flush({
+    httpTesting.expectOne('/api/audit?page=0').flush({
       content: [
         {
           action: 'USER_INVITED',
@@ -55,7 +55,7 @@ describe('AdminAuditPage', () => {
     fixture.detectChanges();
 
     httpTesting
-      .expectOne('/api/admin/audit?page=0')
+      .expectOne('/api/audit?page=0')
       .flush({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 });
     await fixture.whenStable();
     fixture.detectChanges();
@@ -69,7 +69,7 @@ describe('AdminAuditPage', () => {
     fixture.detectChanges();
 
     httpTesting
-      .expectOne('/api/admin/audit?page=0')
+      .expectOne('/api/audit?page=0')
       .flush('nope', { status: 403, statusText: 'Forbidden' });
     await fixture.whenStable();
     fixture.detectChanges();
@@ -82,7 +82,7 @@ describe('AdminAuditPage', () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/audit?page=0').flush({
+    httpTesting.expectOne('/api/audit?page=0').flush({
       content: [
         {
           action: 'USER_INVITED',
@@ -112,7 +112,7 @@ describe('AdminAuditPage', () => {
     nextButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/audit?page=1').flush({
+    httpTesting.expectOne('/api/audit?page=1').flush({
       content: [
         {
           action: 'ROLE_ASSIGNED',
@@ -134,7 +134,7 @@ describe('AdminAuditPage', () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/audit?page=0').flush({
+    httpTesting.expectOne('/api/audit?page=0').flush({
       content: [
         {
           action: 'USER_INVITED',
@@ -169,7 +169,7 @@ describe('AdminAuditPage', () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/audit?page=0').flush({
+    httpTesting.expectOne('/api/audit?page=0').flush({
       content: [
         {
           action: 'USER_INVITED',
@@ -199,7 +199,7 @@ describe('AdminAuditPage', () => {
     pageThreeButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/audit?page=2').flush({
+    httpTesting.expectOne('/api/audit?page=2').flush({
       content: [],
       page: 2,
       size: 1,
@@ -212,7 +212,7 @@ describe('AdminAuditPage', () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/audit?page=0').flush({
+    httpTesting.expectOne('/api/audit?page=0').flush({
       content: [
         {
           action: 'USER_INVITED',
@@ -270,7 +270,7 @@ describe('AdminAuditPage', () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/audit?page=0').flush({
+    httpTesting.expectOne('/api/audit?page=0').flush({
       content: [
         {
           action: 'USER_INVITED',

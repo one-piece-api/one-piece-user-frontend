@@ -6,7 +6,7 @@ import { hasErrorCode } from '../shared/http/api-error';
 import { MascotService } from '../shared/mascot/mascot';
 import { buttonClasses } from '../shared/ui/button-variants';
 
-const INVITE_ENDPOINT = '/api/admin/users';
+const INVITE_ENDPOINT = '/api/users';
 const EMAIL_ALREADY_REGISTERED_ERROR_CODE = 'USER_EMAIL_ALREADY_REGISTERED';
 const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
 
@@ -39,7 +39,7 @@ function selectedRoles(value: InviteFormModel): string[] {
 }
 
 /**
- * "Invite User" (Step 4, UF-IDU-01): posts straight to `POST /admin/users`. There is no
+ * "Invite User" (Step 4, UF-IDU-01): posts straight to `POST /users`. There is no
  * local invitation record to show here - a successful invite just makes the new PENDING
  * row appear in the Step 3 crew manifest, so this only needs to signal the parent to reload it.
  * Rendered inside `AdminUserList`'s `app-modal`, which already provides the panel chrome

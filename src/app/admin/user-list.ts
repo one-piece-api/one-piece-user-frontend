@@ -19,8 +19,8 @@ import {
 } from './admin-user.model';
 import { InviteUserForm } from './invite-user-form';
 
-const ADMIN_USERS_ENDPOINT = '/api/admin/users';
-const ADMIN_ROLES_ENDPOINT = '/api/admin/roles';
+const USERS_ENDPOINT = '/api/users';
+const ROLES_ENDPOINT = '/api/roles';
 
 type RoleFilter = 'ALL' | (typeof ASSIGNABLE_ROLES)[number];
 type StatusFilter = 'ALL' | AccountStatus;
@@ -65,11 +65,11 @@ export class AdminUserList {
     if (this.statusFilter() !== 'ALL') {
       params.set('status', this.statusFilter());
     }
-    return `${ADMIN_USERS_ENDPOINT}?${params.toString()}`;
+    return `${USERS_ENDPOINT}?${params.toString()}`;
   });
 
   /** Powers the read-only "Roles &amp; Permissions" panel below the manifest (ADR-0007). */
-  protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ADMIN_ROLES_ENDPOINT);
+  protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ROLES_ENDPOINT);
 
   protected readonly showInviteModal = signal(false);
 

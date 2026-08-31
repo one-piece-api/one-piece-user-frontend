@@ -54,15 +54,15 @@ describe('AdminUserDetail', () => {
     const fixture = TestBed.createComponent(AdminUserDetail);
     fixture.componentRef.setInput('userId', userId);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush(roleRegistry);
-    httpTesting.expectOne(`/api/admin/audit?userId=${userId}`).flush({ content: auditEvents });
+    httpTesting.expectOne('/api/roles').flush(roleRegistry);
+    httpTesting.expectOne(`/api/audit?userId=${userId}`).flush({ content: auditEvents });
     return fixture;
   }
 
   it('shows the crewmate identity, status and current roles', async () => {
     const fixture = createWithUserId('1');
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -85,7 +85,7 @@ describe('AdminUserDetail', () => {
       { role: 'EDITOR', permissions: ['docs:read', 'docs:write'] },
     ]);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -109,7 +109,7 @@ describe('AdminUserDetail', () => {
   it('offers to add a role the crewmate does not hold and to revoke one it does', async () => {
     const fixture = createWithUserId('1');
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -129,7 +129,7 @@ describe('AdminUserDetail', () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -146,7 +146,7 @@ describe('AdminUserDetail', () => {
     grantButton!.click();
     fixture.detectChanges();
 
-    const putRequest = httpTesting.expectOne('/api/admin/users/1/roles/ADMIN');
+    const putRequest = httpTesting.expectOne('/api/users/1/roles/ADMIN');
     expect(putRequest.request.method).toBe('PUT');
     putRequest.flush(null);
     await fixture.whenStable();
@@ -156,14 +156,14 @@ describe('AdminUserDetail', () => {
       expect.objectContaining({ text: 'Granted ADMIN to nami!', tone: 'success' }),
     );
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
       status: 'ACTIVE',
       roles: ['EDITOR', 'ADMIN'],
     });
-    httpTesting.expectOne('/api/admin/audit?userId=1').flush({
+    httpTesting.expectOne('/api/audit?userId=1').flush({
       content: [
         {
           action: 'ROLE_ASSIGNED',
@@ -185,7 +185,7 @@ describe('AdminUserDetail', () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -202,7 +202,7 @@ describe('AdminUserDetail', () => {
     revokeButton!.click();
     fixture.detectChanges();
 
-    const deleteRequest = httpTesting.expectOne('/api/admin/users/1/roles/EDITOR');
+    const deleteRequest = httpTesting.expectOne('/api/users/1/roles/EDITOR');
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush(null);
     await fixture.whenStable();
@@ -212,21 +212,21 @@ describe('AdminUserDetail', () => {
       expect.objectContaining({ text: 'Revoked EDITOR from nami!', tone: 'success' }),
     );
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
       status: 'ACTIVE',
       roles: [],
     });
-    httpTesting.expectOne('/api/admin/audit?userId=1').flush({ content: [] });
+    httpTesting.expectOne('/api/audit?userId=1').flush({ content: [] });
   });
 
   it('shows a themed error toast when revoking would leave zero administrators', async () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'luffy',
       email: 'luffy@onepiece.local',
@@ -244,7 +244,7 @@ describe('AdminUserDetail', () => {
     fixture.detectChanges();
 
     httpTesting
-      .expectOne('/api/admin/users/1/roles/ADMIN')
+      .expectOne('/api/users/1/roles/ADMIN')
       .flush(
         { detail: 'Cannot remove the ADMIN role', errorCode: 'USER_LAST_ADMINISTRATOR' },
         { status: 409, statusText: 'Conflict' },
@@ -264,7 +264,7 @@ describe('AdminUserDetail', () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -282,7 +282,7 @@ describe('AdminUserDetail', () => {
     fixture.detectChanges();
 
     httpTesting
-      .expectOne('/api/admin/users/1/roles/EDITOR')
+      .expectOne('/api/users/1/roles/EDITOR')
       .flush(
         { detail: 'Cannot remove the EDITOR role', errorCode: 'USER_LAST_ROLE' },
         { status: 409, statusText: 'Conflict' },
@@ -301,7 +301,7 @@ describe('AdminUserDetail', () => {
   it('shows Revoke Access for an active crewmate and Reactivate for a disabled one', async () => {
     const fixture = createWithUserId('1');
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -318,14 +318,14 @@ describe('AdminUserDetail', () => {
 
     fixture.componentRef.setInput('userId', '2');
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/users/2').flush({
+    httpTesting.expectOne('/api/users/2').flush({
       userId: '2',
       username: 'chopper',
       email: 'chopper@onepiece.local',
       status: 'DISABLED',
       roles: ['EDITOR'],
     });
-    httpTesting.expectOne('/api/admin/audit?userId=2').flush({ content: [] });
+    httpTesting.expectOne('/api/audit?userId=2').flush({ content: [] });
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -338,7 +338,7 @@ describe('AdminUserDetail', () => {
   it('shows Resend Invitation only for a crewmate with an expired invitation', async () => {
     const fixture = createWithUserId('1');
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'usopp',
       email: 'usopp@onepiece.local',
@@ -359,7 +359,7 @@ describe('AdminUserDetail', () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'usopp',
       email: 'usopp@onepiece.local',
@@ -376,7 +376,7 @@ describe('AdminUserDetail', () => {
     resendButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users/1/resend-invitation').flush(null);
+    httpTesting.expectOne('/api/users/1/resend-invitation').flush(null);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -389,21 +389,21 @@ describe('AdminUserDetail', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'usopp',
       email: 'usopp@onepiece.local',
       status: 'PENDING',
       roles: ['EDITOR'],
     });
-    httpTesting.expectOne('/api/admin/audit?userId=1').flush({ content: [] });
+    httpTesting.expectOne('/api/audit?userId=1').flush({ content: [] });
   });
 
   it('shows a themed error toast when the invitation email cannot be delivered', async () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'usopp',
       email: 'usopp@onepiece.local',
@@ -421,7 +421,7 @@ describe('AdminUserDetail', () => {
     fixture.detectChanges();
 
     httpTesting
-      .expectOne('/api/admin/users/1/resend-invitation')
+      .expectOne('/api/users/1/resend-invitation')
       .flush(
         { detail: 'Could not send the invitation email', errorCode: 'USER_EMAIL_DELIVERY_FAILED' },
         { status: 422, statusText: 'Unprocessable Entity' },
@@ -441,7 +441,7 @@ describe('AdminUserDetail', () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -465,7 +465,7 @@ describe('AdminUserDetail', () => {
     confirmButton!.click();
     fixture.detectChanges();
 
-    const postRequest = httpTesting.expectOne('/api/admin/users/1/revoke-access');
+    const postRequest = httpTesting.expectOne('/api/users/1/revoke-access');
     expect(postRequest.request.method).toBe('POST');
     postRequest.flush(null);
     await fixture.whenStable();
@@ -475,20 +475,20 @@ describe('AdminUserDetail', () => {
       expect.objectContaining({ text: "nami's access has been revoked!", tone: 'success' }),
     );
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
       status: 'DISABLED',
       roles: ['EDITOR'],
     });
-    httpTesting.expectOne('/api/admin/audit?userId=1').flush({ content: [] });
+    httpTesting.expectOne('/api/audit?userId=1').flush({ content: [] });
   });
 
   it('cancelling the confirmation makes no request', async () => {
     const fixture = createWithUserId('1');
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',
@@ -511,14 +511,14 @@ describe('AdminUserDetail', () => {
     cancelButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectNone('/api/admin/users/1/revoke-access');
+    httpTesting.expectNone('/api/users/1/revoke-access');
   });
 
   it('reactivates a disabled crewmate after confirmation', async () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'chopper',
       email: 'chopper@onepiece.local',
@@ -541,7 +541,7 @@ describe('AdminUserDetail', () => {
     confirmButton!.click();
     fixture.detectChanges();
 
-    const postRequest = httpTesting.expectOne('/api/admin/users/1/reactivate');
+    const postRequest = httpTesting.expectOne('/api/users/1/reactivate');
     expect(postRequest.request.method).toBe('POST');
     postRequest.flush(null);
     await fixture.whenStable();
@@ -554,21 +554,21 @@ describe('AdminUserDetail', () => {
       }),
     );
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'chopper',
       email: 'chopper@onepiece.local',
       status: 'PENDING',
       roles: ['EDITOR'],
     });
-    httpTesting.expectOne('/api/admin/audit?userId=1').flush({ content: [] });
+    httpTesting.expectOne('/api/audit?userId=1').flush({ content: [] });
   });
 
   it('shows a themed error toast when revoking access would leave zero administrators', async () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'luffy',
       email: 'luffy@onepiece.local',
@@ -591,7 +591,7 @@ describe('AdminUserDetail', () => {
     confirmButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users/1/revoke-access').flush(
+    httpTesting.expectOne('/api/users/1/revoke-access').flush(
       {
         detail: 'Cannot leave the realm with zero ADMIN users',
         errorCode: 'USER_LAST_ADMINISTRATOR',
@@ -622,7 +622,7 @@ describe('AdminUserDetail', () => {
     ];
     const fixture = createWithUserId('1', DEFAULT_ROLE_REGISTRY, auditEvents);
 
-    httpTesting.expectOne('/api/admin/users/1').flush({
+    httpTesting.expectOne('/api/users/1').flush({
       userId: '1',
       username: 'nami',
       email: 'nami@onepiece.local',

@@ -12,19 +12,19 @@ export const routes: Routes = [
   { path: 'session-expired', component: SessionExpired },
   { path: 'forbidden', component: Forbidden },
   {
-    path: 'admin/users',
+    path: 'users',
     component: AdminUserList,
     canActivate: [permissionGuard],
     data: { permission: 'users:read' },
   },
   {
-    path: 'admin/users/:userId',
+    path: 'users/:userId',
     component: AdminUserDetail,
     canActivate: [permissionGuard],
     data: { permission: 'users:read' },
   },
   {
-    path: 'admin/audit',
+    path: 'audit',
     component: AdminAuditPage,
     canActivate: [permissionGuard],
     data: { permission: 'audit:read' },

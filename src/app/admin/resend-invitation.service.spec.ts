@@ -25,7 +25,7 @@ describe('ResendInvitationService', () => {
   it('resolves true and shows a success message when the resend succeeds', async () => {
     const promise = service.resend({ userId: '1', email: 'usopp@onepiece.local' });
 
-    httpTesting.expectOne('/api/admin/users/1/resend-invitation').flush(null);
+    httpTesting.expectOne('/api/users/1/resend-invitation').flush(null);
 
     expect(await promise).toBe(true);
     expect(mascotService.message()).toEqual(
@@ -40,7 +40,7 @@ describe('ResendInvitationService', () => {
     const promise = service.resend({ userId: '1', email: 'usopp@onepiece.local' });
 
     httpTesting
-      .expectOne('/api/admin/users/1/resend-invitation')
+      .expectOne('/api/users/1/resend-invitation')
       .flush(
         { detail: 'Not resendable', errorCode: 'USER_INVITATION_NOT_RESENDABLE' },
         { status: 409, statusText: 'Conflict' },
@@ -58,7 +58,7 @@ describe('ResendInvitationService', () => {
   it('resolves true and shows an error message when the user no longer exists', async () => {
     const promise = service.resend({ userId: '1', email: 'usopp@onepiece.local' });
 
-    httpTesting.expectOne('/api/admin/users/1/resend-invitation').flush('nope', {
+    httpTesting.expectOne('/api/users/1/resend-invitation').flush('nope', {
       status: 404,
       statusText: 'Not Found',
     });
@@ -76,7 +76,7 @@ describe('ResendInvitationService', () => {
     const promise = service.resend({ userId: '1', email: 'usopp@onepiece.local' });
 
     httpTesting
-      .expectOne('/api/admin/users/1/resend-invitation')
+      .expectOne('/api/users/1/resend-invitation')
       .flush(
         { detail: 'Could not send the invitation email', errorCode: 'USER_EMAIL_DELIVERY_FAILED' },
         { status: 422, statusText: 'Unprocessable Entity' },
@@ -94,7 +94,7 @@ describe('ResendInvitationService', () => {
   it('resolves false without a message when it is an unrelated server failure', async () => {
     const promise = service.resend({ userId: '1', email: 'usopp@onepiece.local' });
 
-    httpTesting.expectOne('/api/admin/users/1/resend-invitation').flush('nope', {
+    httpTesting.expectOne('/api/users/1/resend-invitation').flush('nope', {
       status: 500,
       statusText: 'Internal Server Error',
     });

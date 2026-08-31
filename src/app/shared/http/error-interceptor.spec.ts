@@ -36,7 +36,7 @@ describe('apiErrorInterceptor', () => {
     // whole `window.location` is replaced with a stub instead.
     Object.defineProperty(window, 'location', {
       configurable: true,
-      value: { pathname: '/admin/users', search: '?tab=roles' },
+      value: { pathname: '/users', search: '?tab=roles' },
     });
   });
 
@@ -76,7 +76,7 @@ describe('apiErrorInterceptor', () => {
     await request;
 
     expect(navigateByUrl).toHaveBeenCalledWith(
-      '/session-expired?returnTo=' + encodeURIComponent('/admin/users?tab=roles'),
+      '/session-expired?returnTo=' + encodeURIComponent('/users?tab=roles'),
     );
   });
 

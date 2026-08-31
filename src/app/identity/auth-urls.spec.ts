@@ -18,6 +18,6 @@ describe('logoutUrl', () => {
 
 describe('loginUrl', () => {
   it('points at oauth2-proxy sign-in with the given return path', () => {
-    expect(loginUrl('/admin/users')).toBe('/oauth2/start?rd=' + encodeURIComponent('/admin/users'));
+    expect(loginUrl('/users')).toBe('/oauth2/start?rd=' + encodeURIComponent('/users'));
   });
 });

@@ -16,14 +16,14 @@ describe('Forbidden', () => {
 
   it('shows the attempted route, missing permission and current roles', () => {
     const fixture = createWithState({
-      route: '/admin/users',
+      route: '/users',
       permission: 'users:read',
       roles: ['EDITOR'],
     });
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain('/admin/users');
+    expect(root.textContent).toContain('/users');
     expect(root.textContent).toContain('users:read');
     expect(root.textContent).toContain('EDITOR');
   });
@@ -39,7 +39,7 @@ describe('Forbidden', () => {
   });
 
   it('shows a confirmation message when requesting access', () => {
-    const fixture = createWithState({ route: '/admin/users', permission: 'users:read', roles: [] });
+    const fixture = createWithState({ route: '/users', permission: 'users:read', roles: [] });
     fixture.detectChanges();
     const mascotService = TestBed.inject(MascotService);
 

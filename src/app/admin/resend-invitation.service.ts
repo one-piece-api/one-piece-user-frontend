@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { apiErrorOf } from '../shared/http/api-error';
 import { MascotService } from '../shared/mascot/mascot';
 
-const ADMIN_USERS_ENDPOINT = '/api/admin/users';
+const USERS_ENDPOINT = '/api/users';
 const INVITATION_NOT_RESENDABLE_ERROR_CODE = 'USER_INVITATION_NOT_RESENDABLE';
 const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
 
@@ -26,7 +26,7 @@ export class ResendInvitationService {
   async resend(user: ResendableUser): Promise<boolean> {
     try {
       await firstValueFrom(
-        this.http.post<void>(`${ADMIN_USERS_ENDPOINT}/${user.userId}/resend-invitation`, {}),
+        this.http.post<void>(`${USERS_ENDPOINT}/${user.userId}/resend-invitation`, {}),
       );
       this.mascotService.show(`Resent the invitation to ${user.email}!`, 'success');
       return true;

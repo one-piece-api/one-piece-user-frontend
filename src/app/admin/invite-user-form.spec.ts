@@ -38,7 +38,7 @@ describe('InviteUserForm', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    httpTesting.expectNone('/api/admin/users');
+    httpTesting.expectNone('/api/users');
     expect(root.textContent).toContain('email address be needed');
     expect(root.textContent).toContain('Pick at least one role');
   });
@@ -56,7 +56,7 @@ describe('InviteUserForm', () => {
     cancelButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectNone('/api/admin/users');
+    httpTesting.expectNone('/api/users');
     expect(cancelledEmitted).toBe(true);
   });
 
@@ -73,7 +73,7 @@ describe('InviteUserForm', () => {
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
     await fixture.whenStable();
 
-    const request = httpTesting.expectOne('/api/admin/users');
+    const request = httpTesting.expectOne('/api/users');
     expect(request.request.body).toEqual({ email: 'usopp@onepiece.local', roles: ['ADMIN'] });
     request.flush(
       { userId: '1', email: 'usopp@onepiece.local' },
@@ -103,7 +103,7 @@ describe('InviteUserForm', () => {
     await fixture.whenStable();
 
     httpTesting
-      .expectOne('/api/admin/users')
+      .expectOne('/api/users')
       .flush(
         { detail: 'Email already registered', errorCode: 'USER_EMAIL_ALREADY_REGISTERED' },
         { status: 409, statusText: 'Conflict' },
@@ -127,7 +127,7 @@ describe('InviteUserForm', () => {
     await fixture.whenStable();
 
     httpTesting
-      .expectOne('/api/admin/users')
+      .expectOne('/api/users')
       .flush(
         { detail: 'Could not send the invitation email', errorCode: 'USER_EMAIL_DELIVERY_FAILED' },
         { status: 422, statusText: 'Unprocessable Entity' },
@@ -151,7 +151,7 @@ describe('InviteUserForm', () => {
     await fixture.whenStable();
 
     httpTesting
-      .expectOne('/api/admin/users')
+      .expectOne('/api/users')
       .flush(
         { detail: 'Something exploded', errorCode: 'INTERNAL_ERROR' },
         { status: 500, statusText: 'Internal Server Error' },

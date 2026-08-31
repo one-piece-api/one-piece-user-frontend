@@ -39,9 +39,9 @@ describe('AdminUserList', () => {
   it('lists users with their status and roles', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/roles').flush([]);
 
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
+    httpTesting.expectOne('/api/users?page=0').flush({
       content: [
         {
           userId: '1',
@@ -69,12 +69,12 @@ describe('AdminUserList', () => {
   it('shows the role/permission registry', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([
+    httpTesting.expectOne('/api/roles').flush([
       { role: 'ADMIN', permissions: ['users:read', 'audit:read'] },
       { role: 'EDITOR', permissions: ['docs:read', 'docs:write'] },
     ]);
 
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
+    httpTesting.expectOne('/api/users?page=0').flush({
       content: [],
       page: 0,
       size: 20,
@@ -98,8 +98,8 @@ describe('AdminUserList', () => {
   it('narrows the manifest by search text, resetting to page 0', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    httpTesting.expectOne('/api/roles').flush([]);
+    httpTesting.expectOne('/api/users?page=0').flush(emptyPage());
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -109,14 +109,14 @@ describe('AdminUserList', () => {
     searchInput.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users?page=0&q=nami').flush(emptyPage());
+    httpTesting.expectOne('/api/users?page=0&q=nami').flush(emptyPage());
   });
 
   it('narrows the manifest by role', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    httpTesting.expectOne('/api/roles').flush([]);
+    httpTesting.expectOne('/api/users?page=0').flush(emptyPage());
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -126,14 +126,14 @@ describe('AdminUserList', () => {
     roleSelect.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users?page=0&role=ADMIN').flush(emptyPage());
+    httpTesting.expectOne('/api/users?page=0&role=ADMIN').flush(emptyPage());
   });
 
   it('narrows the manifest by status', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    httpTesting.expectOne('/api/roles').flush([]);
+    httpTesting.expectOne('/api/users?page=0').flush(emptyPage());
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -143,14 +143,14 @@ describe('AdminUserList', () => {
     statusSelect.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users?page=0&status=DISABLED').flush(emptyPage());
+    httpTesting.expectOne('/api/users?page=0&status=DISABLED').flush(emptyPage());
   });
 
   it('resets every filter back to the unfiltered listing', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    httpTesting.expectOne('/api/roles').flush([]);
+    httpTesting.expectOne('/api/users?page=0').flush(emptyPage());
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -159,7 +159,7 @@ describe('AdminUserList', () => {
     searchInput.value = 'nami';
     searchInput.dispatchEvent(new Event('input'));
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/users?page=0&q=nami').flush(emptyPage());
+    httpTesting.expectOne('/api/users?page=0&q=nami').flush(emptyPage());
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -169,14 +169,14 @@ describe('AdminUserList', () => {
     resetButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    httpTesting.expectOne('/api/users?page=0').flush(emptyPage());
   });
 
   it('shows a filter-aware empty state instead of "no crew members yet" when a filter is active', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
-    httpTesting.expectOne('/api/admin/users?page=0').flush(emptyPage());
+    httpTesting.expectOne('/api/roles').flush([]);
+    httpTesting.expectOne('/api/users?page=0').flush(emptyPage());
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -185,7 +185,7 @@ describe('AdminUserList', () => {
     searchInput.value = 'nobody';
     searchInput.dispatchEvent(new Event('input'));
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/users?page=0&q=nobody').flush(emptyPage());
+    httpTesting.expectOne('/api/users?page=0&q=nobody').flush(emptyPage());
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -196,10 +196,10 @@ describe('AdminUserList', () => {
   it('shows an error toast message when the request fails', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/roles').flush([]);
 
     httpTesting
-      .expectOne('/api/admin/users?page=0')
+      .expectOne('/api/users?page=0')
       .flush('nope', { status: 403, statusText: 'Forbidden' });
     await fixture.whenStable();
     fixture.detectChanges();
@@ -211,9 +211,9 @@ describe('AdminUserList', () => {
   it('keeps the invite form hidden until "New User" is selected', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/roles').flush([]);
 
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
+    httpTesting.expectOne('/api/users?page=0').flush({
       content: [],
       page: 0,
       size: 20,
@@ -239,9 +239,9 @@ describe('AdminUserList', () => {
   it('links each row to its Step 6 role editor', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/roles').flush([]);
 
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
+    httpTesting.expectOne('/api/users?page=0').flush({
       content: [
         {
           userId: '1',
@@ -261,7 +261,7 @@ describe('AdminUserList', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const detailLinks = Array.from(root.querySelectorAll('a')).filter(
-      (link) => link.getAttribute('href') === '/admin/users/1',
+      (link) => link.getAttribute('href') === '/users/1',
     );
     expect(detailLinks.length).toBeGreaterThan(0);
     expect(detailLinks.some((link) => link.textContent?.includes('Details'))).toBe(true);
@@ -270,9 +270,9 @@ describe('AdminUserList', () => {
   it('shows numbered pagination buttons and lets you jump directly to a page', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/admin/roles').flush([]);
+    httpTesting.expectOne('/api/roles').flush([]);
 
-    httpTesting.expectOne('/api/admin/users?page=0').flush({
+    httpTesting.expectOne('/api/users?page=0').flush({
       content: [
         {
           userId: '1',
@@ -300,7 +300,7 @@ describe('AdminUserList', () => {
     pageThreeButton!.click();
     fixture.detectChanges();
 
-    httpTesting.expectOne('/api/admin/users?page=2').flush({
+    httpTesting.expectOne('/api/users?page=2').flush({
       content: [],
       page: 2,
       size: 1,
