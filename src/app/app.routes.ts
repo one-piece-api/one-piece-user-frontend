@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AdminAuditPage } from './admin/audit-page';
+import { RolesPage } from './admin/roles-page';
 import { AdminUserDetail } from './admin/user-detail';
 import { AdminUserList } from './admin/user-list';
 import { SessionExpired } from './identity/session-expired';
@@ -28,5 +29,11 @@ export const routes: Routes = [
     component: AdminAuditPage,
     canActivate: [permissionGuard],
     data: { permission: 'audit:read' },
+  },
+  {
+    path: 'roles',
+    component: RolesPage,
+    canActivate: [permissionGuard],
+    data: { permission: 'roles:manage' },
   },
 ];

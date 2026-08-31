@@ -32,7 +32,7 @@
           class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
         >
           <option value="ALL">All roles</option>
-          @for (role of assignableRoles; track role) {
+          @for (role of assignableRoles(); track role) {
             <option [value]="role">{{ role }}</option>
           }
         </select>
@@ -220,5 +220,9 @@
 </div>
 
 <app-modal [open]="showInviteModal()" heading="New User" (closed)="showInviteModal.set(false)">
-  <app-invite-user-form (invited)="onInvited()" (cancelled)="showInviteModal.set(false)" />
+  <app-invite-user-form
+    [roles]="assignableRoles()"
+    (invited)="onInvited()"
+    (cancelled)="showInviteModal.set(false)"
+  />
 </app-modal>

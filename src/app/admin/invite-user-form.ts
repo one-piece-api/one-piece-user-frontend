@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { email, form, FormField, required, submit, validate } from '@angular/forms/signals';
 import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
@@ -12,9 +12,7 @@ const EMAIL_DELIVERY_FAILED_ERROR_CODE = 'USER_EMAIL_DELIVERY_FAILED';
 
 interface InviteFormModel {
   email: string;
-  adminRole: boolean;
-  reviewerRole: boolean;
-  editorRole: boolean;
+  roles: string[];
 }
 
 interface InvitedUser {
@@ -22,28 +20,16 @@ interface InvitedUser {
   email: string;
 }
 
-const EMPTY_MODEL: InviteFormModel = {
-  email: '',
-  adminRole: false,
-  reviewerRole: false,
-  editorRole: false,
-};
-
-/** Maps the checkbox trio back onto the `RealmRole` set the BE (UF-IDU-01) accepts. */
-function selectedRoles(value: InviteFormModel): string[] {
-  return [
-    ...(value.adminRole ? ['ADMIN'] : []),
-    ...(value.reviewerRole ? ['REVIEWER'] : []),
-    ...(value.editorRole ? ['EDITOR'] : []),
-  ];
-}
+const EMPTY_MODEL: InviteFormModel = { email: '', roles: [] };
 
 /**
  * "Invite User" (Step 4, UF-IDU-01): posts straight to `POST /users`. There is no
  * local invitation record to show here - a successful invite just makes the new PENDING
  * row appear in the Step 3 crew manifest, so this only needs to signal the parent to reload it.
  * Rendered inside `AdminUserList`'s `app-modal`, which already provides the panel chrome
- * and heading - this component is just the form itself.
+ * and heading - this component is just the form itself. `roles` comes from the parent's
+ * own `GET /roles` fetch (ADR-0012: the role set is dynamic, not a fixed enum) rather than
+ * being fetched again here.
  */
 @Component({
   selector: 'app-invite-user-form',
@@ -54,6 +40,8 @@ export class InviteUserForm {
   private readonly http = inject(HttpClient);
   private readonly mascotService = inject(MascotService);
 
+  readonly roles = input.required<readonly string[]>();
+
   readonly invited = output<void>();
   readonly cancelled = output<void>();
 
@@ -61,16 +49,31 @@ export class InviteUserForm {
   protected readonly inviteForm = form(this.model, (path) => {
     required(path.email, { message: 'An email address be needed, matey.' });
     email(path.email, { message: 'That be no proper email address.' });
-    validate(path, (ctx) => {
-      const value = ctx.value();
-      return value.adminRole || value.reviewerRole || value.editorRole
+    validate(path, (ctx) =>
+      ctx.value().roles.length > 0
         ? null
-        : { kind: 'rolesRequired', message: 'Pick at least one role for the new crewmate.' };
-    });
+        : { kind: 'rolesRequired', message: 'Pick at least one role for the new crewmate.' },
+    );
   });
 
   protected readonly submitClasses = buttonClasses('primary');
   protected readonly cancelClasses = buttonClasses('secondary');
+
+  protected isRoleSelected(role: string): boolean {
+    return this.model().roles.includes(role);
+  }
+
+  protected toggleRole(role: string): void {
+    this.model.update((current) => {
+      const alreadySelected = current.roles.includes(role);
+      return {
+        ...current,
+        roles: alreadySelected
+          ? current.roles.filter((selected) => selected !== role)
+          : [...current.roles, role],
+      };
+    });
+  }
 
   protected onSubmit(event: Event): void {
     event.preventDefault();
@@ -80,7 +83,7 @@ export class InviteUserForm {
         const invitedUser = await firstValueFrom(
           this.http.post<InvitedUser>(INVITE_ENDPOINT, {
             email: value.email,
-            roles: selectedRoles(value),
+            roles: value.roles,
           }),
         );
         this.mascotService.show(`Invitation sent to ${invitedUser.email}!`, 'success');

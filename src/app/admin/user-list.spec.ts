@@ -115,7 +115,9 @@ describe('AdminUserList', () => {
   it('narrows the manifest by role', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
-    httpTesting.expectOne('/api/roles').flush([]);
+    httpTesting
+      .expectOne('/api/roles')
+      .flush([{ role: 'ADMIN', permissions: [] }, { role: 'EDITOR', permissions: [] }]);
     httpTesting.expectOne('/api/users?page=0').flush(emptyPage());
     await fixture.whenStable();
     fixture.detectChanges();

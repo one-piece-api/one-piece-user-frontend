@@ -28,6 +28,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         permission: 'users:read',
       },
       {
+        id: 'roles',
+        label: 'Roles & Permissions',
+        icon: '⚙',
+        route: '/roles',
+        permission: 'roles:manage',
+      },
+      {
         id: 'audit',
         label: "Ship's Log",
         icon: '▤',

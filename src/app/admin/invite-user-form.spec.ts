@@ -4,6 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { MascotService } from '../shared/mascot/mascot';
 import { InviteUserForm } from './invite-user-form';
 
+const DEFAULT_ROLES = ['ADMIN', 'REVIEWER', 'EDITOR'];
+
 function setValue(input: HTMLInputElement, value: string): void {
   input.value = value;
   input.dispatchEvent(new Event('input'));
@@ -11,7 +13,14 @@ function setValue(input: HTMLInputElement, value: string): void {
 
 function check(checkbox: HTMLInputElement): void {
   checkbox.checked = true;
-  checkbox.dispatchEvent(new Event('input'));
+  checkbox.dispatchEvent(new Event('change'));
+}
+
+function createFixture(roles: readonly string[] = DEFAULT_ROLES) {
+  const fixture = TestBed.createComponent(InviteUserForm);
+  fixture.componentRef.setInput('roles', roles);
+  fixture.detectChanges();
+  return fixture;
 }
 
 describe('InviteUserForm', () => {
@@ -30,8 +39,7 @@ describe('InviteUserForm', () => {
   });
 
   it('rejects submission with no email and no role, without calling the backend', async () => {
-    const fixture = TestBed.createComponent(InviteUserForm);
-    fixture.detectChanges();
+    const fixture = createFixture();
 
     const root = fixture.nativeElement as HTMLElement;
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
@@ -43,9 +51,18 @@ describe('InviteUserForm', () => {
     expect(root.textContent).toContain('Pick at least one role');
   });
 
+  it('renders one checkbox per role from the registry, in order', () => {
+    const fixture = createFixture(['ADMIN', 'NAVIGATOR']);
+
+    const root = fixture.nativeElement as HTMLElement;
+    const labels = Array.from(root.querySelectorAll('label'))
+      .filter((label) => label.querySelector('input[type=checkbox]'))
+      .map((label) => label.textContent?.trim());
+    expect(labels).toEqual(['ADMIN', 'NAVIGATOR']);
+  });
+
   it('emits cancelled when the Cancel button is clicked, without calling the backend', async () => {
-    const fixture = TestBed.createComponent(InviteUserForm);
-    fixture.detectChanges();
+    const fixture = createFixture();
     let cancelledEmitted = false;
     fixture.componentInstance.cancelled.subscribe(() => (cancelledEmitted = true));
 
@@ -61,8 +78,7 @@ describe('InviteUserForm', () => {
   });
 
   it('invites a user, emits invited, resets the form, and shows a success message', async () => {
-    const fixture = TestBed.createComponent(InviteUserForm);
-    fixture.detectChanges();
+    const fixture = createFixture();
     const mascotService = TestBed.inject(MascotService);
     let invitedEmitted = false;
     fixture.componentInstance.invited.subscribe(() => (invitedEmitted = true));
@@ -93,8 +109,7 @@ describe('InviteUserForm', () => {
   });
 
   it('shows a field error when the email is already registered', async () => {
-    const fixture = TestBed.createComponent(InviteUserForm);
-    fixture.detectChanges();
+    const fixture = createFixture();
 
     const root = fixture.nativeElement as HTMLElement;
     setValue(root.querySelector('#invite-email')!, 'luffy@onepiece.local');
@@ -117,8 +132,7 @@ describe('InviteUserForm', () => {
   });
 
   it('shows an inline error when the invitation email cannot be delivered', async () => {
-    const fixture = TestBed.createComponent(InviteUserForm);
-    fixture.detectChanges();
+    const fixture = createFixture();
 
     const root = fixture.nativeElement as HTMLElement;
     setValue(root.querySelector('#invite-email')!, 'usopp@onepiece.local');
@@ -141,8 +155,7 @@ describe('InviteUserForm', () => {
   });
 
   it('shows a generic inline error for a failure other than email-already-registered', async () => {
-    const fixture = TestBed.createComponent(InviteUserForm);
-    fixture.detectChanges();
+    const fixture = createFixture();
 
     const root = fixture.nativeElement as HTMLElement;
     setValue(root.querySelector('#invite-email')!, 'usopp@onepiece.local');

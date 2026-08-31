@@ -58,6 +58,25 @@ describe('AppShell', () => {
     const links = Array.from(root.querySelectorAll('a'));
     expect(links.some((link) => link.getAttribute('href') === '/users')).toBe(false);
     expect(links.some((link) => link.getAttribute('href') === '/audit')).toBe(false);
+    expect(links.some((link) => link.getAttribute('href') === '/roles')).toBe(false);
+  });
+
+  it('links to roles & permissions only when the caller has roles:manage', async () => {
+    const fixture = TestBed.createComponent(AppShell);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/me').flush({
+      username: 'luffy',
+      email: 'luffy@onepiece.local',
+      roles: ['ADMIN'],
+      permissions: ['users:read', 'roles:read', 'roles:manage'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const links = Array.from(root.querySelectorAll('a'));
+    expect(links.some((link) => link.getAttribute('href') === '/roles')).toBe(true);
   });
 
   it("links to the ship's log only when the caller has audit:read", async () => {

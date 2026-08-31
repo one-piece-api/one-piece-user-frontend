@@ -9,7 +9,6 @@ import { initialsOf } from '../shared/ui/initials';
 import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import {
-  ASSIGNABLE_ROLES,
   STATUS_LABEL,
   STATUS_TONE,
   statusBorderClass,
@@ -22,7 +21,7 @@ import { InviteUserForm } from './invite-user-form';
 const USERS_ENDPOINT = '/api/users';
 const ROLES_ENDPOINT = '/api/roles';
 
-type RoleFilter = 'ALL' | (typeof ASSIGNABLE_ROLES)[number];
+type RoleFilter = 'ALL' | string;
 type StatusFilter = 'ALL' | AccountStatus;
 
 interface PageResponse<T> {
@@ -68,14 +67,19 @@ export class AdminUserList {
     return `${USERS_ENDPOINT}?${params.toString()}`;
   });
 
-  /** Powers the read-only "Roles &amp; Permissions" panel below the manifest (ADR-0007). */
+  /**
+   * Powers the read-only "Roles &amp; Permissions" panel below the manifest (ADR-0007),
+   * the role filter, and the invite form's role picker - one fetch, three consumers.
+   */
   protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ROLES_ENDPOINT);
 
   protected readonly showInviteModal = signal(false);
 
   protected readonly statusTone = STATUS_TONE;
   protected readonly statusLabel = STATUS_LABEL;
-  protected readonly assignableRoles = ASSIGNABLE_ROLES;
+  protected readonly assignableRoles = computed(
+    () => this.roleRegistry.value()?.map((entry) => entry.role) ?? [],
+  );
   protected readonly statuses = Object.keys(STATUS_LABEL) as AccountStatus[];
   protected readonly navClasses = buttonClasses('secondary');
   protected readonly primaryClasses = buttonClasses('primary');

@@ -10,9 +10,6 @@ export interface AdminUserSummary {
   roles: string[];
 }
 
-/** The realm roles an ADMIN can grant/revoke (Step 6) or select at invite time (Step 4). */
-export const ASSIGNABLE_ROLES = ['ADMIN', 'REVIEWER', 'EDITOR'] as const;
-
 export const STATUS_TONE: Record<AccountStatus, BadgeTone> = {
   ACTIVE: 'success',
   PENDING: 'gold',

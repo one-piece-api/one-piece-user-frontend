@@ -10,7 +10,6 @@ import { Card } from '../shared/ui/card';
 import { initialsOf } from '../shared/ui/initials';
 import { Modal } from '../shared/ui/modal';
 import {
-  ASSIGNABLE_ROLES,
   STATUS_LABEL,
   STATUS_TONE,
   statusBorderClass,
@@ -90,7 +89,10 @@ export class AdminUserDetail {
     return [...permissions].sort();
   });
 
-  protected readonly assignableRoles = ASSIGNABLE_ROLES;
+  /** Every role in the registry (ADR-0012: roles are dynamic, not a fixed set). */
+  protected readonly assignableRoles = computed(
+    () => this.roleRegistry.value()?.map((entry) => entry.role) ?? [],
+  );
   protected readonly statusTone = STATUS_TONE;
   protected readonly statusLabel = STATUS_LABEL;
   protected readonly navClasses = buttonClasses('secondary');
@@ -106,7 +108,7 @@ export class AdminUserDetail {
 
   /** The assignable roles this crewmate does not already hold - offered as "add a role" chips. */
   protected availableRoles(user: AdminUserSummary): readonly string[] {
-    return this.assignableRoles.filter((role) => !user.roles.includes(role));
+    return this.assignableRoles().filter((role) => !user.roles.includes(role));
   }
 
   protected async assignRole(user: AdminUserSummary, role: string): Promise<void> {
