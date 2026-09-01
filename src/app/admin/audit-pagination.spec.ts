@@ -98,6 +98,66 @@ describe('AuditPagination', () => {
     expect(jumpToSpy).toHaveBeenCalledWith(2);
   });
 
+  it('shows every page with no ellipsis when there are 7 or fewer', () => {
+    const fixture = TestBed.createComponent(AuditPagination);
+    fixture.componentRef.setInput('range', '1–1 of 4');
+    fixture.componentRef.setInput('currentPage', 0);
+    fixture.componentRef.setInput('totalPages', 4);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const buttons = Array.from(root.querySelectorAll('button'))
+      .map((b) => b.textContent?.trim())
+      .filter((t) => t !== '←' && t !== '→');
+    expect(buttons).toEqual(['1', '2', '3', '4']);
+    expect(root.textContent).not.toContain('…');
+  });
+
+  it('pins the first and last page around a sliding window with ellipses on both sides', () => {
+    const fixture = TestBed.createComponent(AuditPagination);
+    fixture.componentRef.setInput('range', '16–20 of 100');
+    fixture.componentRef.setInput('currentPage', 3);
+    fixture.componentRef.setInput('totalPages', 10);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const buttons = Array.from(root.querySelectorAll('button'))
+      .map((b) => b.textContent?.trim())
+      .filter((t) => t !== '←' && t !== '→');
+    expect(buttons).toEqual(['1', '3', '4', '5', '10']);
+    expect(root.querySelectorAll('[aria-hidden="true"]').length).toBe(2);
+  });
+
+  it('slides the window so the current page stays visible as you page forward', () => {
+    const fixture = TestBed.createComponent(AuditPagination);
+    fixture.componentRef.setInput('range', '31–35 of 100');
+    fixture.componentRef.setInput('currentPage', 6);
+    fixture.componentRef.setInput('totalPages', 20);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const buttons = Array.from(root.querySelectorAll('button')).map((b) => b.textContent?.trim());
+    expect(buttons).toContain('7');
+  });
+
+  it('always keeps the first and last page reachable, even from the last page', () => {
+    const fixture = TestBed.createComponent(AuditPagination);
+    fixture.componentRef.setInput('range', '96–100 of 100');
+    fixture.componentRef.setInput('currentPage', 9);
+    fixture.componentRef.setInput('totalPages', 10);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const jumpToSpy = vi.fn();
+    fixture.componentInstance.jumpTo.subscribe(jumpToSpy);
+
+    const buttons = Array.from(root.querySelectorAll('button'));
+    const firstPageButton = buttons.find((b) => b.textContent?.trim() === '1');
+    expect(firstPageButton).toBeTruthy();
+    firstPageButton!.click();
+    expect(jumpToSpy).toHaveBeenCalledWith(0);
+  });
+
   it('highlights the current page among the numbered buttons', () => {
     const fixture = TestBed.createComponent(AuditPagination);
     fixture.componentRef.setInput('range', '2–2 of 3');

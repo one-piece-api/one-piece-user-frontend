@@ -23,14 +23,23 @@
             ←
           </button>
           <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
-            @for (pageNumber of pageNumbers(); track pageNumber) {
-              <button
-                type="button"
-                [class]="pageButtonClasses(pageNumber)"
-                (click)="jumpTo.emit(pageNumber)"
-              >
-                {{ pageNumber + 1 }}
-              </button>
+            @for (item of pageItems(); track $index) {
+              @if (item === 'ellipsis') {
+                <span
+                  class="flex size-9 flex-none items-center justify-center rounded-lg border border-dashed border-ocean-900/25 font-display text-sm font-bold text-ocean-900/40"
+                  aria-hidden="true"
+                >
+                  &hellip;
+                </span>
+              } @else {
+                <button
+                  type="button"
+                  [class]="pageButtonClasses(item)"
+                  (click)="jumpTo.emit(item)"
+                >
+                  {{ item + 1 }}
+                </button>
+              }
             }
           </div>
           <button
