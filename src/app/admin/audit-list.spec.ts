@@ -61,6 +61,28 @@ describe('AuditList', () => {
     expect(root.textContent).toContain('SOMETHING_NEW');
   });
 
+  it('stacks the message and actor below their long-email overflow point instead of forcing them onto one nowrap row', () => {
+    const fixture = TestBed.createComponent(AuditList);
+    fixture.componentRef.setInput('events', [
+      anEvent({ actorEmail: 'a-rather-long-crewmate-name@onepiece.local' }),
+    ]);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const actorSpan = Array.from(root.querySelectorAll('span')).find((s) =>
+      s.textContent?.startsWith('by '),
+    )!;
+    // Wraps and shrinks below `sm`; only goes back to a single nowrap row at `sm` and up.
+    expect(actorSpan.className).toContain('min-w-0');
+    expect(actorSpan.className).toContain('break-words');
+    expect(actorSpan.className).toContain('sm:whitespace-nowrap');
+    expect(actorSpan.className).not.toMatch(/(^|\s)whitespace-nowrap(\s|$)/);
+
+    const row = actorSpan.parentElement!;
+    expect(row.className).toContain('flex-col');
+    expect(row.className).toContain('sm:flex-row');
+  });
+
   it('shows the given empty message when there are no events', () => {
     const fixture = TestBed.createComponent(AuditList);
     fixture.componentRef.setInput('events', []);
