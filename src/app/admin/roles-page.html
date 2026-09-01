@@ -101,23 +101,33 @@
                           permission.key
                         }}</span>
                       </span>
-                      <button
-                        type="button"
-                        role="switch"
-                        [attr.aria-checked]="hasPermission(permission.key)"
-                        [attr.aria-label]="permission.key"
-                        [disabled]="!selectedRole() || togglingPermission() === permission.key"
-                        (click)="togglePermission(permission.key)"
-                        [class]="
-                          'relative h-[27px] w-[46px] flex-none cursor-pointer rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ' +
-                          (hasPermission(permission.key) ? 'bg-ocean-700' : 'bg-ocean-900/20')
-                        "
-                      >
-                        <span
-                          class="absolute top-[3px] size-[21px] rounded-full bg-white shadow transition-all"
-                          [class]="hasPermission(permission.key) ? 'left-[22px]' : 'left-[3px]'"
-                        ></span>
-                      </button>
+                      <div class="flex flex-none items-center gap-2">
+                        <button
+                          type="button"
+                          role="switch"
+                          [attr.aria-checked]="hasPermission(permission.key)"
+                          [attr.aria-label]="permission.key"
+                          [disabled]="!selectedRole() || togglingPermission() === permission.key"
+                          (click)="togglePermission(permission.key)"
+                          [class]="
+                            'relative h-[27px] w-[46px] flex-none cursor-pointer rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ' +
+                            (hasPermission(permission.key) ? 'bg-ocean-700' : 'bg-ocean-900/20')
+                          "
+                        >
+                          <span
+                            class="absolute top-[3px] size-[21px] rounded-full bg-white shadow transition-all"
+                            [class]="hasPermission(permission.key) ? 'left-[22px]' : 'left-[3px]'"
+                          ></span>
+                        </button>
+                        <button
+                          type="button"
+                          class="cursor-pointer rounded-md p-1 text-flag-700 transition-colors hover:bg-flag-500/10"
+                          aria-label="Delete permission {{ permission.key }}"
+                          (click)="requestDeletePermission(permission.key)"
+                        >
+                          🗑
+                        </button>
+                      </div>
                     </div>
                   }
                 </div>
@@ -178,19 +188,50 @@
 <app-modal [open]="permModalOpen()" heading="New Permission" (closed)="closePermModal()">
   <form (submit)="onSubmitPermModal($event)" novalidate class="flex flex-col gap-4 text-left">
     <div>
-      <label for="perm-key" class="mb-1.5 block font-heading text-xs font-bold text-ocean-500"
-        >Key (resource:action)</label
+      <label for="perm-resource" class="mb-1.5 block font-heading text-xs font-bold text-ocean-500"
+        >Resource</label
+      >
+      <select
+        id="perm-resource"
+        [formField]="permModalForm.resource"
+        class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
+      >
+        @for (group of permissionGroups(); track group.prefix) {
+          <option [value]="group.prefix">{{ group.label }}</option>
+        }
+        <option [value]="newResourceSentinel">+ New group…</option>
+      </select>
+    </div>
+    @if (permModalModel().resource === newResourceSentinel) {
+      <div>
+        <label
+          for="perm-new-resource"
+          class="mb-1.5 block font-heading text-xs font-bold text-ocean-500"
+          >New Group Name</label
+        >
+        <input
+          id="perm-new-resource"
+          type="text"
+          [formField]="permModalForm.newResource"
+          placeholder="e.g. billing"
+          class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
+        />
+      </div>
+    }
+    <div>
+      <label for="perm-action" class="mb-1.5 block font-heading text-xs font-bold text-ocean-500"
+        >Action</label
       >
       <input
-        id="perm-key"
+        id="perm-action"
         type="text"
-        [formField]="permModalForm.key"
-        placeholder="e.g. docs:approve"
+        [formField]="permModalForm.action"
+        placeholder="e.g. approve"
         class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
       />
-      @if (permModalForm.key().touched() && permModalForm.key().errors().length > 0) {
+      @if (permModalForm.action().touched() && permModalForm.action().errors().length > 0) {
         <p class="mt-1 font-heading text-sm text-flag-700">
-          {{ permModalForm.key().errors()[0].message }}
+          {{ permModalForm.action().errors()[0].message }}
         </p>
       }
     </div>
@@ -208,6 +249,11 @@
         class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
       />
     </div>
+    @if (permModalForm().touched() && permModalForm().errors().length > 0) {
+      <p class="font-heading text-sm text-flag-700">
+        {{ permModalForm().errors()[0].message }}
+      </p>
+    }
     <p class="font-heading text-sm text-ocean-500">
       The permission starts unassigned to any role - turn it on afterward from the matrix, role by
       role.
@@ -222,6 +268,30 @@
       </button>
     </div>
   </form>
+</app-modal>
+
+<app-modal
+  [open]="deletingPermission() !== null"
+  heading="Delete Permission"
+  (closed)="cancelDeletePermission()"
+>
+  <p class="font-heading text-ocean-900">
+    Arrr! This removes <strong>{{ deletingPermission() }}</strong> from the registry. If it's still
+    needed later, it will have to be created from scratch.
+  </p>
+  <div class="mt-6 flex justify-end gap-3">
+    <button type="button" [class]="secondaryClasses" (click)="cancelDeletePermission()">
+      Cancel
+    </button>
+    <button
+      type="button"
+      [class]="dangerClasses"
+      [disabled]="deletePermissionPending()"
+      (click)="confirmDeletePermission()"
+    >
+      {{ deletePermissionPending() ? 'Working…' : 'Delete Permission' }}
+    </button>
+  </div>
 </app-modal>
 
 <app-modal [open]="deletingRole() !== null" heading="Delete Role" (closed)="cancelDeleteRole()">

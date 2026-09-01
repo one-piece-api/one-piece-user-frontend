@@ -19,6 +19,10 @@ const INVALID_ROLE_NAME_ERROR_CODE = 'USER_INVALID_ROLE_NAME';
 const ROLE_IN_USE_ERROR_CODE = 'USER_ROLE_IN_USE';
 const LAST_ROLE_MANAGER_ERROR_CODE = 'USER_LAST_ROLE_MANAGER';
 const PERMISSION_ALREADY_EXISTS_ERROR_CODE = 'USER_PERMISSION_ALREADY_EXISTS';
+const PERMISSION_IN_USE_ERROR_CODE = 'USER_PERMISSION_IN_USE';
+
+/** Selected in the "Resource" dropdown to mean "not one of the existing groups". */
+const NEW_RESOURCE_SENTINEL = '__new__';
 
 interface RoleModalModel {
   name: string;
@@ -26,7 +30,9 @@ interface RoleModalModel {
 }
 
 interface PermissionModalModel {
-  key: string;
+  resource: string;
+  newResource: string;
+  action: string;
   description: string;
 }
 
@@ -40,11 +46,11 @@ function normalizeRoleName(name: string): string {
 }
 
 /**
- * "Ruoli & permessi" (ADR-0012): create/delete roles, create permissions, and toggle
- * which permissions a role holds. Whole-screen gated on `roles:manage` (`app.routes.ts`);
- * listing itself only needs `roles:read`, but nothing here is reachable without the
- * broader permission since the route guard already excludes it from the nav for anyone
- * lacking `roles:manage`.
+ * "Ruoli & permessi" (ADR-0012): create/delete roles, create/delete permissions, and
+ * toggle which permissions a role holds. Whole-screen gated on `roles:manage`
+ * (`app.routes.ts`); listing itself only needs `roles:read`, but nothing here is
+ * reachable without the broader permission since the route guard already excludes it
+ * from the nav for anyone lacking `roles:manage`.
  */
 @Component({
   selector: 'app-roles-page',
@@ -55,13 +61,16 @@ export class RolesPage {
   private readonly http = inject(HttpClient);
   private readonly mascotService = inject(MascotService);
 
+  protected readonly newResourceSentinel = NEW_RESOURCE_SENTINEL;
+
   protected readonly roles = httpResource<RolePermissions[]>(() => ROLES_ENDPOINT);
   protected readonly permissions = httpResource<PermissionDefinition[]>(() => PERMISSIONS_ENDPOINT);
 
   protected readonly permissionGroups = computed(() =>
     groupPermissionsByPrefix(this.permissions.value() ?? []),
   );
-  protected readonly closedGroups = signal<ReadonlySet<string>>(new Set());
+  /** Membership means "explicitly expanded by the user" - groups start collapsed. */
+  protected readonly openGroups = signal<ReadonlySet<string>>(new Set());
 
   protected readonly selectedRole = signal<string | null>(null);
   protected readonly selectedRolePermissions = computed(() => {
@@ -73,6 +82,8 @@ export class RolesPage {
   protected readonly togglingPermission = signal<string | null>(null);
   protected readonly deletingRole = signal<string | null>(null);
   protected readonly deletePending = signal(false);
+  protected readonly deletingPermission = signal<string | null>(null);
+  protected readonly deletePermissionPending = signal(false);
 
   protected readonly roleModalOpen = signal(false);
   protected readonly roleModalModel = signal<RoleModalModel>({ name: '', copyFromRole: '' });
@@ -82,14 +93,26 @@ export class RolesPage {
   protected readonly roleModalError = signal<string | null>(null);
 
   protected readonly permModalOpen = signal(false);
-  protected readonly permModalModel = signal<PermissionModalModel>({ key: '', description: '' });
+  protected readonly permModalModel = signal<PermissionModalModel>(this.emptyPermModel());
   protected readonly permModalForm = form(this.permModalModel, (path) => {
-    required(path.key, { message: 'A permission needs a key.' });
-    validate(path.key, (ctx) =>
-      /^[a-z0-9]+:[a-z0-9]+$/.test(ctx.value())
+    required(path.action, { message: 'A permission needs an action.' });
+    validate(path.action, (ctx) =>
+      /^[a-z0-9]+$/.test(ctx.value())
         ? null
-        : { kind: 'invalidKey', message: 'Must be resource:action, all lowercase.' },
+        : { kind: 'invalidAction', message: 'Action must be lowercase letters/numbers only.' },
     );
+    validate(path, (ctx) => {
+      const value = ctx.value();
+      if (value.resource !== NEW_RESOURCE_SENTINEL) {
+        return null;
+      }
+      return /^[a-z0-9]+$/.test(value.newResource)
+        ? null
+        : {
+            kind: 'invalidResource',
+            message: 'New group name must be lowercase letters/numbers only.',
+          };
+    });
     required(path.description, { message: 'A permission needs a label.' });
   });
   protected readonly permModalError = signal<string | null>(null);
@@ -130,11 +153,11 @@ export class RolesPage {
   }
 
   protected isGroupOpen(prefix: string): boolean {
-    return !this.closedGroups().has(prefix);
+    return this.openGroups().has(prefix);
   }
 
   protected toggleGroup(prefix: string): void {
-    this.closedGroups.update((current) => {
+    this.openGroups.update((current) => {
       const next = new Set(current);
       if (next.has(prefix)) {
         next.delete(prefix);
@@ -168,7 +191,12 @@ export class RolesPage {
         );
         this.mascotService.show(`Granted ${key} to ${role}!`, 'success');
       }
-      this.roles.reload();
+      // Updated in place rather than `this.roles.reload()`: the server already confirmed
+      // this exact change, so a full re-fetch would only add a round trip - and would
+      // briefly blank the whole section back to the loading placeholder while it's in
+      // flight (`isLoading()` covers reloads too), which is exactly the flash a single
+      // toggle shouldn't cause.
+      this.setRolePermissionLocally(role, key, !has);
     } catch (err) {
       if (err instanceof HttpErrorResponse && hasErrorCode(err, LAST_ROLE_MANAGER_ERROR_CODE)) {
         this.mascotService.show(
@@ -266,7 +294,7 @@ export class RolesPage {
   }
 
   protected openPermModal(): void {
-    this.permModalModel.set({ key: '', description: '' });
+    this.permModalModel.set(this.emptyPermModel());
     this.permModalError.set(null);
     this.permModalOpen.set(true);
   }
@@ -280,15 +308,20 @@ export class RolesPage {
     this.permModalError.set(null);
     void submit(this.permModalForm, async (field) => {
       const value = field().value();
+      const resource =
+        value.resource === NEW_RESOURCE_SENTINEL
+          ? value.newResource.trim().toLowerCase()
+          : value.resource;
+      const key = `${resource}:${value.action.trim().toLowerCase()}`;
       try {
         await firstValueFrom(
           this.http.post<PermissionDefinition>(PERMISSIONS_ENDPOINT, {
-            key: value.key,
+            key,
             description: value.description,
           }),
         );
         this.mascotService.show(
-          `Permission ${value.key} added to the registry. Activate it from the matrix below.`,
+          `Permission ${key} added to the registry. Activate it from the matrix below.`,
           'success',
         );
         this.permissions.reload();
@@ -299,12 +332,70 @@ export class RolesPage {
           err instanceof HttpErrorResponse &&
           hasErrorCode(err, PERMISSION_ALREADY_EXISTS_ERROR_CODE)
         ) {
-          this.permModalError.set(`Permission ${value.key} already exists.`);
+          this.permModalError.set(`Permission ${key} already exists.`);
         } else {
           this.permModalError.set('Arrr! Something went wrong creating the permission.');
         }
         return null;
       }
     });
+  }
+
+  protected requestDeletePermission(key: string): void {
+    this.deletingPermission.set(key);
+  }
+
+  protected cancelDeletePermission(): void {
+    this.deletingPermission.set(null);
+  }
+
+  protected async confirmDeletePermission(): Promise<void> {
+    const key = this.deletingPermission();
+    if (!key) {
+      return;
+    }
+    this.deletePermissionPending.set(true);
+    try {
+      await firstValueFrom(this.http.delete<void>(`${PERMISSIONS_ENDPOINT}/${key}`));
+      this.mascotService.show(`Permission ${key} removed from the registry.`, 'success');
+      this.deletingPermission.set(null);
+      this.permissions.reload();
+    } catch (err) {
+      if (err instanceof HttpErrorResponse && hasErrorCode(err, PERMISSION_IN_USE_ERROR_CODE)) {
+        this.mascotService.show(
+          `Arrr! ${key} is still granted to at least one role — revoke it everywhere first.`,
+          'error',
+        );
+      }
+      // 401/403/404/5xx already get a themed toast from apiErrorInterceptor.
+    } finally {
+      this.deletePermissionPending.set(false);
+    }
+  }
+
+  /** Reflects a just-confirmed assign/revoke without re-fetching the whole role list. */
+  private setRolePermissionLocally(role: string, permissionKey: string, granted: boolean): void {
+    this.roles.value.update((current) =>
+      (current ?? []).map((entry) =>
+        entry.role === role
+          ? {
+              ...entry,
+              permissions: granted
+                ? [...entry.permissions, permissionKey].sort()
+                : entry.permissions.filter((held) => held !== permissionKey),
+            }
+          : entry,
+      ),
+    );
+  }
+
+  private emptyPermModel(): PermissionModalModel {
+    const firstGroup = this.permissionGroups()[0]?.prefix;
+    return {
+      resource: firstGroup ?? NEW_RESOURCE_SENTINEL,
+      newResource: '',
+      action: '',
+      description: '',
+    };
   }
 }
