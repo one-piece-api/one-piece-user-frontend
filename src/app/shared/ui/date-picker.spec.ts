@@ -159,4 +159,21 @@ describe('DatePicker', () => {
     expect(popover.style.right).toBe('auto');
     expect(popover.style.left).not.toBe('');
   });
+
+  it('does not leave the popover host visible after closing (no forced display utility on it)', () => {
+    const fixture = TestBed.createComponent(DatePicker);
+    fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('button');
+    trigger.click();
+    fixture.detectChanges();
+    trigger.click();
+    fixture.detectChanges();
+
+    const popover = fixture.nativeElement.querySelector('[popover]') as HTMLElement;
+    // A `display` utility (flex/grid/block) applied directly to the `[popover]` host
+    // would override the browser's own `display: none` on close - author styles beat
+    // the user-agent stylesheet regardless of popover state - leaving an empty box
+    // visible. The flex/grid layout must live on an inner wrapper instead.
+    expect(popover.className).not.toMatch(/(^|\s)(flex|grid|block|inline)(\s|$)/);
+  });
 });

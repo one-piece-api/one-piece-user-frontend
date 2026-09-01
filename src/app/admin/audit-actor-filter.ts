@@ -1,24 +1,19 @@
 import { Component, computed, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
-import { TONE_ACCENT_CLASS } from '../shared/ui/badge';
-import { AUDIT_ACTION_LABEL, AUDIT_ACTION_TONE } from './audit.model';
-
-const ACTION_KEYS = Object.keys(AUDIT_ACTION_LABEL);
 
 /**
- * The Ship's Log "Action type" filter - a checkbox dropdown over every real
- * `AuditAction`, each with its badge tone's dot (`AUDIT_ACTION_TONE`/`TONE_ACCENT_CLASS`).
- * The reference mockup buckets these into five broad "kinds" (invite/role/access/
- * session/security), but this app's audit trail has no login or security event types to
- * bucket - a flat list over the actions actually recorded is the faithful equivalent here,
- * not an invented taxonomy with two permanently-empty categories.
+ * The Ship's Log "Author" filter - a searchable single-select dropdown over every actor
+ * who has ever recorded an event. A plain `<select>` doesn't scale once the crew grows:
+ * this lets the user type a substring of an email to narrow the list instead of scrolling
+ * a native option list.
  */
 @Component({
-  selector: 'app-audit-kind-filter',
-  templateUrl: './audit-kind-filter.html',
+  selector: 'app-audit-actor-filter',
+  templateUrl: './audit-actor-filter.html',
 })
-export class AuditKindFilter {
-  readonly selected = input.required<ReadonlySet<string>>();
-  readonly toggled = output<string>();
+export class AuditActorFilter {
+  readonly selected = input.required<string>();
+  readonly options = input.required<string[]>();
+  readonly selectedChange = output<string>();
 
   protected readonly open = signal(false);
   protected readonly query = signal('');
@@ -26,30 +21,14 @@ export class AuditKindFilter {
   private readonly popoverRef = viewChild.required<ElementRef<HTMLElement>>('popover');
   private readonly searchInputRef = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
-  protected readonly actionLabel = AUDIT_ACTION_LABEL;
-  protected readonly dotClassByAction: Record<string, string> = Object.fromEntries(
-    ACTION_KEYS.map((action) => [action, TONE_ACCENT_CLASS[AUDIT_ACTION_TONE[action] ?? 'neutral']]),
-  );
-
-  /** Substring match against the label, case-insensitive - the list can get long. */
-  protected readonly filteredActionKeys = computed(() => {
+  /** Substring match against the email, case-insensitive - the crew can get large. */
+  protected readonly filteredOptions = computed(() => {
     const query = this.query().trim().toLowerCase();
+    const options = this.options();
     if (!query) {
-      return ACTION_KEYS;
+      return options;
     }
-    return ACTION_KEYS.filter((action) => AUDIT_ACTION_LABEL[action].toLowerCase().includes(query));
-  });
-
-  protected readonly summary = computed(() => {
-    const selected = this.selected();
-    if (selected.size === 0) {
-      return 'All types';
-    }
-    if (selected.size === 1) {
-      const [only] = selected;
-      return AUDIT_ACTION_LABEL[only] ?? only;
-    }
-    return `${selected.size} types selected`;
+    return options.filter((actor) => actor.toLowerCase().includes(query));
   });
 
   constructor() {
@@ -102,7 +81,8 @@ export class AuditKindFilter {
     this.open.set(event.newState === 'open');
   }
 
-  protected toggleAction(action: string): void {
-    this.toggled.emit(action);
+  protected select(actor: string): void {
+    this.selectedChange.emit(actor);
+    this.open.set(false);
   }
 }

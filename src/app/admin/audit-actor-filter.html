@@ -1,0 +1,63 @@
+<div class="relative">
+  <div class="mb-2 font-heading text-xs font-black tracking-wide text-ocean-500 uppercase">Author</div>
+  <button
+    #trigger
+    type="button"
+    (click)="toggleMenu()"
+    class="flex w-full items-center justify-between gap-2 rounded-xl border-2 bg-parchment-100 px-3.5 py-2.5 font-heading text-sm font-bold transition-colors"
+    [class]="open() ? 'border-ocean-700 text-ocean-900' : selected() ? 'border-ocean-900/15 text-ocean-900' : 'border-ocean-900/15 text-ocean-500'"
+  >
+    <span class="truncate">{{ selected() || 'Everyone' }}</span>
+    <span class="flex-none text-xs text-ocean-500">▾</span>
+  </button>
+
+  <div
+    #popover
+    popover="auto"
+    (toggle)="onNativeToggle($event)"
+    class="fixed z-30 m-0 max-h-80 min-w-64 overflow-hidden rounded-2xl border-0 bg-parchment-100 p-2 shadow-xl ring-1 ring-ocean-900/10"
+  >
+    <!--
+      The `flex`/`grid` layout lives on this inner wrapper, not the `[popover]` host
+      above: a `display` utility applied directly to the host would override the
+      browser's own `display: none` on a closed popover (author styles always win over
+      the user-agent stylesheet, popover state or not), leaving an empty box on screen
+      after closing. Only rendered while open, which also keeps a closed menu's option
+      list out of the DOM entirely rather than just visually hidden.
+    -->
+    @if (open()) {
+      <div class="flex max-h-full flex-col">
+        <input
+          #searchInput
+          type="text"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+          placeholder="Search authors…"
+          class="mb-1.5 flex-none rounded-lg border-2 border-ocean-900/15 bg-parchment-50 px-2.5 py-1.5 font-heading text-sm font-bold text-ocean-900 focus:border-ocean-700 focus:outline-none"
+        />
+        <div class="min-h-0 flex-1 overflow-y-auto">
+          <div class="grid gap-0.5">
+            <button
+              type="button"
+              (click)="select('')"
+              class="cursor-pointer rounded-lg px-2.5 py-2 text-left font-heading text-sm font-bold text-ocean-900 hover:bg-parchment-200"
+            >
+              Everyone
+            </button>
+            @for (actor of filteredOptions(); track actor) {
+              <button
+                type="button"
+                (click)="select(actor)"
+                class="cursor-pointer truncate rounded-lg px-2.5 py-2 text-left font-heading text-sm font-bold text-ocean-900 hover:bg-parchment-200"
+              >
+                {{ actor }}
+              </button>
+            } @empty {
+              <p class="px-2.5 py-2 font-heading text-sm text-ocean-500">No matching authors.</p>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

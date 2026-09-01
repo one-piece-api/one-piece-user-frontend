@@ -45,6 +45,84 @@ describe('AuditKindFilter', () => {
     expect(revokedOption?.getAttribute('aria-pressed')).toBe('false');
   });
 
+  it('filters the list by a case-insensitive substring of the label as you type', () => {
+    const fixture = TestBed.createComponent(AuditKindFilter);
+    fixture.componentRef.setInput('selected', new Set());
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('button').click();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const searchInput = root.querySelector('input') as HTMLInputElement;
+    searchInput.value = 'ROLE';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const optionLabels = Array.from(root.querySelector('[popover]')!.querySelectorAll('button')).map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(optionLabels).toEqual(['Granted Role', 'Revoked Role', 'Created Role', 'Deleted Role']);
+  });
+
+  it('shows a "no matching types" message when the search matches nothing', () => {
+    const fixture = TestBed.createComponent(AuditKindFilter);
+    fixture.componentRef.setInput('selected', new Set());
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('button').click();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const searchInput = root.querySelector('input') as HTMLInputElement;
+    searchInput.value = 'zzz not a type';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(root.querySelector('[popover]')!.querySelectorAll('button').length).toBe(0);
+    expect(root.textContent).toContain('No matching types.');
+  });
+
+  it('resets the search once the menu is closed and reopened', () => {
+    const fixture = TestBed.createComponent(AuditKindFilter);
+    fixture.componentRef.setInput('selected', new Set());
+    fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('button');
+    trigger.click();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const searchInput = root.querySelector('input') as HTMLInputElement;
+    searchInput.value = 'ROLE';
+    searchInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    trigger.click(); // close
+    fixture.detectChanges();
+    trigger.click(); // reopen
+    fixture.detectChanges();
+
+    const reopenedSearchInput = root.querySelector('input') as HTMLInputElement;
+    expect(reopenedSearchInput.value).toBe('');
+    expect(root.querySelector('[popover]')!.querySelectorAll('button').length).toBe(12);
+  });
+
+  it('does not leave the popover host visible after closing (no forced display utility on it)', () => {
+    const fixture = TestBed.createComponent(AuditKindFilter);
+    fixture.componentRef.setInput('selected', new Set());
+    fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('button');
+    trigger.click();
+    fixture.detectChanges();
+    trigger.click();
+    fixture.detectChanges();
+
+    const popover = fixture.nativeElement.querySelector('[popover]') as HTMLElement;
+    // A `display` utility (flex/grid/block) applied directly to the `[popover]` host
+    // would override the browser's own `display: none` on close - author styles beat
+    // the user-agent stylesheet regardless of popover state - leaving an empty box
+    // visible. The flex/grid layout must live on an inner wrapper instead.
+    expect(popover.className).not.toMatch(/(^|\s)(flex|grid|block|inline)(\s|$)/);
+  });
+
   it('emits the toggled action key', () => {
     const fixture = TestBed.createComponent(AuditKindFilter);
     fixture.componentRef.setInput('selected', new Set());

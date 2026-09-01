@@ -29,21 +29,35 @@ describe('AuditFilters', () => {
     expect(root.textContent).not.toContain('Active filters');
   });
 
-  it('lists the author dropdown options plus "Everyone"', () => {
+  it('passes the author options through to the actor filter', () => {
     const fixture = create({ actorOptions: ['luffy@onepiece.local', 'nami@onepiece.local'] });
     const root = fixture.nativeElement as HTMLElement;
-    const options = Array.from(root.querySelectorAll('option')).map((o) => o.textContent?.trim());
-    expect(options).toEqual(['Everyone', 'luffy@onepiece.local', 'nami@onepiece.local']);
+    const actorTrigger = Array.from(root.querySelectorAll('button')).find(
+      (b) => b.textContent?.includes('Everyone'),
+    );
+    actorTrigger!.click();
+    fixture.detectChanges();
+
+    const popover = actorTrigger!.closest('app-audit-actor-filter')!.querySelector('[popover]')!;
+    const optionLabels = Array.from(popover.querySelectorAll('button')).map((b) => b.textContent?.trim());
+    expect(optionLabels).toEqual(['Everyone', 'luffy@onepiece.local', 'nami@onepiece.local']);
   });
 
-  it('emits actorEmailChange when the author select changes', () => {
+  it('re-emits actorEmailChange when an author is picked', () => {
     const fixture = create({ actorOptions: ['luffy@onepiece.local'] });
     const spy = vi.fn();
     fixture.componentInstance.actorEmailChange.subscribe(spy);
 
-    const select = fixture.nativeElement.querySelector('#audit-author') as HTMLSelectElement;
-    select.value = 'luffy@onepiece.local';
-    select.dispatchEvent(new Event('change'));
+    const root = fixture.nativeElement as HTMLElement;
+    const actorTrigger = Array.from(root.querySelectorAll('button')).find(
+      (b) => b.textContent?.includes('Everyone'),
+    );
+    actorTrigger!.click();
+    fixture.detectChanges();
+    const option = Array.from(root.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('luffy@onepiece.local'),
+    );
+    option!.click();
 
     expect(spy).toHaveBeenCalledWith('luffy@onepiece.local');
   });

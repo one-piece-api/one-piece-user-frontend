@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AdminAuditPage } from './audit-page';
 
@@ -263,7 +263,19 @@ describe('AdminAuditPage', () => {
     expect(root.querySelectorAll('app-audit-pagination button').length).toBe(0);
   });
 
-  it('populates the author dropdown from /audit/actors', async () => {
+  /** Opens the author combobox and picks the given email from its filtered list. */
+  function selectAuthor(fixture: ComponentFixture<AdminAuditPage>, email: string): void {
+    const root = fixture.nativeElement as HTMLElement;
+    const trigger = Array.from(root.querySelectorAll('button')).find(
+      (b) => b.textContent?.includes('Everyone'),
+    );
+    trigger!.click();
+    fixture.detectChanges();
+    const option = Array.from(root.querySelectorAll('button')).find((b) => b.textContent?.includes(email));
+    option!.click();
+  }
+
+  it('populates the author combobox from /audit/actors', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
     flushActors(['luffy@onepiece.local', 'nami@onepiece.local']);
@@ -275,8 +287,15 @@ describe('AdminAuditPage', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const options = Array.from(root.querySelectorAll('option')).map((o) => o.textContent?.trim());
-    expect(options).toEqual(['Everyone', 'luffy@onepiece.local', 'nami@onepiece.local']);
+    const trigger = Array.from(root.querySelectorAll('button')).find(
+      (b) => b.textContent?.includes('Everyone'),
+    );
+    trigger!.click();
+    fixture.detectChanges();
+
+    const popover = trigger!.closest('app-audit-actor-filter')!.querySelector('[popover]')!;
+    const optionLabels = Array.from(popover.querySelectorAll('button')).map((b) => b.textContent?.trim());
+    expect(optionLabels).toEqual(['Everyone', 'luffy@onepiece.local', 'nami@onepiece.local']);
   });
 
   it('re-fetches with the author filter applied and resets to page 0', async () => {
@@ -294,9 +313,7 @@ describe('AdminAuditPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const select = fixture.nativeElement.querySelector('#audit-author') as HTMLSelectElement;
-    select.value = 'nami@onepiece.local';
-    select.dispatchEvent(new Event('change'));
+    selectAuthor(fixture, 'nami@onepiece.local');
     fixture.detectChanges();
 
     httpTesting
@@ -322,9 +339,7 @@ describe('AdminAuditPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const select = fixture.nativeElement.querySelector('#audit-author') as HTMLSelectElement;
-    select.value = 'nami@onepiece.local';
-    select.dispatchEvent(new Event('change'));
+    selectAuthor(fixture, 'nami@onepiece.local');
     fixture.detectChanges();
     httpTesting
       .expectOne('/api/audit?page=0&actorEmail=nami%40onepiece.local')

@@ -15,30 +15,52 @@
     #popover
     popover="auto"
     (toggle)="onNativeToggle($event)"
-    class="fixed z-30 m-0 grid max-h-80 min-w-64 gap-0.5 overflow-y-auto rounded-2xl border-0 bg-parchment-100 p-2 shadow-xl ring-1 ring-ocean-900/10"
+    class="fixed z-30 m-0 max-h-80 min-w-64 overflow-hidden rounded-2xl border-0 bg-parchment-100 p-2 shadow-xl ring-1 ring-ocean-900/10"
   >
-    <!-- Only rendered while open: keeps a closed menu's checkbox list out of the DOM
-         entirely, rather than just visually hidden by the popover attribute. -->
+    <!--
+      The `flex`/`grid` layout lives on this inner wrapper, not the `[popover]` host
+      above: a `display` utility applied directly to the host would override the
+      browser's own `display: none` on a closed popover (author styles always win over
+      the user-agent stylesheet, popover state or not), leaving an empty box on screen
+      after closing. Only rendered while open, which also keeps a closed menu's checkbox
+      list out of the DOM entirely rather than just visually hidden.
+    -->
     @if (open()) {
-      @for (action of actionKeys; track action) {
-        <button
-          type="button"
-          (click)="toggleAction(action)"
-          [attr.aria-pressed]="selected().has(action)"
-          class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left font-heading text-sm font-bold text-ocean-900 hover:bg-parchment-200"
-        >
-          <span
-            class="flex size-[18px] flex-none items-center justify-center rounded-[5px] border-2 text-[11px] font-extrabold text-white"
-            [class]="selected().has(action) ? 'border-ocean-700 bg-ocean-700' : 'border-ocean-900/25 bg-transparent'"
-          >
-            @if (selected().has(action)) {
-              ✓
+      <div class="flex max-h-full flex-col">
+        <input
+          #searchInput
+          type="text"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+          placeholder="Search types…"
+          class="mb-1.5 flex-none rounded-lg border-2 border-ocean-900/15 bg-parchment-50 px-2.5 py-1.5 font-heading text-sm font-bold text-ocean-900 focus:border-ocean-700 focus:outline-none"
+        />
+        <div class="min-h-0 flex-1 overflow-y-auto">
+          <div class="grid gap-0.5">
+            @for (action of filteredActionKeys(); track action) {
+              <button
+                type="button"
+                (click)="toggleAction(action)"
+                [attr.aria-pressed]="selected().has(action)"
+                class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-left font-heading text-sm font-bold text-ocean-900 hover:bg-parchment-200"
+              >
+                <span
+                  class="flex size-[18px] flex-none items-center justify-center rounded-[5px] border-2 text-[11px] font-extrabold text-white"
+                  [class]="selected().has(action) ? 'border-ocean-700 bg-ocean-700' : 'border-ocean-900/25 bg-transparent'"
+                >
+                  @if (selected().has(action)) {
+                    ✓
+                  }
+                </span>
+                <span class="size-2 flex-none rounded-full" [class]="dotClassByAction[action]"></span>
+                {{ actionLabel[action] ?? action }}
+              </button>
+            } @empty {
+              <p class="px-2.5 py-2 font-heading text-sm text-ocean-500">No matching types.</p>
             }
-          </span>
-          <span class="size-2 flex-none rounded-full" [class]="dotClassByAction[action]"></span>
-          {{ actionLabel[action] ?? action }}
-        </button>
-      }
+          </div>
+        </div>
+      </div>
     }
   </div>
 </div>

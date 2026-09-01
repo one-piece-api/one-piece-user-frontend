@@ -3,25 +3,11 @@
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <app-audit-kind-filter [selected]="selectedActions()" (toggled)="actionToggled.emit($event)" />
 
-      <div>
-        <label
-          for="audit-author"
-          class="mb-2 block font-heading text-xs font-black tracking-wide text-ocean-500 uppercase"
-        >
-          Author
-        </label>
-        <select
-          id="audit-author"
-          [value]="actorEmail()"
-          (change)="onActorEmailChange($any($event.target).value)"
-          class="w-full rounded-xl border-2 border-ocean-900/15 bg-parchment-100 px-3.5 py-2.5 font-heading text-sm font-bold text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
-        >
-          <option value="">Everyone</option>
-          @for (actor of actorOptions(); track actor) {
-            <option [value]="actor">{{ actor }}</option>
-          }
-        </select>
-      </div>
+      <app-audit-actor-filter
+        [selected]="actorEmail()"
+        [options]="actorOptions()"
+        (selectedChange)="actorEmailChange.emit($event)"
+      />
 
       <app-date-picker label="From" [value]="dateFrom()" (valueChange)="dateFromChange.emit($event)" />
       <app-date-picker label="To" align="end" [value]="dateTo()" (valueChange)="dateToChange.emit($event)" />

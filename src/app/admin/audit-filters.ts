@@ -1,5 +1,6 @@
 import { Component, computed, input, output } from '@angular/core';
 import { DatePicker, formatIsoDateDisplay } from '../shared/ui/date-picker';
+import { AuditActorFilter } from './audit-actor-filter';
 import { AuditKindFilter } from './audit-kind-filter';
 import { AUDIT_ACTION_LABEL } from './audit.model';
 
@@ -17,7 +18,7 @@ interface FilterChip {
 @Component({
   selector: 'app-audit-filters',
   templateUrl: './audit-filters.html',
-  imports: [AuditKindFilter, DatePicker],
+  imports: [AuditActorFilter, AuditKindFilter, DatePicker],
 })
 export class AuditFilters {
   readonly selectedActions = input.required<ReadonlySet<string>>();
@@ -59,8 +60,4 @@ export class AuditFilters {
     }
     return chips;
   });
-
-  protected onActorEmailChange(value: string): void {
-    this.actorEmailChange.emit(value);
-  }
 }
