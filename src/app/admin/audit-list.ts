@@ -3,6 +3,7 @@ import { Badge } from '../shared/ui/badge';
 import {
   AUDIT_ACTION_LABEL,
   AUDIT_ACTION_TONE,
+  formatAuditMessage,
   formatOccurredAt,
   type AuditEvent,
 } from './audit.model';
@@ -24,4 +25,5 @@ export class AuditList {
   protected readonly actionLabel = AUDIT_ACTION_LABEL;
   protected readonly actionTone = AUDIT_ACTION_TONE;
   protected readonly formatOccurredAt = formatOccurredAt;
+  protected readonly formatAuditMessage = formatAuditMessage;
 }

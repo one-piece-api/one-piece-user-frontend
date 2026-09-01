@@ -26,6 +26,32 @@ describe('AuditList', () => {
     expect(root.textContent).toContain('usopp@onepiece.local');
   });
 
+  it('shows who performed the action, for every event', () => {
+    const fixture = TestBed.createComponent(AuditList);
+    fixture.componentRef.setInput('events', [anEvent()]);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('by luffy@onepiece.local');
+  });
+
+  it('renders a catalog action with no target user - the reported defect', () => {
+    const fixture = TestBed.createComponent(AuditList);
+    fixture.componentRef.setInput('events', [
+      anEvent({
+        action: 'PERMISSION_REVOKED_FROM_ROLE',
+        targetUserId: undefined,
+        targetEmail: undefined,
+        targetLabel: 'ADMIN <- users:read',
+      }),
+    ]);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Permission users:read revoked from ADMIN');
+    expect(root.textContent).toContain('by luffy@onepiece.local');
+  });
+
   it('falls back to the raw action code for an unmapped action', () => {
     const fixture = TestBed.createComponent(AuditList);
     fixture.componentRef.setInput('events', [anEvent({ action: 'SOMETHING_NEW' })]);

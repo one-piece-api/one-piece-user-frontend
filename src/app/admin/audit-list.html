@@ -4,25 +4,30 @@
   <div class="flex flex-col gap-2">
     @for (
       event of events();
-      track event.occurredAt + event.action + event.targetUserId;
+      track event.occurredAt + event.action + (event.targetUserId ?? event.targetLabel ?? '');
       let i = $index
     ) {
       <div
         animate.enter="anim-row-enter"
         [style.animation-delay.ms]="i * 30"
-        class="grid items-center gap-3 rounded-xl bg-parchment-100 p-3 shadow-sm sm:grid-cols-[auto_1fr_1fr] sm:gap-4"
+        class="flex flex-col gap-1 rounded-xl bg-parchment-100 px-3 py-2 shadow-sm"
       >
-        <span class="font-heading text-xs font-semibold whitespace-nowrap text-ocean-500">{{
-          formatOccurredAt(event.occurredAt)
-        }}</span>
-        <app-badge [tone]="actionTone[event.action] ?? 'neutral'">{{
-          actionLabel[event.action] ?? event.action
-        }}</app-badge>
-        <span class="font-heading text-sm text-ocean-900">
-          <span class="text-ocean-500">{{ event.actorEmail }}</span>
-          →
-          <span class="font-semibold">{{ event.targetEmail }}</span>
-        </span>
+        <div class="flex flex-wrap items-center gap-2">
+          <app-badge [tone]="actionTone[event.action] ?? 'neutral'">{{
+            actionLabel[event.action] ?? event.action
+          }}</app-badge>
+          <span class="font-heading text-xs font-semibold whitespace-nowrap text-ocean-500">{{
+            formatOccurredAt(event.occurredAt)
+          }}</span>
+        </div>
+        <div class="flex items-baseline justify-between gap-3">
+          <span class="font-heading text-sm font-semibold text-ocean-900">{{
+            formatAuditMessage(event)
+          }}</span>
+          <span class="font-heading text-xs whitespace-nowrap text-ocean-500"
+            >by {{ event.actorEmail }}</span
+          >
+        </div>
       </div>
     }
   </div>
