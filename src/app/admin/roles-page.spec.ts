@@ -44,6 +44,14 @@ function expandGroup(fixture: ComponentFixture<RolesPage>, label: string): void 
   fixture.detectChanges();
 }
 
+/** The <dialog> stays mounted permanently (see Modal) - pick it out by its heading text. */
+function dialogByHeading(root: HTMLElement, heading: string): HTMLDialogElement {
+  const dialog = Array.from(root.querySelectorAll('dialog')).find(
+    (d) => d.querySelector('h2')?.textContent?.trim() === heading,
+  );
+  return dialog as HTMLDialogElement;
+}
+
 describe('RolesPage', () => {
   let httpTesting: HttpTestingController;
 
@@ -283,6 +291,9 @@ describe('RolesPage', () => {
     const mascotService = TestBed.inject(MascotService);
     expect(mascotService.message().tone).toBe('error');
     expect(mascotService.message().text).toContain('still has crew assigned');
+    // The confirm dialog closes on every outcome, not just success - left open, its
+    // native top layer would sit in front of the mascot's error toast above, hiding it.
+    expect(dialogByHeading(root, 'Delete Role').hasAttribute('open')).toBe(false);
   });
 
   it('creates a permission under an existing resource group', async () => {
@@ -477,5 +488,45 @@ describe('RolesPage', () => {
     const mascotService = TestBed.inject(MascotService);
     expect(mascotService.message().tone).toBe('error');
     expect(mascotService.message().text).toContain('still granted to at least one role');
+    // The confirm dialog closes on every outcome, not just success - left open, its
+    // native top layer would sit in front of the mascot's error toast above, hiding it.
+    expect(dialogByHeading(root, 'Delete Permission').hasAttribute('open')).toBe(false);
+  });
+
+  it('clears touched validation state when the New Permission modal is reopened after cancelling', async () => {
+    const fixture = await createAndLoad();
+    const root = fixture.nativeElement as HTMLElement;
+
+    const newPermButton = Array.from(root.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'New Permission',
+    );
+    newPermButton!.click();
+    fixture.detectChanges();
+
+    setValue(root.querySelector('#perm-action') as HTMLInputElement, 'Not Valid');
+    setValue(root.querySelector('#perm-description') as HTMLInputElement, 'Something');
+    root
+      .querySelector('#perm-action')!
+      .closest('form')!
+      .dispatchEvent(new Event('submit', { cancelable: true }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+    httpTesting.expectNone('/api/permissions');
+    expect(root.textContent).toContain('lowercase letters/numbers only');
+
+    const dialog = dialogByHeading(root, 'New Permission');
+    const cancelButton = Array.from(dialog.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Cancel',
+    ) as HTMLButtonElement;
+    cancelButton.click();
+    fixture.detectChanges();
+
+    newPermButton!.click();
+    fixture.detectChanges();
+
+    // Reopening should look freshly empty - not still showing the previous attempt's
+    // touched-field error, and not still holding its invalid value either.
+    expect(root.textContent).not.toContain('lowercase letters/numbers only');
+    expect((root.querySelector('#perm-action') as HTMLInputElement).value).toBe('');
   });
 });

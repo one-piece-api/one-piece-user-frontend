@@ -211,13 +211,16 @@ export class RolesPage {
   }
 
   protected openRoleModal(): void {
-    this.roleModalModel.set({ name: '', copyFromRole: '' });
+    this.roleModalForm().reset(this.emptyRoleModel());
     this.roleModalError.set(null);
     this.roleModalOpen.set(true);
   }
 
+  /** Resets the form here too, not just on open: touched/error state shouldn't outlive a cancel. */
   protected closeRoleModal(): void {
     this.roleModalOpen.set(false);
+    this.roleModalForm().reset(this.emptyRoleModel());
+    this.roleModalError.set(null);
   }
 
   protected onSubmitRoleModal(event: Event): void {
@@ -270,7 +273,6 @@ export class RolesPage {
     try {
       await firstValueFrom(this.http.delete<void>(`${ROLES_ENDPOINT}/${role}`));
       this.mascotService.show(`Role ${role} removed from the registry.`, 'success');
-      this.deletingRole.set(null);
       this.roles.reload();
     } catch (err) {
       if (err instanceof HttpErrorResponse && hasErrorCode(err, ROLE_IN_USE_ERROR_CODE)) {
@@ -289,18 +291,25 @@ export class RolesPage {
       }
       // 401/403/404/5xx already get a themed toast from apiErrorInterceptor.
     } finally {
+      // Closed on every outcome, not just success: the dialog's native top layer would
+      // otherwise sit in front of the mascot's error toast, hiding it behind a modal the
+      // user has no reason to keep open - there's nothing left in it to fix and retry.
+      this.deletingRole.set(null);
       this.deletePending.set(false);
     }
   }
 
   protected openPermModal(): void {
-    this.permModalModel.set(this.emptyPermModel());
+    this.permModalForm().reset(this.emptyPermModel());
     this.permModalError.set(null);
     this.permModalOpen.set(true);
   }
 
+  /** Resets the form here too, not just on open: touched/error state shouldn't outlive a cancel. */
   protected closePermModal(): void {
     this.permModalOpen.set(false);
+    this.permModalForm().reset(this.emptyPermModel());
+    this.permModalError.set(null);
   }
 
   protected onSubmitPermModal(event: Event): void {
@@ -358,7 +367,6 @@ export class RolesPage {
     try {
       await firstValueFrom(this.http.delete<void>(`${PERMISSIONS_ENDPOINT}/${key}`));
       this.mascotService.show(`Permission ${key} removed from the registry.`, 'success');
-      this.deletingPermission.set(null);
       this.permissions.reload();
     } catch (err) {
       if (err instanceof HttpErrorResponse && hasErrorCode(err, PERMISSION_IN_USE_ERROR_CODE)) {
@@ -369,6 +377,10 @@ export class RolesPage {
       }
       // 401/403/404/5xx already get a themed toast from apiErrorInterceptor.
     } finally {
+      // Closed on every outcome, not just success: the dialog's native top layer would
+      // otherwise sit in front of the mascot's error toast, hiding it behind a modal the
+      // user has no reason to keep open - there's nothing left in it to fix and retry.
+      this.deletingPermission.set(null);
       this.deletePermissionPending.set(false);
     }
   }
@@ -387,6 +399,10 @@ export class RolesPage {
           : entry,
       ),
     );
+  }
+
+  private emptyRoleModel(): RoleModalModel {
+    return { name: '', copyFromRole: '' };
   }
 
   private emptyPermModel(): PermissionModalModel {
