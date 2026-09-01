@@ -2,7 +2,7 @@ import { Component, DestroyRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MascotService, type MascotTone } from './mascot';
 
-type TipTopic = 'profile' | 'users' | 'audit';
+type TipTopic = 'profile' | 'users' | 'roles' | 'audit';
 
 /** [text, small caption] per topic, cycled in order every time a tip fires on that page. */
 const TIPS: Record<TipTopic, readonly (readonly [string, string])[]> = {
@@ -30,6 +30,20 @@ const TIPS: Record<TipTopic, readonly (readonly [string, string])[]> = {
       '409 USER_LAST_ADMINISTRATOR',
     ],
   ],
+  roles: [
+    [
+      'A permission with nobody holding it is dead weight - delete it, or grant it to a role from the matrix.',
+      'roles:manage',
+    ],
+    [
+      'Groups collapse by default so the list stays readable - click one open to see what it guards.',
+      'permission groups',
+    ],
+    [
+      "At least one role must always hold roles:manage, or nobody's left who can fix the crew's roster.",
+      "don't lock the wheelhouse",
+    ],
+  ],
   audit: [
     [
       "The ship's log is never erased. Not even the sharpest first mate can rewrite a route already sailed.",
@@ -46,6 +60,7 @@ const TIP_INTERVAL_MS = 24_000;
 
 function topicForUrl(url: string): TipTopic | null {
   if (url.startsWith('/users')) return 'users';
+  if (url.startsWith('/roles')) return 'roles';
   if (url.startsWith('/audit')) return 'audit';
   if (url === '/' || url.startsWith('/?')) return 'profile';
   return null;

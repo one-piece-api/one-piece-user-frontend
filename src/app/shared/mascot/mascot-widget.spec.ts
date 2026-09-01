@@ -70,6 +70,18 @@ describe('MascotWidget', () => {
     expect(mascotService.message().code).toBe('POST /users/:id/resend-invitation');
   });
 
+  it('pipes up with a contextual tip on the roles & permissions page', async () => {
+    vi.useFakeTimers();
+    const fixture = await createAt('/roles');
+    const mascotService = TestBed.inject(MascotService);
+
+    vi.advanceTimersByTime(24_000);
+    fixture.detectChanges();
+
+    expect(mascotService.open()).toBe(true);
+    expect(mascotService.message().code).toBe('roles:manage');
+  });
+
   it('stays quiet on routes with no tip topic', async () => {
     vi.useFakeTimers();
     await createAt('/forbidden');
