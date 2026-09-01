@@ -4,6 +4,15 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AdminAuditPage } from './audit-page';
 
+const AN_EVENT = {
+  action: 'USER_INVITED',
+  actorUserId: 'a1',
+  actorEmail: 'luffy@onepiece.local',
+  targetUserId: 't1',
+  targetEmail: 'usopp@onepiece.local',
+  occurredAt: '2026-08-23T10:00:00Z',
+};
+
 describe('AdminAuditPage', () => {
   let httpTesting: HttpTestingController;
 
@@ -19,21 +28,18 @@ describe('AdminAuditPage', () => {
     httpTesting.verify();
   });
 
+  /** Every test triggers this fetch (the author filter's options) - flushed once, up front. */
+  function flushActors(actors: string[] = ['luffy@onepiece.local']): void {
+    httpTesting.expectOne('/api/audit/actors').flush(actors);
+  }
+
   it('lists the audit trail newest first', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
+    flushActors();
 
     httpTesting.expectOne('/api/audit?page=0').flush({
-      content: [
-        {
-          action: 'USER_INVITED',
-          actorUserId: 'a1',
-          actorEmail: 'luffy@onepiece.local',
-          targetUserId: 't1',
-          targetEmail: 'usopp@onepiece.local',
-          occurredAt: '2026-08-23T10:00:00Z',
-        },
-      ],
+      content: [AN_EVENT],
       page: 0,
       size: 20,
       totalElements: 1,
@@ -53,6 +59,7 @@ describe('AdminAuditPage', () => {
   it('shows the filter-free empty state when the trail has no entries', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
+    flushActors();
 
     httpTesting
       .expectOne('/api/audit?page=0')
@@ -67,6 +74,7 @@ describe('AdminAuditPage', () => {
   it('shows an error toast when the request fails', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
+    flushActors();
 
     httpTesting
       .expectOne('/api/audit?page=0')
@@ -81,18 +89,10 @@ describe('AdminAuditPage', () => {
   it('pages forward and back through the trail', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
+    flushActors();
 
     httpTesting.expectOne('/api/audit?page=0').flush({
-      content: [
-        {
-          action: 'USER_INVITED',
-          actorUserId: 'a1',
-          actorEmail: 'luffy@onepiece.local',
-          targetUserId: 't1',
-          targetEmail: 'usopp@onepiece.local',
-          occurredAt: '2026-08-23T10:00:00Z',
-        },
-      ],
+      content: [AN_EVENT],
       page: 0,
       size: 1,
       totalElements: 2,
@@ -133,18 +133,10 @@ describe('AdminAuditPage', () => {
   it('shows the pagination arrows in the same gold tone as other primary buttons', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
+    flushActors();
 
     httpTesting.expectOne('/api/audit?page=0').flush({
-      content: [
-        {
-          action: 'USER_INVITED',
-          actorUserId: 'a1',
-          actorEmail: 'luffy@onepiece.local',
-          targetUserId: 't1',
-          targetEmail: 'usopp@onepiece.local',
-          occurredAt: '2026-08-23T10:00:00Z',
-        },
-      ],
+      content: [AN_EVENT],
       page: 0,
       size: 1,
       totalElements: 2,
@@ -168,18 +160,10 @@ describe('AdminAuditPage', () => {
   it('jumps directly to a page via the numbered pagination buttons', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
+    flushActors();
 
     httpTesting.expectOne('/api/audit?page=0').flush({
-      content: [
-        {
-          action: 'USER_INVITED',
-          actorUserId: 'a1',
-          actorEmail: 'luffy@onepiece.local',
-          targetUserId: 't1',
-          targetEmail: 'usopp@onepiece.local',
-          occurredAt: '2026-08-23T10:00:00Z',
-        },
-      ],
+      content: [AN_EVENT],
       page: 0,
       size: 1,
       totalElements: 3,
@@ -211,18 +195,10 @@ describe('AdminAuditPage', () => {
   it('shows the range pill in gold, in line with the page label and nav buttons, above and below the results', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
+    flushActors();
 
     httpTesting.expectOne('/api/audit?page=0').flush({
-      content: [
-        {
-          action: 'USER_INVITED',
-          actorUserId: 'a1',
-          actorEmail: 'luffy@onepiece.local',
-          targetUserId: 't1',
-          targetEmail: 'usopp@onepiece.local',
-          occurredAt: '2026-08-23T10:00:00Z',
-        },
-      ],
+      content: [AN_EVENT],
       page: 0,
       size: 1,
       totalElements: 2,
@@ -269,18 +245,10 @@ describe('AdminAuditPage', () => {
   it('shows only the range pill, with no pagination controls, when there is a single page', async () => {
     const fixture = TestBed.createComponent(AdminAuditPage);
     fixture.detectChanges();
+    flushActors();
 
     httpTesting.expectOne('/api/audit?page=0').flush({
-      content: [
-        {
-          action: 'USER_INVITED',
-          actorUserId: 'a1',
-          actorEmail: 'luffy@onepiece.local',
-          targetUserId: 't1',
-          targetEmail: 'usopp@onepiece.local',
-          occurredAt: '2026-08-23T10:00:00Z',
-        },
-      ],
+      content: [AN_EVENT],
       page: 0,
       size: 20,
       totalElements: 1,
@@ -292,6 +260,91 @@ describe('AdminAuditPage', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('1–1 of 1');
     expect(root.textContent).not.toContain('Page 1 of 1');
-    expect(root.querySelectorAll('button').length).toBe(0);
+    expect(root.querySelectorAll('app-audit-pagination button').length).toBe(0);
+  });
+
+  it('populates the author dropdown from /audit/actors', async () => {
+    const fixture = TestBed.createComponent(AdminAuditPage);
+    fixture.detectChanges();
+    flushActors(['luffy@onepiece.local', 'nami@onepiece.local']);
+
+    httpTesting
+      .expectOne('/api/audit?page=0')
+      .flush({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const options = Array.from(root.querySelectorAll('option')).map((o) => o.textContent?.trim());
+    expect(options).toEqual(['Everyone', 'luffy@onepiece.local', 'nami@onepiece.local']);
+  });
+
+  it('re-fetches with the author filter applied and resets to page 0', async () => {
+    const fixture = TestBed.createComponent(AdminAuditPage);
+    fixture.detectChanges();
+    flushActors(['nami@onepiece.local']);
+
+    httpTesting.expectOne('/api/audit?page=0').flush({
+      content: [AN_EVENT],
+      page: 0,
+      size: 1,
+      totalElements: 2,
+      totalPages: 2,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('#audit-author') as HTMLSelectElement;
+    select.value = 'nami@onepiece.local';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    httpTesting
+      .expectOne('/api/audit?page=0&actorEmail=nami%40onepiece.local')
+      .flush({ content: [], page: 0, size: 1, totalElements: 0, totalPages: 0 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Active filters');
+    expect(root.textContent).toContain('Author: nami@onepiece.local');
+    expect(root.textContent).toContain('No entries match these filters');
+  });
+
+  it('clears every filter and reloads unfiltered when "Clear all" is clicked', async () => {
+    const fixture = TestBed.createComponent(AdminAuditPage);
+    fixture.detectChanges();
+    flushActors(['nami@onepiece.local']);
+
+    httpTesting
+      .expectOne('/api/audit?page=0')
+      .flush({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('#audit-author') as HTMLSelectElement;
+    select.value = 'nami@onepiece.local';
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    httpTesting
+      .expectOne('/api/audit?page=0&actorEmail=nami%40onepiece.local')
+      .flush({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const clearAllButton = Array.from(root.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === 'Clear all',
+    );
+    clearAllButton!.click();
+    fixture.detectChanges();
+
+    httpTesting
+      .expectOne('/api/audit?page=0')
+      .flush({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(root.textContent).not.toContain('Active filters');
   });
 });

@@ -1,6 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { MascotService } from '../shared/mascot/mascot';
+import { AuditFilters } from './audit-filters';
 import { AuditList } from './audit-list';
 import { AuditPagination } from './audit-pagination';
 import type { AuditEvent } from './audit.model';
@@ -21,16 +22,46 @@ interface PageResponse<T> {
 @Component({
   selector: 'app-admin-audit-page',
   templateUrl: './audit-page.html',
-  imports: [Card, PageHeader, AuditList, AuditPagination],
+  imports: [Card, PageHeader, AuditFilters, AuditList, AuditPagination],
 })
 export class AdminAuditPage {
   private readonly mascotService = inject(MascotService);
 
   protected readonly page = signal(0);
+  protected readonly selectedActions = signal<ReadonlySet<string>>(new Set());
+  protected readonly actorEmail = signal('');
+  protected readonly dateFrom = signal<string | null>(null);
+  protected readonly dateTo = signal<string | null>(null);
 
-  protected readonly events = httpResource<PageResponse<AuditEvent>>(
-    () => `${AUDIT_ENDPOINT}?page=${this.page()}`,
+  protected readonly hasActiveFilters = computed(
+    () =>
+      this.selectedActions().size > 0 ||
+      this.actorEmail() !== '' ||
+      this.dateFrom() !== null ||
+      this.dateTo() !== null,
   );
+
+  protected readonly events = httpResource<PageResponse<AuditEvent>>(() => {
+    const params = new URLSearchParams({ page: String(this.page()) });
+    for (const action of this.selectedActions()) {
+      params.append('actions', action);
+    }
+    if (this.actorEmail()) {
+      params.set('actorEmail', this.actorEmail());
+    }
+    const from = this.dateFrom();
+    if (from) {
+      params.set('from', from);
+    }
+    const to = this.dateTo();
+    if (to) {
+      params.set('to', to);
+    }
+    return `${AUDIT_ENDPOINT}?${params.toString()}`;
+  });
+
+  /** Every actor who has ever recorded an event - fetched once, independent of the current filters. */
+  protected readonly actorOptions = httpResource<string[]>(() => `${AUDIT_ENDPOINT}/actors`);
 
   /** "1–20 of 37", framing the current page against the full trail. */
   protected readonly range = computed(() => {
@@ -67,5 +98,41 @@ export class AdminAuditPage {
 
   protected goToPage(pageNumber: number): void {
     this.page.set(pageNumber);
+  }
+
+  protected toggleAction(action: string): void {
+    this.selectedActions.update((current) => {
+      const next = new Set(current);
+      if (next.has(action)) {
+        next.delete(action);
+      } else {
+        next.add(action);
+      }
+      return next;
+    });
+    this.page.set(0);
+  }
+
+  protected setActorEmail(value: string): void {
+    this.actorEmail.set(value);
+    this.page.set(0);
+  }
+
+  protected setDateFrom(value: string | null): void {
+    this.dateFrom.set(value);
+    this.page.set(0);
+  }
+
+  protected setDateTo(value: string | null): void {
+    this.dateTo.set(value);
+    this.page.set(0);
+  }
+
+  protected clearFilters(): void {
+    this.selectedActions.set(new Set());
+    this.actorEmail.set('');
+    this.dateFrom.set(null);
+    this.dateTo.set(null);
+    this.page.set(0);
   }
 }

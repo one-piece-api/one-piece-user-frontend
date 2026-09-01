@@ -1,0 +1,56 @@
+<div class="flex flex-col gap-4">
+  <div class="rounded-2xl bg-parchment-100 p-5 shadow-md">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <app-audit-kind-filter [selected]="selectedActions()" (toggled)="actionToggled.emit($event)" />
+
+      <div>
+        <label
+          for="audit-author"
+          class="mb-2 block font-heading text-xs font-black tracking-wide text-ocean-500 uppercase"
+        >
+          Author
+        </label>
+        <select
+          id="audit-author"
+          [value]="actorEmail()"
+          (change)="onActorEmailChange($any($event.target).value)"
+          class="w-full rounded-xl border-2 border-ocean-900/15 bg-parchment-100 px-3.5 py-2.5 font-heading text-sm font-bold text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
+        >
+          <option value="">Everyone</option>
+          @for (actor of actorOptions(); track actor) {
+            <option [value]="actor">{{ actor }}</option>
+          }
+        </select>
+      </div>
+
+      <app-date-picker label="From" [value]="dateFrom()" (valueChange)="dateFromChange.emit($event)" />
+      <app-date-picker label="To" align="end" [value]="dateTo()" (valueChange)="dateToChange.emit($event)" />
+    </div>
+  </div>
+
+  @if (chips().length > 0) {
+    <div class="flex flex-wrap items-center gap-2 rounded-2xl bg-parchment-200 p-3">
+      <span class="font-display text-sm font-bold text-ocean-700">Active filters</span>
+      @for (chip of chips(); track chip.label) {
+        <button
+          type="button"
+          (click)="chip.remove()"
+          class="flex cursor-pointer items-center gap-2 rounded-full border-2 border-ocean-900/15 bg-parchment-100 py-1.5 pr-1.5 pl-3.5 font-heading text-sm font-bold text-ocean-900"
+        >
+          {{ chip.label }}
+          <span
+            class="flex size-[18px] items-center justify-center rounded-full bg-ocean-700 text-[11px] font-extrabold text-white"
+            >✕</span
+          >
+        </button>
+      }
+      <button
+        type="button"
+        (click)="cleared.emit()"
+        class="ml-auto flex-none cursor-pointer rounded-full bg-flag-600 px-4 py-2 font-display text-sm font-bold whitespace-nowrap text-white"
+      >
+        Clear all
+      </button>
+    </div>
+  }
+</div>

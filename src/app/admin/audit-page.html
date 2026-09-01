@@ -1,6 +1,19 @@
 <div class="flex w-full max-w-4xl flex-col gap-6">
   <app-page-header eyebrow="Admin Only · audit:read">Ship's Log</app-page-header>
 
+  <app-audit-filters
+    [selectedActions]="selectedActions()"
+    [actorEmail]="actorEmail()"
+    [actorOptions]="actorOptions.value() ?? []"
+    [dateFrom]="dateFrom()"
+    [dateTo]="dateTo()"
+    (actionToggled)="toggleAction($event)"
+    (actorEmailChange)="setActorEmail($event)"
+    (dateFromChange)="setDateFrom($event)"
+    (dateToChange)="setDateTo($event)"
+    (cleared)="clearFilters()"
+  />
+
   @if (events.isLoading()) {
     <app-card [wide]="true">
       <p class="font-heading text-ocean-700">Unrolling the log…</p>
@@ -20,7 +33,23 @@
     />
 
     <app-card [wide]="true">
-      <app-audit-list [events]="page.content" emptyMessage="Not a single entry in the log yet." />
+      @if (page.content.length === 0 && hasActiveFilters()) {
+        <div class="flex flex-col items-center gap-3 py-2 text-center">
+          <p class="font-display text-lg font-semibold text-ocean-900">No entries match these filters</p>
+          <p class="font-heading text-sm text-ocean-500">
+            Try widening the action type, author, or date range.
+          </p>
+          <button
+            type="button"
+            (click)="clearFilters()"
+            class="cursor-pointer rounded-lg bg-parchment-200 px-4 py-2 font-heading text-sm font-bold text-ocean-700"
+          >
+            Clear filters
+          </button>
+        </div>
+      } @else {
+        <app-audit-list [events]="page.content" emptyMessage="Not a single entry in the log yet." />
+      }
     </app-card>
 
     <app-audit-pagination
