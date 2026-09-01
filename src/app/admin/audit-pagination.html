@@ -13,7 +13,11 @@
         >
           Page {{ currentPage() + 1 }} of {{ totalPages() }}
         </span>
-        <div class="flex min-w-0 flex-1 items-center gap-2">
+
+        <!-- The numbered page-jump strip needs real room to stay usable, so it's a
+             `sm`-and-up feature; a narrow phone gets plain prev/next instead, right
+             below the range pill above rather than squeezed onto the same row as it. -->
+        <div class="hidden min-w-0 flex-1 items-center gap-2 sm:flex">
           <button
             type="button"
             [class]="pageArrowClasses"
@@ -42,6 +46,25 @@
               }
             }
           </div>
+          <button
+            type="button"
+            [class]="pageArrowClasses"
+            [disabled]="!hasNext()"
+            (click)="next.emit()"
+          >
+            →
+          </button>
+        </div>
+
+        <div class="flex flex-none items-center gap-2 sm:hidden">
+          <button
+            type="button"
+            [class]="pageArrowClasses"
+            [disabled]="!hasPrevious()"
+            (click)="previous.emit()"
+          >
+            ←
+          </button>
           <button
             type="button"
             [class]="pageArrowClasses"

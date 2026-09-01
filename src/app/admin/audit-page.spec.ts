@@ -149,8 +149,10 @@ describe('AdminAuditPage', () => {
     const buttons = Array.from(root.querySelectorAll('button')).filter((b) =>
       ['←', '→'].includes(b.textContent?.trim() ?? ''),
     );
-    // One pair above the results, one pair below (both duplicated for easier navigation).
-    expect(buttons).toHaveLength(4);
+    // One pagination row above the results, one below; each row renders its arrow pair
+    // twice over (once in the `sm`-and-up nav block, once in the mobile-only compact
+    // block) so exactly one pair is ever visible at a given width.
+    expect(buttons).toHaveLength(8);
     for (const button of buttons) {
       expect(button.className).toContain('bg-treasure-500');
       expect(button.className).toContain('text-ocean-950');

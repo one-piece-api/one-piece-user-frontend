@@ -48,6 +48,30 @@ describe('AuditPagination', () => {
     expect(root.querySelector('.overflow-x-auto')).toBeTruthy();
   });
 
+  it('gives mobile a compact prev/next pair instead of squeezing the numbered strip onto a narrow row', () => {
+    const fixture = TestBed.createComponent(AuditPagination);
+    fixture.componentRef.setInput('range', '1–1 of 3');
+    fixture.componentRef.setInput('currentPage', 0);
+    fixture.componentRef.setInput('totalPages', 3);
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    // The numbered strip only ever appears inside the `sm`-and-up block.
+    const desktopNav = root.querySelector('.overflow-x-auto')!.closest('.sm\\:flex')!;
+    expect(desktopNav.className).toContain('hidden');
+    expect(desktopNav.querySelectorAll('button').length).toBe(5); // ← 1 2 3 →
+
+    // The mobile-only block has no numbered strip, just the two arrows.
+    const mobileNav = Array.from(root.querySelectorAll('div')).find(
+      (d) => d.className.includes('sm:hidden') && d.querySelectorAll('button').length > 0,
+    )!;
+    expect(mobileNav.className).not.toContain('overflow-x-auto');
+    const mobileButtons = Array.from(mobileNav.querySelectorAll('button')).map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(mobileButtons).toEqual(['←', '→']);
+  });
+
   it('disables the previous arrow on the first page and the next arrow on the last', () => {
     const fixture = TestBed.createComponent(AuditPagination);
     fixture.componentRef.setInput('range', '1–1 of 3');
