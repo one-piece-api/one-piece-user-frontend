@@ -2,13 +2,14 @@ import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MascotService } from '../mascot/mascot';
+import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { Forbidden } from './forbidden';
 import type { ForbiddenState } from './permission.guard';
 
 describe('Forbidden', () => {
   function createWithState(state: ForbiddenState | undefined) {
     TestBed.configureTestingModule({
-      imports: [Forbidden],
+      imports: [Forbidden, provideTranslocoTesting()],
       providers: [provideRouter([]), { provide: Location, useValue: { getState: () => state } }],
     });
     return TestBed.createComponent(Forbidden);

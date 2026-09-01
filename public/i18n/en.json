@@ -1,0 +1,337 @@
+{
+  "shell": {
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu",
+    "logOut": "Log Out",
+    "nav": {
+      "account": "Account",
+      "admin": "Admin",
+      "profile": "My Profile",
+      "crewManifest": "Crew Manifest",
+      "rolesPermissions": "Roles & Permissions",
+      "shipsLog": "Ship's Log"
+    }
+  },
+  "langSwitcher": {
+    "label": "Choose language",
+    "it": "Italiano",
+    "en": "English"
+  },
+  "mascot": {
+    "title": {
+      "info": "Puru puru puru",
+      "success": "Yosh! All Done",
+      "error": "Arrr! Blocked"
+    },
+    "idleGreeting": {
+      "text": "I'm here! I'll pipe up when something needs your attention, or tap me any time for a pointer.",
+      "code": "standing by"
+    },
+    "minimize": "Minimize the Den Den Mushi",
+    "open": "Open the Den Den Mushi",
+    "tips": {
+      "profile": {
+        "tip1": {
+          "text": "Password and OTP live in your account settings, not here - I'm a snail-phone, not a locksmith.",
+          "code": "account settings"
+        },
+        "tip2": {
+          "text": "Your session renews itself while you work. If it ever sinks, we chart you straight back to the login page.",
+          "code": "session handling"
+        }
+      },
+      "users": {
+        "tip1": {
+          "text": "An expired invitation isn't lost at sea - resend it and the clock resets to seven days.",
+          "code": "POST /users/:id/resend-invitation"
+        },
+        "tip2": {
+          "text": "Grant a role now? The crewmate sees it shortly, not instantly - even gull-mail takes its time.",
+          "code": "role changes propagate"
+        },
+        "tip3": {
+          "text": "The last ADMIN is protected - a ship with no captain just drifts in circles.",
+          "code": "409 USER_LAST_ADMINISTRATOR"
+        }
+      },
+      "roles": {
+        "tip1": {
+          "text": "A permission with nobody holding it is dead weight - delete it, or grant it to a role from the matrix.",
+          "code": "roles:manage"
+        },
+        "tip2": {
+          "text": "Groups collapse by default so the list stays readable - click one open to see what it guards.",
+          "code": "permission groups"
+        },
+        "tip3": {
+          "text": "At least one role must always hold roles:manage, or nobody's left who can fix the crew's roster.",
+          "code": "don't lock the wheelhouse"
+        }
+      },
+      "audit": {
+        "tip1": {
+          "text": "The ship's log is never erased. Not even the sharpest first mate can rewrite a route already sailed.",
+          "code": "append-only"
+        },
+        "tip2": {
+          "text": "Here you see who did what, and when - handy when someone swears they never touched a thing.",
+          "code": "audit:read"
+        }
+      }
+    }
+  },
+  "errors": {
+    "forbidden": "Arrr! Ye don't have clearance for that, matey.",
+    "server": "Arrr! Something broke on our end — try again in a moment."
+  },
+  "ui": {
+    "modal": {
+      "close": "Close"
+    },
+    "datePicker": {
+      "today": "Today",
+      "clear": "Clear",
+      "placeholder": "dd/mm/yyyy",
+      "weekday": {
+        "mo": "Mo",
+        "tu": "Tu",
+        "we": "We",
+        "th": "Th",
+        "fr": "Fr",
+        "sa": "Sa",
+        "su": "Su"
+      }
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "working": "Working…",
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "range": "{{start}}–{{end}} of {{total}}"
+  },
+  "whoAmI": {
+    "eyebrow": "My Profile",
+    "loading": "Charting your course…",
+    "error": "Lost at sea. Could not load your identity.",
+    "identityHeading": "Identity",
+    "username": "Username",
+    "email": "Email",
+    "rolesAssigned": "Roles Assigned",
+    "rolesHint": "If an admin changes one of these, it may take a moment before you see it here."
+  },
+  "forbidden": {
+    "title": "This cabin is locked",
+    "description": "You tried to open {{route}}, but you're missing the {{permission}} permission.",
+    "rolesInfo": "Your current roles are {{roles}}. Ask an ADMIN to grant it — it'll be available next time you sign in.",
+    "none": "none",
+    "defaultRoute": "this page",
+    "defaultPermission": "the required permission",
+    "backToProfile": "Back to Profile",
+    "requestAccess": "Request Access",
+    "requestSent": "Request sent to the ADMINs. It'll be available next time you sign in."
+  },
+  "sessionExpired": {
+    "title": "Arrr! Yer session's sunk.",
+    "description": "Charting a course back to port — you'll be asked to sign in again in a moment."
+  },
+  "users": {
+    "eyebrow": "Admin Only · users:read",
+    "title": "Crew Manifest",
+    "newUser": "New User",
+    "search": { "label": "Search", "placeholder": "name or email…" },
+    "role": { "label": "Role", "all": "All roles" },
+    "status": {
+      "label": "Status",
+      "all": "All statuses",
+      "active": "Active",
+      "pending": "Pending",
+      "invitationExpired": "Invite Expired",
+      "disabled": "Disabled"
+    },
+    "reset": "Reset",
+    "loading": "Charting the crew…",
+    "error": "Lost the manifest. Could not load the crew.",
+    "loadError": "Arrr! Could not load the crew manifest — try again in a moment.",
+    "emptyFiltered": "No one answers the roll call. Try clearing the filters.",
+    "emptyAll": "No crew members yet.",
+    "details": "Details →",
+    "rolesPermissionsHeading": "Roles & Permissions",
+    "rolesPermissionsHint": "Menus, chips, filters and actions all read this list — a new role, or finer-grained permissions, arrive without redrawing anything.",
+    "goldenRulesHeading": "Two Golden Rules",
+    "goldenRule1": "The last active ADMIN can never be revoked or demoted — the ship doesn't sail without a captain.",
+    "goldenRule2": "Roles and status changed by an admin aren't instant for the other user — they take effect shortly, not immediately.",
+    "invite": {
+      "email": "Email",
+      "emailPlaceholder": "e.g. usopp@onepiece.local",
+      "initialRoles": "Initial Roles",
+      "cancel": "Cancel",
+      "sending": "Sending…",
+      "send": "Send Invitation",
+      "emailRequired": "An email address be needed, matey.",
+      "emailInvalid": "That be no proper email address.",
+      "rolesRequired": "Pick at least one role for the new crewmate.",
+      "sent": "Invitation sent to {{email}}!",
+      "emailAlreadyRegistered": "That pirate already sails with the crew - email already registered.",
+      "deliveryFailed": "Arrr! The invitation couldn't be delivered - check the ship's mail settings.",
+      "genericFailed": "Arrr! Something went wrong sending the invite."
+    },
+    "detail": {
+      "loading": "Charting the crew…",
+      "error": "Lost the manifest. Could not load this crewmate.",
+      "backToList": "← Back to Crew Manifest",
+      "assignedRoles": "Assigned Roles",
+      "revokeRole": "Revoke role",
+      "revokeRoleAria": "Revoke role {{role}}",
+      "noRoles": "No roles held.",
+      "addRole": "Add a Role",
+      "roleChangeHint": "Role changes for {{username}} take effect shortly, not instantly.",
+      "effectivePermissions": "Effective Permissions",
+      "noPermissions": "No roles held - no permissions granted.",
+      "loadingPermissions": "Charting permissions…",
+      "revokeAccess": "Revoke Access",
+      "reactivate": "Reactivate",
+      "resendInvitation": "Resend Invitation",
+      "resending": "Resending…",
+      "shipsLog": "Ship's Log",
+      "noLogEntries": "No log entries for {{username}} yet.",
+      "confirmRevokeHeading": "Revoke Access",
+      "confirmReactivateHeading": "Reactivate Crewmate",
+      "confirmRevokeBody": "Arrr! This will maroon {{username}} - every active session ends at once and they cannot log back in until reactivated.",
+      "confirmReactivateBody": "Arrr! Welcome {{username}} back aboard - they will need to log in again to resume their post.",
+      "grantSuccess": "Granted {{role}} to {{username}}!",
+      "revokeSuccess": "Revoked {{role}} from {{username}}!",
+      "lastAdministrator": "Arrr! At least one ADMIN must remain in the crew - this one cannot be revoked.",
+      "lastRole": "Arrr! {{username}} needs at least one role - grant another before revoking this one.",
+      "userGone": "Arrr! {{username}} be gone from the manifest.",
+      "revokedSuccess": "{{username}}'s access has been revoked!",
+      "reactivatedSuccess": "{{username}} may sail with the crew once more!"
+    },
+    "resend": {
+      "success": "Resent the invitation to {{email}}!",
+      "notResendable": "Arrr! {{email}}'s invitation isn't resendable anymore — refresh to see the latest status.",
+      "userGone": "Arrr! {{email}} be gone from the crew.",
+      "deliveryFailed": "Arrr! Could not resend the invitation to {{email}} - the message bird got lost."
+    }
+  },
+  "roles": {
+    "eyebrow": "Admin Only · roles:manage",
+    "title": "Roles & Permissions",
+    "loading": "Charting the registry…",
+    "error": "Lost the registry. Could not load roles/permissions.",
+    "loadRegistryError": "Arrr! Could not load the role/permission registry — try again in a moment.",
+    "rolesHeading": "Roles",
+    "newRole": "New Role",
+    "permission": "permission",
+    "permissions": "permissions",
+    "deleteRoleHint": "A role with no crew, and not the last one holding roles:manage, deletes right away.",
+    "deleteRoleAria": "Delete role {{role}}",
+    "permissionsOf": "Permissions of {{role}}",
+    "newPermission": "New Permission",
+    "deletePermissionAria": "Delete permission {{key}}",
+    "permissionsHint": "Every menu, chip, filter and action in the app reads this matrix - this is where who can do what is born.",
+    "created": "Role {{role}} created!",
+    "deleted": "Role {{role}} removed from the registry.",
+    "inUse": "Arrr! {{role}} still has crew assigned — move them off it first.",
+    "lastRoleManager": "Arrr! {{role}} is the only role that can still manage roles/permissions — this stays put.",
+    "lastRoleManagerDelete": "Arrr! {{role}} is the only role that can still manage roles/permissions — it can't be removed.",
+    "permissionGranted": "Granted {{key}} to {{role}}!",
+    "permissionRevoked": "Revoked {{key}} from {{role}}.",
+    "permissionCreated": "Permission {{key}} added to the registry. Activate it from the matrix below.",
+    "permissionDeleted": "Permission {{key}} removed from the registry.",
+    "permissionInUse": "Arrr! {{key}} is still granted to at least one role — revoke it everywhere first.",
+    "deleteConfirmBody": "Arrr! This removes {{name}} from the registry. If it's still needed later, it will have to be created from scratch.",
+    "deletePermissionHeading": "Delete Permission",
+    "deleteRoleHeading": "Delete Role",
+    "newRoleModal": {
+      "nameLabel": "Role Name",
+      "namePlaceholder": "e.g. NAVIGATOR",
+      "copyFromLabel": "Copy Permissions From (optional)",
+      "copyFromNone": "None - starts empty",
+      "creating": "Creating…",
+      "create": "Create Role",
+      "nameRequired": "A role needs a name.",
+      "alreadyExists": "A role named {{role}} already exists.",
+      "invalidName": "That name leaves nothing usable - try letters or numbers.",
+      "genericFailed": "Arrr! Something went wrong creating the role."
+    },
+    "newPermissionModal": {
+      "resourceLabel": "Resource",
+      "newGroup": "+ New group…",
+      "newGroupNameLabel": "New Group Name",
+      "newGroupPlaceholder": "e.g. billing",
+      "actionLabel": "Action",
+      "actionPlaceholder": "e.g. approve",
+      "labelLabel": "Label",
+      "labelPlaceholder": "e.g. Approve documents",
+      "unassignedHint": "The permission starts unassigned to any role - turn it on afterward from the matrix, role by role.",
+      "creating": "Creating…",
+      "create": "Create Permission",
+      "actionRequired": "A permission needs an action.",
+      "invalidAction": "Action must be lowercase letters/numbers only.",
+      "invalidResource": "New group name must be lowercase letters/numbers only.",
+      "labelRequired": "A permission needs a label.",
+      "alreadyExists": "Permission {{key}} already exists.",
+      "genericFailed": "Arrr! Something went wrong creating the permission."
+    }
+  },
+  "audit": {
+    "eyebrow": "Admin Only · audit:read",
+    "title": "Ship's Log",
+    "loading": "Unrolling the log…",
+    "error": "Lost the log. Could not load the trail.",
+    "loadError": "Arrr! Could not load the ship's log — try again in a moment.",
+    "noMatches": "No entries match these filters",
+    "widenHint": "Try widening the action type, author, or date range.",
+    "clearFilters": "Clear filters",
+    "emptyAll": "Not a single entry in the log yet.",
+    "by": "by {{email}}",
+    "filters": {
+      "actionType": "Action type",
+      "searchTypes": "Search types…",
+      "noMatchingTypes": "No matching types.",
+      "allTypes": "All types",
+      "typesSelected": "{{count}} types selected",
+      "author": "Author",
+      "everyone": "Everyone",
+      "searchAuthors": "Search authors…",
+      "noMatchingAuthors": "No matching authors.",
+      "from": "From",
+      "to": "To",
+      "activeFilters": "Active filters",
+      "clearAll": "Clear all",
+      "chipType": "Type: {{label}}",
+      "chipAuthor": "Author: {{email}}"
+    },
+    "action": {
+      "userInvited": "Invited User",
+      "invitationResent": "Resent Invitation",
+      "roleAssigned": "Granted Role",
+      "roleRevoked": "Revoked Role",
+      "accessRevoked": "Revoked Access",
+      "accessReactivated": "Reactivated Account",
+      "roleCreated": "Created Role",
+      "roleDeleted": "Deleted Role",
+      "permissionCreated": "Created Permission",
+      "permissionDeleted": "Deleted Permission",
+      "permissionAssignedToRole": "Granted Permission",
+      "permissionRevokedFromRole": "Revoked Permission"
+    },
+    "message": {
+      "userInvited": "Invitation sent to {{target}} as {{label}}",
+      "invitationResent": "Invitation resent to {{target}}",
+      "roleAssigned": "Role {{label}} assigned to {{target}}",
+      "roleRevoked": "Role {{label}} revoked from {{target}}",
+      "accessRevoked": "Access revoked for {{target}}",
+      "accessReactivated": "Access reactivated for {{target}}",
+      "roleCreated": "Role {{label}} created",
+      "roleDeleted": "Role {{label}} deleted",
+      "permissionCreated": "Permission {{label}} created",
+      "permissionDeleted": "Permission {{label}} deleted",
+      "permissionGrantedToRole": "Permission {{permission}} granted to {{role}}",
+      "permissionGrantedFallback": "Permission granted ({{label}})",
+      "permissionRevokedFromRole": "Permission {{permission}} revoked from {{role}}",
+      "permissionRevokedFallback": "Permission revoked ({{label}})"
+    }
+  }
+}

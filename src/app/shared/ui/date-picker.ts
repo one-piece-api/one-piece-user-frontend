@@ -3,13 +3,13 @@ import {
   computed,
   effect,
   ElementRef,
+  inject,
   input,
   output,
   signal,
   viewChild,
 } from '@angular/core';
-
-const WEEKDAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 interface CalendarDay {
   iso: string | null;
@@ -20,9 +20,9 @@ interface CalendarDay {
   disabled: boolean;
 }
 
-/** Formats an ISO `yyyy-MM-dd` date for display, in the viewer's own locale. */
-export function formatIsoDateDisplay(iso: string): string {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(
+/** Formats an ISO `yyyy-MM-dd` date for display, in the given (or the viewer's own) locale. */
+export function formatIsoDateDisplay(iso: string, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
     new Date(`${iso}T00:00:00`),
   );
 }
@@ -40,11 +40,24 @@ function toIsoDate(date: Date): string {
  * listener - the same "let the platform own dismissal" idiom `Modal` uses for `<dialog>`,
  * so light-dismiss (an outside click, Esc) and top-layer stacking come for free.
  */
+const WEEKDAY_KEYS = [
+  'ui.datePicker.weekday.mo',
+  'ui.datePicker.weekday.tu',
+  'ui.datePicker.weekday.we',
+  'ui.datePicker.weekday.th',
+  'ui.datePicker.weekday.fr',
+  'ui.datePicker.weekday.sa',
+  'ui.datePicker.weekday.su',
+];
+
 @Component({
   selector: 'app-date-picker',
   templateUrl: './date-picker.html',
+  imports: [TranslocoPipe],
 })
 export class DatePicker {
+  private readonly transloco = inject(TranslocoService);
+
   readonly label = input('');
   readonly value = input<string | null>(null);
   /** Which side the popover hangs from - the "To" picker sits right-aligned. */
@@ -57,19 +70,24 @@ export class DatePicker {
   private readonly triggerRef = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
   private readonly popoverRef = viewChild.required<ElementRef<HTMLElement>>('popover');
 
+  /** `null` (no value picked yet) leaves the template to fall back to the placeholder copy. */
   protected readonly displayValue = computed(() => {
     const value = this.value();
-    return value ? formatIsoDateDisplay(value) : 'dd/mm/yyyy';
+    return value ? formatIsoDateDisplay(value, this.transloco.activeLang()) : null;
   });
 
   protected readonly monthLabel = computed(() => {
     const [year, month] = this.viewMonth().split('-').map(Number);
-    return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(
-      new Date(year, month - 1, 1),
-    );
+    return new Intl.DateTimeFormat(this.transloco.activeLang(), {
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(year, month - 1, 1));
   });
 
-  protected readonly weekdayLabels = WEEKDAY_LABELS;
+  protected readonly weekdayLabels = computed(() => {
+    this.transloco.activeLang();
+    return WEEKDAY_KEYS.map((key) => this.transloco.translate(key));
+  });
 
   protected readonly weeks = computed<CalendarDay[][]>(() => {
     const [year, month] = this.viewMonth().split('-').map(Number);

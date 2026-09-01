@@ -1,0 +1,337 @@
+{
+  "shell": {
+    "closeMenu": "Chiudi il menu",
+    "openMenu": "Apri il menu",
+    "logOut": "Esci",
+    "nav": {
+      "account": "Account",
+      "admin": "Amministrazione",
+      "profile": "Il Mio Profilo",
+      "crewManifest": "Registro Equipaggio",
+      "rolesPermissions": "Ruoli e Permessi",
+      "shipsLog": "Diario di Bordo"
+    }
+  },
+  "langSwitcher": {
+    "label": "Scegli la lingua",
+    "it": "Italiano",
+    "en": "English"
+  },
+  "mascot": {
+    "title": {
+      "info": "Puru puru puru",
+      "success": "Yosh! Fatto!",
+      "error": "Arrr! Bloccato!"
+    },
+    "idleGreeting": {
+      "text": "Sono qui! Mi faccio sentire quando serve la tua attenzione, o toccami quando vuoi un consiglio.",
+      "code": "in attesa"
+    },
+    "minimize": "Riduci a icona il Den Den Mushi",
+    "open": "Apri il Den Den Mushi",
+    "tips": {
+      "profile": {
+        "tip1": {
+          "text": "Password e OTP vivono nelle impostazioni del tuo account, non qui - sono un lumacofono, mica un fabbro.",
+          "code": "impostazioni account"
+        },
+        "tip2": {
+          "text": "La tua sessione si rinnova da sola mentre lavori. Se mai dovesse affondare, ti riportiamo dritti alla pagina di accesso.",
+          "code": "gestione sessione"
+        }
+      },
+      "users": {
+        "tip1": {
+          "text": "Un invito scaduto non è perso in mare - reinvialo e l'orologio si azzera a sette giorni.",
+          "code": "POST /users/:id/resend-invitation"
+        },
+        "tip2": {
+          "text": "Concedi un ruolo ora? Il membro dell'equipaggio lo vedrà a breve, non subito - anche la posta-gabbiano ci mette il suo tempo.",
+          "code": "i cambi ruolo si propagano"
+        },
+        "tip3": {
+          "text": "L'ultimo ADMIN è protetto - una nave senza capitano va solo alla deriva in tondo.",
+          "code": "409 USER_LAST_ADMINISTRATOR"
+        }
+      },
+      "roles": {
+        "tip1": {
+          "text": "Un permesso che nessuno detiene è peso morto - eliminalo, o concedilo a un ruolo dalla matrice.",
+          "code": "roles:manage"
+        },
+        "tip2": {
+          "text": "I gruppi sono chiusi di default per mantenere la lista leggibile - aprine uno per vedere cosa protegge.",
+          "code": "gruppi di permessi"
+        },
+        "tip3": {
+          "text": "Almeno un ruolo deve sempre detenere roles:manage, o non resterà nessuno capace di sistemare il registro dell'equipaggio.",
+          "code": "non bloccare la timoneria"
+        }
+      },
+      "audit": {
+        "tip1": {
+          "text": "Il diario di bordo non si cancella mai. Nemmeno il primo ufficiale più scaltro può riscrivere una rotta già navigata.",
+          "code": "solo aggiunta"
+        },
+        "tip2": {
+          "text": "Qui vedi chi ha fatto cosa, e quando - utile quando qualcuno giura di non aver toccato nulla.",
+          "code": "audit:read"
+        }
+      }
+    }
+  },
+  "errors": {
+    "forbidden": "Arrr! Non hai il permesso per farlo, compare.",
+    "server": "Arrr! Qualcosa si è rotto dalla nostra parte — riprova tra un momento."
+  },
+  "ui": {
+    "modal": {
+      "close": "Chiudi"
+    },
+    "datePicker": {
+      "today": "Oggi",
+      "clear": "Cancella",
+      "placeholder": "dd/mm/yyyy",
+      "weekday": {
+        "mo": "Lu",
+        "tu": "Ma",
+        "we": "Me",
+        "th": "Gi",
+        "fr": "Ve",
+        "sa": "Sa",
+        "su": "Do"
+      }
+    }
+  },
+  "common": {
+    "cancel": "Annulla",
+    "confirm": "Conferma",
+    "working": "Un momento…",
+    "pageOf": "Pagina {{page}} di {{totalPages}}",
+    "range": "{{start}}–{{end}} di {{total}}"
+  },
+  "whoAmI": {
+    "eyebrow": "Il Mio Profilo",
+    "loading": "Tracciamo la tua rotta…",
+    "error": "Perso in mare. Impossibile caricare la tua identità.",
+    "identityHeading": "Identità",
+    "username": "Nome utente",
+    "email": "Email",
+    "rolesAssigned": "Ruoli Assegnati",
+    "rolesHint": "Se un admin modifica uno di questi, potrebbe volerci un momento prima che tu lo veda qui."
+  },
+  "forbidden": {
+    "title": "Questa cabina è chiusa a chiave",
+    "description": "Hai provato ad aprire {{route}}, ma ti manca il permesso {{permission}}.",
+    "rolesInfo": "I tuoi ruoli attuali sono {{roles}}. Chiedi a un ADMIN di concedertelo — sarà disponibile al prossimo accesso.",
+    "none": "nessuno",
+    "defaultRoute": "questa pagina",
+    "defaultPermission": "il permesso richiesto",
+    "backToProfile": "Torna al Profilo",
+    "requestAccess": "Richiedi Accesso",
+    "requestSent": "Richiesta inviata agli ADMIN. Sarà disponibile al prossimo accesso."
+  },
+  "sessionExpired": {
+    "title": "Arrr! La tua sessione è affondata.",
+    "description": "Tracciamo la rotta verso il porto — tra un momento ti verrà chiesto di accedere di nuovo."
+  },
+  "users": {
+    "eyebrow": "Solo Admin · users:read",
+    "title": "Registro Equipaggio",
+    "newUser": "Nuovo Utente",
+    "search": { "label": "Cerca", "placeholder": "nome o email…" },
+    "role": { "label": "Ruolo", "all": "Tutti i ruoli" },
+    "status": {
+      "label": "Stato",
+      "all": "Tutti gli stati",
+      "active": "Attivo",
+      "pending": "In Attesa",
+      "invitationExpired": "Invito Scaduto",
+      "disabled": "Disabilitato"
+    },
+    "reset": "Reimposta",
+    "loading": "Tracciamo l'equipaggio…",
+    "error": "Registro perso. Impossibile caricare l'equipaggio.",
+    "loadError": "Arrr! Impossibile caricare il registro equipaggio — riprova tra un momento.",
+    "emptyFiltered": "Nessuno risponde all'appello. Prova a cancellare i filtri.",
+    "emptyAll": "Ancora nessun membro dell'equipaggio.",
+    "details": "Dettagli →",
+    "rolesPermissionsHeading": "Ruoli e Permessi",
+    "rolesPermissionsHint": "Menu, chip, filtri e azioni leggono tutti questa lista — un nuovo ruolo, o permessi più granulari, arrivano senza ridisegnare nulla.",
+    "goldenRulesHeading": "Due Regole d'Oro",
+    "goldenRule1": "L'ultimo ADMIN attivo non può mai essere revocato o retrocesso — la nave non salpa senza un capitano.",
+    "goldenRule2": "Ruoli e stato modificati da un admin non sono istantanei per l'altro utente — hanno effetto a breve, non subito.",
+    "invite": {
+      "email": "Email",
+      "emailPlaceholder": "es. usopp@onepiece.local",
+      "initialRoles": "Ruoli Iniziali",
+      "cancel": "Annulla",
+      "sending": "Invio…",
+      "send": "Invia Invito",
+      "emailRequired": "Serve un indirizzo email, compare.",
+      "emailInvalid": "Quello non è un indirizzo email valido.",
+      "rolesRequired": "Scegli almeno un ruolo per il nuovo membro dell'equipaggio.",
+      "sent": "Invito inviato a {{email}}!",
+      "emailAlreadyRegistered": "Quel pirata naviga già con l'equipaggio - email già registrata.",
+      "deliveryFailed": "Arrr! L'invito non è stato consegnato - controlla le impostazioni di posta della nave.",
+      "genericFailed": "Arrr! Qualcosa è andato storto nell'invio dell'invito."
+    },
+    "detail": {
+      "loading": "Tracciamo l'equipaggio…",
+      "error": "Registro perso. Impossibile caricare questo membro dell'equipaggio.",
+      "backToList": "← Torna al Registro Equipaggio",
+      "assignedRoles": "Ruoli Assegnati",
+      "revokeRole": "Revoca ruolo",
+      "revokeRoleAria": "Revoca ruolo {{role}}",
+      "noRoles": "Nessun ruolo assegnato.",
+      "addRole": "Aggiungi un Ruolo",
+      "roleChangeHint": "Le modifiche ai ruoli per {{username}} hanno effetto a breve, non subito.",
+      "effectivePermissions": "Permessi Effettivi",
+      "noPermissions": "Nessun ruolo assegnato - nessun permesso concesso.",
+      "loadingPermissions": "Tracciamo i permessi…",
+      "revokeAccess": "Revoca Accesso",
+      "reactivate": "Riattiva",
+      "resendInvitation": "Reinvia Invito",
+      "resending": "Reinvio…",
+      "shipsLog": "Diario di Bordo",
+      "noLogEntries": "Ancora nessuna voce nel diario per {{username}}.",
+      "confirmRevokeHeading": "Revoca Accesso",
+      "confirmReactivateHeading": "Riattiva Membro dell'Equipaggio",
+      "confirmRevokeBody": "Arrr! Questo abbandonerà {{username}} su un'isola deserta - ogni sessione attiva termina subito e non potrà rientrare finché non sarà riattivato.",
+      "confirmReactivateBody": "Arrr! Diamo il bentornato a bordo a {{username}} - dovrà accedere di nuovo per riprendere il suo posto.",
+      "grantSuccess": "{{role}} concesso a {{username}}!",
+      "revokeSuccess": "{{role}} revocato a {{username}}!",
+      "lastAdministrator": "Arrr! Deve restare almeno un ADMIN nell'equipaggio - questo non può essere revocato.",
+      "lastRole": "Arrr! {{username}} ha bisogno di almeno un ruolo - concedine un altro prima di revocare questo.",
+      "userGone": "Arrr! {{username}} non è più nel registro.",
+      "revokedSuccess": "L'accesso di {{username}} è stato revocato!",
+      "reactivatedSuccess": "{{username}} può tornare a navigare con l'equipaggio!"
+    },
+    "resend": {
+      "success": "Invito reinviato a {{email}}!",
+      "notResendable": "Arrr! L'invito di {{email}} non è più reinviabile — aggiorna la pagina per vedere lo stato più recente.",
+      "userGone": "Arrr! {{email}} non fa più parte dell'equipaggio.",
+      "deliveryFailed": "Arrr! Impossibile reinviare l'invito a {{email}} - il messaggero si è perso."
+    }
+  },
+  "roles": {
+    "eyebrow": "Solo Admin · roles:manage",
+    "title": "Ruoli e Permessi",
+    "loading": "Tracciamo il registro…",
+    "error": "Registro perso. Impossibile caricare ruoli/permessi.",
+    "loadRegistryError": "Arrr! Impossibile caricare il registro ruoli/permessi — riprova tra un momento.",
+    "rolesHeading": "Ruoli",
+    "newRole": "Nuovo Ruolo",
+    "permission": "permesso",
+    "permissions": "permessi",
+    "deleteRoleHint": "Un ruolo senza equipaggio, e non l'ultimo a detenere roles:manage, viene eliminato subito.",
+    "deleteRoleAria": "Elimina ruolo {{role}}",
+    "permissionsOf": "Permessi di {{role}}",
+    "newPermission": "Nuovo Permesso",
+    "deletePermissionAria": "Elimina permesso {{key}}",
+    "permissionsHint": "Ogni menu, chip, filtro e azione dell'app legge questa matrice - è qui che nasce chi può fare cosa.",
+    "created": "Ruolo {{role}} creato!",
+    "deleted": "Ruolo {{role}} rimosso dal registro.",
+    "inUse": "Arrr! {{role}} ha ancora equipaggio assegnato — spostalo prima altrove.",
+    "lastRoleManager": "Arrr! {{role}} è l'unico ruolo che può ancora gestire ruoli/permessi — resta così com'è.",
+    "lastRoleManagerDelete": "Arrr! {{role}} è l'unico ruolo che può ancora gestire ruoli/permessi — non può essere rimosso.",
+    "permissionGranted": "{{key}} concesso a {{role}}!",
+    "permissionRevoked": "{{key}} revocato da {{role}}.",
+    "permissionCreated": "Permesso {{key}} aggiunto al registro. Attivalo dalla matrice qui sotto.",
+    "permissionDeleted": "Permesso {{key}} rimosso dal registro.",
+    "permissionInUse": "Arrr! {{key}} è ancora concesso ad almeno un ruolo — revocalo ovunque prima.",
+    "deleteConfirmBody": "Arrr! Questo rimuove {{name}} dal registro. Se dovesse servire di nuovo, andrà ricreato da zero.",
+    "deletePermissionHeading": "Elimina Permesso",
+    "deleteRoleHeading": "Elimina Ruolo",
+    "newRoleModal": {
+      "nameLabel": "Nome Ruolo",
+      "namePlaceholder": "es. NAVIGATOR",
+      "copyFromLabel": "Copia Permessi Da (opzionale)",
+      "copyFromNone": "Nessuno - parte vuoto",
+      "creating": "Creazione…",
+      "create": "Crea Ruolo",
+      "nameRequired": "Un ruolo ha bisogno di un nome.",
+      "alreadyExists": "Esiste già un ruolo chiamato {{role}}.",
+      "invalidName": "Quel nome non lascia nulla di utilizzabile - prova con lettere o numeri.",
+      "genericFailed": "Arrr! Qualcosa è andato storto nella creazione del ruolo."
+    },
+    "newPermissionModal": {
+      "resourceLabel": "Risorsa",
+      "newGroup": "+ Nuovo gruppo…",
+      "newGroupNameLabel": "Nome Nuovo Gruppo",
+      "newGroupPlaceholder": "es. billing",
+      "actionLabel": "Azione",
+      "actionPlaceholder": "es. approve",
+      "labelLabel": "Etichetta",
+      "labelPlaceholder": "es. Approva documenti",
+      "unassignedHint": "Il permesso parte non assegnato a nessun ruolo - attivalo poi dalla matrice, ruolo per ruolo.",
+      "creating": "Creazione…",
+      "create": "Crea Permesso",
+      "actionRequired": "Un permesso ha bisogno di un'azione.",
+      "invalidAction": "L'azione deve contenere solo lettere minuscole/numeri.",
+      "invalidResource": "Il nome del nuovo gruppo deve contenere solo lettere minuscole/numeri.",
+      "labelRequired": "Un permesso ha bisogno di un'etichetta.",
+      "alreadyExists": "Il permesso {{key}} esiste già.",
+      "genericFailed": "Arrr! Qualcosa è andato storto nella creazione del permesso."
+    }
+  },
+  "audit": {
+    "eyebrow": "Solo Admin · audit:read",
+    "title": "Diario di Bordo",
+    "loading": "Srotoliamo il diario…",
+    "error": "Diario perso. Impossibile caricare la cronologia.",
+    "loadError": "Arrr! Impossibile caricare il diario di bordo — riprova tra un momento.",
+    "noMatches": "Nessuna voce corrisponde a questi filtri",
+    "widenHint": "Prova ad ampliare il tipo di azione, l'autore o l'intervallo di date.",
+    "clearFilters": "Cancella filtri",
+    "emptyAll": "Ancora nessuna voce nel diario.",
+    "by": "di {{email}}",
+    "filters": {
+      "actionType": "Tipo di azione",
+      "searchTypes": "Cerca tipi…",
+      "noMatchingTypes": "Nessun tipo corrispondente.",
+      "allTypes": "Tutti i tipi",
+      "typesSelected": "{{count}} tipi selezionati",
+      "author": "Autore",
+      "everyone": "Chiunque",
+      "searchAuthors": "Cerca autori…",
+      "noMatchingAuthors": "Nessun autore corrispondente.",
+      "from": "Da",
+      "to": "A",
+      "activeFilters": "Filtri attivi",
+      "clearAll": "Cancella tutto",
+      "chipType": "Tipo: {{label}}",
+      "chipAuthor": "Autore: {{email}}"
+    },
+    "action": {
+      "userInvited": "Utente Invitato",
+      "invitationResent": "Invito Reinviato",
+      "roleAssigned": "Ruolo Concesso",
+      "roleRevoked": "Ruolo Revocato",
+      "accessRevoked": "Accesso Revocato",
+      "accessReactivated": "Account Riattivato",
+      "roleCreated": "Ruolo Creato",
+      "roleDeleted": "Ruolo Eliminato",
+      "permissionCreated": "Permesso Creato",
+      "permissionDeleted": "Permesso Eliminato",
+      "permissionAssignedToRole": "Permesso Concesso",
+      "permissionRevokedFromRole": "Permesso Revocato"
+    },
+    "message": {
+      "userInvited": "Invito inviato a {{target}} come {{label}}",
+      "invitationResent": "Invito reinviato a {{target}}",
+      "roleAssigned": "Ruolo {{label}} assegnato a {{target}}",
+      "roleRevoked": "Ruolo {{label}} revocato a {{target}}",
+      "accessRevoked": "Accesso revocato per {{target}}",
+      "accessReactivated": "Accesso riattivato per {{target}}",
+      "roleCreated": "Ruolo {{label}} creato",
+      "roleDeleted": "Ruolo {{label}} eliminato",
+      "permissionCreated": "Permesso {{label}} creato",
+      "permissionDeleted": "Permesso {{label}} eliminato",
+      "permissionGrantedToRole": "Permesso {{permission}} concesso a {{role}}",
+      "permissionGrantedFallback": "Permesso concesso ({{label}})",
+      "permissionRevokedFromRole": "Permesso {{permission}} revocato da {{role}}",
+      "permissionRevokedFallback": "Permesso revocato ({{label}})"
+    }
+  }
+}

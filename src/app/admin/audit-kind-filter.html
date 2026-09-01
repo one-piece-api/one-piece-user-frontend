@@ -1,6 +1,6 @@
 <div class="relative">
   <div class="mb-2 font-heading text-xs font-black tracking-wide text-ocean-500 uppercase">
-    Action type
+    {{ 'audit.filters.actionType' | transloco }}
   </div>
   <button
     #trigger
@@ -34,7 +34,7 @@
           type="text"
           [value]="query()"
           (input)="query.set($any($event.target).value)"
-          placeholder="Search types…"
+          [placeholder]="'audit.filters.searchTypes' | transloco"
           class="mb-1.5 flex-none rounded-lg border-2 border-ocean-900/15 bg-parchment-50 px-2.5 py-1.5 font-heading text-sm font-bold text-ocean-900 focus:border-ocean-700 focus:outline-none"
         />
         <div class="min-h-0 flex-1 overflow-y-auto">
@@ -62,10 +62,12 @@
                   class="size-2 flex-none rounded-full"
                   [class]="dotClassByAction[action]"
                 ></span>
-                {{ actionLabel[action] ?? action }}
+                {{ actionLabelKey[action] ? (actionLabelKey[action] | transloco) : action }}
               </button>
             } @empty {
-              <p class="px-2.5 py-2 font-heading text-sm text-ocean-500">No matching types.</p>
+              <p class="px-2.5 py-2 font-heading text-sm text-ocean-500">
+                {{ 'audit.filters.noMatchingTypes' | transloco }}
+              </p>
             }
           </div>
         </div>

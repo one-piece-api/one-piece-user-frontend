@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MascotService } from '../shared/mascot/mascot';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import type { RolePermissions } from './admin-user.model';
 import type { AuditEvent } from './audit.model';
 import { AdminUserDetail } from './user-detail';
@@ -43,7 +44,7 @@ describe('AdminUserDetail', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdminUserDetail],
+      imports: [AdminUserDetail, provideTranslocoTesting()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);

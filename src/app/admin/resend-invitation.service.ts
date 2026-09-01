@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { apiErrorOf } from '../shared/http/api-error';
 import { MascotService } from '../shared/mascot/mascot';
@@ -21,6 +22,7 @@ interface ResendableUser {
 export class ResendInvitationService {
   private readonly http = inject(HttpClient);
   private readonly mascotService = inject(MascotService);
+  private readonly transloco = inject(TranslocoService);
 
   /** Resolves true when the caller's user data is now stale and should be reloaded. */
   async resend(user: ResendableUser): Promise<boolean> {
@@ -28,7 +30,10 @@ export class ResendInvitationService {
       await firstValueFrom(
         this.http.post<void>(`${USERS_ENDPOINT}/${user.userId}/resend-invitation`, {}),
       );
-      this.mascotService.show(`Resent the invitation to ${user.email}!`, 'success');
+      this.mascotService.show(
+        this.transloco.translate('users.resend.success', { email: user.email }),
+        'success',
+      );
       return true;
     } catch (err) {
       if (!(err instanceof HttpErrorResponse)) {
@@ -36,18 +41,21 @@ export class ResendInvitationService {
       }
       if (apiErrorOf(err)?.errorCode === INVITATION_NOT_RESENDABLE_ERROR_CODE) {
         this.mascotService.show(
-          `Arrr! ${user.email}'s invitation isn't resendable anymore — refresh to see the latest status.`,
+          this.transloco.translate('users.resend.notResendable', { email: user.email }),
           'error',
         );
         return true;
       }
       if (err.status === 404) {
-        this.mascotService.show(`Arrr! ${user.email} be gone from the crew.`, 'error');
+        this.mascotService.show(
+          this.transloco.translate('users.resend.userGone', { email: user.email }),
+          'error',
+        );
         return true;
       }
       if (apiErrorOf(err)?.errorCode === EMAIL_DELIVERY_FAILED_ERROR_CODE) {
         this.mascotService.show(
-          `Arrr! Could not resend the invitation to ${user.email} - the message bird got lost.`,
+          this.transloco.translate('users.resend.deliveryFailed', { email: user.email }),
           'error',
         );
       }

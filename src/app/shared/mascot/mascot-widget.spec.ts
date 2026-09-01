@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { MascotService } from './mascot';
 import { MascotWidget } from './mascot-widget';
 
 describe('MascotWidget', () => {
   async function createAt(url: string) {
     TestBed.configureTestingModule({
-      imports: [MascotWidget],
+      imports: [MascotWidget, provideTranslocoTesting()],
       providers: [provideRouter([{ path: '**', component: MascotWidget }])],
     });
     const router = TestBed.inject(Router);

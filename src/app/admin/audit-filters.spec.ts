@@ -1,11 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { formatIsoDateDisplay } from '../shared/ui/date-picker';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { AuditFilters } from './audit-filters';
 
-const FROM_LABEL = formatIsoDateDisplay('2026-08-01');
-const TO_LABEL = formatIsoDateDisplay('2026-08-31');
+// 'en', matching the testing catalog's `defaultLang` (`i18n-testing.ts`), not the OS/CI
+// runner's own locale.
+const FROM_LABEL = formatIsoDateDisplay('2026-08-01', 'en');
+const TO_LABEL = formatIsoDateDisplay('2026-08-31', 'en');
 
 describe('AuditFilters', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+  });
+
   function create(overrides: {
     selectedActions?: ReadonlySet<string>;
     actorEmail?: string;

@@ -9,9 +9,11 @@
         animate.enter="anim-card-enter"
         class="max-w-sm rounded-2xl bg-white/85 px-7 py-6 text-center shadow-xl backdrop-blur-sm"
       >
-        <p class="font-display text-2xl font-semibold text-ocean-900">Arrr! Yer session's sunk.</p>
+        <p class="font-display text-2xl font-semibold text-ocean-900">
+          {{ 'sessionExpired.title' | transloco }}
+        </p>
         <p class="mt-2 font-heading text-sm font-semibold text-ocean-500">
-          Charting a course back to port — you'll be asked to sign in again in a moment.
+          {{ 'sessionExpired.description' | transloco }}
         </p>
       </div>
     </div>

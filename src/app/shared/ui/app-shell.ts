@@ -1,7 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { logoutUrl } from '../../identity/auth-urls';
 import { CurrentUserService } from '../../identity/current-user';
+import { LanguageSwitcher } from '../i18n/language-switcher';
 import { NAV_GROUPS, type NavGroup } from '../nav/nav-items';
 import { initialsOf } from './initials';
 
@@ -13,7 +15,7 @@ import { initialsOf } from './initials';
 @Component({
   selector: 'app-shell',
   templateUrl: './app-shell.html',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslocoPipe, LanguageSwitcher],
 })
 export class AppShell {
   protected readonly currentUser = inject(CurrentUserService);

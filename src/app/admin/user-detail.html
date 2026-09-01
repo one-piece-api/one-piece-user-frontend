@@ -1,18 +1,18 @@
 <div class="flex w-full flex-col gap-6">
   @if (user.isLoading()) {
     <app-card [wide]="true">
-      <p class="font-heading text-ocean-700">Charting the crew…</p>
+      <p class="font-heading text-ocean-700">{{ 'users.detail.loading' | transloco }}</p>
     </app-card>
   } @else if (user.error()) {
     <app-card [wide]="true">
-      <p class="font-heading text-flag-700">Lost the manifest. Could not load this crewmate.</p>
+      <p class="font-heading text-flag-700">{{ 'users.detail.error' | transloco }}</p>
     </app-card>
   } @else if (user.value(); as u) {
     <a
       routerLink="/users"
       class="inline-flex w-fit items-center gap-1.5 rounded-full bg-parchment-100 px-4 py-2 font-heading text-sm font-bold text-ocean-700 shadow-sm transition-colors hover:text-ocean-900"
     >
-      ← Back to Crew Manifest
+      {{ 'users.detail.backToList' | transloco }}
     </a>
 
     <div
@@ -36,14 +36,14 @@
           </div>
         </div>
         <app-badge [tone]="statusTone[u.status]" [dot]="true">{{
-          statusLabel[u.status]
+          statusLabelKey[u.status] | transloco
         }}</app-badge>
       </div>
 
       <div class="mt-6 grid gap-4 sm:grid-cols-2">
         <div class="rounded-2xl bg-parchment-200 p-4">
           <h3 class="font-heading text-xs font-bold tracking-wide text-ocean-700 uppercase">
-            Assigned Roles
+            {{ 'users.detail.assignedRoles' | transloco }}
           </h3>
           <div class="mt-3 flex flex-wrap items-center gap-2">
             @for (role of u.roles; track role) {
@@ -53,8 +53,8 @@
                 {{ role }}
                 <button
                   type="button"
-                  title="Revoke role"
-                  [attr.aria-label]="'Revoke role ' + role"
+                  [title]="'users.detail.revokeRole' | transloco"
+                  [attr.aria-label]="'users.detail.revokeRoleAria' | transloco: { role }"
                   [disabled]="pendingRole() === role"
                   class="cursor-pointer rounded-full bg-transparent p-0.5 text-base leading-none text-white/80 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                   (click)="revokeRole(u, role)"
@@ -63,14 +63,16 @@
                 </button>
               </span>
             } @empty {
-              <span class="font-heading text-sm text-ocean-700/50">No roles held.</span>
+              <span class="font-heading text-sm text-ocean-700/50">{{
+                'users.detail.noRoles' | transloco
+              }}</span>
             }
           </div>
 
           @if (availableRoles(u).length > 0) {
             <div class="mt-4 border-t border-dashed border-ocean-900/15 pt-4">
               <h4 class="font-heading text-xs font-bold tracking-wide text-ocean-500 uppercase">
-                Add a Role
+                {{ 'users.detail.addRole' | transloco }}
               </h4>
               <div class="mt-2.5 flex flex-wrap items-center gap-2">
                 @for (role of availableRoles(u); track role) {
@@ -88,13 +90,13 @@
           }
 
           <p class="mt-4 font-heading text-sm text-ocean-500">
-            Role changes for {{ u.username }} take effect shortly, not instantly.
+            {{ 'users.detail.roleChangeHint' | transloco: { username: u.username } }}
           </p>
         </div>
 
         <div class="rounded-2xl bg-parchment-200 p-4">
           <h3 class="font-heading text-xs font-bold tracking-wide text-ocean-700 uppercase">
-            Effective Permissions
+            {{ 'users.detail.effectivePermissions' | transloco }}
           </h3>
           @if (effectivePermissions(); as permissions) {
             <div class="mt-3 flex flex-wrap gap-1.5">
@@ -106,12 +108,14 @@
                 </span>
               } @empty {
                 <span class="font-heading text-sm text-ocean-700/50">
-                  No roles held - no permissions granted.
+                  {{ 'users.detail.noPermissions' | transloco }}
                 </span>
               }
             </div>
           } @else {
-            <p class="mt-3 font-heading text-sm text-ocean-700">Charting permissions…</p>
+            <p class="mt-3 font-heading text-sm text-ocean-700">
+              {{ 'users.detail.loadingPermissions' | transloco }}
+            </p>
           }
         </div>
       </div>
@@ -119,7 +123,7 @@
       <div class="mt-6 flex flex-wrap gap-3">
         @if (u.status === 'ACTIVE') {
           <button type="button" [class]="dangerClasses" (click)="confirmingAction.set('revoke')">
-            Revoke Access
+            {{ 'users.detail.revokeAccess' | transloco }}
           </button>
         } @else if (u.status === 'DISABLED') {
           <button
@@ -127,7 +131,7 @@
             [class]="primaryClasses"
             (click)="confirmingAction.set('reactivate')"
           >
-            Reactivate
+            {{ 'users.detail.reactivate' | transloco }}
           </button>
         } @else if (u.status === 'INVITATION_EXPIRED') {
           <button
@@ -136,7 +140,11 @@
             [disabled]="resendingInvitation()"
             (click)="resendInvitation(u)"
           >
-            {{ resendingInvitation() ? 'Resending…' : 'Resend Invitation' }}
+            {{
+              resendingInvitation()
+                ? ('users.detail.resending' | transloco)
+                : ('users.detail.resendInvitation' | transloco)
+            }}
           </button>
         }
       </div>
@@ -145,11 +153,13 @@
     @if (auditEvents.value(); as auditPage) {
       <app-card [wide]="true">
         <div class="text-left">
-          <h3 class="font-display text-lg font-semibold text-ocean-900">Ship's Log</h3>
+          <h3 class="font-display text-lg font-semibold text-ocean-900">
+            {{ 'users.detail.shipsLog' | transloco }}
+          </h3>
           <div class="mt-3">
             <app-audit-list
               [events]="auditPage.content"
-              [emptyMessage]="'No log entries for ' + u.username + ' yet.'"
+              [emptyMessage]="'users.detail.noLogEntries' | transloco: { username: u.username }"
             />
           </div>
         </div>
@@ -158,23 +168,26 @@
 
     <app-modal
       [open]="confirmingAction() !== null"
-      [heading]="confirmingAction() === 'revoke' ? 'Revoke Access' : 'Reactivate Crewmate'"
+      [heading]="
+        (confirmingAction() === 'revoke'
+          ? 'users.detail.confirmRevokeHeading'
+          : 'users.detail.confirmReactivateHeading'
+        ) | transloco
+      "
       (closed)="confirmingAction.set(null)"
     >
       @if (confirmingAction() === 'revoke') {
         <p class="font-heading text-ocean-900">
-          Arrr! This will maroon <strong>{{ u.username }}</strong> - every active session ends at
-          once and they cannot log back in until reactivated.
+          {{ 'users.detail.confirmRevokeBody' | transloco: { username: u.username } }}
         </p>
       } @else {
         <p class="font-heading text-ocean-900">
-          Arrr! Welcome <strong>{{ u.username }}</strong> back aboard - they will need to log in
-          again to resume their post.
+          {{ 'users.detail.confirmReactivateBody' | transloco: { username: u.username } }}
         </p>
       }
       <div class="mt-6 flex justify-end gap-3">
         <button type="button" [class]="navClasses" (click)="confirmingAction.set(null)">
-          Cancel
+          {{ 'common.cancel' | transloco }}
         </button>
         <button
           type="button"
@@ -182,7 +195,9 @@
           [disabled]="accessActionPending()"
           (click)="confirmAccessAction(u)"
         >
-          {{ accessActionPending() ? 'Working…' : 'Confirm' }}
+          {{
+            accessActionPending() ? ('common.working' | transloco) : ('common.confirm' | transloco)
+          }}
         </button>
       </div>
     </app-modal>

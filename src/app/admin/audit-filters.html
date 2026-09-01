@@ -13,12 +13,12 @@
       />
 
       <app-date-picker
-        label="From"
+        [label]="'audit.filters.from' | transloco"
         [value]="dateFrom()"
         (valueChange)="dateFromChange.emit($event)"
       />
       <app-date-picker
-        label="To"
+        [label]="'audit.filters.to' | transloco"
         align="end"
         [value]="dateTo()"
         (valueChange)="dateToChange.emit($event)"
@@ -28,7 +28,9 @@
 
   @if (chips().length > 0) {
     <div class="flex flex-wrap items-center gap-2 rounded-2xl bg-parchment-200 p-3">
-      <span class="font-display text-sm font-bold text-ocean-700">Active filters</span>
+      <span class="font-display text-sm font-bold text-ocean-700">{{
+        'audit.filters.activeFilters' | transloco
+      }}</span>
       @for (chip of chips(); track chip.label) {
         <button
           type="button"
@@ -47,7 +49,7 @@
         (click)="cleared.emit()"
         class="ml-auto flex-none cursor-pointer rounded-full bg-flag-600 px-4 py-2 font-display text-sm font-bold whitespace-nowrap text-white"
       >
-        Clear all
+        {{ 'audit.filters.clearAll' | transloco }}
       </button>
     </div>
   }

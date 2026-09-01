@@ -17,11 +17,12 @@ export const STATUS_TONE: Record<AccountStatus, BadgeTone> = {
   DISABLED: 'neutral',
 };
 
-export const STATUS_LABEL: Record<AccountStatus, string> = {
-  ACTIVE: 'Active',
-  PENDING: 'Pending',
-  INVITATION_EXPIRED: 'Invite Expired',
-  DISABLED: 'Disabled',
+/** Translation keys, not display text - templates resolve them with `| transloco`. */
+export const STATUS_LABEL_KEY: Record<AccountStatus, string> = {
+  ACTIVE: 'users.status.active',
+  PENDING: 'users.status.pending',
+  INVITATION_EXPIRED: 'users.status.invitationExpired',
+  DISABLED: 'users.status.disabled',
 };
 
 /** A status's accent as a left-border color - the Crew Manifest rows and the User Detail card stripe. */

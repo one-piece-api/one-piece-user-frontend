@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MascotService } from '../shared/mascot/mascot';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { RolesPage } from './roles-page';
 
 const DEFAULT_ROLES = [
@@ -57,7 +58,7 @@ describe('RolesPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RolesPage],
+      imports: [RolesPage, provideTranslocoTesting()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);

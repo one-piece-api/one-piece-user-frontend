@@ -14,7 +14,7 @@
       >
         <div class="flex flex-wrap items-center gap-2">
           <app-badge [tone]="actionTone[event.action] ?? 'neutral'">{{
-            actionLabel[event.action] ?? event.action
+            actionLabelKey[event.action] ? (actionLabelKey[event.action] | transloco) : event.action
           }}</app-badge>
           <span class="font-heading text-xs font-semibold whitespace-nowrap text-ocean-500">{{
             formatOccurredAt(event.occurredAt)
@@ -26,7 +26,7 @@
           }}</span>
           <span
             class="min-w-0 font-heading text-xs break-words text-ocean-500 sm:flex-none sm:whitespace-nowrap"
-            >by {{ event.actorEmail }}</span
+            >{{ 'audit.by' | transloco: { email: event.actorEmail } }}</span
           >
         </div>
       </div>

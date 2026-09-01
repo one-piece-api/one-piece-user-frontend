@@ -1,59 +1,22 @@
 import { Component, DestroyRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MascotService, type MascotTone } from './mascot';
 
 type TipTopic = 'profile' | 'users' | 'roles' | 'audit';
 
-/** [text, small caption] per topic, cycled in order every time a tip fires on that page. */
-const TIPS: Record<TipTopic, readonly (readonly [string, string])[]> = {
-  profile: [
-    [
-      "Password and OTP live in your account settings, not here - I'm a snail-phone, not a locksmith.",
-      'account settings',
-    ],
-    [
-      'Your session renews itself while you work. If it ever sinks, we chart you straight back to the login page.',
-      'session handling',
-    ],
-  ],
-  users: [
-    [
-      "An expired invitation isn't lost at sea - resend it and the clock resets to seven days.",
-      'POST /users/:id/resend-invitation',
-    ],
-    [
-      'Grant a role now? The crewmate sees it shortly, not instantly - even gull-mail takes its time.',
-      'role changes propagate',
-    ],
-    [
-      'The last ADMIN is protected - a ship with no captain just drifts in circles.',
-      '409 USER_LAST_ADMINISTRATOR',
-    ],
-  ],
-  roles: [
-    [
-      'A permission with nobody holding it is dead weight - delete it, or grant it to a role from the matrix.',
-      'roles:manage',
-    ],
-    [
-      'Groups collapse by default so the list stays readable - click one open to see what it guards.',
-      'permission groups',
-    ],
-    [
-      "At least one role must always hold roles:manage, or nobody's left who can fix the crew's roster.",
-      "don't lock the wheelhouse",
-    ],
-  ],
-  audit: [
-    [
-      "The ship's log is never erased. Not even the sharpest first mate can rewrite a route already sailed.",
-      'append-only',
-    ],
-    [
-      'Here you see who did what, and when - handy when someone swears they never touched a thing.',
-      'audit:read',
-    ],
-  ],
+interface Tip {
+  readonly text: string;
+  readonly code: string;
+}
+
+/** Translation key per topic, cycled in order every time a tip fires on that page - each
+ * resolves to a `{ text, code }` object in the `mascot.tips.*` catalog. */
+const TIPS: Record<TipTopic, readonly string[]> = {
+  profile: ['mascot.tips.profile.tip1', 'mascot.tips.profile.tip2'],
+  users: ['mascot.tips.users.tip1', 'mascot.tips.users.tip2', 'mascot.tips.users.tip3'],
+  roles: ['mascot.tips.roles.tip1', 'mascot.tips.roles.tip2', 'mascot.tips.roles.tip3'],
+  audit: ['mascot.tips.audit.tip1', 'mascot.tips.audit.tip2'],
 };
 
 const TIP_INTERVAL_MS = 24_000;
@@ -98,6 +61,7 @@ const TONE_MINIMIZE_CLASSES: Record<MascotTone, string> = {
 @Component({
   selector: 'app-mascot-widget',
   templateUrl: './mascot-widget.html',
+  imports: [TranslocoPipe],
 })
 export class MascotWidget {
   protected readonly mascotService = inject(MascotService);
@@ -107,6 +71,7 @@ export class MascotWidget {
   protected readonly toneMinimizeClasses = TONE_MINIMIZE_CLASSES;
 
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
   private readonly tipIndexByTopic = new Map<TipTopic, number>();
 
   constructor() {
@@ -121,8 +86,9 @@ export class MascotWidget {
     }
     const pool = TIPS[topic];
     const index = this.tipIndexByTopic.get(topic) ?? 0;
-    const [text, code] = pool[index % pool.length];
+    const key = pool[index % pool.length];
     this.tipIndexByTopic.set(topic, index + 1);
-    this.mascotService.show(text, 'info', code);
+    const tip = this.transloco.translateObject<Tip>(key);
+    this.mascotService.show(tip.text, 'info', tip.code);
   }
 }

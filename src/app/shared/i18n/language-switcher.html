@@ -1,0 +1,22 @@
+<div
+  role="group"
+  [attr.aria-label]="'langSwitcher.label' | transloco"
+  class="flex gap-1 rounded-full bg-white/10 p-1"
+>
+  @for (locale of languageService.available; track locale) {
+    <button
+      type="button"
+      [attr.aria-pressed]="languageService.active() === locale"
+      [attr.aria-label]="'langSwitcher.' + locale | transloco"
+      (click)="select(locale)"
+      class="flex-1 cursor-pointer rounded-full px-3 py-1.5 font-heading text-xs font-extrabold uppercase transition-colors"
+      [class]="
+        languageService.active() === locale
+          ? 'bg-treasure-500 text-ocean-950'
+          : 'text-parchment-100/60 hover:text-parchment-100'
+      "
+    >
+      {{ locale }}
+    </button>
+  }
+</div>

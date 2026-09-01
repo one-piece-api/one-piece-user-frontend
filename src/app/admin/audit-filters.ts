@@ -1,8 +1,9 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DatePicker, formatIsoDateDisplay } from '../shared/ui/date-picker';
 import { AuditActorFilter } from './audit-actor-filter';
 import { AuditKindFilter } from './audit-kind-filter';
-import { AUDIT_ACTION_LABEL } from './audit.model';
+import { AUDIT_ACTION_LABEL_KEY } from './audit.model';
 
 interface FilterChip {
   label: string;
@@ -18,9 +19,11 @@ interface FilterChip {
 @Component({
   selector: 'app-audit-filters',
   templateUrl: './audit-filters.html',
-  imports: [AuditActorFilter, AuditKindFilter, DatePicker],
+  imports: [AuditActorFilter, AuditKindFilter, DatePicker, TranslocoPipe],
 })
 export class AuditFilters {
+  private readonly transloco = inject(TranslocoService);
+
   readonly selectedActions = input.required<ReadonlySet<string>>();
   readonly actorEmail = input.required<string>();
   readonly actorOptions = input.required<string[]>();
@@ -34,22 +37,29 @@ export class AuditFilters {
   readonly cleared = output<void>();
 
   protected readonly chips = computed<FilterChip[]>(() => {
+    const locale = this.transloco.activeLang();
     const chips: FilterChip[] = [];
     for (const action of this.selectedActions()) {
+      const actionLabel = AUDIT_ACTION_LABEL_KEY[action]
+        ? this.transloco.translate(AUDIT_ACTION_LABEL_KEY[action])
+        : action;
       chips.push({
-        label: `Type: ${AUDIT_ACTION_LABEL[action] ?? action}`,
+        label: this.transloco.translate('audit.filters.chipType', { label: actionLabel }),
         remove: () => this.actionToggled.emit(action),
       });
     }
     const actor = this.actorEmail();
     if (actor) {
-      chips.push({ label: `Author: ${actor}`, remove: () => this.actorEmailChange.emit('') });
+      chips.push({
+        label: this.transloco.translate('audit.filters.chipAuthor', { email: actor }),
+        remove: () => this.actorEmailChange.emit(''),
+      });
     }
     const from = this.dateFrom();
     const to = this.dateTo();
     if (from || to) {
-      const fromLabel = from ? formatIsoDateDisplay(from) : '…';
-      const toLabel = to ? formatIsoDateDisplay(to) : '…';
+      const fromLabel = from ? formatIsoDateDisplay(from, locale) : '…';
+      const toLabel = to ? formatIsoDateDisplay(to, locale) : '…';
       chips.push({
         label: `${fromLabel} – ${toLabel}`,
         remove: () => {

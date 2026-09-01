@@ -11,7 +11,7 @@
         <span
           class="hidden shrink-0 rounded-full bg-ocean-900 px-3.5 py-1.5 font-heading text-xs font-bold text-white sm:inline-flex"
         >
-          Page {{ currentPage() + 1 }} of {{ totalPages() }}
+          {{ 'common.pageOf' | transloco: { page: currentPage() + 1, totalPages: totalPages() } }}
         </span>
 
         <!-- The numbered page-jump strip needs real room to stay usable, so it's a

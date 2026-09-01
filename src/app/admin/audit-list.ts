@@ -1,7 +1,8 @@
-import { Component, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Badge } from '../shared/ui/badge';
 import {
-  AUDIT_ACTION_LABEL,
+  AUDIT_ACTION_LABEL_KEY,
   AUDIT_ACTION_TONE,
   formatAuditMessage,
   formatOccurredAt,
@@ -16,14 +17,24 @@ import {
 @Component({
   selector: 'app-audit-list',
   templateUrl: './audit-list.html',
-  imports: [Badge],
+  imports: [Badge, TranslocoPipe],
 })
 export class AuditList {
-  readonly events = input.required<AuditEvent[]>();
-  readonly emptyMessage = input('No log entries yet.');
+  private readonly transloco = inject(TranslocoService);
 
-  protected readonly actionLabel = AUDIT_ACTION_LABEL;
+  readonly events = input.required<AuditEvent[]>();
+  /** A resolved, already-translated string - callers pass one via `| transloco` themselves
+   * (see `audit-page.html`/`user-detail.html`), same as any other plain text input. */
+  readonly emptyMessage = input(this.transloco.translate('audit.emptyAll'));
+
+  protected readonly actionLabelKey = AUDIT_ACTION_LABEL_KEY;
   protected readonly actionTone = AUDIT_ACTION_TONE;
-  protected readonly formatOccurredAt = formatOccurredAt;
-  protected readonly formatAuditMessage = formatAuditMessage;
+
+  protected formatOccurredAt(occurredAt: string): string {
+    return formatOccurredAt(occurredAt, this.transloco.getActiveLang());
+  }
+
+  protected formatAuditMessage(event: AuditEvent): string {
+    return formatAuditMessage(event, (key, params) => this.transloco.translate(key, params));
+  }
 }

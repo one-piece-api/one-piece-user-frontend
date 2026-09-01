@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { WhoAmI } from './who-am-i';
 
 describe('WhoAmI', () => {
@@ -8,7 +9,7 @@ describe('WhoAmI', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WhoAmI],
+      imports: [WhoAmI, provideTranslocoTesting()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);

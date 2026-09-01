@@ -20,7 +20,7 @@
         <button
           type="button"
           (click)="mascotService.close()"
-          aria-label="Minimize the Den Den Mushi"
+          [attr.aria-label]="'mascot.minimize' | transloco"
           class="grid size-6 shrink-0 cursor-pointer place-items-center rounded-full text-sm leading-none font-bold"
           [class]="toneMinimizeClasses[msg.tone]"
         >
@@ -43,7 +43,7 @@
     <button
       type="button"
       (click)="mascotService.toggle()"
-      aria-label="Open the Den Den Mushi"
+      [attr.aria-label]="'mascot.open' | transloco"
       animate.enter="anim-pop-enter"
       class="pointer-events-auto grid size-14 cursor-pointer place-items-center rounded-full border-[3px] border-treasure-500 bg-white shadow-lg transition-transform hover:scale-105"
     >

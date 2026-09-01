@@ -1,4 +1,5 @@
 import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * A native `<dialog>` (`showModal()`) rather than a hand-rolled overlay: focus trapping,
@@ -8,6 +9,7 @@ import { Component, ElementRef, effect, input, output, viewChild } from '@angula
 @Component({
   selector: 'app-modal',
   templateUrl: './modal.html',
+  imports: [TranslocoPipe],
 })
 export class Modal {
   readonly open = input(false);

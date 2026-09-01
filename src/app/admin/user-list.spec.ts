@@ -4,6 +4,7 @@ import { By } from '@angular/platform-browser';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Modal } from '../shared/ui/modal';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { AdminUserList } from './user-list';
 
 // jsdom doesn't implement <dialog>'s showModal()/close() yet - every real browser this app
@@ -26,7 +27,7 @@ describe('AdminUserList', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdminUserList],
+      imports: [AdminUserList, provideTranslocoTesting()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);

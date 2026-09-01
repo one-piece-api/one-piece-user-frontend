@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { form, FormField, required, submit, validate } from '@angular/forms/signals';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
 import { MascotService } from '../shared/mascot/mascot';
@@ -55,11 +56,19 @@ function normalizeRoleName(name: string): string {
 @Component({
   selector: 'app-roles-page',
   templateUrl: './roles-page.html',
-  imports: [Card, PageHeader, Modal, FormField],
+  imports: [Card, PageHeader, Modal, FormField, TranslocoPipe],
 })
 export class RolesPage {
   private readonly http = inject(HttpClient);
   private readonly mascotService = inject(MascotService);
+  private readonly transloco = inject(TranslocoService);
+
+  /** Reads `activeLang` first so signal-forms' reactive graph re-evaluates a validator
+   * message (or anything else calling this) when the language changes, not just the field. */
+  private t(key: string, params?: Record<string, unknown>): string {
+    this.transloco.activeLang();
+    return this.transloco.translate(key, params);
+  }
 
   protected readonly newResourceSentinel = NEW_RESOURCE_SENTINEL;
 
@@ -88,18 +97,18 @@ export class RolesPage {
   protected readonly roleModalOpen = signal(false);
   protected readonly roleModalModel = signal<RoleModalModel>({ name: '', copyFromRole: '' });
   protected readonly roleModalForm = form(this.roleModalModel, (path) => {
-    required(path.name, { message: 'A role needs a name.' });
+    required(path.name, { message: () => this.t('roles.newRoleModal.nameRequired') });
   });
   protected readonly roleModalError = signal<string | null>(null);
 
   protected readonly permModalOpen = signal(false);
   protected readonly permModalModel = signal<PermissionModalModel>(this.emptyPermModel());
   protected readonly permModalForm = form(this.permModalModel, (path) => {
-    required(path.action, { message: 'A permission needs an action.' });
+    required(path.action, { message: () => this.t('roles.newPermissionModal.actionRequired') });
     validate(path.action, (ctx) =>
       /^[a-z0-9]+$/.test(ctx.value())
         ? null
-        : { kind: 'invalidAction', message: 'Action must be lowercase letters/numbers only.' },
+        : { kind: 'invalidAction', message: this.t('roles.newPermissionModal.invalidAction') },
     );
     validate(path, (ctx) => {
       const value = ctx.value();
@@ -110,10 +119,10 @@ export class RolesPage {
         ? null
         : {
             kind: 'invalidResource',
-            message: 'New group name must be lowercase letters/numbers only.',
+            message: this.t('roles.newPermissionModal.invalidResource'),
           };
     });
-    required(path.description, { message: 'A permission needs a label.' });
+    required(path.description, { message: () => this.t('roles.newPermissionModal.labelRequired') });
   });
   protected readonly permModalError = signal<string | null>(null);
 
@@ -140,10 +149,7 @@ export class RolesPage {
     });
     effect(() => {
       if (this.roles.error() || this.permissions.error()) {
-        this.mascotService.show(
-          'Arrr! Could not load the role/permission registry — try again in a moment.',
-          'error',
-        );
+        this.mascotService.show(this.transloco.translate('roles.loadRegistryError'), 'error');
       }
     });
   }
@@ -184,12 +190,18 @@ export class RolesPage {
         await firstValueFrom(
           this.http.delete<void>(`${ROLES_ENDPOINT}/${role}/permissions/${key}`),
         );
-        this.mascotService.show(`Revoked ${key} from ${role}.`, 'success');
+        this.mascotService.show(
+          this.transloco.translate('roles.permissionRevoked', { key, role }),
+          'success',
+        );
       } else {
         await firstValueFrom(
           this.http.put<void>(`${ROLES_ENDPOINT}/${role}/permissions/${key}`, {}),
         );
-        this.mascotService.show(`Granted ${key} to ${role}!`, 'success');
+        this.mascotService.show(
+          this.transloco.translate('roles.permissionGranted', { key, role }),
+          'success',
+        );
       }
       // Updated in place rather than `this.roles.reload()`: the server already confirmed
       // this exact change, so a full re-fetch would only add a round trip - and would
@@ -200,7 +212,7 @@ export class RolesPage {
     } catch (err) {
       if (err instanceof HttpErrorResponse && hasErrorCode(err, LAST_ROLE_MANAGER_ERROR_CODE)) {
         this.mascotService.show(
-          `Arrr! ${role} is the only role that can still manage roles/permissions — this stays put.`,
+          this.transloco.translate('roles.lastRoleManager', { role }),
           'error',
         );
       }
@@ -235,21 +247,28 @@ export class RolesPage {
             copyFromRole: value.copyFromRole || null,
           }),
         );
-        this.mascotService.show(`Role ${normalizeRoleName(value.name)} created!`, 'success');
+        this.mascotService.show(
+          this.transloco.translate('roles.created', { role: normalizeRoleName(value.name) }),
+          'success',
+        );
         this.selectedRole.set(normalizeRoleName(value.name));
         this.roles.reload();
         this.roleModalOpen.set(false);
         return null;
       } catch (err) {
         if (err instanceof HttpErrorResponse && hasErrorCode(err, ROLE_ALREADY_EXISTS_ERROR_CODE)) {
-          this.roleModalError.set(`A role named ${normalizeRoleName(value.name)} already exists.`);
+          this.roleModalError.set(
+            this.transloco.translate('roles.newRoleModal.alreadyExists', {
+              role: normalizeRoleName(value.name),
+            }),
+          );
         } else if (
           err instanceof HttpErrorResponse &&
           hasErrorCode(err, INVALID_ROLE_NAME_ERROR_CODE)
         ) {
-          this.roleModalError.set('That name leaves nothing usable - try letters or numbers.');
+          this.roleModalError.set(this.transloco.translate('roles.newRoleModal.invalidName'));
         } else {
-          this.roleModalError.set('Arrr! Something went wrong creating the role.');
+          this.roleModalError.set(this.transloco.translate('roles.newRoleModal.genericFailed'));
         }
         return null;
       }
@@ -272,20 +291,17 @@ export class RolesPage {
     this.deletePending.set(true);
     try {
       await firstValueFrom(this.http.delete<void>(`${ROLES_ENDPOINT}/${role}`));
-      this.mascotService.show(`Role ${role} removed from the registry.`, 'success');
+      this.mascotService.show(this.transloco.translate('roles.deleted', { role }), 'success');
       this.roles.reload();
     } catch (err) {
       if (err instanceof HttpErrorResponse && hasErrorCode(err, ROLE_IN_USE_ERROR_CODE)) {
-        this.mascotService.show(
-          `Arrr! ${role} still has crew assigned — move them off it first.`,
-          'error',
-        );
+        this.mascotService.show(this.transloco.translate('roles.inUse', { role }), 'error');
       } else if (
         err instanceof HttpErrorResponse &&
         hasErrorCode(err, LAST_ROLE_MANAGER_ERROR_CODE)
       ) {
         this.mascotService.show(
-          `Arrr! ${role} is the only role that can still manage roles/permissions — it can't be removed.`,
+          this.transloco.translate('roles.lastRoleManagerDelete', { role }),
           'error',
         );
       }
@@ -330,7 +346,7 @@ export class RolesPage {
           }),
         );
         this.mascotService.show(
-          `Permission ${key} added to the registry. Activate it from the matrix below.`,
+          this.transloco.translate('roles.permissionCreated', { key }),
           'success',
         );
         this.permissions.reload();
@@ -341,9 +357,13 @@ export class RolesPage {
           err instanceof HttpErrorResponse &&
           hasErrorCode(err, PERMISSION_ALREADY_EXISTS_ERROR_CODE)
         ) {
-          this.permModalError.set(`Permission ${key} already exists.`);
+          this.permModalError.set(
+            this.transloco.translate('roles.newPermissionModal.alreadyExists', { key }),
+          );
         } else {
-          this.permModalError.set('Arrr! Something went wrong creating the permission.');
+          this.permModalError.set(
+            this.transloco.translate('roles.newPermissionModal.genericFailed'),
+          );
         }
         return null;
       }
@@ -366,12 +386,15 @@ export class RolesPage {
     this.deletePermissionPending.set(true);
     try {
       await firstValueFrom(this.http.delete<void>(`${PERMISSIONS_ENDPOINT}/${key}`));
-      this.mascotService.show(`Permission ${key} removed from the registry.`, 'success');
+      this.mascotService.show(
+        this.transloco.translate('roles.permissionDeleted', { key }),
+        'success',
+      );
       this.permissions.reload();
     } catch (err) {
       if (err instanceof HttpErrorResponse && hasErrorCode(err, PERMISSION_IN_USE_ERROR_CODE)) {
         this.mascotService.show(
-          `Arrr! ${key} is still granted to at least one role — revoke it everywhere first.`,
+          this.transloco.translate('roles.permissionInUse', { key }),
           'error',
         );
       }

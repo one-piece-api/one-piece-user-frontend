@@ -1,7 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { AuditKindFilter } from './audit-kind-filter';
 
 describe('AuditKindFilter', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+  });
+
   it('summarizes as "All types" when nothing is selected', () => {
     const fixture = TestBed.createComponent(AuditKindFilter);
     fixture.componentRef.setInput('selected', new Set());

@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, input, output, signal } from '@angular/core';
 import { email, form, FormField, required, submit, validate } from '@angular/forms/signals';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
 import { MascotService } from '../shared/mascot/mascot';
@@ -34,11 +35,12 @@ const EMPTY_MODEL: InviteFormModel = { email: '', roles: [] };
 @Component({
   selector: 'app-invite-user-form',
   templateUrl: './invite-user-form.html',
-  imports: [FormField],
+  imports: [FormField, TranslocoPipe],
 })
 export class InviteUserForm {
   private readonly http = inject(HttpClient);
   private readonly mascotService = inject(MascotService);
+  private readonly transloco = inject(TranslocoService);
 
   readonly roles = input.required<readonly string[]>();
 
@@ -47,14 +49,21 @@ export class InviteUserForm {
 
   protected readonly model = signal<InviteFormModel>({ ...EMPTY_MODEL });
   protected readonly inviteForm = form(this.model, (path) => {
-    required(path.email, { message: 'An email address be needed, matey.' });
-    email(path.email, { message: 'That be no proper email address.' });
+    required(path.email, { message: () => this.t('users.invite.emailRequired') });
+    email(path.email, { message: () => this.t('users.invite.emailInvalid') });
     validate(path, (ctx) =>
       ctx.value().roles.length > 0
         ? null
-        : { kind: 'rolesRequired', message: 'Pick at least one role for the new crewmate.' },
+        : { kind: 'rolesRequired', message: this.t('users.invite.rolesRequired') },
     );
   });
+
+  /** Reads `activeLang` first so signal-forms' reactive graph re-evaluates this message
+   * (and any validator using it) when the language changes, not just when the field does. */
+  private t(key: string): string {
+    this.transloco.activeLang();
+    return this.transloco.translate(key);
+  }
 
   protected readonly submitClasses = buttonClasses('primary');
   protected readonly cancelClasses = buttonClasses('secondary');
@@ -86,7 +95,10 @@ export class InviteUserForm {
             roles: value.roles,
           }),
         );
-        this.mascotService.show(`Invitation sent to ${invitedUser.email}!`, 'success');
+        this.mascotService.show(
+          this.transloco.translate('users.invite.sent', { email: invitedUser.email }),
+          'success',
+        );
         this.inviteForm().reset({ ...EMPTY_MODEL });
         this.invited.emit();
         return null;
@@ -97,7 +109,7 @@ export class InviteUserForm {
         ) {
           return {
             kind: 'emailAlreadyRegistered',
-            message: 'That pirate already sails with the crew - email already registered.',
+            message: this.t('users.invite.emailAlreadyRegistered'),
             fieldTree: field.email,
           };
         }
@@ -107,13 +119,13 @@ export class InviteUserForm {
         ) {
           return {
             kind: 'emailDeliveryFailed',
-            message: "Arrr! The invitation couldn't be delivered - check the ship's mail settings.",
+            message: this.t('users.invite.deliveryFailed'),
           };
         }
         // Authentication/authorization/server failures already get a themed toast from
         // apiErrorInterceptor - this inline message covers the rest (e.g. a validation
         // failure the client-side checks above didn't catch).
-        return { kind: 'inviteFailed', message: 'Arrr! Something went wrong sending the invite.' };
+        return { kind: 'inviteFailed', message: this.t('users.invite.genericFailed') };
       }
     });
   }

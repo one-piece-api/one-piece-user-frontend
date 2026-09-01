@@ -1,5 +1,6 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MascotService } from '../shared/mascot/mascot';
 import { AuditFilters } from './audit-filters';
 import { AuditList } from './audit-list';
@@ -22,10 +23,11 @@ interface PageResponse<T> {
 @Component({
   selector: 'app-admin-audit-page',
   templateUrl: './audit-page.html',
-  imports: [Card, PageHeader, AuditFilters, AuditList, AuditPagination],
+  imports: [Card, PageHeader, AuditFilters, AuditList, AuditPagination, TranslocoPipe],
 })
 export class AdminAuditPage {
   private readonly mascotService = inject(MascotService);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly page = signal(0);
   protected readonly selectedActions = signal<ReadonlySet<string>>(new Set());
@@ -65,6 +67,7 @@ export class AdminAuditPage {
 
   /** "1–20 of 37", framing the current page against the full trail. */
   protected readonly range = computed(() => {
+    this.transloco.activeLang();
     if (!this.events.hasValue()) {
       return null;
     }
@@ -74,16 +77,13 @@ export class AdminAuditPage {
     }
     const start = current.page * current.size + 1;
     const end = start + current.content.length - 1;
-    return `${start}–${end} of ${current.totalElements}`;
+    return this.transloco.translate('common.range', { start, end, total: current.totalElements });
   });
 
   constructor() {
     effect(() => {
       if (this.events.error()) {
-        this.mascotService.show(
-          "Arrr! Could not load the ship's log — try again in a moment.",
-          'error',
-        );
+        this.mascotService.show(this.transloco.translate('audit.loadError'), 'error');
       }
     });
   }

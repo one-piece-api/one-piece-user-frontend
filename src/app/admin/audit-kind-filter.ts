@@ -3,15 +3,17 @@ import {
   computed,
   effect,
   ElementRef,
+  inject,
   input,
   output,
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TONE_ACCENT_CLASS } from '../shared/ui/badge';
-import { AUDIT_ACTION_LABEL, AUDIT_ACTION_TONE } from './audit.model';
+import { AUDIT_ACTION_LABEL_KEY, AUDIT_ACTION_TONE } from './audit.model';
 
-const ACTION_KEYS = Object.keys(AUDIT_ACTION_LABEL);
+const ACTION_KEYS = Object.keys(AUDIT_ACTION_LABEL_KEY);
 
 /**
  * The Ship's Log "Action type" filter - a checkbox dropdown over every real
@@ -24,8 +26,11 @@ const ACTION_KEYS = Object.keys(AUDIT_ACTION_LABEL);
 @Component({
   selector: 'app-audit-kind-filter',
   templateUrl: './audit-kind-filter.html',
+  imports: [TranslocoPipe],
 })
 export class AuditKindFilter {
+  private readonly transloco = inject(TranslocoService);
+
   readonly selected = input.required<ReadonlySet<string>>();
   readonly toggled = output<string>();
 
@@ -35,7 +40,7 @@ export class AuditKindFilter {
   private readonly popoverRef = viewChild.required<ElementRef<HTMLElement>>('popover');
   private readonly searchInputRef = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
-  protected readonly actionLabel = AUDIT_ACTION_LABEL;
+  protected readonly actionLabelKey = AUDIT_ACTION_LABEL_KEY;
   protected readonly dotClassByAction: Record<string, string> = Object.fromEntries(
     ACTION_KEYS.map((action) => [
       action,
@@ -43,25 +48,31 @@ export class AuditKindFilter {
     ]),
   );
 
-  /** Substring match against the label, case-insensitive - the list can get long. */
+  /** Substring match against the translated label, case-insensitive - the list can get long. */
   protected readonly filteredActionKeys = computed(() => {
+    this.transloco.activeLang();
     const query = this.query().trim().toLowerCase();
     if (!query) {
       return ACTION_KEYS;
     }
-    return ACTION_KEYS.filter((action) => AUDIT_ACTION_LABEL[action].toLowerCase().includes(query));
+    return ACTION_KEYS.filter((action) =>
+      this.transloco.translate(AUDIT_ACTION_LABEL_KEY[action]).toLowerCase().includes(query),
+    );
   });
 
   protected readonly summary = computed(() => {
+    this.transloco.activeLang();
     const selected = this.selected();
     if (selected.size === 0) {
-      return 'All types';
+      return this.transloco.translate('audit.filters.allTypes');
     }
     if (selected.size === 1) {
       const [only] = selected;
-      return AUDIT_ACTION_LABEL[only] ?? only;
+      return AUDIT_ACTION_LABEL_KEY[only]
+        ? this.transloco.translate(AUDIT_ACTION_LABEL_KEY[only])
+        : only;
     }
-    return `${selected.size} types selected`;
+    return this.transloco.translate('audit.filters.typesSelected', { count: selected.size });
   });
 
   constructor() {

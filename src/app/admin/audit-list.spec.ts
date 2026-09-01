@@ -1,8 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { AuditList } from './audit-list';
 import type { AuditEvent } from './audit.model';
 
 describe('AuditList', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+  });
+
   function anEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
     return {
       action: 'USER_INVITED',

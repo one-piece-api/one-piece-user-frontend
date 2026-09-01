@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { SessionExpired } from './session-expired';
 
 describe('SessionExpired', () => {
@@ -22,7 +23,7 @@ describe('SessionExpired', () => {
 
   function createWithReturnTo(returnTo: string | null) {
     TestBed.configureTestingModule({
-      imports: [SessionExpired],
+      imports: [SessionExpired, provideTranslocoTesting()],
       providers: [
         {
           provide: ActivatedRoute,

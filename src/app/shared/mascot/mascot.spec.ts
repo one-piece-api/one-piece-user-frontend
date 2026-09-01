@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { MascotService } from './mascot';
 
 describe('MascotService', () => {
   let service: MascotService;
 
   beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
     service = TestBed.inject(MascotService);
   });
 

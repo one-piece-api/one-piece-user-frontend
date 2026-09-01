@@ -1,59 +1,63 @@
 <div class="flex w-full max-w-4xl flex-col gap-6">
   <div class="flex flex-wrap items-end justify-between gap-4">
-    <app-page-header eyebrow="Admin Only · users:read">Crew Manifest</app-page-header>
+    <app-page-header [eyebrow]="'users.eyebrow' | transloco">{{
+      'users.title' | transloco
+    }}</app-page-header>
     <button type="button" [class]="primaryClasses" (click)="showInviteModal.set(true)">
-      New User
+      {{ 'users.newUser' | transloco }}
     </button>
   </div>
 
   <app-card [wide]="true">
     <div class="grid gap-3 text-left sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
       <div>
-        <label for="crew-search" class="mb-1 block font-heading text-xs font-bold text-ocean-500"
-          >Search</label
-        >
+        <label for="crew-search" class="mb-1 block font-heading text-xs font-bold text-ocean-500">{{
+          'users.search.label' | transloco
+        }}</label>
         <input
           id="crew-search"
           type="text"
           [value]="query()"
           (input)="setQuery($any($event.target).value)"
-          placeholder="name or email…"
+          [placeholder]="'users.search.placeholder' | transloco"
           class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
         />
       </div>
       <div>
-        <label for="crew-role" class="mb-1 block font-heading text-xs font-bold text-ocean-500"
-          >Role</label
-        >
+        <label for="crew-role" class="mb-1 block font-heading text-xs font-bold text-ocean-500">{{
+          'users.role.label' | transloco
+        }}</label>
         <select
           id="crew-role"
           [value]="roleFilter()"
           (change)="setRoleFilter($any($event.target).value)"
           class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
         >
-          <option value="ALL">All roles</option>
+          <option value="ALL">{{ 'users.role.all' | transloco }}</option>
           @for (role of assignableRoles(); track role) {
             <option [value]="role">{{ role }}</option>
           }
         </select>
       </div>
       <div>
-        <label for="crew-status" class="mb-1 block font-heading text-xs font-bold text-ocean-500"
-          >Status</label
-        >
+        <label for="crew-status" class="mb-1 block font-heading text-xs font-bold text-ocean-500">{{
+          'users.status.label' | transloco
+        }}</label>
         <select
           id="crew-status"
           [value]="statusFilter()"
           (change)="setStatusFilter($any($event.target).value)"
           class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
         >
-          <option value="ALL">All statuses</option>
+          <option value="ALL">{{ 'users.status.all' | transloco }}</option>
           @for (status of statuses; track status) {
-            <option [value]="status">{{ statusLabel[status] }}</option>
+            <option [value]="status">{{ statusLabelKey[status] | transloco }}</option>
           }
         </select>
       </div>
-      <button type="button" [class]="navClasses" (click)="resetFilters()">Reset</button>
+      <button type="button" [class]="navClasses" (click)="resetFilters()">
+        {{ 'users.reset' | transloco }}
+      </button>
     </div>
     @if (range(); as r) {
       <p class="mt-3 font-heading text-sm font-semibold text-ocean-500">{{ r }}</p>
@@ -62,21 +66,19 @@
 
   @if (users.isLoading()) {
     <app-card [wide]="true">
-      <p class="font-heading text-ocean-700">Charting the crew…</p>
+      <p class="font-heading text-ocean-700">{{ 'users.loading' | transloco }}</p>
     </app-card>
   } @else if (users.error()) {
     <app-card [wide]="true">
-      <p class="font-heading text-flag-700">Lost the manifest. Could not load the crew.</p>
+      <p class="font-heading text-flag-700">{{ 'users.error' | transloco }}</p>
     </app-card>
   } @else if (users.value(); as page) {
     @if (page.content.length === 0) {
       <app-card [wide]="true">
         @if (hasActiveFilter()) {
-          <p class="font-heading text-ocean-700">
-            No one answers the roll call. Try clearing the filters.
-          </p>
+          <p class="font-heading text-ocean-700">{{ 'users.emptyFiltered' | transloco }}</p>
         } @else {
-          <p class="font-heading text-ocean-700">No crew members yet.</p>
+          <p class="font-heading text-ocean-700">{{ 'users.emptyAll' | transloco }}</p>
         }
       </app-card>
     } @else {
@@ -124,7 +126,7 @@
                 class="flex-none sm:hidden"
                 [tone]="statusTone[user.status]"
                 [dot]="true"
-                >{{ statusLabel[user.status] }}</app-badge
+                >{{ statusLabelKey[user.status] | transloco }}</app-badge
               >
             </div>
 
@@ -144,7 +146,7 @@
               class="hidden sm:inline-flex"
               [tone]="statusTone[user.status]"
               [dot]="true"
-              >{{ statusLabel[user.status] }}</app-badge
+              >{{ statusLabelKey[user.status] | transloco }}</app-badge
             >
 
             <div class="flex flex-wrap items-center gap-2 justify-self-end">
@@ -152,7 +154,7 @@
                 [routerLink]="['/users', user.userId]"
                 class="flex-none rounded-lg bg-ocean-700 px-2.5 py-1 font-heading text-xs font-bold text-parchment-100 shadow-sm transition-all duration-150 ease-out hover:-translate-y-0.5 hover:bg-ocean-900 hover:shadow-md active:translate-y-0"
               >
-                Details →
+                {{ 'users.details' | transloco }}
               </a>
             </div>
           </div>
@@ -193,7 +195,7 @@
           <span
             class="inline-flex rounded-full bg-ocean-900 px-3.5 py-1.5 font-heading text-xs font-bold text-white"
           >
-            Page {{ page.page + 1 }} of {{ page.totalPages }}
+            {{ 'common.pageOf' | transloco: { page: page.page + 1, totalPages: page.totalPages } }}
           </span>
         </div>
       }
@@ -203,7 +205,9 @@
   <div class="grid gap-6 sm:grid-cols-2">
     <app-card [wide]="true">
       <div class="text-left">
-        <h3 class="font-display text-lg font-semibold text-ocean-900">Roles &amp; Permissions</h3>
+        <h3 class="font-display text-lg font-semibold text-ocean-900">
+          {{ 'users.rolesPermissionsHeading' | transloco }}
+        </h3>
         @if (roleRegistry.value(); as registry) {
           <div class="mt-3 flex flex-col gap-2">
             @for (entry of registry; track entry.role) {
@@ -220,8 +224,7 @@
             }
           </div>
           <p class="mt-3 font-heading text-sm text-ocean-500">
-            Menus, chips, filters and actions all read this list — a new role, or finer-grained
-            permissions, arrive without redrawing anything.
+            {{ 'users.rolesPermissionsHint' | transloco }}
           </p>
         }
       </div>
@@ -229,21 +232,25 @@
 
     <app-card [wide]="true">
       <div class="text-left">
-        <h3 class="font-display text-lg font-semibold text-ocean-900">Two Golden Rules</h3>
+        <h3 class="font-display text-lg font-semibold text-ocean-900">
+          {{ 'users.goldenRulesHeading' | transloco }}
+        </h3>
         <p class="mt-3 font-heading text-sm text-ocean-500">
-          The last active ADMIN can never be revoked or demoted — the ship doesn't sail without a
-          captain.
+          {{ 'users.goldenRule1' | transloco }}
         </p>
         <p class="mt-3 font-heading text-sm text-ocean-500">
-          Roles and status changed by an admin aren't instant for the other user — they take effect
-          shortly, not immediately.
+          {{ 'users.goldenRule2' | transloco }}
         </p>
       </div>
     </app-card>
   </div>
 </div>
 
-<app-modal [open]="showInviteModal()" heading="New User" (closed)="showInviteModal.set(false)">
+<app-modal
+  [open]="showInviteModal()"
+  [heading]="'users.newUser' | transloco"
+  (closed)="showInviteModal.set(false)"
+>
   <app-invite-user-form
     [roles]="assignableRoles()"
     (invited)="onInvited()"

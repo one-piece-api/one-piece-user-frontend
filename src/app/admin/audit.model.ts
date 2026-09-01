@@ -18,19 +18,20 @@ export interface AuditEvent {
   occurredAt: string;
 }
 
-export const AUDIT_ACTION_LABEL: Record<string, string> = {
-  USER_INVITED: 'Invited User',
-  INVITATION_RESENT: 'Resent Invitation',
-  ROLE_ASSIGNED: 'Granted Role',
-  ROLE_REVOKED: 'Revoked Role',
-  ACCESS_REVOKED: 'Revoked Access',
-  ACCESS_REACTIVATED: 'Reactivated Account',
-  ROLE_CREATED: 'Created Role',
-  ROLE_DELETED: 'Deleted Role',
-  PERMISSION_CREATED: 'Created Permission',
-  PERMISSION_DELETED: 'Deleted Permission',
-  PERMISSION_ASSIGNED_TO_ROLE: 'Granted Permission',
-  PERMISSION_REVOKED_FROM_ROLE: 'Revoked Permission',
+/** Translation keys, not display text - templates resolve them with `| transloco`. */
+export const AUDIT_ACTION_LABEL_KEY: Record<string, string> = {
+  USER_INVITED: 'audit.action.userInvited',
+  INVITATION_RESENT: 'audit.action.invitationResent',
+  ROLE_ASSIGNED: 'audit.action.roleAssigned',
+  ROLE_REVOKED: 'audit.action.roleRevoked',
+  ACCESS_REVOKED: 'audit.action.accessRevoked',
+  ACCESS_REACTIVATED: 'audit.action.accessReactivated',
+  ROLE_CREATED: 'audit.action.roleCreated',
+  ROLE_DELETED: 'audit.action.roleDeleted',
+  PERMISSION_CREATED: 'audit.action.permissionCreated',
+  PERMISSION_DELETED: 'audit.action.permissionDeleted',
+  PERMISSION_ASSIGNED_TO_ROLE: 'audit.action.permissionAssignedToRole',
+  PERMISSION_REVOKED_FROM_ROLE: 'audit.action.permissionRevokedFromRole',
 };
 
 export const AUDIT_ACTION_TONE: Record<string, BadgeTone> = {
@@ -48,14 +49,11 @@ export const AUDIT_ACTION_TONE: Record<string, BadgeTone> = {
   PERMISSION_REVOKED_FROM_ROLE: 'danger',
 };
 
-const OCCURRED_AT_FORMAT = new Intl.DateTimeFormat(undefined, {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-});
-
-/** Renders an ISO instant in the viewer's own locale/timezone. */
-export function formatOccurredAt(occurredAt: string): string {
-  return OCCURRED_AT_FORMAT.format(new Date(occurredAt));
+/** Renders an ISO instant in the given (or the viewer's own) locale, in their own timezone. */
+export function formatOccurredAt(occurredAt: string, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
+    new Date(occurredAt),
+  );
 }
 
 /** `targetLabel`'s encoding for a permission-on-role action - see `AuditEvent` above. */
@@ -64,6 +62,11 @@ function splitRolePermissionLabel(label: string): { role: string; permission: st
   return role && permission ? { role, permission } : null;
 }
 
+/** A translate function shaped like `TranslocoService#translate` - kept as a parameter
+ * rather than injecting the service here, so this stays a plain, framework-agnostic
+ * function the way the rest of this model file is. */
+export type Translate = (key: string, params?: Record<string, unknown>) => string;
+
 /**
  * Turns one audit record into the specific sentence its action type calls for, instead of
  * a generic "actor → target" that goes blank for anything that isn't a plain user-to-user
@@ -71,43 +74,45 @@ function splitRolePermissionLabel(label: string): { role: string; permission: st
  * exactly the fields its action populates - see `AuditEvent`'s field-by-field contract
  * above and `AuditEventMapper` (one-piece-user-service) for what each action sends.
  */
-export function formatAuditMessage(event: AuditEvent): string {
+export function formatAuditMessage(event: AuditEvent, translate: Translate): string {
   const target = event.targetEmail ?? '';
   const label = event.targetLabel ?? '';
   switch (event.action) {
     case 'USER_INVITED':
-      return `Invitation sent to ${target} as ${label}`;
+      return translate('audit.message.userInvited', { target, label });
     case 'INVITATION_RESENT':
-      return `Invitation resent to ${target}`;
+      return translate('audit.message.invitationResent', { target });
     case 'ROLE_ASSIGNED':
-      return `Role ${label} assigned to ${target}`;
+      return translate('audit.message.roleAssigned', { target, label });
     case 'ROLE_REVOKED':
-      return `Role ${label} revoked from ${target}`;
+      return translate('audit.message.roleRevoked', { target, label });
     case 'ACCESS_REVOKED':
-      return `Access revoked for ${target}`;
+      return translate('audit.message.accessRevoked', { target });
     case 'ACCESS_REACTIVATED':
-      return `Access reactivated for ${target}`;
+      return translate('audit.message.accessReactivated', { target });
     case 'ROLE_CREATED':
-      return `Role ${label} created`;
+      return translate('audit.message.roleCreated', { label });
     case 'ROLE_DELETED':
-      return `Role ${label} deleted`;
+      return translate('audit.message.roleDeleted', { label });
     case 'PERMISSION_CREATED':
-      return `Permission ${label} created`;
+      return translate('audit.message.permissionCreated', { label });
     case 'PERMISSION_DELETED':
-      return `Permission ${label} deleted`;
+      return translate('audit.message.permissionDeleted', { label });
     case 'PERMISSION_ASSIGNED_TO_ROLE': {
       const parsed = splitRolePermissionLabel(label);
       return parsed
-        ? `Permission ${parsed.permission} granted to ${parsed.role}`
-        : `Permission granted (${label})`;
+        ? translate('audit.message.permissionGrantedToRole', parsed)
+        : translate('audit.message.permissionGrantedFallback', { label });
     }
     case 'PERMISSION_REVOKED_FROM_ROLE': {
       const parsed = splitRolePermissionLabel(label);
       return parsed
-        ? `Permission ${parsed.permission} revoked from ${parsed.role}`
-        : `Permission revoked (${label})`;
+        ? translate('audit.message.permissionRevokedFromRole', parsed)
+        : translate('audit.message.permissionRevokedFallback', { label });
     }
     default:
-      return AUDIT_ACTION_LABEL[event.action] ?? event.action;
+      return AUDIT_ACTION_LABEL_KEY[event.action]
+        ? translate(AUDIT_ACTION_LABEL_KEY[event.action])
+        : event.action;
   }
 }

@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { loginUrl } from './auth-urls';
 
 /** How long the interstitial stays up before the actual redirect fires. */
@@ -13,6 +14,7 @@ const REDIRECT_DELAY_MS = 1800;
 @Component({
   selector: 'app-session-expired',
   templateUrl: './session-expired.html',
+  imports: [TranslocoPipe],
 })
 export class SessionExpired {
   private readonly route = inject(ActivatedRoute);

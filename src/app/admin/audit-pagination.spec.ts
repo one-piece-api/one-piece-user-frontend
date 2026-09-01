@@ -1,7 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { AuditPagination } from './audit-pagination';
 
 describe('AuditPagination', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+  });
+
   it('renders nothing when there is no range to show', () => {
     const fixture = TestBed.createComponent(AuditPagination);
     fixture.componentRef.setInput('range', null);

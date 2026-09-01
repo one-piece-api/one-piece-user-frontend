@@ -1,6 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MascotService } from '../shared/mascot/mascot';
 import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
@@ -9,7 +10,7 @@ import { initialsOf } from '../shared/ui/initials';
 import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import {
-  STATUS_LABEL,
+  STATUS_LABEL_KEY,
   STATUS_TONE,
   statusBorderClass,
   type AccountStatus,
@@ -36,10 +37,11 @@ interface PageResponse<T> {
 @Component({
   selector: 'app-admin-user-list',
   templateUrl: './user-list.html',
-  imports: [Card, Badge, Modal, InviteUserForm, RouterLink, PageHeader],
+  imports: [Card, Badge, Modal, InviteUserForm, RouterLink, PageHeader, TranslocoPipe],
 })
 export class AdminUserList {
   private readonly mascotService = inject(MascotService);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly page = signal(0);
   protected readonly query = signal('');
@@ -76,11 +78,11 @@ export class AdminUserList {
   protected readonly showInviteModal = signal(false);
 
   protected readonly statusTone = STATUS_TONE;
-  protected readonly statusLabel = STATUS_LABEL;
+  protected readonly statusLabelKey = STATUS_LABEL_KEY;
   protected readonly assignableRoles = computed(
     () => this.roleRegistry.value()?.map((entry) => entry.role) ?? [],
   );
-  protected readonly statuses = Object.keys(STATUS_LABEL) as AccountStatus[];
+  protected readonly statuses = Object.keys(STATUS_LABEL_KEY) as AccountStatus[];
   protected readonly navClasses = buttonClasses('secondary');
   protected readonly primaryClasses = buttonClasses('primary');
   protected readonly initials = initialsOf;
@@ -95,6 +97,7 @@ export class AdminUserList {
 
   /** "1–20 of 37", framing the current page against the crew's real total. */
   protected readonly range = computed(() => {
+    this.transloco.activeLang();
     if (!this.users.hasValue()) {
       return null;
     }
@@ -104,16 +107,13 @@ export class AdminUserList {
     }
     const start = current.page * current.size + 1;
     const end = start + current.content.length - 1;
-    return `${start}–${end} of ${current.totalElements}`;
+    return this.transloco.translate('common.range', { start, end, total: current.totalElements });
   });
 
   constructor() {
     effect(() => {
       if (this.users.error()) {
-        this.mascotService.show(
-          'Arrr! Could not load the crew manifest — try again in a moment.',
-          'error',
-        );
+        this.mascotService.show(this.transloco.translate('users.loadError'), 'error');
       }
     });
   }

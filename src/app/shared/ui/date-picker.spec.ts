@@ -1,14 +1,20 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { DatePicker, formatIsoDateDisplay } from './date-picker';
 
-/** Mirrors the component's own month-label formatting, locale-agnostic. */
+/** Mirrors the component's own month-label formatting - 'en', matching the testing
+ * catalog's `defaultLang` (`i18n-testing.ts`), not the OS/CI runner's own locale. */
 function monthLabel(year: number, month: number): string {
-  return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(
+  return new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(
     new Date(year, month - 1, 1),
   );
 }
 
 describe('DatePicker', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+  });
+
   it('shows a placeholder when no date is selected', () => {
     const fixture = TestBed.createComponent(DatePicker);
     fixture.componentRef.setInput('label', 'From');
@@ -26,7 +32,7 @@ describe('DatePicker', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).toContain(formatIsoDateDisplay('2026-08-23'));
+    expect(root.textContent).toContain(formatIsoDateDisplay('2026-08-23', 'en'));
   });
 
   it('opens the calendar and emits the picked day', () => {

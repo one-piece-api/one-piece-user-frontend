@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MascotService } from '../mascot/mascot';
+import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { apiErrorInterceptor } from './error-interceptor';
 
 describe('apiErrorInterceptor', () => {
@@ -20,6 +21,7 @@ describe('apiErrorInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
       providers: [
         provideHttpClient(withInterceptors([apiErrorInterceptor])),
         provideHttpClientTesting(),

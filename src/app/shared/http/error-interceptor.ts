@@ -1,6 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslocoService } from '@jsverse/transloco';
 import { catchError, throwError } from 'rxjs';
 import { MascotService } from '../mascot/mascot';
 
@@ -22,6 +23,7 @@ import { MascotService } from '../mascot/mascot';
 export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
   const mascotService = inject(MascotService);
   const router = inject(Router);
+  const transloco = inject(TranslocoService);
 
   return next(request).pipe(
     catchError((error: unknown) => {
@@ -30,9 +32,9 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
           const returnTo = window.location.pathname + window.location.search;
           router.navigateByUrl(`/session-expired?returnTo=${encodeURIComponent(returnTo)}`);
         } else {
-          const message = genericMessageFor(error.status);
-          if (message) {
-            mascotService.show(message, 'error');
+          const messageKey = genericMessageKeyFor(error.status);
+          if (messageKey) {
+            mascotService.show(transloco.translate(messageKey), 'error');
           }
         }
       }
@@ -41,12 +43,12 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
   );
 };
 
-function genericMessageFor(status: number): string | null {
+function genericMessageKeyFor(status: number): string | null {
   if (status === 403) {
-    return "Arrr! Ye don't have clearance for that, matey.";
+    return 'errors.forbidden';
   }
   if (status === 0 || status >= 500) {
-    return 'Arrr! Something broke on our end — try again in a moment.';
+    return 'errors.server';
   }
   return null;
 }

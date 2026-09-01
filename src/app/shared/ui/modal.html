@@ -12,7 +12,7 @@
         type="button"
         class="cursor-pointer rounded-md p-1 text-ocean-700 transition-colors hover:bg-ocean-900/5 hover:text-ocean-900"
         (click)="dialog.close()"
-        aria-label="Close"
+        [attr.aria-label]="'ui.modal.close' | transloco"
       >
         ✕
       </button>

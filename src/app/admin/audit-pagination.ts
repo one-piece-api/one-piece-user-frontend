@@ -1,4 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * The Ship's Log range/page/nav-buttons row (Step 17), used both above and below the
@@ -11,6 +12,7 @@ import { Component, computed, input, output } from '@angular/core';
 @Component({
   selector: 'app-audit-pagination',
   templateUrl: './audit-pagination.html',
+  imports: [TranslocoPipe],
 })
 export class AuditPagination {
   readonly range = input<string | null>(null);

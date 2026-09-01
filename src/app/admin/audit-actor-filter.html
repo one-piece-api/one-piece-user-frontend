@@ -1,6 +1,6 @@
 <div class="relative">
   <div class="mb-2 font-heading text-xs font-black tracking-wide text-ocean-500 uppercase">
-    Author
+    {{ 'audit.filters.author' | transloco }}
   </div>
   <button
     #trigger
@@ -15,7 +15,7 @@
           : 'border-ocean-900/15 text-ocean-500'
     "
   >
-    <span class="truncate">{{ selected() || 'Everyone' }}</span>
+    <span class="truncate">{{ selected() || ('audit.filters.everyone' | transloco) }}</span>
     <span class="flex-none text-xs text-ocean-500">▾</span>
   </button>
 
@@ -40,7 +40,7 @@
           type="text"
           [value]="query()"
           (input)="query.set($any($event.target).value)"
-          placeholder="Search authors…"
+          [placeholder]="'audit.filters.searchAuthors' | transloco"
           class="mb-1.5 flex-none rounded-lg border-2 border-ocean-900/15 bg-parchment-50 px-2.5 py-1.5 font-heading text-sm font-bold text-ocean-900 focus:border-ocean-700 focus:outline-none"
         />
         <div class="min-h-0 flex-1 overflow-y-auto">
@@ -50,7 +50,7 @@
               (click)="select('')"
               class="cursor-pointer rounded-lg px-2.5 py-2 text-left font-heading text-sm font-bold text-ocean-900 hover:bg-parchment-200"
             >
-              Everyone
+              {{ 'audit.filters.everyone' | transloco }}
             </button>
             @for (actor of filteredOptions(); track actor) {
               <button
@@ -61,7 +61,9 @@
                 {{ actor }}
               </button>
             } @empty {
-              <p class="px-2.5 py-2 font-heading text-sm text-ocean-500">No matching authors.</p>
+              <p class="px-2.5 py-2 font-heading text-sm text-ocean-500">
+                {{ 'audit.filters.noMatchingAuthors' | transloco }}
+              </p>
             }
           </div>
         </div>

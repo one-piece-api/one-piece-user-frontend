@@ -8,6 +8,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * The Ship's Log "Author" filter - a searchable single-select dropdown over every actor
@@ -18,6 +19,7 @@ import {
 @Component({
   selector: 'app-audit-actor-filter',
   templateUrl: './audit-actor-filter.html',
+  imports: [TranslocoPipe],
 })
 export class AuditActorFilter {
   readonly selected = input.required<string>();

@@ -1,7 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { AuditActorFilter } from './audit-actor-filter';
 
 describe('AuditActorFilter', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+  });
+
   function create(selected: string, options: string[]) {
     const fixture = TestBed.createComponent(AuditActorFilter);
     fixture.componentRef.setInput('selected', selected);

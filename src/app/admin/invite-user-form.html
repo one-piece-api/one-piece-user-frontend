@@ -1,13 +1,13 @@
 <form (submit)="onSubmit($event)" novalidate class="flex flex-col gap-4 text-left">
   <div>
-    <label for="invite-email" class="mb-1.5 block font-heading text-xs font-bold text-ocean-500"
-      >Email</label
-    >
+    <label for="invite-email" class="mb-1.5 block font-heading text-xs font-bold text-ocean-500">{{
+      'users.invite.email' | transloco
+    }}</label>
     <input
       id="invite-email"
       type="email"
       [formField]="inviteForm.email"
-      placeholder="e.g. usopp@onepiece.local"
+      [placeholder]="'users.invite.emailPlaceholder' | transloco"
       class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
     />
     @if (inviteForm.email().touched() && inviteForm.email().errors().length > 0) {
@@ -18,7 +18,9 @@
   </div>
 
   <div>
-    <span class="mb-1.5 block font-heading text-xs font-bold text-ocean-500">Initial Roles</span>
+    <span class="mb-1.5 block font-heading text-xs font-bold text-ocean-500">{{
+      'users.invite.initialRoles' | transloco
+    }}</span>
     <div class="flex flex-wrap gap-2">
       @for (role of roles(); track role) {
         <label
@@ -42,9 +44,15 @@
   </div>
 
   <div class="mt-2 flex justify-end gap-3">
-    <button type="button" [class]="cancelClasses" (click)="cancelled.emit()">Cancel</button>
+    <button type="button" [class]="cancelClasses" (click)="cancelled.emit()">
+      {{ 'users.invite.cancel' | transloco }}
+    </button>
     <button type="submit" [class]="submitClasses" [disabled]="inviteForm().submitting()">
-      {{ inviteForm().submitting() ? 'Sending…' : 'Send Invitation' }}
+      {{
+        inviteForm().submitting()
+          ? ('users.invite.sending' | transloco)
+          : ('users.invite.send' | transloco)
+      }}
     </button>
   </div>
 </form>

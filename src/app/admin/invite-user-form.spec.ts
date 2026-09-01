@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { MascotService } from '../shared/mascot/mascot';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { InviteUserForm } from './invite-user-form';
 
 const DEFAULT_ROLES = ['ADMIN', 'REVIEWER', 'EDITOR'];
@@ -28,7 +29,7 @@ describe('InviteUserForm', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InviteUserForm],
+      imports: [InviteUserForm, provideTranslocoTesting()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);

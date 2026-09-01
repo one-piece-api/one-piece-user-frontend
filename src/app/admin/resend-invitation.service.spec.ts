@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { MascotService } from '../shared/mascot/mascot';
+import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { ResendInvitationService } from './resend-invitation.service';
 
 describe('ResendInvitationService', () => {
@@ -11,6 +12,7 @@ describe('ResendInvitationService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     service = TestBed.inject(ResendInvitationService);

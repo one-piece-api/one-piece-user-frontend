@@ -1,5 +1,7 @@
 <div class="flex w-full max-w-4xl flex-col gap-6">
-  <app-page-header eyebrow="Admin Only · audit:read">Ship's Log</app-page-header>
+  <app-page-header [eyebrow]="'audit.eyebrow' | transloco">{{
+    'audit.title' | transloco
+  }}</app-page-header>
 
   <app-audit-filters
     [selectedActions]="selectedActions()"
@@ -16,11 +18,11 @@
 
   @if (events.isLoading()) {
     <app-card [wide]="true">
-      <p class="font-heading text-ocean-700">Unrolling the log…</p>
+      <p class="font-heading text-ocean-700">{{ 'audit.loading' | transloco }}</p>
     </app-card>
   } @else if (events.error()) {
     <app-card [wide]="true">
-      <p class="font-heading text-flag-700">Lost the log. Could not load the trail.</p>
+      <p class="font-heading text-flag-700">{{ 'audit.error' | transloco }}</p>
     </app-card>
   } @else if (events.value(); as page) {
     <app-audit-pagination
@@ -36,21 +38,19 @@
       @if (page.content.length === 0 && hasActiveFilters()) {
         <div class="flex flex-col items-center gap-3 py-2 text-center">
           <p class="font-display text-lg font-semibold text-ocean-900">
-            No entries match these filters
+            {{ 'audit.noMatches' | transloco }}
           </p>
-          <p class="font-heading text-sm text-ocean-500">
-            Try widening the action type, author, or date range.
-          </p>
+          <p class="font-heading text-sm text-ocean-500">{{ 'audit.widenHint' | transloco }}</p>
           <button
             type="button"
             (click)="clearFilters()"
             class="cursor-pointer rounded-lg bg-parchment-200 px-4 py-2 font-heading text-sm font-bold text-ocean-700"
           >
-            Clear filters
+            {{ 'audit.clearFilters' | transloco }}
           </button>
         </div>
       } @else {
-        <app-audit-list [events]="page.content" emptyMessage="Not a single entry in the log yet." />
+        <app-audit-list [events]="page.content" [emptyMessage]="'audit.emptyAll' | transloco" />
       }
     </app-card>
 

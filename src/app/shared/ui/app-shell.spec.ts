@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { AppShell } from './app-shell';
 
 describe('AppShell', () => {
@@ -9,7 +10,7 @@ describe('AppShell', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppShell],
+      imports: [AppShell, provideTranslocoTesting()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);
