@@ -7,6 +7,8 @@ interface CalendarDay {
   label: string;
   isToday: boolean;
   isSelected: boolean;
+  /** A blank filler cell, or a real day later than today - audit events can't be dated in the future. */
+  disabled: boolean;
 }
 
 /** Formats an ISO `yyyy-MM-dd` date for display, in the viewer's own locale. */
@@ -69,18 +71,28 @@ export class DatePicker {
     const cells: (CalendarDay | null)[] = Array(startOffset).fill(null);
     for (let day = 1; day <= daysInMonth; day++) {
       const iso = toIsoDate(new Date(year, month - 1, day));
-      cells.push({ iso, label: String(day), isToday: iso === todayIso, isSelected: iso === selectedIso });
+      cells.push({
+        iso,
+        label: String(day),
+        isToday: iso === todayIso,
+        isSelected: iso === selectedIso,
+        disabled: iso > todayIso,
+      });
     }
     while (cells.length % 7 !== 0) {
       cells.push(null);
     }
 
+    const blankCell: CalendarDay = { iso: null, label: '', isToday: false, isSelected: false, disabled: true };
     const weeks: CalendarDay[][] = [];
     for (let i = 0; i < cells.length; i += 7) {
-      weeks.push(cells.slice(i, i + 7).map((cell) => cell ?? { iso: null, label: '', isToday: false, isSelected: false }));
+      weeks.push(cells.slice(i, i + 7).map((cell) => cell ?? blankCell));
     }
     return weeks;
   });
+
+  /** Today's month is as far forward as the calendar goes - there's nothing selectable beyond it. */
+  protected readonly canGoToNextMonth = computed(() => this.viewMonth() < toIsoDate(new Date()).slice(0, 7));
 
   constructor() {
     effect(() => {
@@ -141,7 +153,9 @@ export class DatePicker {
   }
 
   protected nextMonth(): void {
-    this.shiftMonth(1);
+    if (this.canGoToNextMonth()) {
+      this.shiftMonth(1);
+    }
   }
 
   private shiftMonth(delta: number): void {
@@ -150,7 +164,7 @@ export class DatePicker {
   }
 
   protected pick(day: CalendarDay): void {
-    if (!day.iso) {
+    if (!day.iso || day.disabled) {
       return;
     }
     this.valueChange.emit(day.iso);

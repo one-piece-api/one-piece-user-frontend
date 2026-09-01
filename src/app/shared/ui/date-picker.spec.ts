@@ -67,6 +67,50 @@ describe('DatePicker', () => {
     expect(root.textContent).toContain(monthLabel(2026, 9));
   });
 
+  it('disables every day after today - audit events can never be dated in the future', () => {
+    vi.setSystemTime(new Date('2026-08-23T12:00:00Z'));
+    const fixture = TestBed.createComponent(DatePicker);
+    fixture.componentRef.setInput('value', '2026-08-23');
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('button').click();
+    fixture.detectChanges();
+
+    const valueChangeSpy = vi.fn();
+    fixture.componentInstance.valueChange.subscribe(valueChangeSpy);
+
+    const root = fixture.nativeElement as HTMLElement;
+    const dayButtons = Array.from(root.querySelectorAll('button'));
+    const dayTwentyFour = dayButtons.find((b) => b.textContent?.trim() === '24');
+    const dayTwentyThree = dayButtons.find((b) => b.textContent?.trim() === '23');
+
+    expect(dayTwentyFour!.disabled).toBe(true);
+    expect(dayTwentyThree!.disabled).toBe(false);
+
+    dayTwentyFour!.click();
+    expect(valueChangeSpy).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('disables navigating past the current month', () => {
+    vi.setSystemTime(new Date('2026-08-23T12:00:00Z'));
+    const fixture = TestBed.createComponent(DatePicker);
+    fixture.componentRef.setInput('value', '2026-08-01');
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('button').click();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const nextMonthButton = Array.from(root.querySelectorAll('button')).find(
+      (b) => b.textContent?.trim() === '›',
+    );
+    expect(nextMonthButton!.disabled).toBe(true);
+
+    nextMonthButton!.click();
+    fixture.detectChanges();
+    expect(root.textContent).toContain(monthLabel(2026, 8));
+    vi.useRealTimers();
+  });
+
   it('emits today\'s date and null on Today/Clear', () => {
     vi.setSystemTime(new Date('2026-08-23T12:00:00Z'));
     const fixture = TestBed.createComponent(DatePicker);

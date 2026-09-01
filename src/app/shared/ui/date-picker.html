@@ -33,8 +33,10 @@
         <div class="font-display text-sm font-bold text-ocean-900 capitalize">{{ monthLabel() }}</div>
         <button
           type="button"
+          [disabled]="!canGoToNextMonth()"
           (click)="nextMonth()"
-          class="flex size-7 cursor-pointer items-center justify-center rounded-lg bg-parchment-200 font-bold text-ocean-700"
+          class="flex size-7 items-center justify-center rounded-lg bg-parchment-200 font-bold text-ocean-700 disabled:cursor-not-allowed disabled:opacity-40"
+          [class.cursor-pointer]="canGoToNextMonth()"
         >
           ›
         </button>
@@ -49,7 +51,7 @@
           @for (day of week; track day.iso ?? $index) {
             <button
               type="button"
-              [disabled]="!day.iso"
+              [disabled]="day.disabled"
               (click)="pick(day)"
               class="aspect-square rounded-lg font-heading text-[13px] transition-colors"
               [class]="
@@ -57,9 +59,11 @@
                   ? 'bg-treasure-500 font-extrabold text-ocean-950'
                   : day.isToday
                     ? 'border-2 border-ocean-700 font-bold text-ocean-900'
-                    : day.iso
-                      ? 'cursor-pointer font-semibold text-ocean-900 hover:bg-parchment-200'
-                      : 'text-transparent'
+                    : !day.iso
+                      ? 'text-transparent'
+                      : day.disabled
+                        ? 'cursor-not-allowed font-semibold text-ocean-900/25'
+                        : 'cursor-pointer font-semibold text-ocean-900 hover:bg-parchment-200'
               "
             >
               {{ day.label }}
