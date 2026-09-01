@@ -42,7 +42,7 @@ describe('LanguageSwitcher', () => {
     expect(localStorage.getItem('onepiece.lang')).toBe('it');
   });
 
-  it("updates <html lang> to match the newly selected language", () => {
+  it('updates <html lang> to match the newly selected language', () => {
     const fixture = TestBed.createComponent(LanguageSwitcher);
     fixture.detectChanges();
 
