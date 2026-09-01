@@ -1,8 +1,11 @@
-// Local-dev topology facts (Keycloak's browser-facing host, the oauth2-proxy
-// client id): see onepiece-infrastructure/docs/adr/0001-local-auth-stack.md.
-// Hardcoded for now, same as elsewhere in this stack — becoming configurable
-// per environment is an explicitly deferred trade-off, not an oversight.
-const KEYCLOAK_ISSUER = 'http://localhost:8080/realms/onepiece';
+import { getRuntimeConfig } from '../config/runtime-config';
+
+// oauth2-proxy client id and paths: fixed across environments (same client,
+// same proxy) — see onepiece-infrastructure/docs/adr/0001-local-auth-stack.md.
+// Keycloak's browser-facing origin instead varies per environment (separate
+// port locally, same origin behind the remote Ingress) — read from
+// config.json at runtime, see docs/adr/0001-runtime-config-injection.md.
+const KEYCLOAK_REALM_PATH = '/realms/onepiece';
 const KEYCLOAK_LOGOUT_PATH = '/protocol/openid-connect/logout';
 const OAUTH2_PROXY_CLIENT_ID = 'onepiece-proxy';
 const OAUTH2_PROXY_SIGN_OUT_PATH = '/oauth2/sign_out';
@@ -15,10 +18,13 @@ const OAUTH2_PROXY_SIGN_IN_PATH = '/oauth2/start';
  * points at Keycloak's own RP-initiated logout endpoint ends both sessions
  * in one redirect chain: proxy session → Keycloak session → back to the app.
  */
-export function logoutUrl(origin: string = location.origin): string {
-  const postLogoutRedirectUri = `${origin}/`;
+export function logoutUrl(
+  appOrigin: string = location.origin,
+  keycloakOrigin: string = getRuntimeConfig().keycloakOrigin,
+): string {
+  const postLogoutRedirectUri = `${appOrigin}/`;
   const keycloakLogoutUrl =
-    `${KEYCLOAK_ISSUER}${KEYCLOAK_LOGOUT_PATH}` +
+    `${keycloakOrigin}${KEYCLOAK_REALM_PATH}${KEYCLOAK_LOGOUT_PATH}` +
     `?client_id=${encodeURIComponent(OAUTH2_PROXY_CLIENT_ID)}` +
     `&post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`;
   return `${OAUTH2_PROXY_SIGN_OUT_PATH}?rd=${encodeURIComponent(keycloakLogoutUrl)}`;

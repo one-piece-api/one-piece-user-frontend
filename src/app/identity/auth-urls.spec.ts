@@ -2,7 +2,7 @@ import { loginUrl, logoutUrl } from './auth-urls';
 
 describe('logoutUrl', () => {
   it('chains oauth2-proxy sign_out into Keycloak RP-initiated logout, back to the given origin', () => {
-    const url = logoutUrl('http://localhost:4180');
+    const url = logoutUrl('http://localhost:4180', 'http://localhost:8080');
 
     expect(url).toBe(
       '/oauth2/sign_out?rd=' +
@@ -12,6 +12,14 @@ describe('logoutUrl', () => {
             '&post_logout_redirect_uri=' +
             encodeURIComponent('http://localhost:4180/'),
         ),
+    );
+  });
+
+  it('uses the given Keycloak origin, not a hardcoded one (regression: broken logout in remote)', () => {
+    const url = logoutUrl('http://84.8.249.65', 'http://84.8.249.65');
+
+    expect(url).toContain(
+      encodeURIComponent('http://84.8.249.65/realms/onepiece/protocol/openid-connect/logout'),
     );
   });
 });
