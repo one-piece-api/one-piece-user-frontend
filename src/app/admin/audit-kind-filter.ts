@@ -1,4 +1,13 @@
-import { Component, computed, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { TONE_ACCENT_CLASS } from '../shared/ui/badge';
 import { AUDIT_ACTION_LABEL, AUDIT_ACTION_TONE } from './audit.model';
 
@@ -28,7 +37,10 @@ export class AuditKindFilter {
 
   protected readonly actionLabel = AUDIT_ACTION_LABEL;
   protected readonly dotClassByAction: Record<string, string> = Object.fromEntries(
-    ACTION_KEYS.map((action) => [action, TONE_ACCENT_CLASS[AUDIT_ACTION_TONE[action] ?? 'neutral']]),
+    ACTION_KEYS.map((action) => [
+      action,
+      TONE_ACCENT_CLASS[AUDIT_ACTION_TONE[action] ?? 'neutral'],
+    ]),
   );
 
   /** Substring match against the label, case-insensitive - the list can get long. */

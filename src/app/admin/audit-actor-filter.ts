@@ -1,4 +1,13 @@
-import { Component, computed, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 
 /**
  * The Ship's Log "Author" filter - a searchable single-select dropdown over every actor

@@ -111,7 +111,7 @@ describe('DatePicker', () => {
     vi.useRealTimers();
   });
 
-  it('emits today\'s date and null on Today/Clear', () => {
+  it("emits today's date and null on Today/Clear", () => {
     vi.setSystemTime(new Date('2026-08-23T12:00:00Z'));
     const fixture = TestBed.createComponent(DatePicker);
     fixture.componentRef.setInput('value', '2026-08-01');

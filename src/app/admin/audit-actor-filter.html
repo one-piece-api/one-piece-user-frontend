@@ -1,11 +1,19 @@
 <div class="relative">
-  <div class="mb-2 font-heading text-xs font-black tracking-wide text-ocean-500 uppercase">Author</div>
+  <div class="mb-2 font-heading text-xs font-black tracking-wide text-ocean-500 uppercase">
+    Author
+  </div>
   <button
     #trigger
     type="button"
     (click)="toggleMenu()"
     class="flex w-full items-center justify-between gap-2 rounded-xl border-2 bg-parchment-100 px-3.5 py-2.5 font-heading text-sm font-bold transition-colors"
-    [class]="open() ? 'border-ocean-700 text-ocean-900' : selected() ? 'border-ocean-900/15 text-ocean-900' : 'border-ocean-900/15 text-ocean-500'"
+    [class]="
+      open()
+        ? 'border-ocean-700 text-ocean-900'
+        : selected()
+          ? 'border-ocean-900/15 text-ocean-900'
+          : 'border-ocean-900/15 text-ocean-500'
+    "
   >
     <span class="truncate">{{ selected() || 'Everyone' }}</span>
     <span class="flex-none text-xs text-ocean-500">▾</span>

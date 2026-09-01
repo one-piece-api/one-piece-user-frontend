@@ -1,5 +1,7 @@
 <div class="relative">
-  <div class="mb-2 font-heading text-xs font-black tracking-wide text-ocean-500 uppercase">Action type</div>
+  <div class="mb-2 font-heading text-xs font-black tracking-wide text-ocean-500 uppercase">
+    Action type
+  </div>
   <button
     #trigger
     type="button"
@@ -46,13 +48,20 @@
               >
                 <span
                   class="flex size-[18px] flex-none items-center justify-center rounded-[5px] border-2 text-[11px] font-extrabold text-white"
-                  [class]="selected().has(action) ? 'border-ocean-700 bg-ocean-700' : 'border-ocean-900/25 bg-transparent'"
+                  [class]="
+                    selected().has(action)
+                      ? 'border-ocean-700 bg-ocean-700'
+                      : 'border-ocean-900/25 bg-transparent'
+                  "
                 >
                   @if (selected().has(action)) {
                     ✓
                   }
                 </span>
-                <span class="size-2 flex-none rounded-full" [class]="dotClassByAction[action]"></span>
+                <span
+                  class="size-2 flex-none rounded-full"
+                  [class]="dotClassByAction[action]"
+                ></span>
                 {{ actionLabel[action] ?? action }}
               </button>
             } @empty {

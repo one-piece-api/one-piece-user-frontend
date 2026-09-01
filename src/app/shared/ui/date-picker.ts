@@ -1,4 +1,13 @@
-import { Component, computed, effect, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 
 const WEEKDAY_LABELS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
@@ -13,7 +22,9 @@ interface CalendarDay {
 
 /** Formats an ISO `yyyy-MM-dd` date for display, in the viewer's own locale. */
 export function formatIsoDateDisplay(iso: string): string {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(`${iso}T00:00:00`));
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(
+    new Date(`${iso}T00:00:00`),
+  );
 }
 
 function toIsoDate(date: Date): string {
@@ -83,7 +94,13 @@ export class DatePicker {
       cells.push(null);
     }
 
-    const blankCell: CalendarDay = { iso: null, label: '', isToday: false, isSelected: false, disabled: true };
+    const blankCell: CalendarDay = {
+      iso: null,
+      label: '',
+      isToday: false,
+      isSelected: false,
+      disabled: true,
+    };
     const weeks: CalendarDay[][] = [];
     for (let i = 0; i < cells.length; i += 7) {
       weeks.push(cells.slice(i, i + 7).map((cell) => cell ?? blankCell));
@@ -92,7 +109,9 @@ export class DatePicker {
   });
 
   /** Today's month is as far forward as the calendar goes - there's nothing selectable beyond it. */
-  protected readonly canGoToNextMonth = computed(() => this.viewMonth() < toIsoDate(new Date()).slice(0, 7));
+  protected readonly canGoToNextMonth = computed(
+    () => this.viewMonth() < toIsoDate(new Date()).slice(0, 7),
+  );
 
   constructor() {
     effect(() => {

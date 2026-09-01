@@ -1,7 +1,10 @@
 <div class="flex flex-col gap-4">
   <div class="rounded-2xl bg-parchment-100 p-5 shadow-md">
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <app-audit-kind-filter [selected]="selectedActions()" (toggled)="actionToggled.emit($event)" />
+      <app-audit-kind-filter
+        [selected]="selectedActions()"
+        (toggled)="actionToggled.emit($event)"
+      />
 
       <app-audit-actor-filter
         [selected]="actorEmail()"
@@ -9,8 +12,17 @@
         (selectedChange)="actorEmailChange.emit($event)"
       />
 
-      <app-date-picker label="From" [value]="dateFrom()" (valueChange)="dateFromChange.emit($event)" />
-      <app-date-picker label="To" align="end" [value]="dateTo()" (valueChange)="dateToChange.emit($event)" />
+      <app-date-picker
+        label="From"
+        [value]="dateFrom()"
+        (valueChange)="dateFromChange.emit($event)"
+      />
+      <app-date-picker
+        label="To"
+        align="end"
+        [value]="dateTo()"
+        (valueChange)="dateToChange.emit($event)"
+      />
     </div>
   </div>
 

@@ -97,9 +97,9 @@ describe('AdminUserList', () => {
     // standalone grid column from `sm` up (`hidden sm:inline-flex`) - never both at once.
     expect(badges).toHaveLength(2);
     expect(badges.some((b) => b.className.includes('sm:hidden'))).toBe(true);
-    expect(badges.some((b) => b.className.includes('hidden') && b.className.includes('sm:inline-flex'))).toBe(
-      true,
-    );
+    expect(
+      badges.some((b) => b.className.includes('hidden') && b.className.includes('sm:inline-flex')),
+    ).toBe(true);
 
     // The name/avatar link must claim the row's remaining space (flex-1) rather than
     // being squeezed toward zero width by the fixed-size badge next to it (flex-none) -

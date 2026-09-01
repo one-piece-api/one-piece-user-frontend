@@ -32,14 +32,16 @@ describe('AuditFilters', () => {
   it('passes the author options through to the actor filter', () => {
     const fixture = create({ actorOptions: ['luffy@onepiece.local', 'nami@onepiece.local'] });
     const root = fixture.nativeElement as HTMLElement;
-    const actorTrigger = Array.from(root.querySelectorAll('button')).find(
-      (b) => b.textContent?.includes('Everyone'),
+    const actorTrigger = Array.from(root.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Everyone'),
     );
     actorTrigger!.click();
     fixture.detectChanges();
 
     const popover = actorTrigger!.closest('app-audit-actor-filter')!.querySelector('[popover]')!;
-    const optionLabels = Array.from(popover.querySelectorAll('button')).map((b) => b.textContent?.trim());
+    const optionLabels = Array.from(popover.querySelectorAll('button')).map((b) =>
+      b.textContent?.trim(),
+    );
     expect(optionLabels).toEqual(['Everyone', 'luffy@onepiece.local', 'nami@onepiece.local']);
   });
 
@@ -49,8 +51,8 @@ describe('AuditFilters', () => {
     fixture.componentInstance.actorEmailChange.subscribe(spy);
 
     const root = fixture.nativeElement as HTMLElement;
-    const actorTrigger = Array.from(root.querySelectorAll('button')).find(
-      (b) => b.textContent?.includes('Everyone'),
+    const actorTrigger = Array.from(root.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Everyone'),
     );
     actorTrigger!.click();
     fixture.detectChanges();

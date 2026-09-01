@@ -108,9 +108,10 @@
                   {{ initials(user.username) }}
                 </span>
                 <span class="min-w-0">
-                  <span class="block truncate font-display text-base font-semibold text-ocean-900">{{
-                    user.username
-                  }}</span>
+                  <span
+                    class="block truncate font-display text-base font-semibold text-ocean-900"
+                    >{{ user.username }}</span
+                  >
                   <span class="block truncate font-heading text-xs font-semibold text-ocean-700">{{
                     user.email
                   }}</span>
@@ -119,9 +120,12 @@
               <!-- Folded into the header row on mobile so the card is three tidy blocks
                    (header/roles/action) instead of four separately-stacked ones; the
                    standalone badge below takes over again once the grid goes multi-column. -->
-              <app-badge class="flex-none sm:hidden" [tone]="statusTone[user.status]" [dot]="true">{{
-                statusLabel[user.status]
-              }}</app-badge>
+              <app-badge
+                class="flex-none sm:hidden"
+                [tone]="statusTone[user.status]"
+                [dot]="true"
+                >{{ statusLabel[user.status] }}</app-badge
+              >
             </div>
 
             <div class="flex flex-wrap items-center gap-1.5">
@@ -136,9 +140,12 @@
               }
             </div>
 
-            <app-badge class="hidden sm:inline-flex" [tone]="statusTone[user.status]" [dot]="true">{{
-              statusLabel[user.status]
-            }}</app-badge>
+            <app-badge
+              class="hidden sm:inline-flex"
+              [tone]="statusTone[user.status]"
+              [dot]="true"
+              >{{ statusLabel[user.status] }}</app-badge
+            >
 
             <div class="flex flex-wrap items-center gap-2 justify-self-end">
               <a

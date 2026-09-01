@@ -28,14 +28,18 @@ describe('AuditActorFilter', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const optionLabels = Array.from(root.querySelector('[popover]')!.querySelectorAll('button')).map(
-      (b) => b.textContent?.trim(),
-    );
+    const optionLabels = Array.from(
+      root.querySelector('[popover]')!.querySelectorAll('button'),
+    ).map((b) => b.textContent?.trim());
     expect(optionLabels).toEqual(['Everyone', 'luffy@onepiece.local', 'nami@onepiece.local']);
   });
 
   it('filters options by a case-insensitive substring as you type', () => {
-    const fixture = create('', ['luffy@onepiece.local', 'nami@onepiece.local', 'zoro@onepiece.local']);
+    const fixture = create('', [
+      'luffy@onepiece.local',
+      'nami@onepiece.local',
+      'zoro@onepiece.local',
+    ]);
     fixture.nativeElement.querySelector('button').click();
     fixture.detectChanges();
 
@@ -45,9 +49,9 @@ describe('AuditActorFilter', () => {
     searchInput.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    const optionLabels = Array.from(root.querySelector('[popover]')!.querySelectorAll('button')).map(
-      (b) => b.textContent?.trim(),
-    );
+    const optionLabels = Array.from(
+      root.querySelector('[popover]')!.querySelectorAll('button'),
+    ).map((b) => b.textContent?.trim());
     expect(optionLabels).toEqual(['Everyone', 'nami@onepiece.local']);
   });
 

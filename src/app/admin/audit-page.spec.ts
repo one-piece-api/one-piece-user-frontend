@@ -268,12 +268,14 @@ describe('AdminAuditPage', () => {
   /** Opens the author combobox and picks the given email from its filtered list. */
   function selectAuthor(fixture: ComponentFixture<AdminAuditPage>, email: string): void {
     const root = fixture.nativeElement as HTMLElement;
-    const trigger = Array.from(root.querySelectorAll('button')).find(
-      (b) => b.textContent?.includes('Everyone'),
+    const trigger = Array.from(root.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Everyone'),
     );
     trigger!.click();
     fixture.detectChanges();
-    const option = Array.from(root.querySelectorAll('button')).find((b) => b.textContent?.includes(email));
+    const option = Array.from(root.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes(email),
+    );
     option!.click();
   }
 
@@ -289,14 +291,16 @@ describe('AdminAuditPage', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const trigger = Array.from(root.querySelectorAll('button')).find(
-      (b) => b.textContent?.includes('Everyone'),
+    const trigger = Array.from(root.querySelectorAll('button')).find((b) =>
+      b.textContent?.includes('Everyone'),
     );
     trigger!.click();
     fixture.detectChanges();
 
     const popover = trigger!.closest('app-audit-actor-filter')!.querySelector('[popover]')!;
-    const optionLabels = Array.from(popover.querySelectorAll('button')).map((b) => b.textContent?.trim());
+    const optionLabels = Array.from(popover.querySelectorAll('button')).map((b) =>
+      b.textContent?.trim(),
+    );
     expect(optionLabels).toEqual(['Everyone', 'luffy@onepiece.local', 'nami@onepiece.local']);
   });
 

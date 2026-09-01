@@ -7,7 +7,13 @@
     type="button"
     (click)="toggle()"
     class="flex w-full items-center justify-between gap-2 rounded-xl border-2 bg-parchment-100 px-3.5 py-2.5 font-heading text-sm font-bold transition-colors"
-    [class]="open() ? 'border-ocean-700 text-ocean-900' : value() ? 'border-ocean-900/15 text-ocean-900' : 'border-ocean-900/15 text-ocean-500'"
+    [class]="
+      open()
+        ? 'border-ocean-700 text-ocean-900'
+        : value()
+          ? 'border-ocean-900/15 text-ocean-900'
+          : 'border-ocean-900/15 text-ocean-500'
+    "
   >
     <span>⚓ {{ displayValue() }}</span>
     <span class="text-xs text-ocean-500">▾</span>
@@ -30,7 +36,9 @@
         >
           ‹
         </button>
-        <div class="font-display text-sm font-bold text-ocean-900 capitalize">{{ monthLabel() }}</div>
+        <div class="font-display text-sm font-bold text-ocean-900 capitalize">
+          {{ monthLabel() }}
+        </div>
         <button
           type="button"
           [disabled]="!canGoToNextMonth()"
@@ -43,7 +51,9 @@
       </div>
       <div class="mb-1 grid grid-cols-7 gap-0.5">
         @for (weekday of weekdayLabels; track weekday) {
-          <div class="text-center font-heading text-[11px] font-bold text-ocean-500">{{ weekday }}</div>
+          <div class="text-center font-heading text-[11px] font-bold text-ocean-500">
+            {{ weekday }}
+          </div>
         }
       </div>
       @for (week of weeks(); track $index) {

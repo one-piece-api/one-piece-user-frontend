@@ -36,11 +36,7 @@
                   &hellip;
                 </span>
               } @else {
-                <button
-                  type="button"
-                  [class]="pageButtonClasses(item)"
-                  (click)="jumpTo.emit(item)"
-                >
+                <button type="button" [class]="pageButtonClasses(item)" (click)="jumpTo.emit(item)">
                   {{ item + 1 }}
                 </button>
               }

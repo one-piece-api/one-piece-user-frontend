@@ -38,10 +38,16 @@ describe('AuditKindFilter', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     const menuOptions = root.querySelector('[popover]')!.querySelectorAll('button');
-    expect(Array.from(menuOptions).some((b) => b.textContent?.includes('Revoked Access'))).toBe(true);
-    const invitedOption = Array.from(menuOptions).find((b) => b.textContent?.includes('Invited User'));
+    expect(Array.from(menuOptions).some((b) => b.textContent?.includes('Revoked Access'))).toBe(
+      true,
+    );
+    const invitedOption = Array.from(menuOptions).find((b) =>
+      b.textContent?.includes('Invited User'),
+    );
     expect(invitedOption?.getAttribute('aria-pressed')).toBe('true');
-    const revokedOption = Array.from(menuOptions).find((b) => b.textContent?.includes('Revoked Access'));
+    const revokedOption = Array.from(menuOptions).find((b) =>
+      b.textContent?.includes('Revoked Access'),
+    );
     expect(revokedOption?.getAttribute('aria-pressed')).toBe('false');
   });
 
@@ -58,9 +64,9 @@ describe('AuditKindFilter', () => {
     searchInput.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    const optionLabels = Array.from(root.querySelector('[popover]')!.querySelectorAll('button')).map((b) =>
-      b.textContent?.trim(),
-    );
+    const optionLabels = Array.from(
+      root.querySelector('[popover]')!.querySelectorAll('button'),
+    ).map((b) => b.textContent?.trim());
     expect(optionLabels).toEqual(['Granted Role', 'Revoked Role', 'Created Role', 'Deleted Role']);
   });
 

@@ -35,7 +35,9 @@
     <app-card [wide]="true">
       @if (page.content.length === 0 && hasActiveFilters()) {
         <div class="flex flex-col items-center gap-3 py-2 text-center">
-          <p class="font-display text-lg font-semibold text-ocean-900">No entries match these filters</p>
+          <p class="font-display text-lg font-semibold text-ocean-900">
+            No entries match these filters
+          </p>
           <p class="font-heading text-sm text-ocean-500">
             Try widening the action type, author, or date range.
           </p>
