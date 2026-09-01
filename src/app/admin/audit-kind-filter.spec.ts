@@ -134,6 +134,36 @@ describe('AuditKindFilter', () => {
     expect(popover.className).not.toMatch(/(^|\s)(flex|grid|block|inline)(\s|$)/);
   });
 
+  it('keeps the popover within the viewport when the trigger is narrower than its min width', () => {
+    const fixture = TestBed.createComponent(AuditKindFilter);
+    fixture.componentRef.setInput('selected', new Set());
+    fixture.detectChanges();
+
+    const trigger = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+      left: 300,
+      right: 380,
+      top: 170,
+      bottom: 200,
+      width: 80,
+      height: 30,
+      x: 300,
+      y: 170,
+      toJSON: () => ({}),
+    });
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(360);
+
+    trigger.click();
+    fixture.detectChanges();
+
+    const popover = fixture.nativeElement.querySelector('[popover]') as HTMLElement;
+    // The trigger (80px) is narrower than the popover's `min-w-64` (256px) floor; pinning
+    // `left` to the trigger's own left edge (300) would push the popover 176px past the
+    // 360px-wide viewport, so `left` must be pulled back instead.
+    expect(popover.style.width).toBe('256px');
+    expect(popover.style.left).toBe('96px');
+  });
+
   it('emits the toggled action key', () => {
     const fixture = TestBed.createComponent(AuditKindFilter);
     fixture.componentRef.setInput('selected', new Set());

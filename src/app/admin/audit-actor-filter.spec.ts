@@ -131,6 +131,33 @@ describe('AuditActorFilter', () => {
     expect(root.querySelector('[popover]')!.querySelectorAll('button').length).toBe(3);
   });
 
+  it('keeps the popover within the viewport when the trigger is narrower than its min width', () => {
+    const fixture = create('', ['luffy@onepiece.local']);
+    const trigger = fixture.nativeElement.querySelector('button') as HTMLButtonElement;
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+      left: 300,
+      right: 380,
+      top: 170,
+      bottom: 200,
+      width: 80,
+      height: 30,
+      x: 300,
+      y: 170,
+      toJSON: () => ({}),
+    });
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(360);
+
+    trigger.click();
+    fixture.detectChanges();
+
+    const popover = fixture.nativeElement.querySelector('[popover]') as HTMLElement;
+    // The trigger (80px) is narrower than the popover's `min-w-64` (256px) floor; pinning
+    // `left` to the trigger's own left edge (300) would push the popover 176px past the
+    // 360px-wide viewport, so `left` must be pulled back instead.
+    expect(popover.style.width).toBe('256px');
+    expect(popover.style.left).toBe('96px');
+  });
+
   it('does not leave the popover host visible after closing (no forced display utility on it)', () => {
     const fixture = create('', ['luffy@onepiece.local']);
     const trigger = fixture.nativeElement.querySelector('button');

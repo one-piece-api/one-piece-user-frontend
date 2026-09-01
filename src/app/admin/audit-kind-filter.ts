@@ -15,6 +15,11 @@ import { AUDIT_ACTION_LABEL_KEY, AUDIT_ACTION_TONE } from './audit.model';
 
 const ACTION_KEYS = Object.keys(AUDIT_ACTION_LABEL_KEY);
 
+/** Mirrors the template's `min-w-64` on the popover - the floor the JS-computed width must respect. */
+const POPOVER_MIN_WIDTH_PX = 256;
+/** Breathing room kept between the popover and the viewport edge on narrow screens. */
+const VIEWPORT_MARGIN_PX = 8;
+
 /**
  * The Ship's Log "Action type" filter - a checkbox dropdown over every real
  * `AuditAction`, each with its badge tone's dot (`AUDIT_ACTION_TONE`/`TONE_ACCENT_CLASS`).
@@ -106,14 +111,23 @@ export class AuditKindFilter {
    * CSS anchor-positioning API, which isn't yet reliable enough across browsers to depend
    * on here. So the trigger's own on-screen position is measured and applied as a fixed
    * coordinate each time the menu opens.
+   *
+   * The popover is normally sized to match the trigger, but on a narrow (mobile) screen
+   * the trigger itself can be narrower than the popover's `min-w-64` floor. Left pinned to
+   * the trigger's own left edge, that floor would then push the popover past the right
+   * edge of the viewport, so the width is clamped to the same floor here and the left
+   * offset is pulled back in whenever that would otherwise happen.
    */
   private positionPopover(): void {
     const trigger = this.triggerRef().nativeElement;
     const popoverEl = this.popoverRef().nativeElement;
     const rect = trigger.getBoundingClientRect();
+    const width = Math.max(rect.width, POPOVER_MIN_WIDTH_PX);
+    const maxLeft = window.innerWidth - width - VIEWPORT_MARGIN_PX;
+    const left = Math.max(VIEWPORT_MARGIN_PX, Math.min(rect.left, maxLeft));
     popoverEl.style.top = `${rect.bottom + 6}px`;
-    popoverEl.style.left = `${rect.left}px`;
-    popoverEl.style.width = `${rect.width}px`;
+    popoverEl.style.left = `${left}px`;
+    popoverEl.style.width = `${width}px`;
   }
 
   protected toggleMenu(): void {
