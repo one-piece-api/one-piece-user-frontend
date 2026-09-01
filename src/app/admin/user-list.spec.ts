@@ -66,6 +66,48 @@ describe('AdminUserList', () => {
     expect(root.textContent).toContain('1–1 of 1');
   });
 
+  it('shows exactly one status badge in the header row on mobile and the standalone one at sm and up', async () => {
+    const fixture = TestBed.createComponent(AdminUserList);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/roles').flush([]);
+
+    httpTesting.expectOne('/api/users?page=0').flush({
+      content: [
+        {
+          userId: '1',
+          username: 'luffy',
+          email: 'luffy@onepiece.local',
+          status: 'ACTIVE',
+          roles: ['ADMIN'],
+        },
+      ],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const badges = Array.from(root.querySelectorAll('app-badge')).filter((b) =>
+      b.textContent?.includes('Active'),
+    );
+    // Folded into the name/avatar header on mobile (`sm:hidden`) and shown as its own
+    // standalone grid column from `sm` up (`hidden sm:inline-flex`) - never both at once.
+    expect(badges).toHaveLength(2);
+    expect(badges.some((b) => b.className.includes('sm:hidden'))).toBe(true);
+    expect(badges.some((b) => b.className.includes('hidden') && b.className.includes('sm:inline-flex'))).toBe(
+      true,
+    );
+
+    // The name/avatar link must claim the row's remaining space (flex-1) rather than
+    // being squeezed toward zero width by the fixed-size badge next to it (flex-none) -
+    // regression: without flex-1 here, the username collapsed to width 0 on mobile.
+    const nameLink = root.querySelector('a[href="/users/1"]') as HTMLElement;
+    expect(nameLink.className).toContain('flex-1');
+  });
+
   it('shows the role/permission registry', async () => {
     const fixture = TestBed.createComponent(AdminUserList);
     fixture.detectChanges();
