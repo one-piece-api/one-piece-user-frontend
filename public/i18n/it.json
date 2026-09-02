@@ -118,7 +118,10 @@
     "username": "Nome utente",
     "email": "Email",
     "rolesAssigned": "Ruoli Assegnati",
-    "rolesHint": "Se un admin modifica uno di questi, potrebbe volerci un momento prima che tu lo veda qui."
+    "rolesHint": "Se un admin modifica uno di questi, potrebbe volerci un momento prima che tu lo veda qui.",
+    "deleteAccountHeading": "Elimina Account",
+    "deleteAccountHint": "Affonda il tuo account per sempre, compare - lascia la ciurma per sempre.",
+    "deleteAccountButton": "Elimina Il Mio Account"
   },
   "forbidden": {
     "title": "Questa cabina è chiusa a chiave",

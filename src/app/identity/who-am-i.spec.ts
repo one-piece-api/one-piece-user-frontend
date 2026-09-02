@@ -46,4 +46,24 @@ describe('WhoAmI', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('Lost at sea');
   });
+
+  it('links "Delete My Account" straight to the Keycloak account client - no confirmation modal, no backend call', async () => {
+    const fixture = TestBed.createComponent(WhoAmI);
+    fixture.detectChanges();
+
+    httpTesting
+      .expectOne('/api/me')
+      .flush({ username: 'luffy', email: 'luffy@onepiece.local', roles: ['ADMIN'] });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const link = Array.from(root.querySelectorAll('a')).find((a) =>
+      a.textContent?.includes('Delete My Account'),
+    ) as HTMLAnchorElement;
+
+    expect(link).toBeTruthy();
+    expect(link.getAttribute('href')).toContain('kc_action=delete_account');
+    expect(link.getAttribute('href')).toContain('client_id=account');
+  });
 });

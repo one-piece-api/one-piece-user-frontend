@@ -1,4 +1,4 @@
-import { loginUrl, logoutUrl } from './auth-urls';
+import { deleteAccountUrl, loginUrl, logoutUrl } from './auth-urls';
 
 describe('logoutUrl', () => {
   it('chains oauth2-proxy sign_out into Keycloak RP-initiated logout, back to the given origin', () => {
@@ -27,5 +27,28 @@ describe('logoutUrl', () => {
 describe('loginUrl', () => {
   it('points at oauth2-proxy sign-in with the given return path', () => {
     expect(loginUrl('/users')).toBe('/oauth2/start?rd=' + encodeURIComponent('/users'));
+  });
+});
+
+describe('deleteAccountUrl', () => {
+  it('targets the built-in "account" client directly, not onepiece-proxy/oauth2-proxy, and lands back on the app', () => {
+    const url = deleteAccountUrl('http://localhost:4180', 'http://localhost:8080');
+
+    expect(url).toBe(
+      'http://localhost:8080/realms/onepiece/protocol/openid-connect/auth' +
+        '?client_id=account' +
+        '&redirect_uri=' +
+        encodeURIComponent('http://localhost:4180/') +
+        '&response_type=code' +
+        '&scope=openid' +
+        '&kc_action=delete_account',
+    );
+  });
+
+  it('uses the given app and Keycloak origins, not hardcoded ones', () => {
+    const url = deleteAccountUrl('http://84.8.249.65', 'http://84.8.249.65');
+
+    expect(url).toContain(encodeURIComponent('http://84.8.249.65/'));
+    expect(url.startsWith('http://84.8.249.65/realms/onepiece')).toBe(true);
   });
 });

@@ -118,7 +118,10 @@
     "username": "Username",
     "email": "Email",
     "rolesAssigned": "Roles Assigned",
-    "rolesHint": "If an admin changes one of these, it may take a moment before you see it here."
+    "rolesHint": "If an admin changes one of these, it may take a moment before you see it here.",
+    "deleteAccountHeading": "Delete Account",
+    "deleteAccountHint": "Sink your account for good, matey - leave the crew forever.",
+    "deleteAccountButton": "Delete My Account"
   },
   "forbidden": {
     "title": "This cabin is locked",

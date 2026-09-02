@@ -7,51 +7,87 @@
     <p class="font-heading text-flag-700">{{ 'whoAmI.error' | transloco }}</p>
   </app-card>
 } @else if (currentUser.me.value(); as identity) {
-  <div class="flex w-full flex-col">
+  <div class="flex w-full flex-col gap-6">
     <app-page-header [eyebrow]="'whoAmI.eyebrow' | transloco">{{
       identity.username
     }}</app-page-header>
 
-    <app-card>
-      <div class="flex flex-col gap-3 text-left">
-        <h2 class="mb-1 font-display text-lg font-semibold text-ocean-900">
-          {{ 'whoAmI.identityHeading' | transloco }}
-        </h2>
+    <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+      <app-card>
+        <div class="flex flex-col gap-3 text-left">
+          <h2 class="mb-1 font-display text-lg font-semibold text-ocean-900">
+            {{ 'whoAmI.identityHeading' | transloco }}
+          </h2>
 
-        <div
-          class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-parchment-200 px-4 py-3"
-        >
-          <span class="font-heading text-sm font-bold text-ocean-500">{{
-            'whoAmI.username' | transloco
-          }}</span>
-          <span class="font-display text-base font-semibold text-ocean-950">{{
-            identity.username
-          }}</span>
-        </div>
-
-        <div
-          class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-parchment-200 px-4 py-3"
-        >
-          <span class="font-heading text-sm font-bold text-ocean-500">{{
-            'whoAmI.email' | transloco
-          }}</span>
-          <span class="font-heading text-sm font-bold text-ocean-950">{{ identity.email }}</span>
-        </div>
-
-        <div class="rounded-xl bg-parchment-200 px-4 py-3">
-          <p class="mb-2 font-heading text-sm font-bold text-ocean-500">
-            {{ 'whoAmI.rolesAssigned' | transloco }}
-          </p>
-          <div class="flex flex-wrap gap-2">
-            @for (role of identity.roles; track role; let i = $index) {
-              <app-badge tone="gold" [delayMs]="i * 80">{{ role }}</app-badge>
-            }
+          <div
+            class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-parchment-200 px-4 py-3"
+          >
+            <span class="font-heading text-sm font-bold text-ocean-500">{{
+              'whoAmI.username' | transloco
+            }}</span>
+            <span class="font-display text-base font-semibold text-ocean-950">{{
+              identity.username
+            }}</span>
           </div>
-          <p class="mt-3 font-heading text-sm font-semibold text-ocean-500">
-            {{ 'whoAmI.rolesHint' | transloco }}
-          </p>
+
+          <div
+            class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-parchment-200 px-4 py-3"
+          >
+            <span class="font-heading text-sm font-bold text-ocean-500">{{
+              'whoAmI.email' | transloco
+            }}</span>
+            <span class="font-heading text-sm font-bold text-ocean-950">{{ identity.email }}</span>
+          </div>
+
+          <div class="rounded-xl bg-parchment-200 px-4 py-3">
+            <p class="mb-2 font-heading text-sm font-bold text-ocean-500">
+              {{ 'whoAmI.rolesAssigned' | transloco }}
+            </p>
+            <div class="flex flex-wrap gap-2">
+              @for (role of identity.roles; track role; let i = $index) {
+                <app-badge tone="gold" [delayMs]="i * 80">{{ role }}</app-badge>
+              }
+            </div>
+            <p class="mt-3 font-heading text-sm font-semibold text-ocean-500">
+              {{ 'whoAmI.rolesHint' | transloco }}
+            </p>
+          </div>
         </div>
-      </div>
-    </app-card>
+      </app-card>
+
+      <app-card>
+        <div class="flex flex-col items-start gap-3 text-left">
+          <h2 class="font-display text-lg font-semibold text-ocean-900">
+            {{ 'whoAmI.deleteAccountHeading' | transloco }}
+          </h2>
+          <p class="font-heading text-sm text-ocean-700">
+            {{ 'whoAmI.deleteAccountHint' | transloco }}
+          </p>
+          <a
+            [href]="deleteAccountUrl"
+            [class]="dangerClasses"
+            class="inline-flex items-center gap-2"
+          >
+            <svg
+              class="h-4 w-4 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+              />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            {{ 'whoAmI.deleteAccountButton' | transloco }}
+          </a>
+        </div>
+      </app-card>
+    </div>
   </div>
 }

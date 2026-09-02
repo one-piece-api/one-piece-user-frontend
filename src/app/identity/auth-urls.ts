@@ -7,6 +7,7 @@ import { getRuntimeConfig } from '../config/runtime-config';
 // config.json at runtime, see docs/adr/0001-runtime-config-injection.md.
 const KEYCLOAK_REALM_PATH = '/realms/onepiece';
 const KEYCLOAK_LOGOUT_PATH = '/protocol/openid-connect/logout';
+const KEYCLOAK_AUTH_PATH = '/protocol/openid-connect/auth';
 const OAUTH2_PROXY_CLIENT_ID = 'onepiece-proxy';
 const OAUTH2_PROXY_SIGN_OUT_PATH = '/oauth2/sign_out';
 const OAUTH2_PROXY_SIGN_IN_PATH = '/oauth2/start';
@@ -39,4 +40,31 @@ export function logoutUrl(
  */
 export function loginUrl(returnTo: string): string {
   return `${OAUTH2_PROXY_SIGN_IN_PATH}?rd=${encodeURIComponent(returnTo)}`;
+}
+
+/**
+ * Self-service account deletion: deliberately targets Keycloak's own built-in
+ * "account" client directly, never oauth2-proxy's "/oauth2/start" or the
+ * "onepiece-proxy" client. Those own the app's OAuth session/CSRF state and
+ * have no documented way to forward a "kc_action" through to Keycloak; the
+ * "account" client is a separate, already-authorized OIDC flow that reuses
+ * the browser's existing Keycloak SSO cookie (no second login). "redirect_uri"
+ * points back at this app (declared as a valid redirect URI for "account" in
+ * realm-onepiece.json) so a cancelled or already-completed deletion never
+ * strands the user on Keycloak's own Account Console - the app never consumes
+ * the resulting authorization code, it just needs somewhere real to land on.
+ */
+export function deleteAccountUrl(
+  appOrigin: string = location.origin,
+  keycloakOrigin: string = getRuntimeConfig().keycloakOrigin,
+): string {
+  const redirectUri = `${appOrigin}/`;
+  return (
+    `${keycloakOrigin}${KEYCLOAK_REALM_PATH}${KEYCLOAK_AUTH_PATH}` +
+    `?client_id=account` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&response_type=code` +
+    `&scope=openid` +
+    `&kc_action=delete_account`
+  );
 }
