@@ -4,7 +4,7 @@ import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { PageHeader } from '../shared/ui/page-header';
-import { deleteAccountUrl } from './auth-urls';
+import { startAccountDeletionUrl } from './auth-urls';
 import { CurrentUserService } from './current-user';
 
 /**
@@ -14,7 +14,9 @@ import { CurrentUserService } from './current-user';
  * it (its own step-up behavior for this action, verified live) plus its own explicit
  * Confirm/Cancel step - that's the real confirmation safeguard, not a second one
  * duplicated here. There is no backend call either: user-service is never involved
- * in this action (see the ADR).
+ * in this action (see the ADR). The link itself is startAccountDeletionUrl(), not
+ * auth-urls.ts's deleteAccountUrl() directly - see that function's own docstring for
+ * why the oauth2-proxy session needs clearing before this flow even starts.
  */
 @Component({
   selector: 'app-who-am-i',
@@ -25,5 +27,5 @@ export class WhoAmI {
   protected readonly currentUser = inject(CurrentUserService);
 
   protected readonly dangerClasses = buttonClasses('danger');
-  protected readonly deleteAccountUrl = deleteAccountUrl();
+  protected readonly deleteAccountUrl = startAccountDeletionUrl();
 }

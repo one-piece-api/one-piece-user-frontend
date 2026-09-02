@@ -49,10 +49,10 @@ export function loginUrl(returnTo: string): string {
  * have no documented way to forward a "kc_action" through to Keycloak; the
  * "account" client is a separate, already-authorized OIDC flow that reuses
  * the browser's existing Keycloak SSO cookie (no second login). "redirect_uri"
- * points back at this app (declared as a valid redirect URI for "account" in
- * realm-onepiece.json) so a cancelled or already-completed deletion never
- * strands the user on Keycloak's own Account Console - the app never consumes
- * the resulting authorization code, it just needs somewhere real to land on.
+ * points back at this app - the app never consumes the resulting
+ * authorization code, it just needs somewhere real to land on (see
+ * startAccountDeletionUrl() below for why this alone isn't safe to link to
+ * directly).
  */
 export function deleteAccountUrl(
   appOrigin: string = location.origin,
@@ -67,4 +67,31 @@ export function deleteAccountUrl(
     `&scope=openid` +
     `&kc_action=delete_account`
   );
+}
+
+/**
+ * What "Delete My Account" actually links to - never deleteAccountUrl()
+ * directly. The oauth2-proxy session is a separate cookie from Keycloak's
+ * own SSO session, and this flow never touches it: on a completed deletion,
+ * Keycloak deletes the user and shows its own static confirmation page
+ * without an OAuth redirect back to this app at all (a known, accepted
+ * limitation of Keycloak's hosted delete-account page - see
+ * onepiece-infrastructure's ADR-0013), so there is no reliable callback here
+ * to react to afterward. oauth2-proxy's still-unexpired access token would
+ * otherwise keep authenticating requests as the just-deleted user until its
+ * own natural expiry (SecurityConfig in one-piece-user-service validates
+ * JWTs by signature alone, with no per-request revocation check).
+ * Chaining "/oauth2/sign_out" in front - the same mechanism logoutUrl() uses -
+ * clears that session immediately and unconditionally, before Keycloak is
+ * even reached: correct whether the user goes on to confirm or cancel the
+ * deletion, and correct even if they abandon the flow. A cancelled deletion
+ * simply re-authenticates the user via Keycloak's still-live SSO session on
+ * their next request - not a second manual login, just an invisible redirect
+ * round-trip.
+ */
+export function startAccountDeletionUrl(
+  appOrigin: string = location.origin,
+  keycloakOrigin: string = getRuntimeConfig().keycloakOrigin,
+): string {
+  return `${OAUTH2_PROXY_SIGN_OUT_PATH}?rd=${encodeURIComponent(deleteAccountUrl(appOrigin, keycloakOrigin))}`;
 }

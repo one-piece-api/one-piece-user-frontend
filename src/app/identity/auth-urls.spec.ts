@@ -1,4 +1,4 @@
-import { deleteAccountUrl, loginUrl, logoutUrl } from './auth-urls';
+import { deleteAccountUrl, loginUrl, logoutUrl, startAccountDeletionUrl } from './auth-urls';
 
 describe('logoutUrl', () => {
   it('chains oauth2-proxy sign_out into Keycloak RP-initiated logout, back to the given origin', () => {
@@ -50,5 +50,23 @@ describe('deleteAccountUrl', () => {
 
     expect(url).toContain(encodeURIComponent('http://84.8.249.65/'));
     expect(url.startsWith('http://84.8.249.65/realms/onepiece')).toBe(true);
+  });
+});
+
+describe('startAccountDeletionUrl', () => {
+  it('clears the oauth2-proxy session first, then chains into deleteAccountUrl', () => {
+    const url = startAccountDeletionUrl('http://localhost:4180', 'http://localhost:8080');
+
+    expect(url).toBe(
+      '/oauth2/sign_out?rd=' +
+        encodeURIComponent(deleteAccountUrl('http://localhost:4180', 'http://localhost:8080')),
+    );
+  });
+
+  it('uses the given app and Keycloak origins, not hardcoded ones', () => {
+    const url = startAccountDeletionUrl('http://84.8.249.65', 'http://84.8.249.65');
+
+    expect(url.startsWith('/oauth2/sign_out?rd=')).toBe(true);
+    expect(url).toContain(encodeURIComponent('http://84.8.249.65/realms/onepiece'));
   });
 });

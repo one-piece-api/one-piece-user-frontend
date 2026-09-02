@@ -63,7 +63,13 @@ describe('WhoAmI', () => {
     ) as HTMLAnchorElement;
 
     expect(link).toBeTruthy();
-    expect(link.getAttribute('href')).toContain('kc_action=delete_account');
-    expect(link.getAttribute('href')).toContain('client_id=account');
+    const href = link.getAttribute('href') ?? '';
+    // Clears the oauth2-proxy session before Keycloak is even reached (see
+    // startAccountDeletionUrl() in auth-urls.ts) - the actual Keycloak
+    // account-client URL is the "rd" target of that sign-out, not the href itself.
+    expect(href.startsWith('/oauth2/sign_out?rd=')).toBe(true);
+    const target = decodeURIComponent(href.slice('/oauth2/sign_out?rd='.length));
+    expect(target).toContain('kc_action=delete_account');
+    expect(target).toContain('client_id=account');
   });
 });
