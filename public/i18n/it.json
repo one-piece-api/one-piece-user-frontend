@@ -27,8 +27,8 @@
       "text": "Sono qui! Mi faccio sentire quando serve la tua attenzione, o toccami quando vuoi un consiglio.",
       "code": "in attesa"
     },
-    "minimize": "Riduci a icona il Den Den Mushi",
-    "open": "Apri il Den Den Mushi",
+    "minimize": "Riduci a icona il Lumacofono",
+    "open": "Apri il Lumacofono",
     "tips": {
       "profile": {
         "tip1": {
@@ -46,7 +46,7 @@
           "code": "POST /users/:id/resend-invitation"
         },
         "tip2": {
-          "text": "Concedi un ruolo ora? Il membro dell'equipaggio lo vedrà a breve, non subito - anche la posta-gabbiano ci mette il suo tempo.",
+          "text": "Concedi un ruolo ora? Il membro dell'equipaggio lo vedrà a breve, non subito - nemmeno i gabbiani postali sono corrieri espressi.",
           "code": "i cambi ruolo si propagano"
         },
         "tip3": {
@@ -120,7 +120,7 @@
     "rolesAssigned": "Ruoli Assegnati",
     "rolesHint": "Se un admin modifica uno di questi, potrebbe volerci un momento prima che tu lo veda qui.",
     "deleteAccountHeading": "Elimina Account",
-    "deleteAccountHint": "Affonda il tuo account per sempre, compare - lascia la ciurma per sempre.",
+    "deleteAccountHint": "Affonda il tuo account per sempre, compare - non c'è modo di tornare sulla ciurma.",
     "deleteAccountButton": "Elimina Il Mio Account"
   },
   "forbidden": {
@@ -172,7 +172,7 @@
       "sending": "Invio…",
       "send": "Invia Invito",
       "emailRequired": "Serve un indirizzo email, compare.",
-      "emailInvalid": "Quello non è un indirizzo email valido.",
+      "emailInvalid": "Non è un indirizzo email valido.",
       "rolesRequired": "Scegli almeno un ruolo per il nuovo membro dell'equipaggio.",
       "sent": "Invito inviato a {{email}}!",
       "emailAlreadyRegistered": "Quel pirata naviga già con l'equipaggio - email già registrata.",
@@ -255,7 +255,7 @@
       "create": "Crea Ruolo",
       "nameRequired": "Un ruolo ha bisogno di un nome.",
       "alreadyExists": "Esiste già un ruolo chiamato {{role}}.",
-      "invalidName": "Quel nome non lascia nulla di utilizzabile - prova con lettere o numeri.",
+      "invalidName": "Quel nome non contiene caratteri validi - prova con lettere o numeri.",
       "genericFailed": "Arrr! Qualcosa è andato storto nella creazione del ruolo."
     },
     "newPermissionModal": {
