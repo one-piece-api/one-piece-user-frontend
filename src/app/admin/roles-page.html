@@ -5,7 +5,9 @@
     }}</app-page-header>
   </div>
 
-  @if (roles.isLoading() || permissions.isLoading()) {
+  @if (
+    (!roles.hasValue() && roles.isLoading()) || (!permissions.hasValue() && permissions.isLoading())
+  ) {
     <app-card [wide]="true">
       <app-loading-placeholder [label]="'roles.loading' | transloco" />
     </app-card>

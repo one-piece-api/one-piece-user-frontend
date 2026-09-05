@@ -16,7 +16,7 @@
     (cleared)="clearFilters()"
   />
 
-  @if (events.isLoading()) {
+  @if (!events.hasValue() && events.isLoading()) {
     <app-card [wide]="true">
       <app-loading-placeholder [label]="'audit.loading' | transloco" />
     </app-card>

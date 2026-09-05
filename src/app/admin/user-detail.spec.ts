@@ -133,7 +133,7 @@ describe('AdminUserDetail', () => {
     expect(root.querySelector('button[aria-label="Revoke role EDITOR"]')).toBeTruthy();
   });
 
-  it('grants a role and reloads the crewmate', async () => {
+  it('grants a role and updates the crewmate in place, without re-fetching it', async () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
@@ -163,14 +163,11 @@ describe('AdminUserDetail', () => {
     expect(mascotService.message()).toEqual(
       expect.objectContaining({ text: 'Granted ADMIN to nami!', tone: 'success' }),
     );
+    expect(root.querySelector('button[aria-label="Revoke role ADMIN"]')).toBeTruthy();
+    // The card itself never blanked back to the loading placeholder while the audit
+    // trail re-fetch (below) was still in flight.
+    expect(root.querySelector('[role="status"]')).toBeNull();
 
-    httpTesting.expectOne('/api/users/1').flush({
-      userId: '1',
-      username: 'nami',
-      email: 'nami@onepiece.local',
-      status: 'ACTIVE',
-      roles: ['EDITOR', 'ADMIN'],
-    });
     httpTesting.expectOne('/api/audit?userId=1').flush({
       content: [
         {
@@ -189,7 +186,7 @@ describe('AdminUserDetail', () => {
     expect(root.textContent).toContain('Granted Role');
   });
 
-  it('revokes a role and reloads the crewmate', async () => {
+  it('revokes a role and updates the crewmate in place, without re-fetching it', async () => {
     const fixture = createWithUserId('1');
     const mascotService = TestBed.inject(MascotService);
 
@@ -219,14 +216,9 @@ describe('AdminUserDetail', () => {
     expect(mascotService.message()).toEqual(
       expect.objectContaining({ text: 'Revoked EDITOR from nami!', tone: 'success' }),
     );
+    expect(root.querySelector('button[aria-label="Revoke role EDITOR"]')).toBeNull();
+    expect(root.querySelector('[role="status"]')).toBeNull();
 
-    httpTesting.expectOne('/api/users/1').flush({
-      userId: '1',
-      username: 'nami',
-      email: 'nami@onepiece.local',
-      status: 'ACTIVE',
-      roles: [],
-    });
     httpTesting.expectOne('/api/audit?userId=1').flush({ content: [] });
   });
 

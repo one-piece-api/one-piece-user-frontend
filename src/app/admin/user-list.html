@@ -64,7 +64,7 @@
     }
   </app-card>
 
-  @if (users.isLoading()) {
+  @if (!users.hasValue() && users.isLoading()) {
     <app-card [wide]="true">
       <app-loading-placeholder [label]="'users.loading' | transloco" />
     </app-card>

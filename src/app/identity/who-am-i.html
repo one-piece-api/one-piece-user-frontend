@@ -1,4 +1,4 @@
-@if (currentUser.me.isLoading()) {
+@if (!currentUser.me.hasValue() && currentUser.me.isLoading()) {
   <app-card>
     <app-loading-placeholder [label]="'whoAmI.loading' | transloco" />
   </app-card>

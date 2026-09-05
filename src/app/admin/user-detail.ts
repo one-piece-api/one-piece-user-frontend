@@ -124,7 +124,7 @@ export class AdminUserDetail {
         this.transloco.translate('users.detail.grantSuccess', { role, username: user.username }),
         'success',
       );
-      this.user.reload();
+      this.setUserRolesLocally(user, [...user.roles, role]);
       this.auditEvents.reload();
     } catch (err) {
       this.handleRoleError(err, user);
@@ -143,13 +143,27 @@ export class AdminUserDetail {
         this.transloco.translate('users.detail.revokeSuccess', { role, username: user.username }),
         'success',
       );
-      this.user.reload();
+      this.setUserRolesLocally(
+        user,
+        user.roles.filter((held) => held !== role),
+      );
       this.auditEvents.reload();
     } catch (err) {
       this.handleRoleError(err, user);
     } finally {
       this.pendingRole.set(null);
     }
+  }
+
+  /**
+   * Reflects a just-confirmed grant/revoke without re-fetching the whole crewmate: the
+   * server already confirmed this exact change, so a re-fetch would only add a round trip
+   * (mirrors `RolesPage#setRolePermissionLocally` and its reasoning for permission toggles).
+   */
+  private setUserRolesLocally(user: AdminUserSummary, roles: string[]): void {
+    this.user.value.update((current) =>
+      current && current.userId === user.userId ? { ...current, roles } : current,
+    );
   }
 
   private handleRoleError(err: unknown, user: AdminUserSummary): void {

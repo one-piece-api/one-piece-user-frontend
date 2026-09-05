@@ -1,5 +1,5 @@
 <div class="flex w-full flex-col gap-6">
-  @if (user.isLoading()) {
+  @if (!user.hasValue() && user.isLoading()) {
     <app-card [wide]="true">
       <app-loading-placeholder [label]="'users.detail.loading' | transloco" />
     </app-card>
