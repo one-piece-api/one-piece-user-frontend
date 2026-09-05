@@ -18,7 +18,7 @@
 
   @if (events.isLoading()) {
     <app-card [wide]="true">
-      <p class="font-heading text-ocean-700">{{ 'audit.loading' | transloco }}</p>
+      <app-loading-placeholder [label]="'audit.loading' | transloco" />
     </app-card>
   } @else if (events.error()) {
     <app-card [wide]="true">

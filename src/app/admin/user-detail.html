@@ -1,7 +1,7 @@
 <div class="flex w-full flex-col gap-6">
   @if (user.isLoading()) {
     <app-card [wide]="true">
-      <p class="font-heading text-ocean-700">{{ 'users.detail.loading' | transloco }}</p>
+      <app-loading-placeholder [label]="'users.detail.loading' | transloco" />
     </app-card>
   } @else if (user.error()) {
     <app-card [wide]="true">

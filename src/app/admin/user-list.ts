@@ -7,6 +7,7 @@ import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { initialsOf } from '../shared/ui/initials';
+import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
 import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import {
@@ -37,7 +38,16 @@ interface PageResponse<T> {
 @Component({
   selector: 'app-admin-user-list',
   templateUrl: './user-list.html',
-  imports: [Card, Badge, Modal, InviteUserForm, RouterLink, PageHeader, TranslocoPipe],
+  imports: [
+    Card,
+    Badge,
+    Modal,
+    InviteUserForm,
+    RouterLink,
+    PageHeader,
+    TranslocoPipe,
+    LoadingPlaceholder,
+  ],
 })
 export class AdminUserList {
   private readonly mascotService = inject(MascotService);

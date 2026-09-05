@@ -1,6 +1,6 @@
 @if (currentUser.me.isLoading()) {
   <app-card>
-    <p class="font-heading text-ocean-700">{{ 'whoAmI.loading' | transloco }}</p>
+    <app-loading-placeholder [label]="'whoAmI.loading' | transloco" />
   </app-card>
 } @else if (currentUser.me.error()) {
   <app-card>

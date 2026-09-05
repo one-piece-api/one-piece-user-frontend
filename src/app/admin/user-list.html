@@ -66,7 +66,7 @@
 
   @if (users.isLoading()) {
     <app-card [wide]="true">
-      <p class="font-heading text-ocean-700">{{ 'users.loading' | transloco }}</p>
+      <app-loading-placeholder [label]="'users.loading' | transloco" />
     </app-card>
   } @else if (users.error()) {
     <app-card [wide]="true">

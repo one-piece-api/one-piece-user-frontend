@@ -7,7 +7,7 @@
 
   @if (roles.isLoading() || permissions.isLoading()) {
     <app-card [wide]="true">
-      <p class="font-heading text-ocean-700">{{ 'roles.loading' | transloco }}</p>
+      <app-loading-placeholder [label]="'roles.loading' | transloco" />
     </app-card>
   } @else if (roles.error() || permissions.error()) {
     <app-card [wide]="true">

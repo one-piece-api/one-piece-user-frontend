@@ -9,6 +9,7 @@ import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { initialsOf } from '../shared/ui/initials';
+import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
 import { Modal } from '../shared/ui/modal';
 import {
   STATUS_LABEL_KEY,
@@ -46,7 +47,7 @@ interface PageResponse<T> {
 @Component({
   selector: 'app-admin-user-detail',
   templateUrl: './user-detail.html',
-  imports: [Card, Badge, RouterLink, Modal, AuditList, TranslocoPipe],
+  imports: [Card, Badge, RouterLink, Modal, AuditList, TranslocoPipe, LoadingPlaceholder],
 })
 export class AdminUserDetail {
   private readonly http = inject(HttpClient);

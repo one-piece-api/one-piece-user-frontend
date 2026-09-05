@@ -7,6 +7,7 @@ import { AuditList } from './audit-list';
 import { AuditPagination } from './audit-pagination';
 import type { AuditEvent } from './audit.model';
 import { Card } from '../shared/ui/card';
+import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
 import { PageHeader } from '../shared/ui/page-header';
 
 const AUDIT_ENDPOINT = '/api/audit';
@@ -23,7 +24,15 @@ interface PageResponse<T> {
 @Component({
   selector: 'app-admin-audit-page',
   templateUrl: './audit-page.html',
-  imports: [Card, PageHeader, AuditFilters, AuditList, AuditPagination, TranslocoPipe],
+  imports: [
+    Card,
+    PageHeader,
+    AuditFilters,
+    AuditList,
+    AuditPagination,
+    TranslocoPipe,
+    LoadingPlaceholder,
+  ],
 })
 export class AdminAuditPage {
   private readonly mascotService = inject(MascotService);

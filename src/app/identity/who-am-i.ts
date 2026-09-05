@@ -3,6 +3,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
+import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
 import { PageHeader } from '../shared/ui/page-header';
 import { startAccountDeletionUrl } from './auth-urls';
 import { CurrentUserService } from './current-user';
@@ -21,7 +22,7 @@ import { CurrentUserService } from './current-user';
 @Component({
   selector: 'app-who-am-i',
   templateUrl: './who-am-i.html',
-  imports: [Card, Badge, PageHeader, TranslocoPipe],
+  imports: [Card, Badge, PageHeader, TranslocoPipe, LoadingPlaceholder],
 })
 export class WhoAmI {
   protected readonly currentUser = inject(CurrentUserService);

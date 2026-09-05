@@ -7,6 +7,7 @@ import { hasErrorCode } from '../shared/http/api-error';
 import { MascotService } from '../shared/mascot/mascot';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
+import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
 import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import type { RolePermissions } from './admin-user.model';
@@ -56,7 +57,7 @@ function normalizeRoleName(name: string): string {
 @Component({
   selector: 'app-roles-page',
   templateUrl: './roles-page.html',
-  imports: [Card, PageHeader, Modal, FormField, TranslocoPipe],
+  imports: [Card, PageHeader, Modal, FormField, TranslocoPipe, LoadingPlaceholder],
 })
 export class RolesPage {
   private readonly http = inject(HttpClient);
