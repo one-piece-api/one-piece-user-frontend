@@ -9,46 +9,58 @@
   </div>
 
   <div class="grid gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start">
-    <app-card [wide]="true" class="lg:sticky lg:top-6">
-      <div class="flex max-h-[70vh] flex-col gap-1 overflow-y-auto text-left">
-        @if (!drafts.hasValue() && drafts.isLoading()) {
-          <app-loading-placeholder [label]="'drafts.loading' | transloco" />
-        } @else if (drafts.error()) {
-          <p class="font-heading text-flag-700">{{ 'drafts.loadError' | transloco }}</p>
-        } @else if (drafts.value(); as list) {
-          @if (list.length === 0) {
-            <p class="font-heading text-sm text-ocean-700">{{ 'drafts.empty' | transloco }}</p>
-          } @else {
-            @for (draft of list; track draft.id) {
-              <button
-                type="button"
-                (click)="select(draft.id)"
-                [class]="
-                  'flex items-center justify-between gap-2 rounded-lg border-l-4 px-3 py-2 text-left transition-colors ' +
-                  (selectedId() === draft.id
-                    ? 'border-l-treasure-500 bg-parchment-200'
-                    : 'border-l-transparent hover:bg-parchment-50')
-                "
-              >
-                <span class="min-w-0">
-                  <span class="block truncate font-display text-sm font-semibold text-ocean-900">{{
-                    draft.displayName || ('drafts.untitled' | transloco)
-                  }}</span>
-                  <span class="block truncate font-heading text-xs text-ocean-700/70">{{
-                    draft.romaji || ('drafts.romajiPending' | transloco)
-                  }}</span>
-                </span>
-                <app-badge tone="neutral" [dot]="true">{{
-                  'drafts.status.' + draft.status | transloco
-                }}</app-badge>
-              </button>
+    <div [class]="mobileShowDetail() ? 'hidden lg:block' : 'block'">
+      <app-card [wide]="true" class="lg:sticky lg:top-6">
+        <div class="flex max-h-[70vh] flex-col gap-1 overflow-y-auto text-left">
+          @if (!drafts.hasValue() && drafts.isLoading()) {
+            <app-loading-placeholder [label]="'drafts.loading' | transloco" />
+          } @else if (drafts.error()) {
+            <p class="font-heading text-flag-700">{{ 'drafts.loadError' | transloco }}</p>
+          } @else if (drafts.value(); as list) {
+            @if (list.length === 0) {
+              <p class="font-heading text-sm text-ocean-700">{{ 'drafts.empty' | transloco }}</p>
+            } @else {
+              @for (draft of list; track draft.id) {
+                <button
+                  type="button"
+                  (click)="select(draft.id)"
+                  [class]="
+                    'flex items-center justify-between gap-2 rounded-lg border-l-4 px-3 py-2 text-left transition-colors ' +
+                    (selectedId() === draft.id
+                      ? 'border-l-treasure-500 bg-parchment-200'
+                      : 'border-l-transparent hover:bg-parchment-50')
+                  "
+                >
+                  <span class="min-w-0">
+                    <span
+                      class="block truncate font-display text-sm font-semibold text-ocean-900"
+                      >{{ draft.displayName || ('drafts.untitled' | transloco) }}</span
+                    >
+                    <span class="block truncate font-heading text-xs text-ocean-700/70">{{
+                      draft.romaji || ('drafts.romajiPending' | transloco)
+                    }}</span>
+                  </span>
+                  <app-badge tone="neutral" [dot]="true">{{
+                    'drafts.status.' + draft.status | transloco
+                  }}</app-badge>
+                </button>
+              }
             }
           }
-        }
-      </div>
-    </app-card>
+        </div>
+      </app-card>
+    </div>
 
-    <div class="min-w-0">
+    <div [class]="'min-w-0 ' + (mobileShowDetail() ? 'block' : 'hidden lg:block')">
+      @if (selectedId()) {
+        <button
+          type="button"
+          (click)="backToList()"
+          class="mb-3 font-heading text-sm font-bold text-ocean-700 lg:hidden"
+        >
+          {{ 'drafts.backToList' | transloco }}
+        </button>
+      }
       @if (!selectedId()) {
         <app-card [wide]="true">
           <p class="font-heading text-ocean-700">{{ 'drafts.noSelection' | transloco }}</p>

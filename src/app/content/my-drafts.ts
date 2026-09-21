@@ -58,6 +58,13 @@ export class MyDrafts {
     return id ? `${DRAFTS_ENDPOINT}/${id}` : undefined;
   });
 
+  /**
+   * Mobile-only (`lg:` and up ignore this and always show both panes): whether the detail
+   * pane currently covers the list instead of sitting beside it. Set alongside
+   * `selectedId` whenever a draft is opened, cleared by the "← Elenco" back button.
+   */
+  protected readonly mobileShowDetail = signal(false);
+
   protected readonly editing = signal(false);
   protected readonly saving = signal(false);
   protected readonly creating = signal(false);
@@ -76,6 +83,7 @@ export class MyDrafts {
       );
       this.drafts.reload();
       this.selectedId.set(created.id);
+      this.mobileShowDetail.set(true);
       this.startEdit(created);
       this.mascotService.show(this.transloco.translate('drafts.created'), 'info');
     } catch {
@@ -88,6 +96,12 @@ export class MyDrafts {
   protected select(id: string): void {
     this.selectedId.set(id);
     this.editing.set(false);
+    this.mobileShowDetail.set(true);
+  }
+
+  /** Mobile-only back-to-list; `selectedId` stays set so the desktop layout is unaffected. */
+  protected backToList(): void {
+    this.mobileShowDetail.set(false);
   }
 
   protected setActiveLang(lang: LanguageCode): void {
