@@ -5,8 +5,10 @@
     "logOut": "Log Out",
     "nav": {
       "account": "Account",
+      "content": "Content",
       "admin": "Admin",
       "profile": "My Profile",
+      "myDrafts": "My Drafts",
       "crewManifest": "Crew Manifest",
       "rolesPermissions": "Roles & Permissions",
       "shipsLog": "Ship's Log"
@@ -137,6 +139,33 @@
   "sessionExpired": {
     "title": "Arrr! Yer session's sunk.",
     "description": "Charting a course back to port — you'll be asked to sign in again in a moment."
+  },
+  "drafts": {
+    "eyebrow": "Editor Only · content:write",
+    "title": "My Drafts",
+    "newDraft": "+ New Draft",
+    "creating": "Opening…",
+    "created": "New draft opened. Fill in romaji, name and description: it saves whenever you want.",
+    "createError": "Arrr! Couldn't open a new draft — try again in a moment.",
+    "loading": "Unrolling the drafts…",
+    "loadError": "Arrr! Couldn't load your drafts — try again in a moment.",
+    "empty": "No draft open yet, start writing something.",
+    "untitled": "Untitled draft",
+    "romajiPending": "romaji pending",
+    "noSelection": "Pick a draft from the list — it stays put, so you can move between entries without losing your place.",
+    "edit": "Edit",
+    "romaji": "Romaji",
+    "name": "Name",
+    "description": "Description",
+    "save": "Save Draft",
+    "saving": "Saving…",
+    "saveError": "Arrr! Couldn't save the draft — try again in a moment.",
+    "gone": "Arrr! This draft no longer exists.",
+    "status": {
+      "DRAFT": "Draft",
+      "IN_REVIEW": "In Review",
+      "REVIEWED": "Reviewed"
+    }
   },
   "users": {
     "eyebrow": "Admin Only · users:read",

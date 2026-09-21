@@ -5,8 +5,10 @@
     "logOut": "Esci",
     "nav": {
       "account": "Account",
+      "content": "Contenuti",
       "admin": "Amministrazione",
       "profile": "Il Mio Profilo",
+      "myDrafts": "Le Mie Bozze",
       "crewManifest": "Registro Equipaggio",
       "rolesPermissions": "Ruoli e Permessi",
       "shipsLog": "Diario di Bordo"
@@ -137,6 +139,33 @@
   "sessionExpired": {
     "title": "Arrr! La tua sessione è affondata.",
     "description": "Tracciamo la rotta verso il porto — tra un momento ti verrà chiesto di accedere di nuovo."
+  },
+  "drafts": {
+    "eyebrow": "Solo Editor · content:write",
+    "title": "Le Mie Bozze",
+    "newDraft": "+ Nuova Bozza",
+    "creating": "Apertura…",
+    "created": "Nuova bozza aperta. Compila romaji, nome e descrizione: si salva quando vuoi.",
+    "createError": "Arrr! Impossibile aprire una nuova bozza — riprova tra un momento.",
+    "loading": "Srotoliamo le bozze…",
+    "loadError": "Arrr! Impossibile caricare le bozze — riprova tra un momento.",
+    "empty": "Nessuna bozza aperta, comincia a scrivere qualcosa.",
+    "untitled": "Bozza senza nome",
+    "romajiPending": "romaji da definire",
+    "noSelection": "Scegli una bozza dall'elenco — la lista resta ferma dov'è, puoi passare da una all'altra senza tornare indietro.",
+    "edit": "Modifica",
+    "romaji": "Romaji",
+    "name": "Nome",
+    "description": "Descrizione",
+    "save": "Salva Bozza",
+    "saving": "Salvataggio…",
+    "saveError": "Arrr! Impossibile salvare la bozza — riprova tra un momento.",
+    "gone": "Arrr! Questa bozza non esiste più.",
+    "status": {
+      "DRAFT": "Bozza",
+      "IN_REVIEW": "In Revisione",
+      "REVIEWED": "Revisionato"
+    }
   },
   "users": {
     "eyebrow": "Solo Admin · users:read",

@@ -3,6 +3,7 @@ import { AdminAuditPage } from './admin/audit-page';
 import { RolesPage } from './admin/roles-page';
 import { AdminUserDetail } from './admin/user-detail';
 import { AdminUserList } from './admin/user-list';
+import { MyDrafts } from './content/my-drafts';
 import { SessionExpired } from './identity/session-expired';
 import { WhoAmI } from './identity/who-am-i';
 import { Forbidden } from './shared/nav/forbidden';
@@ -12,6 +13,12 @@ export const routes: Routes = [
   { path: '', component: WhoAmI },
   { path: 'session-expired', component: SessionExpired },
   { path: 'forbidden', component: Forbidden },
+  {
+    path: 'drafts',
+    component: MyDrafts,
+    canActivate: [permissionGuard],
+    data: { permission: 'content:write' },
+  },
   {
     path: 'users',
     component: AdminUserList,

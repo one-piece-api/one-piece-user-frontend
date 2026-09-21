@@ -1,0 +1,184 @@
+<div class="flex w-full max-w-6xl flex-col gap-6">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <app-page-header [eyebrow]="'drafts.eyebrow' | transloco">{{
+      'drafts.title' | transloco
+    }}</app-page-header>
+    <button type="button" [class]="primaryClasses" [disabled]="creating()" (click)="createDraft()">
+      {{ creating() ? ('drafts.creating' | transloco) : ('drafts.newDraft' | transloco) }}
+    </button>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start">
+    <app-card [wide]="true" class="lg:sticky lg:top-6">
+      <div class="flex max-h-[70vh] flex-col gap-1 overflow-y-auto text-left">
+        @if (!drafts.hasValue() && drafts.isLoading()) {
+          <app-loading-placeholder [label]="'drafts.loading' | transloco" />
+        } @else if (drafts.error()) {
+          <p class="font-heading text-flag-700">{{ 'drafts.loadError' | transloco }}</p>
+        } @else if (drafts.value(); as list) {
+          @if (list.length === 0) {
+            <p class="font-heading text-sm text-ocean-700">{{ 'drafts.empty' | transloco }}</p>
+          } @else {
+            @for (draft of list; track draft.id) {
+              <button
+                type="button"
+                (click)="select(draft.id)"
+                [class]="
+                  'flex items-center justify-between gap-2 rounded-lg border-l-4 px-3 py-2 text-left transition-colors ' +
+                  (selectedId() === draft.id
+                    ? 'border-l-treasure-500 bg-parchment-200'
+                    : 'border-l-transparent hover:bg-parchment-50')
+                "
+              >
+                <span class="min-w-0">
+                  <span class="block truncate font-display text-sm font-semibold text-ocean-900">{{
+                    draft.displayName || ('drafts.untitled' | transloco)
+                  }}</span>
+                  <span class="block truncate font-heading text-xs text-ocean-700/70">{{
+                    draft.romaji || ('drafts.romajiPending' | transloco)
+                  }}</span>
+                </span>
+                <app-badge tone="neutral" [dot]="true">{{
+                  'drafts.status.' + draft.status | transloco
+                }}</app-badge>
+              </button>
+            }
+          }
+        }
+      </div>
+    </app-card>
+
+    <div class="min-w-0">
+      @if (!selectedId()) {
+        <app-card [wide]="true">
+          <p class="font-heading text-ocean-700">{{ 'drafts.noSelection' | transloco }}</p>
+        </app-card>
+      } @else if (!detail.hasValue() && detail.isLoading()) {
+        <app-card [wide]="true">
+          <app-loading-placeholder [label]="'drafts.loading' | transloco" />
+        </app-card>
+      } @else if (detail.error()) {
+        <app-card [wide]="true">
+          <p class="font-heading text-flag-700">{{ 'drafts.loadError' | transloco }}</p>
+        </app-card>
+      } @else if (detail.value(); as d) {
+        <app-card [wide]="true">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="font-display text-xl font-semibold text-ocean-900">
+                {{ d.translations.it?.name || d.romaji || ('drafts.untitled' | transloco) }}
+              </h2>
+              <app-badge tone="neutral" [dot]="true">{{
+                'drafts.status.' + d.status | transloco
+              }}</app-badge>
+            </div>
+            @if (!editing()) {
+              <button type="button" [class]="secondaryClasses" (click)="startEdit()">
+                {{ 'drafts.edit' | transloco }}
+              </button>
+            }
+          </div>
+
+          <div class="mt-4 rounded-lg bg-parchment-50 p-3">
+            <div class="font-heading text-xs font-bold text-ocean-500 uppercase">
+              {{ 'drafts.romaji' | transloco }}
+            </div>
+            @if (!editing()) {
+              <div class="mt-1 font-display text-lg text-ocean-900">{{ d.romaji || '—' }}</div>
+            } @else {
+              <input
+                type="text"
+                [value]="editModel().romaji"
+                (input)="setRomaji($any($event.target).value)"
+                class="mt-1 w-full rounded-lg border border-ocean-900/15 bg-white px-3 py-2 font-heading text-ocean-900 focus:border-ocean-700 focus:outline-none"
+              />
+            }
+          </div>
+
+          <div class="mt-4 flex gap-2">
+            @for (lang of languages; track lang) {
+              <button
+                type="button"
+                (click)="setActiveLang(lang)"
+                [class]="
+                  'rounded-lg px-3 py-1.5 font-heading text-sm font-bold uppercase ' +
+                  (activeLang() === lang
+                    ? 'bg-ocean-700 text-white'
+                    : 'bg-parchment-100 text-ocean-700')
+                "
+              >
+                {{ lang }}
+              </button>
+            }
+          </div>
+
+          @if (!editing()) {
+            <div class="mt-3 flex flex-col gap-3 text-left">
+              <div>
+                <div class="font-heading text-xs font-bold text-ocean-500 uppercase">
+                  {{ 'drafts.name' | transloco }}
+                </div>
+                <div class="mt-1 font-display text-base text-ocean-900">
+                  {{ d.translations[activeLang()]?.name || '—' }}
+                </div>
+              </div>
+              <div>
+                <div class="font-heading text-xs font-bold text-ocean-500 uppercase">
+                  {{ 'drafts.description' | transloco }}
+                </div>
+                <div class="mt-1 font-heading text-sm whitespace-pre-wrap text-ocean-900">
+                  {{ d.translations[activeLang()]?.description || '—' }}
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="mt-3 flex flex-col gap-3 text-left">
+              <div>
+                <label
+                  for="draft-name"
+                  class="mb-1 block font-heading text-xs font-bold text-ocean-500 uppercase"
+                  >{{ 'drafts.name' | transloco }}</label
+                >
+                <input
+                  id="draft-name"
+                  type="text"
+                  [value]="editModel().translations[activeLang()].name"
+                  (input)="setField(activeLang(), 'name', $any($event.target).value)"
+                  class="w-full rounded-lg border border-ocean-900/15 bg-white px-3 py-2 font-heading text-ocean-900 focus:border-ocean-700 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label
+                  for="draft-description"
+                  class="mb-1 block font-heading text-xs font-bold text-ocean-500 uppercase"
+                  >{{ 'drafts.description' | transloco }}</label
+                >
+                <textarea
+                  id="draft-description"
+                  rows="5"
+                  [value]="editModel().translations[activeLang()].description"
+                  (input)="setField(activeLang(), 'description', $any($event.target).value)"
+                  class="w-full rounded-lg border border-ocean-900/15 bg-white px-3 py-2 font-heading text-sm text-ocean-900 focus:border-ocean-700 focus:outline-none"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end gap-3">
+              <button type="button" [class]="secondaryClasses" (click)="cancelEdit()">
+                {{ 'common.cancel' | transloco }}
+              </button>
+              <button
+                type="button"
+                [class]="primaryClasses"
+                [disabled]="saving()"
+                (click)="saveEdit()"
+              >
+                {{ saving() ? ('drafts.saving' | transloco) : ('drafts.save' | transloco) }}
+              </button>
+            </div>
+          }
+        </app-card>
+      }
+    </div>
+  </div>
+</div>
