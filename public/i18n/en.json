@@ -158,6 +158,7 @@
     "name": "Name",
     "description": "Description",
     "save": "Save Draft",
+    "saved": "Draft saved. Nobody sees it until it goes through review.",
     "saving": "Saving…",
     "saveError": "Arrr! Couldn't save the draft — try again in a moment.",
     "gone": "Arrr! This draft no longer exists.",

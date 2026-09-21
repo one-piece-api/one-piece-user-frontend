@@ -158,6 +158,7 @@
     "name": "Nome",
     "description": "Descrizione",
     "save": "Salva Bozza",
+    "saved": "Bozza salvata. Nessuno la vede finché non passa dalla revisione.",
     "saving": "Salvataggio…",
     "saveError": "Arrr! Impossibile salvare la bozza — riprova tra un momento.",
     "gone": "Arrr! Questa bozza non esiste più.",
