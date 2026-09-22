@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { MascotService } from '../shared/mascot/mascot';
 import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { Encyclopedia } from './encyclopedia';
@@ -153,6 +153,63 @@ describe('Encyclopedia', () => {
       (button) => button.textContent?.trim() === 'Publish',
     );
     expect(publishButton).toBeUndefined();
+  });
+
+  async function selectPublishedItem(
+    fixture: ReturnType<typeof TestBed.createComponent<Encyclopedia>>,
+    permissions: string[],
+  ): Promise<HTMLElement> {
+    fixture.detectChanges();
+    flushMe(permissions);
+    httpTesting.expectOne('/api/content/encyclopedia').flush([publishedItem]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const row = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.includes('Zoan'),
+    );
+    row?.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/encyclopedia/i2').flush(publishedDetail());
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return root;
+  }
+
+  it('an editor sees Edit on a published item and starting it opens a new draft', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    const mascotService = TestBed.inject(MascotService);
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const root = await selectPublishedItem(fixture, ['content:read', 'content:write']);
+
+    const editButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Edit',
+    );
+    expect(editButton).toBeTruthy();
+    editButton!.click();
+    fixture.detectChanges();
+
+    const editReq = httpTesting.expectOne('/api/content/devil-fruit-types/i2/edit');
+    expect(editReq.request.method).toBe('POST');
+    editReq.flush({ id: 'wr-new', itemId: 'i2', status: 'DRAFT' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(navigateSpy).toHaveBeenCalledWith(['/drafts'], { queryParams: { open: 'wr-new' } });
+    expect(mascotService.message()).toEqual(expect.objectContaining({ tone: 'success' }));
+  });
+
+  it('a caller without content:write does not see Edit on a published item', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    const root = await selectPublishedItem(fixture, ['content:read']);
+
+    const editButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Edit',
+    );
+    expect(editButton).toBeUndefined();
   });
 
   it('shows version info for a published item', async () => {

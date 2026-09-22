@@ -113,6 +113,20 @@
                 }}
               </button>
             }
+            @if (d.status === 'PUBLISHED' && canEdit()) {
+              <button
+                type="button"
+                [class]="secondaryClasses"
+                [disabled]="startingEdit()"
+                (click)="startEdit()"
+              >
+                {{
+                  startingEdit()
+                    ? ('encyclopedia.editing' | transloco)
+                    : ('encyclopedia.edit' | transloco)
+                }}
+              </button>
+            }
           </div>
 
           <div class="mt-4 rounded-lg bg-parchment-50 p-3">

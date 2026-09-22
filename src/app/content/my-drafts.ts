@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { apiErrorOf } from '../shared/http/api-error';
@@ -40,7 +41,8 @@ function emptyEditModel(): EditModel {
  * scrollable list + detail pane, both visible together, per the reference mockup's
  * structural pattern). Create/edit a `DRAFT`, submit it for review, or withdraw an
  * `IN_REVIEW` revision back to `DRAFT`. No approve/publish actions yet - those land in
- * later steps.
+ * later steps. A `?open=<id>` query param (set by Enciclopedia's "Modifica" on a
+ * Published item, UF-CNT-08) pre-selects that draft on arrival.
  */
 @Component({
   selector: 'app-my-drafts',
@@ -51,10 +53,12 @@ export class MyDrafts {
   private readonly http = inject(HttpClient);
   private readonly mascotService = inject(MascotService);
   private readonly transloco = inject(TranslocoService);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly drafts = httpResource<WorkingRevisionSummary[]>(() => MY_DRAFTS_ENDPOINT);
 
-  protected readonly selectedId = signal<string | null>(null);
+  private readonly openedFromQueryParam = this.route.snapshot.queryParamMap.get('open');
+  protected readonly selectedId = signal<string | null>(this.openedFromQueryParam);
   protected readonly detail = httpResource<WorkingRevisionDetail>(() => {
     const id = this.selectedId();
     return id ? `${DRAFTS_ENDPOINT}/${id}` : undefined;
@@ -65,7 +69,7 @@ export class MyDrafts {
    * pane currently covers the list instead of sitting beside it. Set alongside
    * `selectedId` whenever a draft is opened, cleared by the "← Elenco" back button.
    */
-  protected readonly mobileShowDetail = signal(false);
+  protected readonly mobileShowDetail = signal(this.openedFromQueryParam !== null);
 
   protected readonly editing = signal(false);
   protected readonly saving = signal(false);

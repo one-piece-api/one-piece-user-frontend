@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { MascotService } from '../shared/mascot/mascot';
 import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { MyDrafts } from './my-drafts';
@@ -366,6 +366,54 @@ describe('MyDrafts', () => {
         tone: 'error',
       }),
     );
+  });
+
+  it('pre-selects and opens the draft named by the ?open= query param', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [MyDrafts, provideTranslocoTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({ open: 'f1' }) } },
+        },
+      ],
+    }).compileComponents();
+    httpTesting = TestBed.inject(HttpTestingController);
+
+    const fixture = TestBed.createComponent(MyDrafts);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/my-drafts').flush([
+      {
+        id: 'f1',
+        itemId: 'i1',
+        entityType: 'DEVIL_FRUIT_TYPE',
+        romaji: 'Paramishia',
+        displayName: 'Paramecia',
+        status: 'DRAFT',
+        updatedAt: '2026-09-01T10:00:00Z',
+      },
+    ]);
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1').flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'DRAFT',
+      translations: {
+        it: { name: 'Paramecia', description: 'Descrizione IT' },
+        en: { name: 'Paramecia', description: 'EN description' },
+      },
+      updatedAt: '2026-09-01T10:00:00Z',
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['selectedId']()).toBe('f1');
+    expect(fixture.nativeElement.textContent).toContain('Descrizione IT');
   });
 
   it('shows a rejected draft distinctly in the list', async () => {
