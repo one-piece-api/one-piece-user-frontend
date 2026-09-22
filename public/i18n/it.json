@@ -82,6 +82,50 @@
           "text": "Qui vedi chi ha fatto cosa, e quando - utile quando qualcuno giura di non aver toccato nulla.",
           "code": "audit:read"
         }
+      },
+      "languages": {
+        "tip1": {
+          "text": "Il codice di una lingua non si può cambiare una volta creata - eliminala e aggiungine una nuova se hai sbagliato le lettere.",
+          "code": "languages:manage"
+        },
+        "tip2": {
+          "text": "Aggiungere una lingua qui la rende obbligatoria alla prossima invio in revisione di ogni bozza in corso - i contenuti già pubblicati restano intatti.",
+          "code": "modello di localizzazione"
+        }
+      },
+      "drafts": {
+        "tip1": {
+          "text": "Tre porte da qui: Le mie bozze per il tuo lavoro, In Revisione per la coda condivisa, Enciclopedia per ciò che è davvero pubblicato - compaiono solo quelle sbloccate dai tuoi permessi.",
+          "code": "content:write / content:review / content:read"
+        },
+        "tip2": {
+          "text": "Una bozza è tua e solo tua finché non la invii in revisione - nemmeno un ADMIN può sbirciare.",
+          "code": "isolamento per autore"
+        }
+      },
+      "reviewQueue": {
+        "tip1": {
+          "text": "Prendere in carico un elemento è ciò che ti rende responsabile del suo esito - prendilo in carico prima di giudicarlo.",
+          "code": "prendi in carico prima di decidere"
+        },
+        "tip2": {
+          "text": "Approvi un candidato mentre un fratello è già Reviewed? Quello vecchio si fa da parte in silenzio - soppiantato, non cancellato.",
+          "code": "supersessione"
+        },
+        "tip3": {
+          "text": "Niente ti vieta di revisionare il tuo stesso lavoro qui - l'equipaggio è piccolo, nessun ruolo di revisore separato è imposto.",
+          "code": "nessuna separazione dei compiti"
+        }
+      },
+      "encyclopedia": {
+        "tip1": {
+          "text": "Pubblicare crea uno scatto permanente - lo Storico Versioni li ricorda tutti, per sempre.",
+          "code": "content:publish"
+        },
+        "tip2": {
+          "text": "Ritirare un elemento lo toglie solo dalla vista - storico e bozze in corso restano intatti, e può sempre tornare.",
+          "code": "ritiro ≠ eliminazione"
+        }
       }
     }
   },

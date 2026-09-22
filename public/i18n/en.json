@@ -82,6 +82,50 @@
           "text": "Here you see who did what, and when - handy when someone swears they never touched a thing.",
           "code": "audit:read"
         }
+      },
+      "languages": {
+        "tip1": {
+          "text": "A language's code can't change once created - delete it and add a fresh one if you got the letters wrong.",
+          "code": "languages:manage"
+        },
+        "tip2": {
+          "text": "Adding a language here makes it required on every in-progress draft's next submission - already-published content is untouched.",
+          "code": "localization model"
+        }
+      },
+      "drafts": {
+        "tip1": {
+          "text": "Three doors from here: My Drafts for your own work, In Review for the shared queue, Encyclopedia for what's actually live - only the ones your permissions unlock ever show up.",
+          "code": "content:write / content:review / content:read"
+        },
+        "tip2": {
+          "text": "A draft is yours and only yours until you submit it - not even an ADMIN can peek.",
+          "code": "author-only isolation"
+        }
+      },
+      "reviewQueue": {
+        "tip1": {
+          "text": "Claiming an item is what makes you accountable for its fate - claim it before you judge it.",
+          "code": "claim before you decide"
+        },
+        "tip2": {
+          "text": "Approve one candidate while a sibling draft is already Reviewed? The older one quietly steps aside - superseded, not deleted.",
+          "code": "supersession"
+        },
+        "tip3": {
+          "text": "Nothing stops you from reviewing your own work here - the crew's small, and no separate reviewer role is enforced.",
+          "code": "no segregation of duty"
+        }
+      },
+      "encyclopedia": {
+        "tip1": {
+          "text": "Publish creates a permanent snapshot - Version History remembers every one of them, forever.",
+          "code": "content:publish"
+        },
+        "tip2": {
+          "text": "Retiring an item just pulls it from view - history and any in-progress draft stay untouched, and it can always come back.",
+          "code": "retire ≠ delete"
+        }
       }
     }
   },
