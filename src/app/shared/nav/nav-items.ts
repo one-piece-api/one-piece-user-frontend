@@ -29,6 +29,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         route: '/drafts',
         permission: 'content:write',
       },
+      {
+        id: 'review-queue',
+        label: 'shell.nav.reviewQueue',
+        icon: '⚖',
+        route: '/review-queue',
+        permission: 'content:review',
+      },
     ],
   },
   {
