@@ -76,6 +76,10 @@ describe('ReviewQueue', () => {
     const fixture = TestBed.createComponent(ReviewQueue);
     fixture.detectChanges();
     flushMe('reviewer-a@onepiece.local');
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/review-queue').flush([queueItem]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -92,6 +96,10 @@ describe('ReviewQueue', () => {
   ): Promise<HTMLElement> {
     fixture.detectChanges();
     flushMe(viewerEmail);
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/review-queue').flush([{ ...queueItem, claimedByEmail }]);
     await fixture.whenStable();
     fixture.detectChanges();

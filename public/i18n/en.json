@@ -13,7 +13,8 @@
       "encyclopedia": "Encyclopedia",
       "crewManifest": "Crew Manifest",
       "rolesPermissions": "Roles & Permissions",
-      "shipsLog": "Ship's Log"
+      "shipsLog": "Ship's Log",
+      "languages": "Languages"
     }
   },
   "langSwitcher": {
@@ -479,6 +480,36 @@
       "permissionGrantedFallback": "Permission granted ({{label}})",
       "permissionRevokedFromRole": "Permission {{permission}} revoked from {{role}}",
       "permissionRevokedFallback": "Permission revoked ({{label}})"
+    }
+  },
+  "languages": {
+    "eyebrow": "Admin Only · languages:manage",
+    "title": "Languages",
+    "loading": "Charting the catalog…",
+    "error": "Lost the catalog. Could not load the languages.",
+    "catalogHeading": "Supported Languages",
+    "newLanguage": "New Language",
+    "empty": "No languages in the catalog yet.",
+    "hint": "Adding a language makes it required on every in-progress draft's next submission - already-published content is unaffected.",
+    "deleteAria": "Delete language {{code}}",
+    "created": "Language {{name}} ({{code}}) added to the catalog!",
+    "deleted": "Language {{code}} removed from the catalog.",
+    "inUse": "Arrr! {{code}} is still used by existing content — it can't be removed yet.",
+    "deleteHeading": "Delete Language",
+    "deleteConfirmBody": "Arrr! This removes {{code}} from the catalog. Content already written in it is unaffected, but it stops being offered for new work.",
+    "newModal": {
+      "nameLabel": "Language Name",
+      "namePlaceholder": "e.g. Français",
+      "nameRequired": "A language needs a full name.",
+      "invalidName": "Arrr! That name isn't valid.",
+      "codeLabel": "Language Code",
+      "codePlaceholder": "e.g. fr",
+      "codeRequired": "A language needs a code.",
+      "invalidCode": "Use exactly 2 letters, e.g. \"fr\" or \"es\".",
+      "creating": "Adding…",
+      "create": "Add Language",
+      "alreadyExists": "Language {{code}} already exists.",
+      "genericFailed": "Arrr! Something went wrong adding the language."
     }
   }
 }

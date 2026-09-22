@@ -69,6 +69,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         route: '/audit',
         permission: 'audit:read',
       },
+      {
+        id: 'languages',
+        label: 'shell.nav.languages',
+        icon: '⚐',
+        route: '/languages',
+        permission: 'languages:manage',
+      },
     ],
   },
 ];

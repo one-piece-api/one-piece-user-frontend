@@ -13,7 +13,8 @@
       "encyclopedia": "Enciclopedia",
       "crewManifest": "Registro Equipaggio",
       "rolesPermissions": "Ruoli e Permessi",
-      "shipsLog": "Diario di Bordo"
+      "shipsLog": "Diario di Bordo",
+      "languages": "Lingue"
     }
   },
   "langSwitcher": {
@@ -479,6 +480,36 @@
       "permissionGrantedFallback": "Permesso concesso ({{label}})",
       "permissionRevokedFromRole": "Permesso {{permission}} revocato da {{role}}",
       "permissionRevokedFallback": "Permesso revocato ({{label}})"
+    }
+  },
+  "languages": {
+    "eyebrow": "Solo Admin · languages:manage",
+    "title": "Lingue",
+    "loading": "Tracciamo il catalogo…",
+    "error": "Catalogo perso. Impossibile caricare le lingue.",
+    "catalogHeading": "Lingue Supportate",
+    "newLanguage": "Nuova Lingua",
+    "empty": "Ancora nessuna lingua nel catalogo.",
+    "hint": "Aggiungere una lingua la rende obbligatoria alla prossima invio in revisione di ogni bozza in corso - i contenuti già pubblicati non ne risentono.",
+    "deleteAria": "Elimina lingua {{code}}",
+    "created": "Lingua {{name}} ({{code}}) aggiunta al catalogo!",
+    "deleted": "Lingua {{code}} rimossa dal catalogo.",
+    "inUse": "Arrr! {{code}} è ancora usata da contenuti esistenti — non può essere rimossa ora.",
+    "deleteHeading": "Elimina Lingua",
+    "deleteConfirmBody": "Arrr! Questo rimuove {{code}} dal catalogo. I contenuti già scritti in questa lingua non ne risentono, ma non verrà più proposta per nuovo lavoro.",
+    "newModal": {
+      "nameLabel": "Nome Lingua",
+      "namePlaceholder": "es. Français",
+      "nameRequired": "Una lingua ha bisogno di un nome completo.",
+      "invalidName": "Arrr! Quel nome non è valido.",
+      "codeLabel": "Codice Lingua",
+      "codePlaceholder": "es. fr",
+      "codeRequired": "Una lingua ha bisogno di un codice.",
+      "invalidCode": "Usa esattamente 2 lettere, es. \"fr\" o \"es\".",
+      "creating": "Aggiunta…",
+      "create": "Aggiungi Lingua",
+      "alreadyExists": "La lingua {{code}} esiste già.",
+      "genericFailed": "Arrr! Qualcosa è andato storto nell'aggiunta della lingua."
     }
   }
 }

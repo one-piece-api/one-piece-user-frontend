@@ -1,10 +1,9 @@
 /**
- * Mirrors one-piece-content-service's DTOs (Step 1, UF-CNT-01/02). Languages are hardcoded
- * here rather than fetched: the catalog is read-only until Step 10 adds ADMIN CRUD for it,
- * so there is nothing to fetch yet.
+ * Mirrors one-piece-content-service's DTOs (Step 1, UF-CNT-01/02). Languages are no longer a
+ * fixed union (Step 10): the catalog is ADMIN-managed, fetched at runtime via
+ * `LanguageCatalogService` - see that file for the active codes.
  */
-export const LANGUAGES = ['it', 'en'] as const;
-export type LanguageCode = (typeof LANGUAGES)[number];
+export type LanguageCode = string;
 
 export interface Translation {
   name: string | null;

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { AdminAuditPage } from './admin/audit-page';
+import { LanguagesPage } from './admin/languages-page';
 import { RolesPage } from './admin/roles-page';
 import { AdminUserDetail } from './admin/user-detail';
 import { AdminUserList } from './admin/user-list';
@@ -56,5 +57,11 @@ export const routes: Routes = [
     component: RolesPage,
     canActivate: [permissionGuard],
     data: { permission: 'roles:manage' },
+  },
+  {
+    path: 'languages',
+    component: LanguagesPage,
+    canActivate: [permissionGuard],
+    data: { permission: 'languages:manage' },
   },
 ];

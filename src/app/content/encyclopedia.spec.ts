@@ -104,6 +104,10 @@ describe('Encyclopedia', () => {
     const fixture = TestBed.createComponent(Encyclopedia);
     fixture.detectChanges();
     flushMe(['content:read']);
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/encyclopedia').flush([reviewedItem, publishedItem]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -130,6 +134,10 @@ describe('Encyclopedia', () => {
   ): Promise<HTMLElement> {
     fixture.detectChanges();
     flushMe(permissions);
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/encyclopedia').flush([reviewedItem]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -192,6 +200,10 @@ describe('Encyclopedia', () => {
   ): Promise<HTMLElement> {
     fixture.detectChanges();
     flushMe(permissions);
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/encyclopedia').flush([publishedItem]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -248,6 +260,10 @@ describe('Encyclopedia', () => {
     const fixture = TestBed.createComponent(Encyclopedia);
     fixture.detectChanges();
     flushMe(['content:read', 'content:publish']);
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/encyclopedia').flush([publishedItem]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -299,6 +315,10 @@ describe('Encyclopedia', () => {
     const mascotService = TestBed.inject(MascotService);
     fixture.detectChanges();
     flushMe(['content:read', 'content:publish']);
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/encyclopedia').flush([publishedItem]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -426,6 +446,10 @@ describe('Encyclopedia', () => {
     const fixture = TestBed.createComponent(Encyclopedia);
     fixture.detectChanges();
     flushMe(['content:read', 'content:write', 'content:publish']);
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting
       .expectOne('/api/content/encyclopedia')
       .flush([{ ...publishedItem, status: 'RETIRED' }]);

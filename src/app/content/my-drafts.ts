@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
@@ -13,27 +13,24 @@ import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import {
   EMPTY_TRANSLATION,
-  LANGUAGES,
   type LanguageCode,
-  type Translation,
+  type TranslationMap,
   type UpdateDraftRequest,
   type WorkingRevisionDetail,
   type WorkingRevisionSummary,
 } from './devil-fruit-type.model';
+import { LanguageCatalogService } from './language-catalog';
 
 const DRAFTS_ENDPOINT = '/api/content/devil-fruit-types';
 const MY_DRAFTS_ENDPOINT = '/api/content/my-drafts';
 
 interface EditModel {
   romaji: string;
-  translations: Record<LanguageCode, Translation>;
+  translations: TranslationMap;
 }
 
 function emptyEditModel(): EditModel {
-  return {
-    romaji: '',
-    translations: { it: { ...EMPTY_TRANSLATION }, en: { ...EMPTY_TRANSLATION } },
-  };
+  return { romaji: '', translations: {} };
 }
 
 /**
@@ -55,6 +52,7 @@ export class MyDrafts {
   private readonly mascotService = inject(MascotService);
   private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
+  private readonly languageCatalog = inject(LanguageCatalogService);
 
   protected readonly drafts = httpResource<WorkingRevisionSummary[]>(() => MY_DRAFTS_ENDPOINT);
 
@@ -77,16 +75,36 @@ export class MyDrafts {
   protected readonly creating = signal(false);
   protected readonly submitting = signal(false);
   protected readonly withdrawing = signal(false);
-  protected readonly activeLang = signal<LanguageCode>('it');
+  protected readonly activeLang = signal<LanguageCode>('');
   protected readonly editModel = signal<EditModel>(emptyEditModel());
 
   protected readonly deleting = signal(false);
   protected readonly deleteModalOpen = signal(false);
 
-  protected readonly languages = LANGUAGES;
+  protected readonly languages = computed(
+    () => this.languageCatalog.languages.value()?.map((l) => l.code) ?? [],
+  );
   protected readonly primaryClasses = buttonClasses('primary');
   protected readonly secondaryClasses = buttonClasses('secondary');
   protected readonly dangerClasses = buttonClasses('danger');
+
+  constructor() {
+    // Defaults `activeLang` to the catalog's first code once it loads, and re-picks if the
+    // active one disappears (an ADMIN deleted it mid-session) - same pattern as RolesPage's
+    // `selectedRole` effect. Reads `activeLang` untracked so a manual tab switch isn't
+    // immediately overwritten by this same effect re-running.
+    effect(() => {
+      const codes = this.languages();
+      if (codes.length === 0) {
+        return;
+      }
+      const current = untracked(() => this.activeLang());
+      if (current && codes.includes(current)) {
+        return;
+      }
+      this.activeLang.set(codes[0]);
+    });
+  }
 
   protected async createDraft(): Promise<void> {
     this.creating.set(true);
@@ -133,12 +151,9 @@ export class MyDrafts {
     }
     this.editModel.set({
       romaji: source.romaji ?? '',
-      translations: {
-        it: { ...EMPTY_TRANSLATION, ...source.translations.it },
-        en: { ...EMPTY_TRANSLATION, ...source.translations.en },
-      },
+      translations: { ...source.translations },
     });
-    this.activeLang.set('it');
+    this.activeLang.set(this.languages()[0] ?? '');
     this.editing.set(true);
   }
 
@@ -155,7 +170,7 @@ export class MyDrafts {
       ...current,
       translations: {
         ...current.translations,
-        [lang]: { ...current.translations[lang], [field]: value },
+        [lang]: { ...EMPTY_TRANSLATION, ...current.translations[lang], [field]: value },
       },
     }));
   }

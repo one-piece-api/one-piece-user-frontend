@@ -1,0 +1,142 @@
+<div class="flex w-full max-w-2xl flex-col gap-6">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <app-page-header [eyebrow]="'languages.eyebrow' | transloco">{{
+      'languages.title' | transloco
+    }}</app-page-header>
+  </div>
+
+  @if (!languageCatalog.languages.hasValue() && languageCatalog.languages.isLoading()) {
+    <app-card [wide]="true">
+      <app-loading-placeholder [label]="'languages.loading' | transloco" />
+    </app-card>
+  } @else if (languageCatalog.languages.error()) {
+    <app-card [wide]="true">
+      <p class="font-heading text-flag-700">{{ 'languages.error' | transloco }}</p>
+    </app-card>
+  } @else {
+    <app-card [wide]="true">
+      <div class="flex items-center justify-between gap-3">
+        <h3 class="font-display text-lg font-semibold text-ocean-900">
+          {{ 'languages.catalogHeading' | transloco }}
+        </h3>
+        <button type="button" [class]="primaryClasses" (click)="openModal()">
+          {{ 'languages.newLanguage' | transloco }}
+        </button>
+      </div>
+      <div class="mt-3 flex flex-col gap-2">
+        @for (entry of languageCatalog.languages.value(); track entry.code) {
+          <div
+            class="flex items-center justify-between gap-3 rounded-xl border-2 border-ocean-900/10 bg-parchment-100 p-3"
+          >
+            <span class="min-w-0">
+              <span class="block font-display text-sm font-semibold text-ocean-900">{{
+                entry.name
+              }}</span>
+              <span class="block font-heading text-xs font-bold text-ocean-500 uppercase">{{
+                entry.code
+              }}</span>
+            </span>
+            <button
+              type="button"
+              class="flex-none cursor-pointer rounded-md p-1.5 text-flag-700 transition-colors hover:bg-flag-500/10"
+              [attr.aria-label]="'languages.deleteAria' | transloco: { code: entry.code }"
+              (click)="requestDelete(entry.code)"
+            >
+              🗑
+            </button>
+          </div>
+        } @empty {
+          <p class="font-heading text-sm text-ocean-500">{{ 'languages.empty' | transloco }}</p>
+        }
+      </div>
+      <p class="mt-3 font-heading text-sm text-ocean-500">{{ 'languages.hint' | transloco }}</p>
+    </app-card>
+  }
+</div>
+
+<app-modal
+  [open]="modalOpen()"
+  [heading]="'languages.newLanguage' | transloco"
+  (closed)="closeModal()"
+>
+  <form (submit)="onSubmitModal($event)" novalidate class="flex flex-col gap-4 text-left">
+    <div>
+      <label
+        for="language-name"
+        class="mb-1.5 block font-heading text-xs font-bold text-ocean-500"
+        >{{ 'languages.newModal.nameLabel' | transloco }}</label
+      >
+      <input
+        id="language-name"
+        type="text"
+        [formField]="modalForm.name"
+        [placeholder]="'languages.newModal.namePlaceholder' | transloco"
+        class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 transition-colors focus:border-ocean-700 focus:outline-none"
+      />
+      @if (modalForm.name().touched() && modalForm.name().errors().length > 0) {
+        <p class="mt-1 font-heading text-sm text-flag-700">
+          {{ modalForm.name().errors()[0].message }}
+        </p>
+      }
+    </div>
+    <div>
+      <label
+        for="language-code"
+        class="mb-1.5 block font-heading text-xs font-bold text-ocean-500"
+        >{{ 'languages.newModal.codeLabel' | transloco }}</label
+      >
+      <input
+        id="language-code"
+        type="text"
+        [formField]="modalForm.code"
+        [placeholder]="'languages.newModal.codePlaceholder' | transloco"
+        class="w-full rounded-lg border border-ocean-900/15 bg-parchment-50 px-3 py-2 font-heading text-ocean-900 uppercase transition-colors focus:border-ocean-700 focus:outline-none"
+      />
+      @if (modalForm.code().touched() && modalForm.code().errors().length > 0) {
+        <p class="mt-1 font-heading text-sm text-flag-700">
+          {{ modalForm.code().errors()[0].message }}
+        </p>
+      }
+    </div>
+    @if (modalError(); as message) {
+      <p class="font-heading text-sm text-flag-700">{{ message }}</p>
+    }
+    <div class="mt-2 flex justify-end gap-3">
+      <button type="button" [class]="secondaryClasses" (click)="closeModal()">
+        {{ 'common.cancel' | transloco }}
+      </button>
+      <button type="submit" [class]="primaryClasses" [disabled]="modalForm().submitting()">
+        {{
+          modalForm().submitting()
+            ? ('languages.newModal.creating' | transloco)
+            : ('languages.newModal.create' | transloco)
+        }}
+      </button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal
+  [open]="deletingCode() !== null"
+  [heading]="'languages.deleteHeading' | transloco"
+  (closed)="cancelDelete()"
+>
+  <p class="font-heading text-ocean-900">
+    {{ 'languages.deleteConfirmBody' | transloco: { code: deletingCode() } }}
+  </p>
+  <div class="mt-6 flex justify-end gap-3">
+    <button type="button" [class]="secondaryClasses" (click)="cancelDelete()">
+      {{ 'common.cancel' | transloco }}
+    </button>
+    <button
+      type="button"
+      [class]="dangerClasses"
+      [disabled]="deletePending()"
+      (click)="confirmDelete()"
+    >
+      {{
+        deletePending() ? ('common.working' | transloco) : ('languages.deleteHeading' | transloco)
+      }}
+    </button>
+  </div>
+</app-modal>

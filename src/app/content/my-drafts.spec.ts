@@ -39,6 +39,10 @@ describe('MyDrafts', () => {
     const fixture = TestBed.createComponent(MyDrafts);
     fixture.detectChanges();
 
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([
       {
         id: 'f1',
@@ -62,6 +66,10 @@ describe('MyDrafts', () => {
     const fixture = TestBed.createComponent(MyDrafts);
     fixture.detectChanges();
 
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -73,6 +81,10 @@ describe('MyDrafts', () => {
   it('selecting a draft fetches and shows its detail', async () => {
     const fixture = TestBed.createComponent(MyDrafts);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([
       {
         id: 'f1',
@@ -116,6 +128,10 @@ describe('MyDrafts', () => {
     const fixture = TestBed.createComponent(MyDrafts);
     const component = fixture.componentInstance;
     fixture.detectChanges();
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([]);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -151,6 +167,10 @@ describe('MyDrafts', () => {
     status: 'DRAFT' | 'IN_REVIEW',
   ): Promise<HTMLElement> {
     fixture.detectChanges();
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([
       {
         id: 'f1',
@@ -301,6 +321,10 @@ describe('MyDrafts', () => {
   it('hides Edit while a draft is in review, and shows who claimed it', async () => {
     const fixture = TestBed.createComponent(MyDrafts);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([
       {
         id: 'f1',
@@ -401,6 +425,10 @@ describe('MyDrafts', () => {
     const fixture = TestBed.createComponent(MyDrafts);
     fixture.detectChanges();
 
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([
       {
         id: 'f1',
@@ -433,6 +461,10 @@ describe('MyDrafts', () => {
   it('shows a rejected draft distinctly in the list', async () => {
     const fixture = TestBed.createComponent(MyDrafts);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([
       {
         id: 'f1',
@@ -455,6 +487,10 @@ describe('MyDrafts', () => {
   it('hides Delete Draft once the item has been published', async () => {
     const fixture = TestBed.createComponent(MyDrafts);
     fixture.detectChanges();
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
     httpTesting.expectOne('/api/content/my-drafts').flush([
       {
         id: 'f1',

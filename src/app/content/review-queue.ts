@@ -1,5 +1,5 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { CurrentUserService } from '../identity/current-user';
@@ -12,11 +12,11 @@ import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
 import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import {
-  LANGUAGES,
   type LanguageCode,
   type ReviewQueueItem,
   type WorkingRevisionDetail,
 } from './devil-fruit-type.model';
+import { LanguageCatalogService } from './language-catalog';
 
 const DRAFTS_ENDPOINT = '/api/content/devil-fruit-types';
 const REVIEW_QUEUE_ENDPOINT = '/api/content/review-queue';
@@ -38,6 +38,7 @@ export class ReviewQueue {
   private readonly mascotService = inject(MascotService);
   private readonly transloco = inject(TranslocoService);
   private readonly currentUser = inject(CurrentUserService);
+  private readonly languageCatalog = inject(LanguageCatalogService);
 
   protected readonly queue = httpResource<ReviewQueueItem[]>(() => REVIEW_QUEUE_ENDPOINT);
 
@@ -49,7 +50,7 @@ export class ReviewQueue {
 
   /** Mobile-only, same pattern as "Le mie bozze" - see that component for the rationale. */
   protected readonly mobileShowDetail = signal(false);
-  protected readonly activeLang = signal<LanguageCode>('it');
+  protected readonly activeLang = signal<LanguageCode>('');
 
   protected readonly claiming = signal(false);
   protected readonly releasing = signal(false);
@@ -58,7 +59,9 @@ export class ReviewQueue {
   protected readonly rejectModalOpen = signal(false);
   protected readonly rejectReason = signal('');
 
-  protected readonly languages = LANGUAGES;
+  protected readonly languages = computed(
+    () => this.languageCatalog.languages.value()?.map((l) => l.code) ?? [],
+  );
   protected readonly primaryClasses = buttonClasses('primary');
   protected readonly secondaryClasses = buttonClasses('secondary');
   protected readonly dangerClasses = buttonClasses('danger');
@@ -67,6 +70,21 @@ export class ReviewQueue {
     const email = this.currentUser.me.value()?.email;
     return !!email && this.detail.value()?.claimedByEmail === email;
   });
+
+  constructor() {
+    // Same "default to the first, re-pick if it disappears" pattern as MyDrafts.
+    effect(() => {
+      const codes = this.languages();
+      if (codes.length === 0) {
+        return;
+      }
+      const current = untracked(() => this.activeLang());
+      if (current && codes.includes(current)) {
+        return;
+      }
+      this.activeLang.set(codes[0]);
+    });
+  }
 
   protected select(id: string): void {
     this.selectedId.set(id);
