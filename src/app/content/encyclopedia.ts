@@ -10,9 +10,11 @@ import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
+import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import {
   LANGUAGES,
+  type ContentVersion,
   type EncyclopediaItem,
   type EncyclopediaItemDetail,
   type LanguageCode,
@@ -34,7 +36,7 @@ const ENCYCLOPEDIA_ENDPOINT = '/api/content/encyclopedia';
 @Component({
   selector: 'app-encyclopedia',
   templateUrl: './encyclopedia.html',
-  imports: [Card, Badge, PageHeader, TranslocoPipe, LoadingPlaceholder],
+  imports: [Card, Badge, PageHeader, Modal, TranslocoPipe, LoadingPlaceholder],
 })
 export class Encyclopedia {
   private readonly http = inject(HttpClient);
@@ -60,9 +62,24 @@ export class Encyclopedia {
   protected readonly languages = LANGUAGES;
   protected readonly primaryClasses = buttonClasses('primary');
   protected readonly secondaryClasses = buttonClasses('secondary');
+  protected readonly dangerClasses = buttonClasses('danger');
 
   protected readonly canPublish = computed(() => this.currentUser.hasPermission('content:publish'));
   protected readonly canEdit = computed(() => this.currentUser.hasPermission('content:write'));
+
+  /**
+   * Step 7's "Storico versioni" - `content:publish` only (flows document 7.7), so a
+   * `content:read`-only viewer never even issues the request, not just doesn't see the
+   * panel.
+   */
+  protected readonly versions = httpResource<ContentVersion[]>(() => {
+    const itemId = this.selectedItemId();
+    return itemId && this.canPublish() ? `${DRAFTS_ENDPOINT}/${itemId}/versions` : undefined;
+  });
+
+  protected readonly restoring = signal(false);
+  protected readonly restoreModalOpen = signal(false);
+  protected readonly restoreTarget = signal<ContentVersion | null>(null);
 
   protected select(itemId: string): void {
     this.selectedItemId.set(itemId);
@@ -77,6 +94,13 @@ export class Encyclopedia {
     this.activeLang.set(lang);
   }
 
+  protected formatPublishedAt(publishedAt: string): string {
+    return new Intl.DateTimeFormat(this.transloco.getActiveLang(), {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(publishedAt));
+  }
+
   protected async publish(): Promise<void> {
     const workingRevisionId = this.detail.value()?.workingRevisionId;
     if (!workingRevisionId) {
@@ -88,11 +112,69 @@ export class Encyclopedia {
       this.mascotService.show(this.transloco.translate('encyclopedia.published'), 'success');
       this.detail.reload();
       this.items.reload();
+      this.versions.reload();
     } catch (err) {
       this.handlePublishError(err);
     } finally {
       this.publishing.set(false);
     }
+  }
+
+  protected openRestoreModal(version: ContentVersion): void {
+    this.restoreTarget.set(version);
+    this.restoreModalOpen.set(true);
+  }
+
+  protected closeRestoreModal(): void {
+    this.restoreModalOpen.set(false);
+  }
+
+  /**
+   * UF-CNT-12: repoints the live pointer straight at an older snapshot -
+   * `content:publish` only, no new version row, no review step.
+   */
+  protected async confirmRestore(): Promise<void> {
+    const itemId = this.selectedItemId();
+    const target = this.restoreTarget();
+    if (!itemId || !target) {
+      return;
+    }
+    this.restoring.set(true);
+    try {
+      await firstValueFrom(
+        this.http.post(`${DRAFTS_ENDPOINT}/${itemId}/versions/${target.id}/restore`, {}),
+      );
+      this.mascotService.show(
+        this.transloco.translate('encyclopedia.versionHistory.restored'),
+        'success',
+      );
+      this.restoreModalOpen.set(false);
+      this.detail.reload();
+      this.items.reload();
+      this.versions.reload();
+    } catch (err) {
+      this.handleRestoreError(err);
+    } finally {
+      this.restoring.set(false);
+    }
+  }
+
+  private handleRestoreError(err: unknown): void {
+    if (!(err instanceof HttpErrorResponse)) {
+      return;
+    }
+    if (err.status === 404) {
+      this.mascotService.show(this.transloco.translate('encyclopedia.gone'), 'error');
+      this.restoreModalOpen.set(false);
+      this.selectedItemId.set(null);
+      this.mobileShowDetail.set(false);
+      this.items.reload();
+      return;
+    }
+    this.mascotService.show(
+      this.transloco.translate('encyclopedia.versionHistory.restoreError'),
+      'error',
+    );
   }
 
   /**

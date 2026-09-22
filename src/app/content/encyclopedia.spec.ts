@@ -6,6 +6,20 @@ import { MascotService } from '../shared/mascot/mascot';
 import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { Encyclopedia } from './encyclopedia';
 
+// jsdom doesn't implement <dialog>'s showModal()/close() yet - every real browser this app
+// targets does, so this is purely a test-environment gap.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement): void {
+    this.setAttribute('open', '');
+  };
+}
+if (!HTMLDialogElement.prototype.close) {
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement): void {
+    this.removeAttribute('open');
+    this.dispatchEvent(new Event('close'));
+  };
+}
+
 describe('Encyclopedia', () => {
   let httpTesting: HttpTestingController;
 
@@ -95,6 +109,17 @@ describe('Encyclopedia', () => {
     expect(root.textContent).toContain('Zoan');
   });
 
+  /** Flushes Step 7's version-history request too, whenever the caller can see it. */
+  function maybeFlushVersions(
+    itemId: string,
+    permissions: string[],
+    versions: unknown[] = [],
+  ): void {
+    if (permissions.includes('content:publish')) {
+      httpTesting.expectOne(`/api/content/devil-fruit-types/${itemId}/versions`).flush(versions);
+    }
+  }
+
   async function selectItem(
     fixture: ReturnType<typeof TestBed.createComponent<Encyclopedia>>,
     permissions: string[],
@@ -113,6 +138,7 @@ describe('Encyclopedia', () => {
     fixture.detectChanges();
 
     httpTesting.expectOne('/api/content/encyclopedia/i1').flush(reviewedDetail());
+    maybeFlushVersions('i1', permissions);
     await fixture.whenStable();
     fixture.detectChanges();
     return root;
@@ -139,6 +165,7 @@ describe('Encyclopedia', () => {
     httpTesting
       .expectOne('/api/content/encyclopedia')
       .flush([{ ...reviewedItem, status: 'PUBLISHED' }]);
+    httpTesting.expectOne('/api/content/devil-fruit-types/i1/versions').flush([]);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -173,6 +200,7 @@ describe('Encyclopedia', () => {
     fixture.detectChanges();
 
     httpTesting.expectOne('/api/content/encyclopedia/i2').flush(publishedDetail());
+    maybeFlushVersions('i2', permissions);
     await fixture.whenStable();
     fixture.detectChanges();
     return root;
@@ -228,6 +256,15 @@ describe('Encyclopedia', () => {
     fixture.detectChanges();
 
     httpTesting.expectOne('/api/content/encyclopedia/i2').flush(publishedDetail());
+    httpTesting.expectOne('/api/content/devil-fruit-types/i2/versions').flush([
+      {
+        id: 'v1',
+        sequenceNumber: 1,
+        publisherEmail: 'nami@onepiece.local',
+        publishedAt: '2026-09-22T09:00:00Z',
+        live: true,
+      },
+    ]);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -237,5 +274,101 @@ describe('Encyclopedia', () => {
       (button) => button.textContent?.trim() === 'Publish',
     );
     expect(publishButton).toBeUndefined();
+  });
+
+  it('a content:publish holder sees the version history panel', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    const root = await selectPublishedItem(fixture, ['content:read', 'content:publish']);
+
+    expect(root.textContent).toContain('Version History');
+  });
+
+  it('a content:read-only viewer does not see the version history panel', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    const root = await selectPublishedItem(fixture, ['content:read']);
+
+    expect(root.textContent).not.toContain('Version History');
+  });
+
+  it('restoring an older version repoints the live pointer', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    const mascotService = TestBed.inject(MascotService);
+    fixture.detectChanges();
+    flushMe(['content:read', 'content:publish']);
+    httpTesting.expectOne('/api/content/encyclopedia').flush([publishedItem]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    let root = fixture.nativeElement as HTMLElement;
+    const row = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.includes('Zoan'),
+    );
+    row?.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/encyclopedia/i2').flush(publishedDetail());
+    httpTesting.expectOne('/api/content/devil-fruit-types/i2/versions').flush([
+      {
+        id: 'v2',
+        sequenceNumber: 2,
+        publisherEmail: 'nami@onepiece.local',
+        publishedAt: '2026-09-22T09:00:00Z',
+        live: true,
+      },
+      {
+        id: 'v1',
+        sequenceNumber: 1,
+        publisherEmail: 'nami@onepiece.local',
+        publishedAt: '2026-09-21T09:00:00Z',
+        live: false,
+      },
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    root = fixture.nativeElement as HTMLElement;
+    const restoreButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Restore',
+    );
+    expect(restoreButton).toBeTruthy();
+    restoreButton!.click();
+    fixture.detectChanges();
+
+    const confirmButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Confirm Restore',
+    );
+    confirmButton!.click();
+    fixture.detectChanges();
+
+    const restoreReq = httpTesting.expectOne(
+      '/api/content/devil-fruit-types/i2/versions/v1/restore',
+    );
+    expect(restoreReq.request.method).toBe('POST');
+    restoreReq.flush({});
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/encyclopedia/i2').flush(publishedDetail());
+    httpTesting.expectOne('/api/content/encyclopedia').flush([publishedItem]);
+    httpTesting.expectOne('/api/content/devil-fruit-types/i2/versions').flush([
+      {
+        id: 'v2',
+        sequenceNumber: 2,
+        publisherEmail: 'nami@onepiece.local',
+        publishedAt: '2026-09-22T09:00:00Z',
+        live: false,
+      },
+      {
+        id: 'v1',
+        sequenceNumber: 1,
+        publisherEmail: 'nami@onepiece.local',
+        publishedAt: '2026-09-21T09:00:00Z',
+        live: true,
+      },
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(expect.objectContaining({ tone: 'success' }));
   });
 });

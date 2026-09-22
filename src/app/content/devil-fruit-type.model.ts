@@ -81,4 +81,17 @@ export interface UpdateDraftRequest {
   translations: TranslationMap;
 }
 
+/**
+ * One row of Step 7's "Storico versioni" - a published snapshot, `content:publish` only.
+ * No content fields: the panel is a list to pick a rollback target from, not a diff
+ * viewer - see {@link EncyclopediaItemDetail} for the currently-shown content.
+ */
+export interface ContentVersion {
+  id: string;
+  sequenceNumber: number;
+  publisherEmail: string | null;
+  publishedAt: string;
+  live: boolean;
+}
+
 export const EMPTY_TRANSLATION: Translation = { name: '', description: '' };

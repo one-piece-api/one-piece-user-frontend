@@ -250,6 +250,21 @@
       "REVIEWED": "Revisionato",
       "PUBLISHED": "Pubblicato",
       "RETIRED": "Ritirato"
+    },
+    "versionHistory": {
+      "title": "Storico versioni",
+      "loading": "Recupero lo storico…",
+      "loadError": "Arrr! Impossibile caricare lo storico versioni — riprova tra un momento.",
+      "empty": "Nessuna versione pubblicata finora.",
+      "live": "Live",
+      "publishedBy": "pubblicato da {{email}} il {{date}}",
+      "restore": "Ripristina",
+      "restoring": "Ripristino…",
+      "restored": "Ripristinato! Questa è ora la versione live.",
+      "restoreError": "Arrr! Impossibile ripristinare questa versione — riprova tra un momento.",
+      "restoreModalHeading": "Ripristina questa versione?",
+      "restoreModalBody": "La versione v{{sequenceNumber}} tornerà a essere quella live. Non serve una nuova revisione.",
+      "restoreConfirm": "Conferma ripristino"
     }
   },
   "users": {

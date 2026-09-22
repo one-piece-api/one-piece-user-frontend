@@ -250,6 +250,21 @@
       "REVIEWED": "Reviewed",
       "PUBLISHED": "Published",
       "RETIRED": "Retired"
+    },
+    "versionHistory": {
+      "title": "Version History",
+      "loading": "Fetching the version history…",
+      "loadError": "Arrr! Couldn't load the version history — try again in a moment.",
+      "empty": "Nothing published yet.",
+      "live": "Live",
+      "publishedBy": "published by {{email}} on {{date}}",
+      "restore": "Restore",
+      "restoring": "Restoring…",
+      "restored": "Restored! It's now the live version.",
+      "restoreError": "Arrr! Couldn't restore this version — try again in a moment.",
+      "restoreModalHeading": "Restore This Version?",
+      "restoreModalBody": "Version v{{sequenceNumber}} will become the live one again. No new review needed.",
+      "restoreConfirm": "Confirm Restore"
     }
   },
   "users": {
