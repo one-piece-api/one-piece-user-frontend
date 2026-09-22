@@ -41,6 +41,10 @@
                     <app-badge tone="success" [dot]="true">{{
                       'encyclopedia.status.PUBLISHED' | transloco
                     }}</app-badge>
+                  } @else if (item.status === 'RETIRED') {
+                    <app-badge tone="neutral" [dot]="true">{{
+                      'encyclopedia.status.RETIRED' | transloco
+                    }}</app-badge>
                   } @else {
                     <app-badge tone="gold" [dot]="true">{{
                       'encyclopedia.status.REVIEWED' | transloco
@@ -83,9 +87,9 @@
               <h2 class="font-display text-xl font-semibold text-ocean-900">
                 {{ d.translations.it?.name || d.romaji || ('encyclopedia.untitled' | transloco) }}
               </h2>
-              @if (d.status === 'PUBLISHED') {
-                <app-badge tone="success" [dot]="true">{{
-                  'encyclopedia.status.PUBLISHED' | transloco
+              @if (d.status === 'PUBLISHED' || d.status === 'RETIRED') {
+                <app-badge [tone]="d.status === 'PUBLISHED' ? 'success' : 'neutral'" [dot]="true">{{
+                  'encyclopedia.status.' + d.status | transloco
                 }}</app-badge>
                 <p class="mt-1 font-heading text-xs text-ocean-700/70">
                   {{
@@ -99,34 +103,41 @@
                 }}</app-badge>
               }
             </div>
-            @if (d.status === 'REVIEWED' && canPublish()) {
-              <button
-                type="button"
-                [class]="primaryClasses"
-                [disabled]="publishing()"
-                (click)="publish()"
-              >
-                {{
-                  publishing()
-                    ? ('encyclopedia.publishing' | transloco)
-                    : ('encyclopedia.publish' | transloco)
-                }}
-              </button>
-            }
-            @if (d.status === 'PUBLISHED' && canEdit()) {
-              <button
-                type="button"
-                [class]="secondaryClasses"
-                [disabled]="startingEdit()"
-                (click)="startEdit()"
-              >
-                {{
-                  startingEdit()
-                    ? ('encyclopedia.editing' | transloco)
-                    : ('encyclopedia.edit' | transloco)
-                }}
-              </button>
-            }
+            <div class="flex shrink-0 gap-2">
+              @if (d.status === 'REVIEWED' && canPublish()) {
+                <button
+                  type="button"
+                  [class]="primaryClasses"
+                  [disabled]="publishing()"
+                  (click)="publish()"
+                >
+                  {{
+                    publishing()
+                      ? ('encyclopedia.publishing' | transloco)
+                      : ('encyclopedia.publish' | transloco)
+                  }}
+                </button>
+              }
+              @if ((d.status === 'PUBLISHED' || d.status === 'RETIRED') && canEdit()) {
+                <button
+                  type="button"
+                  [class]="secondaryClasses"
+                  [disabled]="startingEdit()"
+                  (click)="startEdit()"
+                >
+                  {{
+                    startingEdit()
+                      ? ('encyclopedia.editing' | transloco)
+                      : ('encyclopedia.edit' | transloco)
+                  }}
+                </button>
+              }
+              @if (d.status === 'PUBLISHED' && canPublish()) {
+                <button type="button" [class]="dangerClasses" (click)="openRetireModal()">
+                  {{ 'encyclopedia.retire' | transloco }}
+                </button>
+              }
+            </div>
           </div>
 
           <div class="mt-4 rounded-lg bg-parchment-50 p-3">
@@ -264,6 +275,35 @@
           restoring()
             ? ('encyclopedia.versionHistory.restoring' | transloco)
             : ('encyclopedia.versionHistory.restoreConfirm' | transloco)
+        }}
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<app-modal
+  [open]="retireModalOpen()"
+  [heading]="'encyclopedia.retireModalHeading' | transloco"
+  (closed)="closeRetireModal()"
+>
+  <div class="flex flex-col gap-4 text-left">
+    <p class="font-heading text-sm text-ocean-700">
+      {{ 'encyclopedia.retireModalBody' | transloco }}
+    </p>
+    <div class="flex justify-end gap-3">
+      <button type="button" [class]="secondaryClasses" (click)="closeRetireModal()">
+        {{ 'common.cancel' | transloco }}
+      </button>
+      <button
+        type="button"
+        [class]="dangerClasses"
+        [disabled]="retiring()"
+        (click)="confirmRetire()"
+      >
+        {{
+          retiring()
+            ? ('encyclopedia.retiring' | transloco)
+            : ('encyclopedia.retireConfirm' | transloco)
         }}
       </button>
     </div>

@@ -96,6 +96,10 @@ describe('Encyclopedia', () => {
     };
   }
 
+  function retiredDetail() {
+    return { ...publishedDetail(), status: 'RETIRED' };
+  }
+
   it('lists reviewed and published items', async () => {
     const fixture = TestBed.createComponent(Encyclopedia);
     fixture.detectChanges();
@@ -370,5 +374,82 @@ describe('Encyclopedia', () => {
     fixture.detectChanges();
 
     expect(mascotService.message()).toEqual(expect.objectContaining({ tone: 'success' }));
+  });
+
+  it('a content:publish holder sees Retire on a published item and can retire it', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    const mascotService = TestBed.inject(MascotService);
+    let root = await selectPublishedItem(fixture, ['content:read', 'content:publish']);
+
+    const retireButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Retire',
+    );
+    expect(retireButton).toBeTruthy();
+    retireButton!.click();
+    fixture.detectChanges();
+
+    root = fixture.nativeElement as HTMLElement;
+    const confirmButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Confirm Retire',
+    );
+    confirmButton!.click();
+    fixture.detectChanges();
+
+    const retireReq = httpTesting.expectOne('/api/content/devil-fruit-types/i2/retire');
+    expect(retireReq.request.method).toBe('POST');
+    retireReq.flush({});
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/encyclopedia/i2').flush(retiredDetail());
+    httpTesting
+      .expectOne('/api/content/encyclopedia')
+      .flush([{ ...publishedItem, status: 'RETIRED' }]);
+    httpTesting.expectOne('/api/content/devil-fruit-types/i2/versions').flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(expect.objectContaining({ tone: 'success' }));
+  });
+
+  it('a non-PUBLISHER does not see Retire on a published item', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    const root = await selectPublishedItem(fixture, ['content:read', 'content:write']);
+
+    const retireButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Retire',
+    );
+    expect(retireButton).toBeUndefined();
+  });
+
+  it('shows a retired item read-only, with Edit still available and no Publish/Retire', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    fixture.detectChanges();
+    flushMe(['content:read', 'content:write', 'content:publish']);
+    httpTesting
+      .expectOne('/api/content/encyclopedia')
+      .flush([{ ...publishedItem, status: 'RETIRED' }]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const row = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.includes('Zoan'),
+    );
+    row?.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/encyclopedia/i2').flush(retiredDetail());
+    httpTesting.expectOne('/api/content/devil-fruit-types/i2/versions').flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain('Retired');
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(buttons).toContain('Edit');
+    expect(buttons).not.toContain('Publish');
+    expect(buttons).not.toContain('Retire');
   });
 });

@@ -25,10 +25,11 @@ const DRAFTS_ENDPOINT = '/api/content/devil-fruit-types';
 const ENCYCLOPEDIA_ENDPOINT = '/api/content/encyclopedia';
 
 /**
- * UF-CNT-07 (docs/user-flows/authentication-and-user-management.md): "Enciclopedia" -
- * every item currently `REVIEWED` (awaiting publish) or `PUBLISHED`, read-only content,
- * visible to all three content roles via `content:read`. "Pubblica" is rendered only for
- * `content:publish` holders on a `REVIEWED` row. The entity-type picker the plan
+ * UF-CNT-07/UF-CNT-10 (docs/user-flows/authentication-and-user-management.md):
+ * "Enciclopedia" - every item currently `REVIEWED` (awaiting publish), `PUBLISHED`, or
+ * `RETIRED`, read-only content, visible to all three content roles via `content:read`.
+ * "Pubblica" is rendered only for `content:publish` holders on a `REVIEWED` row, "Ritira"
+ * only for the same holders on a `PUBLISHED` row. The entity-type picker the plan
  * describes is skipped for now, same simplification already made for "Le mie bozze"'s "+
  * Nuova bozza" in Step 1: with only one real entity, there is nothing yet to pick
  * between.
@@ -81,6 +82,9 @@ export class Encyclopedia {
   protected readonly restoreModalOpen = signal(false);
   protected readonly restoreTarget = signal<ContentVersion | null>(null);
 
+  protected readonly retiring = signal(false);
+  protected readonly retireModalOpen = signal(false);
+
   protected select(itemId: string): void {
     this.selectedItemId.set(itemId);
     this.mobileShowDetail.set(true);
@@ -118,6 +122,54 @@ export class Encyclopedia {
     } finally {
       this.publishing.set(false);
     }
+  }
+
+  protected openRetireModal(): void {
+    this.retireModalOpen.set(true);
+  }
+
+  protected closeRetireModal(): void {
+    this.retireModalOpen.set(false);
+  }
+
+  /**
+   * UF-CNT-10: clears the item's live pointer - it stops being shown as live/public, but
+   * its history and any in-progress working revision are untouched; it can return live via
+   * a future Publish or Restore.
+   */
+  protected async confirmRetire(): Promise<void> {
+    const itemId = this.detail.value()?.itemId;
+    if (!itemId) {
+      return;
+    }
+    this.retiring.set(true);
+    try {
+      await firstValueFrom(this.http.post(`${DRAFTS_ENDPOINT}/${itemId}/retire`, {}));
+      this.mascotService.show(this.transloco.translate('encyclopedia.retired'), 'success');
+      this.retireModalOpen.set(false);
+      this.detail.reload();
+      this.items.reload();
+      this.versions.reload();
+    } catch (err) {
+      this.handleRetireError(err);
+    } finally {
+      this.retiring.set(false);
+    }
+  }
+
+  private handleRetireError(err: unknown): void {
+    if (!(err instanceof HttpErrorResponse)) {
+      return;
+    }
+    if (err.status === 404) {
+      this.mascotService.show(this.transloco.translate('encyclopedia.gone'), 'error');
+      this.retireModalOpen.set(false);
+      this.selectedItemId.set(null);
+      this.mobileShowDetail.set(false);
+      this.items.reload();
+      return;
+    }
+    this.mascotService.show(this.transloco.translate('encyclopedia.retireError'), 'error');
   }
 
   protected openRestoreModal(version: ContentVersion): void {

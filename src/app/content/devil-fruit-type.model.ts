@@ -64,7 +64,10 @@ export interface EncyclopediaItem {
   updatedAt: string;
 }
 
-/** `sequenceNumber`/`publisherEmail` are set only once `status` is `PUBLISHED`. */
+/**
+ * `sequenceNumber`/`publisherEmail` are set once `status` is `PUBLISHED` or `RETIRED`
+ * (Step 8) - for a retired item they describe its last live version.
+ */
 export interface EncyclopediaItemDetail {
   itemId: string;
   workingRevisionId: string | null;
