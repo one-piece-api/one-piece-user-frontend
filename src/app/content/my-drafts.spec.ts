@@ -6,6 +6,20 @@ import { MascotService } from '../shared/mascot/mascot';
 import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { MyDrafts } from './my-drafts';
 
+// jsdom doesn't implement <dialog>'s showModal()/close() yet - every real browser this app
+// targets does, so this is purely a test-environment gap.
+if (!HTMLDialogElement.prototype.showModal) {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement): void {
+    this.setAttribute('open', '');
+  };
+}
+if (!HTMLDialogElement.prototype.close) {
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement): void {
+    this.removeAttribute('open');
+    this.dispatchEvent(new Event('close'));
+  };
+}
+
 describe('MyDrafts', () => {
   let httpTesting: HttpTestingController;
 
@@ -436,5 +450,124 @@ describe('MyDrafts', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('Rejected');
+  });
+
+  it('hides Delete Draft once the item has been published', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/my-drafts').flush([
+      {
+        id: 'f1',
+        itemId: 'i1',
+        entityType: 'DEVIL_FRUIT_TYPE',
+        romaji: 'Paramishia',
+        displayName: 'Paramecia',
+        status: 'DRAFT',
+        updatedAt: '2026-09-01T10:00:00Z',
+      },
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const draftRow = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.includes('Paramecia'),
+    );
+    draftRow?.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1').flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'DRAFT',
+      translations: {},
+      updatedAt: '2026-09-01T10:00:00Z',
+      everPublished: true,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const buttonLabels = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(buttonLabels).not.toContain('Delete Draft');
+  });
+
+  it('deletes a never-published draft and returns to the list', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    const mascotService = TestBed.inject(MascotService);
+    const root = await selectDraft(fixture, 'DRAFT');
+
+    const deleteButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Delete Draft',
+    );
+    deleteButton!.click();
+    fixture.detectChanges();
+
+    const confirmButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Confirm deletion',
+    );
+    confirmButton!.click();
+    fixture.detectChanges();
+
+    const deleteReq = httpTesting.expectOne('/api/content/devil-fruit-types/f1');
+    expect(deleteReq.request.method).toBe('DELETE');
+    deleteReq.flush(null, { status: 204, statusText: 'No Content' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/my-drafts').flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({ text: 'Draft deleted for good.', tone: 'success' }),
+    );
+    expect(root.textContent).toContain('No draft open yet');
+  });
+
+  it('shows a blocked message when deleting a since-published item is refused', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    const mascotService = TestBed.inject(MascotService);
+    const root = await selectDraft(fixture, 'DRAFT');
+
+    const deleteButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Delete Draft',
+    );
+    deleteButton!.click();
+    fixture.detectChanges();
+
+    const confirmButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Confirm deletion',
+    );
+    confirmButton!.click();
+    fixture.detectChanges();
+
+    httpTesting
+      .expectOne('/api/content/devil-fruit-types/f1')
+      .flush(
+        { errorCode: 'CONTENT_CANNOT_DELETE_PUBLISHED_ITEM', status: 409 },
+        { status: 409, statusText: 'Conflict' },
+      );
+    await fixture.whenStable();
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1').flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'DRAFT',
+      translations: {},
+      updatedAt: '2026-09-01T10:00:00Z',
+      everPublished: true,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({
+        text: 'Arrr! This item has already been published once — it can no longer be deleted, only retired from the Encyclopedia.',
+        tone: 'error',
+      }),
+    );
   });
 });

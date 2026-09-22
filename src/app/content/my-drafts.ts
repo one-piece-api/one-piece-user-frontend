@@ -9,6 +9,7 @@ import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
+import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import {
   EMPTY_TRANSLATION,
@@ -47,7 +48,7 @@ function emptyEditModel(): EditModel {
 @Component({
   selector: 'app-my-drafts',
   templateUrl: './my-drafts.html',
-  imports: [Card, Badge, PageHeader, TranslocoPipe, LoadingPlaceholder],
+  imports: [Card, Badge, PageHeader, Modal, TranslocoPipe, LoadingPlaceholder],
 })
 export class MyDrafts {
   private readonly http = inject(HttpClient);
@@ -79,9 +80,13 @@ export class MyDrafts {
   protected readonly activeLang = signal<LanguageCode>('it');
   protected readonly editModel = signal<EditModel>(emptyEditModel());
 
+  protected readonly deleting = signal(false);
+  protected readonly deleteModalOpen = signal(false);
+
   protected readonly languages = LANGUAGES;
   protected readonly primaryClasses = buttonClasses('primary');
   protected readonly secondaryClasses = buttonClasses('secondary');
+  protected readonly dangerClasses = buttonClasses('danger');
 
   protected async createDraft(): Promise<void> {
     this.creating.set(true);
@@ -237,6 +242,64 @@ export class MyDrafts {
     } finally {
       this.withdrawing.set(false);
     }
+  }
+
+  protected openDeleteModal(): void {
+    this.deleteModalOpen.set(true);
+  }
+
+  protected closeDeleteModal(): void {
+    this.deleteModalOpen.set(false);
+  }
+
+  /**
+   * UF-CNT-11: permanently removes the caller's own working revision - only reachable
+   * while the item has never been published (`d.everPublished` gates the button itself),
+   * so a 409 here means the item was published by someone else between the page loading
+   * and this click.
+   */
+  protected async confirmDelete(): Promise<void> {
+    const id = this.selectedId();
+    if (!id) {
+      return;
+    }
+    this.deleting.set(true);
+    try {
+      await firstValueFrom(this.http.delete(`${DRAFTS_ENDPOINT}/${id}`));
+      this.mascotService.show(this.transloco.translate('drafts.deleted'), 'success');
+      this.deleteModalOpen.set(false);
+      this.selectedId.set(null);
+      this.mobileShowDetail.set(false);
+      this.drafts.reload();
+    } catch (err) {
+      this.handleDeleteError(err);
+    } finally {
+      this.deleting.set(false);
+    }
+  }
+
+  private handleDeleteError(err: unknown): void {
+    if (!(err instanceof HttpErrorResponse)) {
+      return;
+    }
+    if (err.status === 404) {
+      this.mascotService.show(this.transloco.translate('drafts.gone'), 'error');
+      this.deleteModalOpen.set(false);
+      this.selectedId.set(null);
+      this.mobileShowDetail.set(false);
+      this.drafts.reload();
+      return;
+    }
+    if (
+      err.status === 409 &&
+      apiErrorOf(err)?.errorCode === 'CONTENT_CANNOT_DELETE_PUBLISHED_ITEM'
+    ) {
+      this.mascotService.show(this.transloco.translate('drafts.deleteBlocked'), 'error');
+      this.deleteModalOpen.set(false);
+      this.detail.reload();
+      return;
+    }
+    this.mascotService.show(this.transloco.translate('drafts.deleteError'), 'error');
   }
 
   private handleSubmitError(err: unknown): void {

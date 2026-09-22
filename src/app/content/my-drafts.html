@@ -137,6 +137,11 @@
                     {{ 'drafts.edit' | transloco }}
                   </button>
                 }
+                @if (!d.everPublished) {
+                  <button type="button" [class]="dangerClasses" (click)="openDeleteModal()">
+                    {{ 'drafts.delete' | transloco }}
+                  </button>
+                }
               </div>
             }
           </div>
@@ -253,3 +258,28 @@
     </div>
   </div>
 </div>
+
+<app-modal
+  [open]="deleteModalOpen()"
+  [heading]="'drafts.deleteModalHeading' | transloco"
+  (closed)="closeDeleteModal()"
+>
+  <div class="flex flex-col gap-4 text-left">
+    <p class="font-heading text-sm text-ocean-700">
+      {{ 'drafts.deleteModalBody' | transloco }}
+    </p>
+    <div class="flex justify-end gap-3">
+      <button type="button" [class]="secondaryClasses" (click)="closeDeleteModal()">
+        {{ 'common.cancel' | transloco }}
+      </button>
+      <button
+        type="button"
+        [class]="dangerClasses"
+        [disabled]="deleting()"
+        (click)="confirmDelete()"
+      >
+        {{ deleting() ? ('drafts.deleting' | transloco) : ('drafts.deleteConfirm' | transloco) }}
+      </button>
+    </div>
+  </div>
+</app-modal>

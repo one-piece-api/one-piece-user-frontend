@@ -23,6 +23,8 @@ export interface WorkingRevisionDetail {
   authorEmail: string | null;
   claimedByEmail: string | null;
   rejectionReason: string | null;
+  /** UF-CNT-11: "Elimina bozza" is shown only while this is false. */
+  everPublished: boolean;
 }
 
 export interface WorkingRevisionSummary {
