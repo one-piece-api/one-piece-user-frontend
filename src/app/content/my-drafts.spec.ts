@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { MascotService } from '../shared/mascot/mascot';
 import { provideTranslocoTesting } from '../testing/i18n-testing';
 import { MyDrafts } from './my-drafts';
 
@@ -129,5 +130,157 @@ describe('MyDrafts', () => {
 
     expect(component['selectedId']()).toBe('f2');
     expect(component['editing']()).toBe(true);
+  });
+
+  async function selectDraft(
+    fixture: ReturnType<typeof TestBed.createComponent<MyDrafts>>,
+    status: 'DRAFT' | 'IN_REVIEW',
+  ): Promise<HTMLElement> {
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/my-drafts').flush([
+      {
+        id: 'f1',
+        itemId: 'i1',
+        entityType: 'DEVIL_FRUIT_TYPE',
+        romaji: 'Paramishia',
+        displayName: 'Paramecia',
+        status,
+        updatedAt: '2026-09-01T10:00:00Z',
+      },
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const draftRow = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.includes('Paramecia'),
+    );
+    draftRow?.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1').flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status,
+      translations: {
+        it: { name: 'Paramecia', description: 'Descrizione IT' },
+        en: { name: 'Paramecia', description: 'EN description' },
+      },
+      updatedAt: '2026-09-01T10:00:00Z',
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return root;
+  }
+
+  it('submitting a complete draft moves it to review', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    const mascotService = TestBed.inject(MascotService);
+    const root = await selectDraft(fixture, 'DRAFT');
+
+    const submitButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Submit for Review',
+    );
+    submitButton!.click();
+    fixture.detectChanges();
+
+    const submitReq = httpTesting.expectOne('/api/content/devil-fruit-types/f1/submit');
+    expect(submitReq.request.method).toBe('POST');
+    submitReq.flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'IN_REVIEW',
+      translations: {},
+      updatedAt: '2026-09-01T10:00:00Z',
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1').flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'IN_REVIEW',
+      translations: {},
+      updatedAt: '2026-09-01T10:00:00Z',
+    });
+    httpTesting.expectOne('/api/content/my-drafts').flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(expect.objectContaining({ tone: 'success' }));
+    expect(root.textContent).toContain('In Review');
+  });
+
+  it('shows the missing fields when submitting an incomplete draft fails', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    const mascotService = TestBed.inject(MascotService);
+    const root = await selectDraft(fixture, 'DRAFT');
+
+    const submitButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Submit for Review',
+    );
+    submitButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1/submit').flush(
+      {
+        errorCode: 'CONTENT_INCOMPLETE',
+        status: 422,
+        errors: [{ field: 'translations.en.name', message: 'required' }],
+      },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({
+        text: 'Arrr! Not ready for review yet. Missing: EN · Name.',
+        tone: 'error',
+      }),
+    );
+  });
+
+  it('withdrawing an in-review draft returns it to draft', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    const mascotService = TestBed.inject(MascotService);
+    const root = await selectDraft(fixture, 'IN_REVIEW');
+
+    const withdrawButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Withdraw to Draft',
+    );
+    withdrawButton!.click();
+    fixture.detectChanges();
+
+    const withdrawReq = httpTesting.expectOne('/api/content/devil-fruit-types/f1/withdraw');
+    expect(withdrawReq.request.method).toBe('POST');
+    withdrawReq.flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'DRAFT',
+      translations: {},
+      updatedAt: '2026-09-01T10:00:00Z',
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1').flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'DRAFT',
+      translations: {},
+      updatedAt: '2026-09-01T10:00:00Z',
+    });
+    httpTesting.expectOne('/api/content/my-drafts').flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({ text: 'Draft brought back. You can edit it again.', tone: 'info' }),
+    );
+    expect(root.textContent).toContain('Draft');
   });
 });

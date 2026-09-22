@@ -2,6 +2,7 @@ import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/htt
 import { Component, inject, signal } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
+import { apiErrorOf } from '../shared/http/api-error';
 import { MascotService } from '../shared/mascot/mascot';
 import { Badge } from '../shared/ui/badge';
 import { buttonClasses } from '../shared/ui/button-variants';
@@ -34,11 +35,12 @@ function emptyEditModel(): EditModel {
 }
 
 /**
- * UF-CNT-01/02 (docs/user-flows/authentication-and-user-management.md): "Le mie bozze" -
- * every private working revision the caller authored, master-detail (compact scrollable
- * list + detail pane, both visible together, per the reference mockup's structural
- * pattern). No submit/withdraw/approve/publish actions yet - those land in later steps;
- * this screen only ever creates and edits a draft still in `DRAFT`.
+ * UF-CNT-01/02/03/04 (docs/user-flows/authentication-and-user-management.md): "Le mie
+ * bozze" - every private working revision the caller authored, master-detail (compact
+ * scrollable list + detail pane, both visible together, per the reference mockup's
+ * structural pattern). Create/edit a `DRAFT`, submit it for review, or withdraw an
+ * `IN_REVIEW` revision back to `DRAFT`. No approve/publish actions yet - those land in
+ * later steps.
  */
 @Component({
   selector: 'app-my-drafts',
@@ -68,6 +70,8 @@ export class MyDrafts {
   protected readonly editing = signal(false);
   protected readonly saving = signal(false);
   protected readonly creating = signal(false);
+  protected readonly submitting = signal(false);
+  protected readonly withdrawing = signal(false);
   protected readonly activeLang = signal<LanguageCode>('it');
   protected readonly editModel = signal<EditModel>(emptyEditModel());
 
@@ -177,5 +181,109 @@ export class MyDrafts {
       this.mascotService.show(this.transloco.translate('drafts.saveError'), 'error');
     }
     // 401/403/5xx already get a themed toast from apiErrorInterceptor.
+  }
+
+  protected async submitForReview(): Promise<void> {
+    const id = this.selectedId();
+    if (!id) {
+      return;
+    }
+    this.submitting.set(true);
+    try {
+      await firstValueFrom(
+        this.http.post<WorkingRevisionDetail>(`${DRAFTS_ENDPOINT}/${id}/submit`, {}),
+      );
+      this.mascotService.show(this.transloco.translate('drafts.submitted'), 'success');
+      this.detail.reload();
+      this.drafts.reload();
+    } catch (err) {
+      this.handleSubmitError(err);
+    } finally {
+      this.submitting.set(false);
+    }
+  }
+
+  protected async withdrawToDraft(): Promise<void> {
+    const id = this.selectedId();
+    if (!id) {
+      return;
+    }
+    this.withdrawing.set(true);
+    try {
+      await firstValueFrom(
+        this.http.post<WorkingRevisionDetail>(`${DRAFTS_ENDPOINT}/${id}/withdraw`, {}),
+      );
+      this.mascotService.show(this.transloco.translate('drafts.withdrawn'), 'info');
+      this.detail.reload();
+      this.drafts.reload();
+    } catch (err) {
+      this.handleWithdrawError(err);
+    } finally {
+      this.withdrawing.set(false);
+    }
+  }
+
+  private handleSubmitError(err: unknown): void {
+    if (!(err instanceof HttpErrorResponse)) {
+      return;
+    }
+    if (err.status === 404) {
+      this.mascotService.show(this.transloco.translate('drafts.gone'), 'error');
+      this.selectedId.set(null);
+      this.drafts.reload();
+      return;
+    }
+    const apiError = apiErrorOf(err);
+    if (err.status === 422 && apiError?.errors) {
+      const fields = apiError.errors
+        .map((violation) => this.describeField(violation.field))
+        .join(', ');
+      this.mascotService.show(
+        this.transloco.translate('drafts.submitIncomplete', { fields }),
+        'error',
+      );
+      return;
+    }
+    if (err.status === 409 && apiError?.errorCode === 'CONTENT_REVIEW_SLOT_OCCUPIED') {
+      this.mascotService.show(this.transloco.translate('drafts.submitSlotOccupied'), 'error');
+      return;
+    }
+    if (err.status === 409 && apiError?.errorCode === 'CONTENT_INVALID_STATUS_TRANSITION') {
+      this.mascotService.show(this.transloco.translate('drafts.statusChanged'), 'error');
+      this.detail.reload();
+      this.drafts.reload();
+    }
+    // 401/403/5xx already get a themed toast from apiErrorInterceptor.
+  }
+
+  private handleWithdrawError(err: unknown): void {
+    if (!(err instanceof HttpErrorResponse)) {
+      return;
+    }
+    if (err.status === 404) {
+      this.mascotService.show(this.transloco.translate('drafts.gone'), 'error');
+      this.selectedId.set(null);
+      this.drafts.reload();
+      return;
+    }
+    if (err.status === 409 && apiErrorOf(err)?.errorCode === 'CONTENT_INVALID_STATUS_TRANSITION') {
+      this.mascotService.show(this.transloco.translate('drafts.statusChanged'), 'error');
+      this.detail.reload();
+      this.drafts.reload();
+    }
+    // 401/403/5xx already get a themed toast from apiErrorInterceptor.
+  }
+
+  /** Turns a backend field path ("translations.en.name") into a label the mascot can list. */
+  private describeField(field: string): string {
+    if (field === 'romaji') {
+      return this.transloco.translate('drafts.romaji');
+    }
+    const match = /^translations\.(\w+)\.(name|description)$/.exec(field);
+    if (!match) {
+      return field;
+    }
+    const [, lang, property] = match;
+    return `${lang.toUpperCase()} · ${this.transloco.translate(`drafts.${property}`)}`;
   }
 }

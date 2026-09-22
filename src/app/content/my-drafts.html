@@ -85,9 +85,39 @@
               }}</app-badge>
             </div>
             @if (!editing()) {
-              <button type="button" [class]="secondaryClasses" (click)="startEdit()">
-                {{ 'drafts.edit' | transloco }}
-              </button>
+              <div class="flex shrink-0 flex-wrap justify-end gap-2">
+                @if (d.status === 'DRAFT') {
+                  <button
+                    type="button"
+                    [class]="primaryClasses"
+                    [disabled]="submitting()"
+                    (click)="submitForReview()"
+                  >
+                    {{
+                      submitting()
+                        ? ('drafts.submitting' | transloco)
+                        : ('drafts.submit' | transloco)
+                    }}
+                  </button>
+                }
+                @if (d.status === 'IN_REVIEW') {
+                  <button
+                    type="button"
+                    [class]="secondaryClasses"
+                    [disabled]="withdrawing()"
+                    (click)="withdrawToDraft()"
+                  >
+                    {{
+                      withdrawing()
+                        ? ('drafts.withdrawing' | transloco)
+                        : ('drafts.withdraw' | transloco)
+                    }}
+                  </button>
+                }
+                <button type="button" [class]="secondaryClasses" (click)="startEdit()">
+                  {{ 'drafts.edit' | transloco }}
+                </button>
+              </div>
             }
           </div>
 
