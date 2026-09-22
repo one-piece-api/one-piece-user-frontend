@@ -10,6 +10,7 @@
       "profile": "My Profile",
       "myDrafts": "My Drafts",
       "reviewQueue": "In Review",
+      "encyclopedia": "Encyclopedia",
       "crewManifest": "Crew Manifest",
       "rolesPermissions": "Roles & Permissions",
       "shipsLog": "Ship's Log"
@@ -221,6 +222,31 @@
     "rejectConfirm": "Confirm Rejection",
     "gone": "Arrr! This item is no longer in review.",
     "staleClaim": "Arrr! Something changed meanwhile — check again before retrying."
+  },
+  "encyclopedia": {
+    "eyebrow": "Everyone · content:read",
+    "title": "Encyclopedia",
+    "loading": "Unrolling the encyclopedia…",
+    "loadError": "Arrr! Couldn't load the encyclopedia — try again in a moment.",
+    "empty": "Nothing published or ready to publish yet.",
+    "untitled": "Untitled",
+    "noSelection": "Pick an item from the list — it stays put.",
+    "backToList": "← List",
+    "romaji": "Romaji",
+    "name": "Name",
+    "description": "Description",
+    "publish": "Publish",
+    "publishing": "Publishing…",
+    "published": "Published! It's now the live version.",
+    "publishError": "Arrr! Couldn't publish it — try again in a moment.",
+    "gone": "Arrr! This item is no longer available.",
+    "statusChanged": "Arrr! Its status changed meanwhile — check again before retrying.",
+    "versionInfo": "v{{sequenceNumber}} · published by {{email}}",
+    "status": {
+      "REVIEWED": "Reviewed",
+      "PUBLISHED": "Published",
+      "RETIRED": "Retired"
+    }
   },
   "users": {
     "eyebrow": "Admin Only · users:read",

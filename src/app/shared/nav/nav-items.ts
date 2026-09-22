@@ -36,6 +36,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         route: '/review-queue',
         permission: 'content:review',
       },
+      {
+        id: 'encyclopedia',
+        label: 'shell.nav.encyclopedia',
+        icon: '※',
+        route: '/encyclopedia',
+        permission: 'content:read',
+      },
     ],
   },
   {

@@ -48,6 +48,34 @@ export interface ReviewQueueItem {
   updatedAt: string;
 }
 
+/**
+ * One row of "Enciclopedia" (Step 5) - item-keyed, not working-revision-keyed, unlike
+ * every other list in this module: once published there's no single working revision
+ * left representing "the" item. `workingRevisionId` is non-null only for a `REVIEWED`
+ * row - it's the id Publish actually acts on.
+ */
+export interface EncyclopediaItem {
+  itemId: string;
+  workingRevisionId: string | null;
+  entityType: string;
+  romaji: string | null;
+  displayName: string | null;
+  status: string;
+  updatedAt: string;
+}
+
+/** `sequenceNumber`/`publisherEmail` are set only once `status` is `PUBLISHED`. */
+export interface EncyclopediaItemDetail {
+  itemId: string;
+  workingRevisionId: string | null;
+  romaji: string | null;
+  status: string;
+  translations: TranslationMap;
+  updatedAt: string;
+  sequenceNumber: number | null;
+  publisherEmail: string | null;
+}
+
 export interface UpdateDraftRequest {
   romaji: string;
   translations: TranslationMap;

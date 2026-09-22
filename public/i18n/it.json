@@ -10,6 +10,7 @@
       "profile": "Il Mio Profilo",
       "myDrafts": "Le Mie Bozze",
       "reviewQueue": "In Revisione",
+      "encyclopedia": "Enciclopedia",
       "crewManifest": "Registro Equipaggio",
       "rolesPermissions": "Ruoli e Permessi",
       "shipsLog": "Diario di Bordo"
@@ -221,6 +222,31 @@
     "rejectConfirm": "Conferma Rifiuto",
     "gone": "Arrr! Questo elemento non è più in revisione.",
     "staleClaim": "Arrr! Qualcosa è cambiato nel frattempo — ricontrolla prima di riprovare."
+  },
+  "encyclopedia": {
+    "eyebrow": "Tutti · content:read",
+    "title": "Enciclopedia",
+    "loading": "Srotoliamo l'enciclopedia…",
+    "loadError": "Arrr! Impossibile caricare l'enciclopedia — riprova tra un momento.",
+    "empty": "Ancora nessun elemento pubblicato o pronto per la pubblicazione.",
+    "untitled": "Senza nome",
+    "noSelection": "Scegli un elemento dall'elenco — la lista resta ferma dov'è.",
+    "backToList": "← Elenco",
+    "romaji": "Romaji",
+    "name": "Nome",
+    "description": "Descrizione",
+    "publish": "Pubblica",
+    "publishing": "Pubblicazione…",
+    "published": "Pubblicato! Ora è la versione live.",
+    "publishError": "Arrr! Impossibile pubblicare — riprova tra un momento.",
+    "gone": "Arrr! Questo elemento non è più disponibile.",
+    "statusChanged": "Arrr! Lo stato è cambiato nel frattempo — ricontrolla prima di riprovare.",
+    "versionInfo": "v{{sequenceNumber}} · pubblicato da {{email}}",
+    "status": {
+      "REVIEWED": "Revisionato",
+      "PUBLISHED": "Pubblicato",
+      "RETIRED": "Ritirato"
+    }
   },
   "users": {
     "eyebrow": "Solo Admin · users:read",

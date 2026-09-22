@@ -1,0 +1,164 @@
+<div class="flex w-full max-w-6xl flex-col gap-6">
+  <app-page-header [eyebrow]="'encyclopedia.eyebrow' | transloco">{{
+    'encyclopedia.title' | transloco
+  }}</app-page-header>
+
+  <div class="grid gap-4 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start">
+    <div [class]="mobileShowDetail() ? 'hidden lg:block' : 'block'">
+      <app-card [wide]="true" class="lg:sticky lg:top-6">
+        <div class="flex max-h-[70vh] flex-col gap-1 overflow-y-auto text-left">
+          @if (!items.hasValue() && items.isLoading()) {
+            <app-loading-placeholder [label]="'encyclopedia.loading' | transloco" />
+          } @else if (items.error()) {
+            <p class="font-heading text-flag-700">{{ 'encyclopedia.loadError' | transloco }}</p>
+          } @else if (items.value(); as list) {
+            @if (list.length === 0) {
+              <p class="font-heading text-sm text-ocean-700">
+                {{ 'encyclopedia.empty' | transloco }}
+              </p>
+            } @else {
+              @for (item of list; track item.itemId) {
+                <button
+                  type="button"
+                  (click)="select(item.itemId)"
+                  [class]="
+                    'flex items-center justify-between gap-2 rounded-lg border-l-4 px-3 py-2 text-left transition-colors ' +
+                    (selectedItemId() === item.itemId
+                      ? 'border-l-treasure-500 bg-parchment-200'
+                      : 'border-l-transparent hover:bg-parchment-50')
+                  "
+                >
+                  <span class="min-w-0">
+                    <span
+                      class="block truncate font-display text-sm font-semibold text-ocean-900"
+                      >{{ item.displayName || ('encyclopedia.untitled' | transloco) }}</span
+                    >
+                    <span class="block truncate font-heading text-xs text-ocean-700/70">{{
+                      item.romaji || '—'
+                    }}</span>
+                  </span>
+                  @if (item.status === 'PUBLISHED') {
+                    <app-badge tone="success" [dot]="true">{{
+                      'encyclopedia.status.PUBLISHED' | transloco
+                    }}</app-badge>
+                  } @else {
+                    <app-badge tone="gold" [dot]="true">{{
+                      'encyclopedia.status.REVIEWED' | transloco
+                    }}</app-badge>
+                  }
+                </button>
+              }
+            }
+          }
+        </div>
+      </app-card>
+    </div>
+
+    <div [class]="'min-w-0 ' + (mobileShowDetail() ? 'block' : 'hidden lg:block')">
+      @if (selectedItemId()) {
+        <button
+          type="button"
+          (click)="backToList()"
+          class="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-parchment-100 px-4 py-2 font-heading text-sm font-bold text-ocean-700 shadow-sm transition-colors hover:text-ocean-900 lg:hidden"
+        >
+          {{ 'encyclopedia.backToList' | transloco }}
+        </button>
+      }
+      @if (!selectedItemId()) {
+        <app-card [wide]="true">
+          <p class="font-heading text-ocean-700">{{ 'encyclopedia.noSelection' | transloco }}</p>
+        </app-card>
+      } @else if (!detail.hasValue() && detail.isLoading()) {
+        <app-card [wide]="true">
+          <app-loading-placeholder [label]="'encyclopedia.loading' | transloco" />
+        </app-card>
+      } @else if (detail.error()) {
+        <app-card [wide]="true">
+          <p class="font-heading text-flag-700">{{ 'encyclopedia.loadError' | transloco }}</p>
+        </app-card>
+      } @else if (detail.value(); as d) {
+        <app-card [wide]="true">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="font-display text-xl font-semibold text-ocean-900">
+                {{ d.translations.it?.name || d.romaji || ('encyclopedia.untitled' | transloco) }}
+              </h2>
+              @if (d.status === 'PUBLISHED') {
+                <app-badge tone="success" [dot]="true">{{
+                  'encyclopedia.status.PUBLISHED' | transloco
+                }}</app-badge>
+                <p class="mt-1 font-heading text-xs text-ocean-700/70">
+                  {{
+                    'encyclopedia.versionInfo'
+                      | transloco: { sequenceNumber: d.sequenceNumber, email: d.publisherEmail }
+                  }}
+                </p>
+              } @else {
+                <app-badge tone="gold" [dot]="true">{{
+                  'encyclopedia.status.REVIEWED' | transloco
+                }}</app-badge>
+              }
+            </div>
+            @if (d.status === 'REVIEWED' && canPublish()) {
+              <button
+                type="button"
+                [class]="primaryClasses"
+                [disabled]="publishing()"
+                (click)="publish()"
+              >
+                {{
+                  publishing()
+                    ? ('encyclopedia.publishing' | transloco)
+                    : ('encyclopedia.publish' | transloco)
+                }}
+              </button>
+            }
+          </div>
+
+          <div class="mt-4 rounded-lg bg-parchment-50 p-3">
+            <div class="font-heading text-xs font-bold text-ocean-500 uppercase">
+              {{ 'encyclopedia.romaji' | transloco }}
+            </div>
+            <div class="mt-1 font-display text-lg text-ocean-900">{{ d.romaji || '—' }}</div>
+          </div>
+
+          <div class="mt-4 flex gap-2">
+            @for (lang of languages; track lang) {
+              <button
+                type="button"
+                (click)="setActiveLang(lang)"
+                [class]="
+                  'rounded-lg px-3 py-1.5 font-heading text-sm font-bold uppercase ' +
+                  (activeLang() === lang
+                    ? 'bg-ocean-700 text-white'
+                    : 'bg-parchment-100 text-ocean-700')
+                "
+              >
+                {{ lang }}
+              </button>
+            }
+          </div>
+
+          <div class="mt-3 flex flex-col gap-3 text-left">
+            <div>
+              <div class="font-heading text-xs font-bold text-ocean-500 uppercase">
+                {{ 'encyclopedia.name' | transloco }}
+              </div>
+              <div class="mt-1 font-display text-base text-ocean-900">
+                {{ d.translations[activeLang()]?.name || '—' }}
+              </div>
+            </div>
+            <div>
+              <div class="font-heading text-xs font-bold text-ocean-500 uppercase">
+                {{ 'encyclopedia.description' | transloco }}
+              </div>
+              <div class="mt-1 font-heading text-sm whitespace-pre-wrap text-ocean-900">
+                {{ d.translations[activeLang()]?.description || '—' }}
+              </div>
+            </div>
+          </div>
+        </app-card>
+      }
+    </div>
+  </div>
+</div>

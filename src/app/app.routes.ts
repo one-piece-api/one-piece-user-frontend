@@ -3,6 +3,7 @@ import { AdminAuditPage } from './admin/audit-page';
 import { RolesPage } from './admin/roles-page';
 import { AdminUserDetail } from './admin/user-detail';
 import { AdminUserList } from './admin/user-list';
+import { Encyclopedia } from './content/encyclopedia';
 import { MyDrafts } from './content/my-drafts';
 import { ReviewQueue } from './content/review-queue';
 import { SessionExpired } from './identity/session-expired';
@@ -25,6 +26,12 @@ export const routes: Routes = [
     component: ReviewQueue,
     canActivate: [permissionGuard],
     data: { permission: 'content:review' },
+  },
+  {
+    path: 'encyclopedia',
+    component: Encyclopedia,
+    canActivate: [permissionGuard],
+    data: { permission: 'content:read' },
   },
   {
     path: 'users',
