@@ -283,4 +283,110 @@ describe('MyDrafts', () => {
     );
     expect(root.textContent).toContain('Draft');
   });
+
+  it('hides Edit while a draft is in review, and shows who claimed it', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/my-drafts').flush([
+      {
+        id: 'f1',
+        itemId: 'i1',
+        entityType: 'DEVIL_FRUIT_TYPE',
+        romaji: 'Paramishia',
+        displayName: 'Paramecia',
+        status: 'IN_REVIEW',
+        updatedAt: '2026-09-01T10:00:00Z',
+      },
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const draftRow = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.includes('Paramecia'),
+    );
+    draftRow?.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1').flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'IN_REVIEW',
+      translations: {},
+      updatedAt: '2026-09-01T10:00:00Z',
+      claimedByEmail: 'reviewer@onepiece.local',
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const buttonLabels = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).map((b) =>
+      b.textContent?.trim(),
+    );
+    expect(buttonLabels).not.toContain('Edit');
+    expect(buttonLabels).not.toContain('Withdraw to Draft');
+    expect(root.textContent).toContain('Being reviewed by reviewer@onepiece.local');
+  });
+
+  it('shows a specific message when withdrawing a claimed draft is rejected', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    const mascotService = TestBed.inject(MascotService);
+    const root = await selectDraft(fixture, 'IN_REVIEW');
+
+    const withdrawButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Withdraw to Draft',
+    );
+    withdrawButton!.click();
+    fixture.detectChanges();
+
+    httpTesting
+      .expectOne('/api/content/devil-fruit-types/f1/withdraw')
+      .flush(
+        { errorCode: 'CONTENT_REVIEW_ALREADY_CLAIMED', status: 409 },
+        { status: 409, statusText: 'Conflict' },
+      );
+    await fixture.whenStable();
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1').flush({
+      id: 'f1',
+      itemId: 'i1',
+      romaji: 'Paramishia',
+      status: 'IN_REVIEW',
+      translations: {},
+      updatedAt: '2026-09-01T10:00:00Z',
+      claimedByEmail: 'reviewer@onepiece.local',
+    });
+    httpTesting.expectOne('/api/content/my-drafts').flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({
+        text: "Arrr! A reviewer is already looking at it — you can't withdraw it now.",
+        tone: 'error',
+      }),
+    );
+  });
+
+  it('shows a rejected draft distinctly in the list', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/content/my-drafts').flush([
+      {
+        id: 'f1',
+        itemId: 'i1',
+        entityType: 'DEVIL_FRUIT_TYPE',
+        romaji: 'Paramishia',
+        displayName: 'Paramecia',
+        status: 'DRAFT',
+        updatedAt: '2026-09-01T10:00:00Z',
+        rejectionReason: 'Romaji is misspelled',
+      },
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Rejected');
+  });
 });

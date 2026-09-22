@@ -40,9 +40,15 @@
                       draft.romaji || ('drafts.romajiPending' | transloco)
                     }}</span>
                   </span>
-                  <app-badge tone="neutral" [dot]="true">{{
-                    'drafts.status.' + draft.status | transloco
-                  }}</app-badge>
+                  @if (isRejected(draft.status, draft.rejectionReason)) {
+                    <app-badge tone="danger" [dot]="true">{{
+                      'drafts.status.REJECTED' | transloco
+                    }}</app-badge>
+                  } @else {
+                    <app-badge tone="neutral" [dot]="true">{{
+                      'drafts.status.' + draft.status | transloco
+                    }}</app-badge>
+                  }
                 </button>
               }
             }
@@ -80,9 +86,15 @@
               <h2 class="font-display text-xl font-semibold text-ocean-900">
                 {{ d.translations.it?.name || d.romaji || ('drafts.untitled' | transloco) }}
               </h2>
-              <app-badge tone="neutral" [dot]="true">{{
-                'drafts.status.' + d.status | transloco
-              }}</app-badge>
+              @if (isRejected(d.status, d.rejectionReason)) {
+                <app-badge tone="danger" [dot]="true">{{
+                  'drafts.status.REJECTED' | transloco
+                }}</app-badge>
+              } @else {
+                <app-badge tone="neutral" [dot]="true">{{
+                  'drafts.status.' + d.status | transloco
+                }}</app-badge>
+              }
             </div>
             @if (!editing()) {
               <div class="flex shrink-0 flex-wrap justify-end gap-2">
@@ -101,27 +113,35 @@
                   </button>
                 }
                 @if (d.status === 'IN_REVIEW') {
-                  <button
-                    type="button"
-                    [class]="secondaryClasses"
-                    [disabled]="withdrawing()"
-                    (click)="withdrawToDraft()"
-                  >
-                    {{
-                      withdrawing()
-                        ? ('drafts.withdrawing' | transloco)
-                        : ('drafts.withdraw' | transloco)
-                    }}
+                  @if (!d.claimedByEmail) {
+                    <button
+                      type="button"
+                      [class]="secondaryClasses"
+                      [disabled]="withdrawing()"
+                      (click)="withdrawToDraft()"
+                    >
+                      {{
+                        withdrawing()
+                          ? ('drafts.withdrawing' | transloco)
+                          : ('drafts.withdraw' | transloco)
+                      }}
+                    </button>
+                  } @else {
+                    <app-badge tone="navy" [dot]="true"
+                      >{{ 'drafts.claimedBy' | transloco: { email: d.claimedByEmail } }}
+                    </app-badge>
+                  }
+                }
+                @if (d.status === 'DRAFT') {
+                  <button type="button" [class]="secondaryClasses" (click)="startEdit()">
+                    {{ 'drafts.edit' | transloco }}
                   </button>
                 }
-                <button type="button" [class]="secondaryClasses" (click)="startEdit()">
-                  {{ 'drafts.edit' | transloco }}
-                </button>
               </div>
             }
           </div>
 
-          @if (d.status === 'DRAFT' && d.rejectionReason) {
+          @if (isRejected(d.status, d.rejectionReason)) {
             <div class="mt-4 rounded-lg border border-flag-500/40 bg-flag-500/10 p-3">
               <div class="font-heading text-xs font-bold text-flag-700 uppercase">
                 {{ 'drafts.rejectionReason' | transloco }}

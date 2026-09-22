@@ -112,6 +112,11 @@ export class MyDrafts {
     this.activeLang.set(lang);
   }
 
+  /** A `DRAFT` with a leftover rejection reason - shown distinctly from an ordinary draft. */
+  protected isRejected(status: string, rejectionReason: string | null): boolean {
+    return status === 'DRAFT' && !!rejectionReason;
+  }
+
   protected startEdit(current?: WorkingRevisionDetail): void {
     const source = current ?? this.detail.value();
     if (!source) {
@@ -179,6 +184,13 @@ export class MyDrafts {
     }
     if (err instanceof HttpErrorResponse && err.status === 422) {
       this.mascotService.show(this.transloco.translate('drafts.saveError'), 'error');
+      return;
+    }
+    if (err instanceof HttpErrorResponse && err.status === 409) {
+      this.mascotService.show(this.transloco.translate('drafts.statusChanged'), 'error');
+      this.editing.set(false);
+      this.detail.reload();
+      this.drafts.reload();
     }
     // 401/403/5xx already get a themed toast from apiErrorInterceptor.
   }
@@ -266,7 +278,14 @@ export class MyDrafts {
       this.drafts.reload();
       return;
     }
-    if (err.status === 409 && apiErrorOf(err)?.errorCode === 'CONTENT_INVALID_STATUS_TRANSITION') {
+    const errorCode = apiErrorOf(err)?.errorCode;
+    if (err.status === 409 && errorCode === 'CONTENT_REVIEW_ALREADY_CLAIMED') {
+      this.mascotService.show(this.transloco.translate('drafts.withdrawClaimed'), 'error');
+      this.detail.reload();
+      this.drafts.reload();
+      return;
+    }
+    if (err.status === 409 && errorCode === 'CONTENT_INVALID_STATUS_TRANSITION') {
       this.mascotService.show(this.transloco.translate('drafts.statusChanged'), 'error');
       this.detail.reload();
       this.drafts.reload();

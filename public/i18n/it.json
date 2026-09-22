@@ -174,10 +174,13 @@
     "withdrawn": "Bozza riportata indietro. Puoi modificarla di nuovo.",
     "statusChanged": "Arrr! Lo stato è cambiato nel frattempo — ricontrolla prima di riprovare.",
     "rejectionReason": "Motivo del rifiuto",
+    "withdrawClaimed": "Arrr! Un revisore la sta già esaminando — non puoi ritirarla adesso.",
+    "claimedBy": "In esame da {{email}}",
     "status": {
       "DRAFT": "Bozza",
       "IN_REVIEW": "In Revisione",
-      "REVIEWED": "Revisionato"
+      "REVIEWED": "Revisionato",
+      "REJECTED": "Rifiutata"
     }
   },
   "reviewQueue": {

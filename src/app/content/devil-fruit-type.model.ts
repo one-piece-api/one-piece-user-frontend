@@ -33,6 +33,7 @@ export interface WorkingRevisionSummary {
   displayName: string | null;
   status: string;
   updatedAt: string;
+  rejectionReason: string | null;
 }
 
 /** One row of the shared "In Revisione" queue (Step 3) - every author's `IN_REVIEW` work. */
