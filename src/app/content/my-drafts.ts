@@ -339,6 +339,10 @@ export class MyDrafts {
       this.mascotService.show(this.transloco.translate(messageKey, { fields }), 'error');
       return;
     }
+    if (err.status === 422 && apiError?.errorCode === 'CONTENT_IDENTICAL_TO_EXISTING_VERSION') {
+      this.mascotService.show(this.transloco.translate('drafts.submitIdentical'), 'error');
+      return;
+    }
     if (err.status === 409 && apiError?.errorCode === 'CONTENT_REVIEW_SLOT_OCCUPIED') {
       this.mascotService.show(this.transloco.translate('drafts.submitSlotOccupied'), 'error');
       return;

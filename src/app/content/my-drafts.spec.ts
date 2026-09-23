@@ -307,6 +307,34 @@ describe('MyDrafts', () => {
     );
   });
 
+  it('shows a specific message when submitting unchanged content fails', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    const mascotService = TestBed.inject(MascotService);
+    const root = await selectDraft(fixture, 'DRAFT');
+
+    const submitButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Submit for Review',
+    );
+    submitButton!.click();
+    fixture.detectChanges();
+
+    httpTesting
+      .expectOne('/api/content/devil-fruit-types/f1/submit')
+      .flush(
+        { errorCode: 'CONTENT_IDENTICAL_TO_EXISTING_VERSION', status: 422 },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({
+        text: 'Arrr! No changes from an already-published version — nothing new to submit.',
+        tone: 'error',
+      }),
+    );
+  });
+
   it('withdrawing an in-review draft returns it to draft', async () => {
     const fixture = TestBed.createComponent(MyDrafts);
     const mascotService = TestBed.inject(MascotService);

@@ -215,6 +215,7 @@
     "submitted": "Bozza inviata in revisione. Non puoi più modificarla finché non torna indietro.",
     "submitIncomplete": "Arrr! Non è ancora pronta per la revisione. Manca: {{fields}}.",
     "submitDuplicate": "Arrr! Già usato da un altro Tipo di Frutto del Diavolo: {{fields}}.",
+    "submitIdentical": "Arrr! Nessuna modifica rispetto a una versione già pubblicata — niente da inviare.",
     "submitSlotOccupied": "Arrr! Un'altra bozza di questo elemento è già in revisione — attendi il suo esito.",
     "withdraw": "Riporta in Bozza",
     "withdrawing": "Rientro…",
