@@ -214,6 +214,7 @@
     "submitting": "Submitting…",
     "submitted": "Draft submitted for review. You can't edit it again until it comes back.",
     "submitIncomplete": "Arrr! Not ready for review yet. Missing: {{fields}}.",
+    "submitDuplicate": "Arrr! Already claimed by another Devil Fruit Type: {{fields}}.",
     "submitSlotOccupied": "Arrr! Another draft of this item is already in review — wait for its outcome.",
     "withdraw": "Withdraw to Draft",
     "withdrawing": "Withdrawing…",

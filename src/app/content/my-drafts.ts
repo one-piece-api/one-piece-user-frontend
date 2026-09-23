@@ -332,10 +332,11 @@ export class MyDrafts {
       const fields = apiError.errors
         .map((violation) => this.describeField(violation.field))
         .join(', ');
-      this.mascotService.show(
-        this.transloco.translate('drafts.submitIncomplete', { fields }),
-        'error',
-      );
+      const messageKey =
+        apiError.errorCode === 'CONTENT_DUPLICATE_CONTENT'
+          ? 'drafts.submitDuplicate'
+          : 'drafts.submitIncomplete';
+      this.mascotService.show(this.transloco.translate(messageKey, { fields }), 'error');
       return;
     }
     if (err.status === 409 && apiError?.errorCode === 'CONTENT_REVIEW_SLOT_OCCUPIED') {

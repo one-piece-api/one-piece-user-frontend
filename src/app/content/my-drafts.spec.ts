@@ -277,6 +277,36 @@ describe('MyDrafts', () => {
     );
   });
 
+  it('shows which fields collide when submitting a duplicate name/romaji fails', async () => {
+    const fixture = TestBed.createComponent(MyDrafts);
+    const mascotService = TestBed.inject(MascotService);
+    const root = await selectDraft(fixture, 'DRAFT');
+
+    const submitButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Submit for Review',
+    );
+    submitButton!.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/devil-fruit-types/f1/submit').flush(
+      {
+        errorCode: 'CONTENT_DUPLICATE_CONTENT',
+        status: 422,
+        errors: [{ field: 'romaji', message: 'already used by another Devil Fruit Type' }],
+      },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(mascotService.message()).toEqual(
+      expect.objectContaining({
+        text: 'Arrr! Already claimed by another Devil Fruit Type: Romaji.',
+        tone: 'error',
+      }),
+    );
+  });
+
   it('withdrawing an in-review draft returns it to draft', async () => {
     const fixture = TestBed.createComponent(MyDrafts);
     const mascotService = TestBed.inject(MascotService);
