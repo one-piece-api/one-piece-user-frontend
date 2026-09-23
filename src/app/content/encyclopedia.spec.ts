@@ -396,6 +396,89 @@ describe('Encyclopedia', () => {
     expect(mascotService.message()).toEqual(expect.objectContaining({ tone: 'success' }));
   });
 
+  it('clicking a version highlights it and shows its own content, distinct from the current one', async () => {
+    const fixture = TestBed.createComponent(Encyclopedia);
+    fixture.detectChanges();
+    flushMe(['content:read', 'content:publish']);
+    httpTesting.expectOne('/api/content/languages').flush([
+      { code: 'it', name: 'Italiano' },
+      { code: 'en', name: 'English' },
+    ]);
+    httpTesting.expectOne('/api/content/encyclopedia').flush([publishedItem]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    let root = fixture.nativeElement as HTMLElement;
+    const row = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.includes('Zoan'),
+    );
+    row?.click();
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/content/encyclopedia/i2').flush(publishedDetail());
+    httpTesting.expectOne('/api/content/devil-fruit-types/i2/versions').flush([
+      {
+        id: 'v2',
+        sequenceNumber: 2,
+        publisherEmail: 'nami@onepiece.local',
+        publishedAt: '2026-09-22T09:00:00Z',
+        live: true,
+      },
+      {
+        id: 'v1',
+        sequenceNumber: 1,
+        publisherEmail: 'nami@onepiece.local',
+        publishedAt: '2026-09-21T09:00:00Z',
+        live: false,
+      },
+    ]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Zoan');
+    expect(root.textContent).not.toContain('Viewing v1');
+
+    const v1Row = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+      button.textContent?.trim().startsWith('v1'),
+    );
+    v1Row!.click();
+    fixture.detectChanges();
+
+    const versionReq = httpTesting.expectOne('/api/content/devil-fruit-types/i2/versions/v1');
+    expect(versionReq.request.method).toBe('GET');
+    versionReq.flush({
+      id: 'v1',
+      sequenceNumber: 1,
+      publisherEmail: 'nami@onepiece.local',
+      publishedAt: '2026-09-21T09:00:00Z',
+      live: false,
+      romaji: 'Zoiashia v1',
+      translations: {
+        it: { name: 'Zoan v1', description: 'Descrizione v1' },
+        en: { name: 'Zoan v1 EN', description: 'v1 description' },
+      },
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Viewing v1');
+    expect(root.textContent).toContain('Zoan v1');
+    expect(root.textContent).toContain('Zoiashia v1');
+
+    const backButton = Array.from(root.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Back to current version',
+    );
+    backButton!.click();
+    fixture.detectChanges();
+
+    root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).not.toContain('Viewing v1');
+    expect(root.textContent).not.toContain('Zoan v1');
+    expect(root.textContent).not.toContain('Zoiashia v1');
+  });
+
   it('a content:publish holder sees Retire on a published item and can retire it', async () => {
     const fixture = TestBed.createComponent(Encyclopedia);
     const mascotService = TestBed.inject(MascotService);

@@ -14,9 +14,11 @@ import { Modal } from '../shared/ui/modal';
 import { PageHeader } from '../shared/ui/page-header';
 import {
   type ContentVersion,
+  type ContentVersionDetail,
   type EncyclopediaItem,
   type EncyclopediaItemDetail,
   type LanguageCode,
+  type TranslationMap,
   type WorkingRevisionDetail,
 } from './devil-fruit-type.model';
 import { LanguageCatalogService } from './language-catalog';
@@ -105,7 +107,51 @@ export class Encyclopedia {
 
   protected select(itemId: string): void {
     this.selectedItemId.set(itemId);
+    this.viewingVersionId.set(null);
     this.mobileShowDetail.set(true);
+  }
+
+  /**
+   * User-reported gap: "Storico versioni" was a list with no way to see what an older
+   * version actually said, only to restore it blind. `null` means "showing the item's
+   * current content" (via `detail`); otherwise `versionDetail` supplies it instead.
+   */
+  protected readonly viewingVersionId = signal<string | null>(null);
+
+  protected readonly versionDetail = httpResource<ContentVersionDetail>(() => {
+    const itemId = this.selectedItemId();
+    const versionId = this.viewingVersionId();
+    return itemId && versionId && this.canPublish()
+      ? `${DRAFTS_ENDPOINT}/${itemId}/versions/${versionId}`
+      : undefined;
+  });
+
+  /** Whichever content is on screen right now - the item's current state, or a past version. */
+  protected readonly displayedContent = computed(() => {
+    const viewing = this.versionDetail.value();
+    if (viewing) {
+      return {
+        romaji: viewing.romaji,
+        translations: viewing.translations,
+        sequenceNumber: viewing.sequenceNumber as number | null,
+        publisherEmail: viewing.publisherEmail,
+      };
+    }
+    const current = this.detail.value();
+    return {
+      romaji: current?.romaji ?? null,
+      translations: (current?.translations ?? {}) as TranslationMap,
+      sequenceNumber: current?.sequenceNumber ?? null,
+      publisherEmail: current?.publisherEmail ?? null,
+    };
+  });
+
+  protected viewVersion(version: ContentVersion): void {
+    this.viewingVersionId.set(version.id);
+  }
+
+  protected viewCurrent(): void {
+    this.viewingVersionId.set(null);
   }
 
   protected backToList(): void {
@@ -132,6 +178,7 @@ export class Encyclopedia {
     try {
       await firstValueFrom(this.http.post(`${DRAFTS_ENDPOINT}/${workingRevisionId}/publish`, {}));
       this.mascotService.show(this.transloco.translate('encyclopedia.published'), 'success');
+      this.viewingVersionId.set(null);
       this.detail.reload();
       this.items.reload();
       this.versions.reload();
@@ -165,6 +212,7 @@ export class Encyclopedia {
       await firstValueFrom(this.http.post(`${DRAFTS_ENDPOINT}/${itemId}/retire`, {}));
       this.mascotService.show(this.transloco.translate('encyclopedia.retired'), 'success');
       this.retireModalOpen.set(false);
+      this.viewingVersionId.set(null);
       this.detail.reload();
       this.items.reload();
       this.versions.reload();
@@ -219,6 +267,7 @@ export class Encyclopedia {
         'success',
       );
       this.restoreModalOpen.set(false);
+      this.viewingVersionId.set(null);
       this.detail.reload();
       this.items.reload();
       this.versions.reload();

@@ -87,8 +87,6 @@ export interface UpdateDraftRequest {
 
 /**
  * One row of Step 7's "Storico versioni" - a published snapshot, `content:publish` only.
- * No content fields: the panel is a list to pick a rollback target from, not a diff
- * viewer - see {@link EncyclopediaItemDetail} for the currently-shown content.
  */
 export interface ContentVersion {
   id: string;
@@ -96,6 +94,15 @@ export interface ContentVersion {
   publisherEmail: string | null;
   publishedAt: string;
   live: boolean;
+}
+
+/**
+ * One version's own full content (user-reported gap: picking a version from "Storico
+ * versioni" now shows what it actually said, not just its metadata).
+ */
+export interface ContentVersionDetail extends ContentVersion {
+  romaji: string | null;
+  translations: TranslationMap;
 }
 
 export const EMPTY_TRANSLATION: Translation = { name: '', description: '' };

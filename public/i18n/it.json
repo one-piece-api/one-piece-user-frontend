@@ -326,7 +326,11 @@
       "restoreError": "Arrr! Impossibile ripristinare questa versione — riprova tra un momento.",
       "restoreModalHeading": "Ripristina questa versione?",
       "restoreModalBody": "La versione v{{sequenceNumber}} tornerà a essere quella live. Non serve una nuova revisione.",
-      "restoreConfirm": "Conferma ripristino"
+      "restoreConfirm": "Conferma ripristino",
+      "viewingVersion": "Stai visualizzando v{{sequenceNumber}}",
+      "backToCurrent": "Torna alla versione corrente",
+      "detailLoading": "Recupero questa versione…",
+      "detailLoadError": "Arrr! Impossibile caricare questa versione — riprova tra un momento."
     }
   },
   "users": {

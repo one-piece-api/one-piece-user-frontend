@@ -326,7 +326,11 @@
       "restoreError": "Arrr! Couldn't restore this version — try again in a moment.",
       "restoreModalHeading": "Restore This Version?",
       "restoreModalBody": "Version v{{sequenceNumber}} will become the live one again. No new review needed.",
-      "restoreConfirm": "Confirm Restore"
+      "restoreConfirm": "Confirm Restore",
+      "viewingVersion": "Viewing v{{sequenceNumber}}",
+      "backToCurrent": "Back to current version",
+      "detailLoading": "Fetching this version…",
+      "detailLoadError": "Arrr! Couldn't load this version — try again in a moment."
     }
   },
   "users": {
