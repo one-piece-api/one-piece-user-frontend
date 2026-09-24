@@ -13,13 +13,14 @@ import { routes } from './app.routes';
 import { loadRuntimeConfig } from './config/runtime-config';
 import { AVAILABLE_LOCALES, resolveInitialLocale } from './i18n/locale';
 import { TranslocoHttpLoader } from './i18n/transloco-loader';
+import { contentLanguageInterceptor } from './shared/http/content-language-interceptor';
 import { apiErrorInterceptor } from './shared/http/error-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withInterceptors([apiErrorInterceptor])),
+    provideHttpClient(withInterceptors([contentLanguageInterceptor, apiErrorInterceptor])),
     provideTransloco({
       config: {
         availableLangs: [...AVAILABLE_LOCALES],
