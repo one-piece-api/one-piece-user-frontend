@@ -10,12 +10,11 @@ export interface LanguageEntry {
 }
 
 /**
- * The ADMIN-managed language catalog (docs/user-flows/authentication-and-user-management.md
- * 3.2, Step 10) - shared by every content screen that renders per-language tabs (Le mie
- * bozze, In Revisione, Enciclopedia) and by the admin management screen itself. One request
- * per app session rather than one per page (`providedIn: 'root'`, same singleton pattern as
- * `CurrentUserService`), since the endpoint is reachable by any authenticated caller and its
- * data is identical for all of them.
+ * The ADMIN-managed language catalog (docs/user-flows/content-editorial-workflow.md 3.2) -
+ * shared by every content screen that renders per-language tabs and by the admin management
+ * screen itself. One request per app session rather than one per page (`providedIn: 'root'`,
+ * same singleton pattern as `CurrentUserService`), since the endpoint is reachable by any
+ * authenticated caller and its data is identical for all of them.
  */
 @Injectable({ providedIn: 'root' })
 export class LanguageCatalogService {

@@ -83,42 +83,6 @@ describe('MascotWidget', () => {
     expect(mascotService.message().code).toBe('roles:manage');
   });
 
-  it('pipes up with a contextual tip on "Le mie bozze"', async () => {
-    vi.useFakeTimers();
-    const fixture = await createAt('/drafts');
-    const mascotService = TestBed.inject(MascotService);
-
-    vi.advanceTimersByTime(24_000);
-    fixture.detectChanges();
-
-    expect(mascotService.open()).toBe(true);
-    expect(mascotService.message().code).toBe('content:write / content:review / content:read');
-  });
-
-  it('pipes up with a contextual tip on "In Revisione"', async () => {
-    vi.useFakeTimers();
-    const fixture = await createAt('/review-queue');
-    const mascotService = TestBed.inject(MascotService);
-
-    vi.advanceTimersByTime(24_000);
-    fixture.detectChanges();
-
-    expect(mascotService.open()).toBe(true);
-    expect(mascotService.message().code).toBe('claim before you decide');
-  });
-
-  it('pipes up with a contextual tip on "Enciclopedia"', async () => {
-    vi.useFakeTimers();
-    const fixture = await createAt('/encyclopedia');
-    const mascotService = TestBed.inject(MascotService);
-
-    vi.advanceTimersByTime(24_000);
-    fixture.detectChanges();
-
-    expect(mascotService.open()).toBe(true);
-    expect(mascotService.message().code).toBe('content:publish');
-  });
-
   it('pipes up with a contextual tip on "Lingue"', async () => {
     vi.useFakeTimers();
     const fixture = await createAt('/languages');

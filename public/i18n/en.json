@@ -5,12 +5,8 @@
     "logOut": "Log Out",
     "nav": {
       "account": "Account",
-      "content": "Content",
       "admin": "Admin",
       "profile": "My Profile",
-      "myDrafts": "My Drafts",
-      "reviewQueue": "In Review",
-      "encyclopedia": "Encyclopedia",
       "crewManifest": "Crew Manifest",
       "rolesPermissions": "Roles & Permissions",
       "shipsLog": "Ship's Log",
@@ -92,40 +88,6 @@
           "text": "Adding a language here makes it required on every in-progress draft's next submission - already-published content is untouched.",
           "code": "localization model"
         }
-      },
-      "drafts": {
-        "tip1": {
-          "text": "Three doors from here: My Drafts for your own work, In Review for the shared queue, Encyclopedia for what's actually live - only the ones your permissions unlock ever show up.",
-          "code": "content:write / content:review / content:read"
-        },
-        "tip2": {
-          "text": "A draft is yours and only yours until you submit it - not even an ADMIN can peek.",
-          "code": "author-only isolation"
-        }
-      },
-      "reviewQueue": {
-        "tip1": {
-          "text": "Claiming an item is what makes you accountable for its fate - claim it before you judge it.",
-          "code": "claim before you decide"
-        },
-        "tip2": {
-          "text": "Approve one candidate while a sibling draft is already Reviewed? The older one quietly steps aside - superseded, not deleted.",
-          "code": "supersession"
-        },
-        "tip3": {
-          "text": "Nothing stops you from reviewing your own work here - the crew's small, and no separate reviewer role is enforced.",
-          "code": "no segregation of duty"
-        }
-      },
-      "encyclopedia": {
-        "tip1": {
-          "text": "Publish creates a permanent snapshot - Version History remembers every one of them, forever.",
-          "code": "content:publish"
-        },
-        "tip2": {
-          "text": "Retiring an item just pulls it from view - history and any in-progress draft stay untouched, and it can always come back.",
-          "code": "retire ≠ delete"
-        }
       }
     }
   },
@@ -187,158 +149,18 @@
     "title": "Arrr! Yer session's sunk.",
     "description": "Charting a course back to port — you'll be asked to sign in again in a moment."
   },
-  "drafts": {
-    "eyebrow": "Editor Only · content:write",
-    "title": "My Drafts",
-    "newDraft": "+ New Draft",
-    "creating": "Opening…",
-    "created": "New draft opened. Fill in romaji, name and description: it saves whenever you want.",
-    "createError": "Arrr! Couldn't open a new draft — try again in a moment.",
-    "loading": "Unrolling the drafts…",
-    "loadError": "Arrr! Couldn't load your drafts — try again in a moment.",
-    "empty": "No draft open yet, start writing something.",
-    "untitled": "Untitled draft",
-    "romajiPending": "romaji pending",
-    "noSelection": "Pick a draft from the list — it stays put, so you can move between entries without losing your place.",
-    "backToList": "← List",
-    "edit": "Edit",
-    "romaji": "Romaji",
-    "name": "Name",
-    "description": "Description",
-    "save": "Save Draft",
-    "saved": "Draft saved. Nobody sees it until it goes through review.",
-    "saving": "Saving…",
-    "saveError": "Arrr! Couldn't save the draft — try again in a moment.",
-    "gone": "Arrr! This draft no longer exists.",
-    "submit": "Submit for Review",
-    "submitting": "Submitting…",
-    "submitted": "Draft submitted for review. You can't edit it again until it comes back.",
-    "submitIncomplete": "Arrr! Not ready for review yet. Missing: {{fields}}.",
-    "submitDuplicate": "Arrr! Already claimed by another Devil Fruit Type: {{fields}}.",
-    "submitIdentical": "Arrr! No changes from an already-published version — nothing new to submit.",
-    "submitSlotOccupied": "Arrr! Another draft of this item is already in review — wait for its outcome.",
-    "withdraw": "Withdraw to Draft",
-    "withdrawing": "Withdrawing…",
-    "withdrawn": "Draft brought back. You can edit it again.",
-    "statusChanged": "Arrr! Its status changed meanwhile — check again before retrying.",
-    "rejectionReason": "Rejection reason",
-    "withdrawClaimed": "Arrr! A reviewer is already looking at it — you can't withdraw it now.",
-    "claimedBy": "Being reviewed by {{email}}",
-    "delete": "Delete Draft",
-    "deleting": "Deleting…",
-    "deleted": "Draft deleted for good.",
-    "deleteError": "Arrr! Couldn't delete the draft — try again in a moment.",
-    "deleteBlocked": "Arrr! This item has already been published once — it can no longer be deleted, only retired from the Encyclopedia.",
-    "deleteModalHeading": "Delete this draft?",
-    "deleteModalBody": "It will be gone for good — this can't be undone.",
-    "deleteConfirm": "Confirm deletion",
-    "status": {
-      "DRAFT": "Draft",
-      "IN_REVIEW": "In Review",
-      "REVIEWED": "Reviewed",
-      "REJECTED": "Rejected"
-    }
-  },
-  "reviewQueue": {
-    "eyebrow": "Reviewers Only · content:review",
-    "title": "In Review",
-    "loading": "Unrolling the queue…",
-    "loadError": "Arrr! Couldn't load the review queue — try again in a moment.",
-    "empty": "Queue's empty, nobody's waiting for a review.",
-    "untitled": "Untitled draft",
-    "noSelection": "Pick an item from the queue — it stays put.",
-    "backToList": "← Queue",
-    "author": "Author",
-    "romaji": "Romaji",
-    "name": "Name",
-    "description": "Description",
-    "claimedBadge": "Claimed",
-    "unclaimedBadge": "Free",
-    "claimedBy": "Claimed by {{email}}",
-    "claim": "Claim",
-    "claiming": "Claiming…",
-    "claimed": "Claimed. It's on you now.",
-    "claimError": "Arrr! Couldn't claim it — try again in a moment.",
-    "alreadyClaimed": "Arrr! Someone else already claimed it.",
-    "release": "Release",
-    "releasing": "Releasing…",
-    "released": "Released. Anyone can claim it again.",
-    "releaseError": "Arrr! Couldn't release it — try again in a moment.",
-    "approve": "Approve",
-    "approving": "Approving…",
-    "approved": "Approved. It's now the active candidate for publishing.",
-    "approveError": "Arrr! Couldn't approve it — try again in a moment.",
-    "reject": "Reject",
-    "rejecting": "Rejecting…",
-    "rejected": "Rejected. The author will see why.",
-    "rejectError": "Arrr! Couldn't reject it — try again in a moment.",
-    "rejectModalHeading": "Reject the Draft",
-    "rejectReasonLabel": "Rejection reason",
-    "rejectConfirm": "Confirm Rejection",
-    "gone": "Arrr! This item is no longer in review.",
-    "staleClaim": "Arrr! Something changed meanwhile — check again before retrying."
-  },
-  "encyclopedia": {
-    "eyebrow": "Everyone · content:read",
-    "title": "Encyclopedia",
-    "loading": "Unrolling the encyclopedia…",
-    "loadError": "Arrr! Couldn't load the encyclopedia — try again in a moment.",
-    "empty": "Nothing published or ready to publish yet.",
-    "untitled": "Untitled",
-    "noSelection": "Pick an item from the list — it stays put.",
-    "backToList": "← List",
-    "romaji": "Romaji",
-    "name": "Name",
-    "description": "Description",
-    "publish": "Publish",
-    "publishing": "Publishing…",
-    "published": "Published! It's now the live version.",
-    "publishError": "Arrr! Couldn't publish it — try again in a moment.",
-    "edit": "Edit",
-    "editing": "Opening…",
-    "editStarted": "New draft opened from the published version. Edit it freely — the live content stays untouched until you publish again.",
-    "editError": "Arrr! Couldn't start editing it — try again in a moment.",
-    "retire": "Retire",
-    "retiring": "Retiring…",
-    "retired": "Retired! It's no longer shown as live content, but stays in the history.",
-    "retireError": "Arrr! Couldn't retire it — try again in a moment.",
-    "retireModalHeading": "Retire This Item?",
-    "retireModalBody": "It will stop being shown as live content, but the version history and any draft in progress stay untouched. You can bring it back live by publishing a new revision or restoring a past version.",
-    "retireConfirm": "Confirm Retire",
-    "gone": "Arrr! This item is no longer available.",
-    "statusChanged": "Arrr! Its status changed meanwhile — check again before retrying.",
-    "versionInfo": "v{{sequenceNumber}} · published by {{email}}",
-    "status": {
-      "REVIEWED": "Reviewed",
-      "PUBLISHED": "Published",
-      "RETIRED": "Retired"
-    },
-    "versionHistory": {
-      "title": "Version History",
-      "loading": "Fetching the version history…",
-      "loadError": "Arrr! Couldn't load the version history — try again in a moment.",
-      "empty": "Nothing published yet.",
-      "live": "Live",
-      "publishedBy": "published by {{email}} on {{date}}",
-      "restore": "Restore",
-      "restoring": "Restoring…",
-      "restored": "Restored! It's now the live version.",
-      "restoreError": "Arrr! Couldn't restore this version — try again in a moment.",
-      "restoreModalHeading": "Restore This Version?",
-      "restoreModalBody": "Version v{{sequenceNumber}} will become the live one again. No new review needed.",
-      "restoreConfirm": "Confirm Restore",
-      "viewingVersion": "Viewing v{{sequenceNumber}}",
-      "backToCurrent": "Back to current version",
-      "detailLoading": "Fetching this version…",
-      "detailLoadError": "Arrr! Couldn't load this version — try again in a moment."
-    }
-  },
   "users": {
     "eyebrow": "Admin Only · users:read",
     "title": "Crew Manifest",
     "newUser": "New User",
-    "search": { "label": "Search", "placeholder": "name or email…" },
-    "role": { "label": "Role", "all": "All roles" },
+    "search": {
+      "label": "Search",
+      "placeholder": "name or email…"
+    },
+    "role": {
+      "label": "Role",
+      "all": "All roles"
+    },
     "status": {
       "label": "Status",
       "all": "All statuses",
@@ -544,7 +366,6 @@
     "deleteAria": "Delete language {{code}}",
     "created": "Language {{name}} ({{code}}) added to the catalog!",
     "deleted": "Language {{code}} removed from the catalog.",
-    "inUse": "Arrr! {{code}} is still used by existing content — it can't be removed yet.",
     "deleteHeading": "Delete Language",
     "deleteConfirmBody": "Arrr! This removes {{code}} from the catalog. Content already written in it is unaffected, but it stops being offered for new work.",
     "newModal": {

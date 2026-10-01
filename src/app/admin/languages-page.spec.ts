@@ -208,41 +208,4 @@ describe('LanguagesPage', () => {
       expect.objectContaining({ text: 'Language fr removed from the catalog.', tone: 'success' }),
     );
   });
-
-  it('shows a blocked message when deleting a language still in use is refused', async () => {
-    const fixture = await createAndLoad([
-      { code: 'en', name: 'English' },
-      { code: 'fr', name: 'Français' },
-      { code: 'it', name: 'Italiano' },
-    ]);
-    const mascotService = TestBed.inject(MascotService);
-    const root = fixture.nativeElement as HTMLElement;
-
-    const deleteButton = root.querySelector<HTMLButtonElement>('[aria-label="Delete language it"]');
-    deleteButton!.click();
-    fixture.detectChanges();
-
-    const dialog = dialogByHeading(root, 'Delete Language');
-    const confirmButton = Array.from(dialog.querySelectorAll<HTMLButtonElement>('button')).find(
-      (b) => b.textContent?.trim() === 'Delete Language',
-    );
-    confirmButton!.click();
-    fixture.detectChanges();
-
-    httpTesting
-      .expectOne('/api/content/languages/it')
-      .flush(
-        { errorCode: 'CONTENT_LANGUAGE_IN_USE', status: 409 },
-        { status: 409, statusText: 'Conflict' },
-      );
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(mascotService.message()).toEqual(
-      expect.objectContaining({
-        text: "Arrr! it is still used by existing content — it can't be removed yet.",
-        tone: 'error',
-      }),
-    );
-  });
 });

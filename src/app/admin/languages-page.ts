@@ -20,7 +20,6 @@ const CODE_PATTERN = /^[a-zA-Z]{2}$/;
 const LANGUAGE_ALREADY_EXISTS_ERROR_CODE = 'CONTENT_LANGUAGE_ALREADY_EXISTS';
 const INVALID_LANGUAGE_CODE_ERROR_CODE = 'CONTENT_INVALID_LANGUAGE_CODE';
 const INVALID_LANGUAGE_NAME_ERROR_CODE = 'CONTENT_INVALID_LANGUAGE_NAME';
-const LANGUAGE_IN_USE_ERROR_CODE = 'CONTENT_LANGUAGE_IN_USE';
 
 interface NewLanguageModel {
   code: string;
@@ -28,13 +27,11 @@ interface NewLanguageModel {
 }
 
 /**
- * "Lingue" (Step 10, docs/user-flows/authentication-and-user-management.md 3.2): the
- * ADMIN-managed language catalog - add/remove a language (a two-letter code plus its full
- * display name, e.g. "en"/"English"), gated on `languages:manage`. Deliberately simpler
- * than "Ruoli & permessi" (RolesPage): a language has two plain attributes, so there is one
- * list and one add/delete flow, not a two-pane matrix. Shares `LanguageCatalogService` with
- * every content screen's tabs, so a change here is visible there the next time one of those
- * components loads.
+ * "Lingue" (docs/user-flows/content-editorial-workflow.md 3.2): the ADMIN-managed language
+ * catalog - add/remove a language (a two-letter code plus its full display name, e.g.
+ * "en"/"English"), gated on `languages:manage`. Deliberately simpler than "Ruoli & permessi"
+ * (RolesPage): a language has two plain attributes, so there is one list and one add/delete
+ * flow, not a two-pane matrix.
  */
 @Component({
   selector: 'app-languages-page',
@@ -146,10 +143,7 @@ export class LanguagesPage {
       await firstValueFrom(this.http.delete<void>(`${LANGUAGES_ENDPOINT}/${code}`));
       this.mascotService.show(this.transloco.translate('languages.deleted', { code }), 'success');
       this.languageCatalog.languages.reload();
-    } catch (err) {
-      if (err instanceof HttpErrorResponse && hasErrorCode(err, LANGUAGE_IN_USE_ERROR_CODE)) {
-        this.mascotService.show(this.transloco.translate('languages.inUse', { code }), 'error');
-      }
+    } catch {
       // 401/403/404/5xx already get a themed toast from apiErrorInterceptor.
     } finally {
       // Closed on every outcome, not just success: the dialog's native top layer would

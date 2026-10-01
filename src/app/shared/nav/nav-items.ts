@@ -20,32 +20,6 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     items: [{ id: 'profile', label: 'shell.nav.profile', icon: '◆', route: '/' }],
   },
   {
-    labelKey: 'shell.nav.content',
-    items: [
-      {
-        id: 'drafts',
-        label: 'shell.nav.myDrafts',
-        icon: '✎',
-        route: '/drafts',
-        permission: 'content:write',
-      },
-      {
-        id: 'review-queue',
-        label: 'shell.nav.reviewQueue',
-        icon: '⚖',
-        route: '/review-queue',
-        permission: 'content:review',
-      },
-      {
-        id: 'encyclopedia',
-        label: 'shell.nav.encyclopedia',
-        icon: '※',
-        route: '/encyclopedia',
-        permission: 'content:read',
-      },
-    ],
-  },
-  {
     labelKey: 'shell.nav.admin',
     items: [
       {

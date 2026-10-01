@@ -5,12 +5,8 @@
     "logOut": "Esci",
     "nav": {
       "account": "Account",
-      "content": "Contenuti",
       "admin": "Amministrazione",
       "profile": "Il Mio Profilo",
-      "myDrafts": "Le Mie Bozze",
-      "reviewQueue": "In Revisione",
-      "encyclopedia": "Enciclopedia",
       "crewManifest": "Registro Equipaggio",
       "rolesPermissions": "Ruoli e Permessi",
       "shipsLog": "Diario di Bordo",
@@ -92,40 +88,6 @@
           "text": "Aggiungere una lingua qui la rende obbligatoria alla prossima invio in revisione di ogni bozza in corso - i contenuti già pubblicati restano intatti.",
           "code": "modello di localizzazione"
         }
-      },
-      "drafts": {
-        "tip1": {
-          "text": "Tre porte da qui: Le mie bozze per il tuo lavoro, In Revisione per la coda condivisa, Enciclopedia per ciò che è davvero pubblicato - compaiono solo quelle sbloccate dai tuoi permessi.",
-          "code": "content:write / content:review / content:read"
-        },
-        "tip2": {
-          "text": "Una bozza è tua e solo tua finché non la invii in revisione - nemmeno un ADMIN può sbirciare.",
-          "code": "isolamento per autore"
-        }
-      },
-      "reviewQueue": {
-        "tip1": {
-          "text": "Prendere in carico un elemento è ciò che ti rende responsabile del suo esito - prendilo in carico prima di giudicarlo.",
-          "code": "prendi in carico prima di decidere"
-        },
-        "tip2": {
-          "text": "Approvi un candidato mentre un fratello è già Reviewed? Quello vecchio si fa da parte in silenzio - soppiantato, non cancellato.",
-          "code": "supersessione"
-        },
-        "tip3": {
-          "text": "Niente ti vieta di revisionare il tuo stesso lavoro qui - l'equipaggio è piccolo, nessun ruolo di revisore separato è imposto.",
-          "code": "nessuna separazione dei compiti"
-        }
-      },
-      "encyclopedia": {
-        "tip1": {
-          "text": "Pubblicare crea uno scatto permanente - lo Storico Versioni li ricorda tutti, per sempre.",
-          "code": "content:publish"
-        },
-        "tip2": {
-          "text": "Ritirare un elemento lo toglie solo dalla vista - storico e bozze in corso restano intatti, e può sempre tornare.",
-          "code": "ritiro ≠ eliminazione"
-        }
       }
     }
   },
@@ -187,158 +149,18 @@
     "title": "Arrr! La tua sessione è affondata.",
     "description": "Tracciamo la rotta verso il porto — tra un momento ti verrà chiesto di accedere di nuovo."
   },
-  "drafts": {
-    "eyebrow": "Solo Editor · content:write",
-    "title": "Le Mie Bozze",
-    "newDraft": "+ Nuova Bozza",
-    "creating": "Apertura…",
-    "created": "Nuova bozza aperta. Compila romaji, nome e descrizione: si salva quando vuoi.",
-    "createError": "Arrr! Impossibile aprire una nuova bozza — riprova tra un momento.",
-    "loading": "Srotoliamo le bozze…",
-    "loadError": "Arrr! Impossibile caricare le bozze — riprova tra un momento.",
-    "empty": "Nessuna bozza aperta, comincia a scrivere qualcosa.",
-    "untitled": "Bozza senza nome",
-    "romajiPending": "romaji da definire",
-    "noSelection": "Scegli una bozza dall'elenco — la lista resta ferma dov'è, puoi passare da una all'altra senza tornare indietro.",
-    "backToList": "← Elenco",
-    "edit": "Modifica",
-    "romaji": "Romaji",
-    "name": "Nome",
-    "description": "Descrizione",
-    "save": "Salva Bozza",
-    "saved": "Bozza salvata. Nessuno la vede finché non passa dalla revisione.",
-    "saving": "Salvataggio…",
-    "saveError": "Arrr! Impossibile salvare la bozza — riprova tra un momento.",
-    "gone": "Arrr! Questa bozza non esiste più.",
-    "submit": "Invia in Revisione",
-    "submitting": "Invio…",
-    "submitted": "Bozza inviata in revisione. Non puoi più modificarla finché non torna indietro.",
-    "submitIncomplete": "Arrr! Non è ancora pronta per la revisione. Manca: {{fields}}.",
-    "submitDuplicate": "Arrr! Già usato da un altro Tipo di Frutto del Diavolo: {{fields}}.",
-    "submitIdentical": "Arrr! Nessuna modifica rispetto a una versione già pubblicata — niente da inviare.",
-    "submitSlotOccupied": "Arrr! Un'altra bozza di questo elemento è già in revisione — attendi il suo esito.",
-    "withdraw": "Riporta in Bozza",
-    "withdrawing": "Rientro…",
-    "withdrawn": "Bozza riportata indietro. Puoi modificarla di nuovo.",
-    "statusChanged": "Arrr! Lo stato è cambiato nel frattempo — ricontrolla prima di riprovare.",
-    "rejectionReason": "Motivo del rifiuto",
-    "withdrawClaimed": "Arrr! Un revisore la sta già esaminando — non puoi ritirarla adesso.",
-    "claimedBy": "In esame da {{email}}",
-    "delete": "Elimina Bozza",
-    "deleting": "Eliminazione…",
-    "deleted": "Bozza eliminata per sempre.",
-    "deleteError": "Arrr! Impossibile eliminare la bozza — riprova tra un momento.",
-    "deleteBlocked": "Arrr! Questo elemento è già stato pubblicato in passato — non può più essere eliminato, solo ritirato dall'Enciclopedia.",
-    "deleteModalHeading": "Eliminare questa bozza?",
-    "deleteModalBody": "Verrà cancellata per sempre — questa azione non si può annullare.",
-    "deleteConfirm": "Conferma eliminazione",
-    "status": {
-      "DRAFT": "Bozza",
-      "IN_REVIEW": "In Revisione",
-      "REVIEWED": "Revisionato",
-      "REJECTED": "Rifiutata"
-    }
-  },
-  "reviewQueue": {
-    "eyebrow": "Solo Revisori · content:review",
-    "title": "In Revisione",
-    "loading": "Srotoliamo la coda…",
-    "loadError": "Arrr! Impossibile caricare la coda di revisione — riprova tra un momento.",
-    "empty": "Coda vuota, nessuno sta aspettando una revisione.",
-    "untitled": "Bozza senza nome",
-    "noSelection": "Scegli un elemento dalla coda — la lista resta ferma dov'è.",
-    "backToList": "← Coda",
-    "author": "Autore",
-    "romaji": "Romaji",
-    "name": "Nome",
-    "description": "Descrizione",
-    "claimedBadge": "Presa in carico",
-    "unclaimedBadge": "Libera",
-    "claimedBy": "Presa in carico da {{email}}",
-    "claim": "Prendi in Carico",
-    "claiming": "Presa in carico…",
-    "claimed": "Preso in carico. Ora tocca a te.",
-    "claimError": "Arrr! Impossibile prendere in carico — riprova tra un momento.",
-    "alreadyClaimed": "Arrr! Qualcun altro l'ha già presa in carico.",
-    "release": "Rilascia",
-    "releasing": "Rilascio…",
-    "released": "Rilasciata. Chiunque può riprenderla in carico.",
-    "releaseError": "Arrr! Impossibile rilasciare — riprova tra un momento.",
-    "approve": "Approva",
-    "approving": "Approvazione…",
-    "approved": "Approvata. Ora è il candidato attivo per la pubblicazione.",
-    "approveError": "Arrr! Impossibile approvare — riprova tra un momento.",
-    "reject": "Rifiuta",
-    "rejecting": "Rifiuto…",
-    "rejected": "Rifiutata. L'autore vedrà il motivo.",
-    "rejectError": "Arrr! Impossibile rifiutare — riprova tra un momento.",
-    "rejectModalHeading": "Rifiuta la Bozza",
-    "rejectReasonLabel": "Motivo del rifiuto",
-    "rejectConfirm": "Conferma Rifiuto",
-    "gone": "Arrr! Questo elemento non è più in revisione.",
-    "staleClaim": "Arrr! Qualcosa è cambiato nel frattempo — ricontrolla prima di riprovare."
-  },
-  "encyclopedia": {
-    "eyebrow": "Tutti · content:read",
-    "title": "Enciclopedia",
-    "loading": "Srotoliamo l'enciclopedia…",
-    "loadError": "Arrr! Impossibile caricare l'enciclopedia — riprova tra un momento.",
-    "empty": "Ancora nessun elemento pubblicato o pronto per la pubblicazione.",
-    "untitled": "Senza nome",
-    "noSelection": "Scegli un elemento dall'elenco — la lista resta ferma dov'è.",
-    "backToList": "← Elenco",
-    "romaji": "Romaji",
-    "name": "Nome",
-    "description": "Descrizione",
-    "publish": "Pubblica",
-    "publishing": "Pubblicazione…",
-    "published": "Pubblicato! Ora è la versione live.",
-    "publishError": "Arrr! Impossibile pubblicare — riprova tra un momento.",
-    "edit": "Modifica",
-    "editing": "Apertura…",
-    "editStarted": "Nuova bozza aperta a partire dalla versione pubblicata. Modificala liberamente: il contenuto live resta invariato finché non la ripubblichi.",
-    "editError": "Arrr! Impossibile avviare la modifica — riprova tra un momento.",
-    "retire": "Ritira",
-    "retiring": "Ritiro…",
-    "retired": "Ritirato! Non è più visibile come contenuto live, ma resta nello storico.",
-    "retireError": "Arrr! Impossibile ritirare l'elemento — riprova tra un momento.",
-    "retireModalHeading": "Ritira questo elemento?",
-    "retireModalBody": "Non sarà più mostrato come contenuto live, ma lo storico versioni e ogni bozza in corso restano intatti. Potrai farlo tornare live pubblicando una nuova revisione o ripristinando una versione passata.",
-    "retireConfirm": "Conferma ritiro",
-    "gone": "Arrr! Questo elemento non è più disponibile.",
-    "statusChanged": "Arrr! Lo stato è cambiato nel frattempo — ricontrolla prima di riprovare.",
-    "versionInfo": "v{{sequenceNumber}} · pubblicato da {{email}}",
-    "status": {
-      "REVIEWED": "Revisionato",
-      "PUBLISHED": "Pubblicato",
-      "RETIRED": "Ritirato"
-    },
-    "versionHistory": {
-      "title": "Storico versioni",
-      "loading": "Recupero lo storico…",
-      "loadError": "Arrr! Impossibile caricare lo storico versioni — riprova tra un momento.",
-      "empty": "Nessuna versione pubblicata finora.",
-      "live": "Live",
-      "publishedBy": "pubblicato da {{email}} il {{date}}",
-      "restore": "Ripristina",
-      "restoring": "Ripristino…",
-      "restored": "Ripristinato! Questa è ora la versione live.",
-      "restoreError": "Arrr! Impossibile ripristinare questa versione — riprova tra un momento.",
-      "restoreModalHeading": "Ripristina questa versione?",
-      "restoreModalBody": "La versione v{{sequenceNumber}} tornerà a essere quella live. Non serve una nuova revisione.",
-      "restoreConfirm": "Conferma ripristino",
-      "viewingVersion": "Stai visualizzando v{{sequenceNumber}}",
-      "backToCurrent": "Torna alla versione corrente",
-      "detailLoading": "Recupero questa versione…",
-      "detailLoadError": "Arrr! Impossibile caricare questa versione — riprova tra un momento."
-    }
-  },
   "users": {
     "eyebrow": "Solo Admin · users:read",
     "title": "Registro Equipaggio",
     "newUser": "Nuovo Utente",
-    "search": { "label": "Cerca", "placeholder": "nome o email…" },
-    "role": { "label": "Ruolo", "all": "Tutti i ruoli" },
+    "search": {
+      "label": "Cerca",
+      "placeholder": "nome o email…"
+    },
+    "role": {
+      "label": "Ruolo",
+      "all": "Tutti i ruoli"
+    },
     "status": {
       "label": "Stato",
       "all": "Tutti gli stati",
@@ -544,7 +366,6 @@
     "deleteAria": "Elimina lingua {{code}}",
     "created": "Lingua {{name}} ({{code}}) aggiunta al catalogo!",
     "deleted": "Lingua {{code}} rimossa dal catalogo.",
-    "inUse": "Arrr! {{code}} è ancora usata da contenuti esistenti — non può essere rimossa ora.",
     "deleteHeading": "Elimina Lingua",
     "deleteConfirmBody": "Arrr! Questo rimuove {{code}} dal catalogo. I contenuti già scritti in questa lingua non ne risentono, ma non verrà più proposta per nuovo lavoro.",
     "newModal": {

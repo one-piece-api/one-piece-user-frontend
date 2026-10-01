@@ -3,8 +3,7 @@ import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MascotService, type MascotTone } from './mascot';
 
-type TipTopic =
-  'profile' | 'users' | 'roles' | 'audit' | 'languages' | 'drafts' | 'reviewQueue' | 'encyclopedia';
+type TipTopic = 'profile' | 'users' | 'roles' | 'audit' | 'languages';
 
 interface Tip {
   readonly text: string;
@@ -19,13 +18,6 @@ const TIPS: Record<TipTopic, readonly string[]> = {
   roles: ['mascot.tips.roles.tip1', 'mascot.tips.roles.tip2', 'mascot.tips.roles.tip3'],
   audit: ['mascot.tips.audit.tip1', 'mascot.tips.audit.tip2'],
   languages: ['mascot.tips.languages.tip1', 'mascot.tips.languages.tip2'],
-  drafts: ['mascot.tips.drafts.tip1', 'mascot.tips.drafts.tip2'],
-  reviewQueue: [
-    'mascot.tips.reviewQueue.tip1',
-    'mascot.tips.reviewQueue.tip2',
-    'mascot.tips.reviewQueue.tip3',
-  ],
-  encyclopedia: ['mascot.tips.encyclopedia.tip1', 'mascot.tips.encyclopedia.tip2'],
 };
 
 const TIP_INTERVAL_MS = 24_000;
@@ -35,9 +27,6 @@ function topicForUrl(url: string): TipTopic | null {
   if (url.startsWith('/roles')) return 'roles';
   if (url.startsWith('/audit')) return 'audit';
   if (url.startsWith('/languages')) return 'languages';
-  if (url.startsWith('/drafts')) return 'drafts';
-  if (url.startsWith('/review-queue')) return 'reviewQueue';
-  if (url.startsWith('/encyclopedia')) return 'encyclopedia';
   if (url === '/' || url.startsWith('/?')) return 'profile';
   return null;
 }
