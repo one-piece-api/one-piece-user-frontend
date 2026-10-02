@@ -4,21 +4,14 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MascotService } from '../shared/mascot/mascot';
 import { AuditFilters } from './audit-filters';
 import { AuditList } from './audit-list';
-import { AuditPagination } from './audit-pagination';
+import { Pagination } from '../shared/ui/pagination';
 import type { AuditEvent } from './audit.model';
 import { Card } from '../shared/ui/card';
 import { LoadingPlaceholder } from '../shared/ui/loading-placeholder';
 import { PageHeader } from '../shared/ui/page-header';
+import type { PageResponse } from '../shared/http/page-response';
 
 const AUDIT_ENDPOINT = '/api/audit';
-
-interface PageResponse<T> {
-  content: T[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
 
 /** The full audit trail (Step 17, UF-IDU-17's read path, permission-gated on `audit:read`). */
 @Component({
@@ -29,7 +22,7 @@ interface PageResponse<T> {
     PageHeader,
     AuditFilters,
     AuditList,
-    AuditPagination,
+    Pagination,
     TranslocoPipe,
     LoadingPlaceholder,
   ],

@@ -1,10 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { logoutUrl } from '../../identity/auth-urls';
 import { CurrentUserService } from '../../identity/current-user';
 import { LanguageSwitcher } from '../i18n/language-switcher';
-import { NAV_GROUPS, type NavGroup } from '../nav/nav-items';
+import { MascotService } from '../mascot/mascot';
+import { NAV_GROUPS, type NavGroup, type NavItem } from '../nav/nav-items';
 import { initialsOf } from './initials';
 
 /**
@@ -19,6 +20,8 @@ import { initialsOf } from './initials';
 })
 export class AppShell {
   protected readonly currentUser = inject(CurrentUserService);
+  private readonly transloco = inject(TranslocoService);
+  private readonly mascot = inject(MascotService);
   protected readonly logoutUrl = logoutUrl();
   protected readonly navGroups = NAV_GROUPS;
   protected readonly drawerOpen = signal(false);
@@ -33,6 +36,12 @@ export class AppShell {
 
   protected visibleItems(group: NavGroup) {
     return group.items.filter((item) => this.currentUser.hasPermission(item.permission));
+  }
+
+  /** An announced section is not a destination yet: the mascot says so instead. */
+  protected announceSoon(item: NavItem): void {
+    const label = this.transloco.translate(item.label);
+    this.mascot.show(this.transloco.translate('shell.nav.soonMessage', { label }), 'info');
   }
 
   protected openDrawer(): void {

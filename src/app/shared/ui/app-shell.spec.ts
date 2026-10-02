@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
+import { MascotService } from '../mascot/mascot';
 import { AppShell } from './app-shell';
 
 describe('AppShell', () => {
@@ -96,6 +97,76 @@ describe('AppShell', () => {
     const root = fixture.nativeElement as HTMLElement;
     const links = Array.from(root.querySelectorAll('a'));
     expect(links.some((link) => link.getAttribute('href') === '/audit')).toBe(true);
+  });
+
+  it('lists the content section, with the entities not built yet only announced', async () => {
+    const fixture = TestBed.createComponent(AppShell);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/me').flush({
+      username: 'zoro',
+      email: 'zoro@onepiece.local',
+      roles: ['REVIEWER'],
+      permissions: ['content:read', 'content:review'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const hrefs = Array.from(root.querySelectorAll('a')).map((link) => link.getAttribute('href'));
+    expect(hrefs).toContain('/content/devil-fruit-types');
+    expect(root.textContent).toContain('Devil Fruit Types');
+
+    const announced = Array.from(root.querySelectorAll('nav button')).map((button) =>
+      Array.from(button.querySelectorAll(':scope > span'))
+        .map((part) => part.textContent?.trim())
+        .join(' '),
+    );
+    expect(announced).toEqual([
+      '☺ Characters coming soon',
+      '◆ Devil Fruits coming soon',
+      '⚑ Crews coming soon',
+      '≡ Story Arcs coming soon',
+    ]);
+  });
+
+  it('hides the content section from who lacks content:read', async () => {
+    const fixture = TestBed.createComponent(AppShell);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/me').flush({
+      username: 'luffy',
+      email: 'luffy@onepiece.local',
+      roles: ['ADMIN'],
+      permissions: ['users:read'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).not.toContain('Contents');
+    expect(root.querySelectorAll('nav button').length).toBe(0);
+  });
+
+  it('lets the mascot say an announced section is not open yet', async () => {
+    const fixture = TestBed.createComponent(AppShell);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/me').flush({
+      username: 'zoro',
+      email: 'zoro@onepiece.local',
+      roles: ['REVIEWER'],
+      permissions: ['content:read'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    (root.querySelector('nav button') as HTMLButtonElement).click();
+
+    const mascot = TestBed.inject(MascotService);
+    expect(mascot.open()).toBe(true);
+    expect(mascot.message().text).toContain("Characters isn't open yet");
   });
 
   it('opens and closes the mobile drawer', async () => {

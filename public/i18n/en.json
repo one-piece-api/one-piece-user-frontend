@@ -10,7 +10,15 @@
       "crewManifest": "Crew Manifest",
       "rolesPermissions": "Roles & Permissions",
       "shipsLog": "Ship's Log",
-      "languages": "Languages"
+      "languages": "Languages",
+      "contents": "Contents",
+      "characters": "Characters",
+      "devilFruits": "Devil Fruits",
+      "devilFruitTypes": "Devil Fruit Types",
+      "crews": "Crews",
+      "arcs": "Story Arcs",
+      "soon": "coming soon",
+      "soonMessage": "{{label}} isn't open yet: it will arrive with the same list and detail layout."
     }
   },
   "langSwitcher": {
@@ -381,6 +389,77 @@
       "create": "Add Language",
       "alreadyExists": "Language {{code}} already exists.",
       "genericFailed": "Arrr! Something went wrong adding the language."
+    }
+  },
+  "content": {
+    "status": {
+      "draft": "Draft",
+      "inReview": "In review",
+      "rejected": "Rejected",
+      "readyToPublish": "Ready to publish",
+      "published": "Published",
+      "archived": "Archived",
+      "retired": "Retired",
+      "superseded": "Superseded"
+    },
+    "breadcrumb": {
+      "contents": "Contents"
+    },
+    "devilFruitTypes": {
+      "kicker": "Contents · /devil-fruit-types",
+      "title": "Devil Fruit Types",
+      "lead": "The categories Devil Fruits fall into.",
+      "new": "+ New fruit type"
+    },
+    "list": {
+      "search": "Search",
+      "searchPlaceholder": "name or romaji…",
+      "status": "Status",
+      "allStatuses": "All statuses",
+      "author": "Author",
+      "allAuthors": "Everyone",
+      "you": "You",
+      "updated": {
+        "label": "Updated",
+        "always": "Any time",
+        "today": "Today",
+        "last7": "Last 7 days",
+        "last30": "Last 30 days"
+      },
+      "reset": "Reset",
+      "resultOne": "{{shown}} of {{total}} entry",
+      "resultMany": "{{shown}} of {{total}} entries",
+      "resultMine": "{{mine}} yours",
+      "resultDraftsHidden": "drafts are not visible to your role",
+      "column": {
+        "name": "Name",
+        "status": "Status",
+        "author": "Author",
+        "updated": "Updated"
+      },
+      "online": "v{{version}} online",
+      "romajiMissing": "romaji to be defined",
+      "unnamed": "Unnamed",
+      "updatedAt": {
+        "today": "today {{time}}",
+        "yesterday": "yesterday {{time}}",
+        "date": "{{date}} {{time}}"
+      },
+      "emptyTitle": "Nothing here yet",
+      "emptyWriter": "Create the first content with the button above.",
+      "emptyReader": "When something reaches review, you'll see it here.",
+      "noResults": "No content matches these filters",
+      "resetFilters": "Reset filters",
+      "perm": {
+        "writer": "You see every draft of the crew but edit only your own (author: You).",
+        "reader": "Drafts stay with the editors: here you see contents from review onwards.",
+        "review": "You review the ones written by others.",
+        "publish": "You publish the ones ready to publish."
+      },
+      "loading": "Unrolling the encyclopedia…",
+      "error": "Lost the encyclopedia. Could not load the contents.",
+      "loadError": "Arrr! Could not load the contents — try again in a moment.",
+      "newSoon": "Arrr! Creating a new fruit type is still in the shipyard."
     }
   }
 }

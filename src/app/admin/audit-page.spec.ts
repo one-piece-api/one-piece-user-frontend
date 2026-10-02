@@ -263,7 +263,7 @@ describe('AdminAuditPage', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('1–1 of 1');
     expect(root.textContent).not.toContain('Page 1 of 1');
-    expect(root.querySelectorAll('app-audit-pagination button').length).toBe(0);
+    expect(root.querySelectorAll('app-pagination button').length).toBe(0);
   });
 
   /** Opens the author combobox and picks the given email from its filtered list. */

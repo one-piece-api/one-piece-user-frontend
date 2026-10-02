@@ -10,7 +10,15 @@
       "crewManifest": "Registro Equipaggio",
       "rolesPermissions": "Ruoli e Permessi",
       "shipsLog": "Diario di Bordo",
-      "languages": "Lingue"
+      "languages": "Lingue",
+      "contents": "Contenuti",
+      "characters": "Personaggi",
+      "devilFruits": "Frutti del Diavolo",
+      "devilFruitTypes": "Tipi di Frutto del Diavolo",
+      "crews": "Ciurme",
+      "arcs": "Archi Narrativi",
+      "soon": "in arrivo",
+      "soonMessage": "{{label}} non è ancora attiva: arriverà con lo stesso schema di lista e dettaglio."
     }
   },
   "langSwitcher": {
@@ -381,6 +389,77 @@
       "create": "Aggiungi Lingua",
       "alreadyExists": "La lingua {{code}} esiste già.",
       "genericFailed": "Arrr! Qualcosa è andato storto nell'aggiunta della lingua."
+    }
+  },
+  "content": {
+    "status": {
+      "draft": "Bozza",
+      "inReview": "In revisione",
+      "rejected": "Rifiutato",
+      "readyToPublish": "Pronto per la pubblicazione",
+      "published": "Pubblicato",
+      "archived": "Archiviato",
+      "retired": "Ritirato",
+      "superseded": "Sostituita"
+    },
+    "breadcrumb": {
+      "contents": "Contenuti"
+    },
+    "devilFruitTypes": {
+      "kicker": "Contenuti · /devil-fruit-types",
+      "title": "Tipi di Frutto del Diavolo",
+      "lead": "Le categorie in cui si dividono i Frutti del Diavolo.",
+      "new": "+ Nuovo tipo di frutto"
+    },
+    "list": {
+      "search": "Cerca",
+      "searchPlaceholder": "nome o romaji…",
+      "status": "Stato",
+      "allStatuses": "Tutti gli stati",
+      "author": "Autore",
+      "allAuthors": "Tutti",
+      "you": "Tu",
+      "updated": {
+        "label": "Aggiornato",
+        "always": "Sempre",
+        "today": "Oggi",
+        "last7": "Ultimi 7 giorni",
+        "last30": "Ultimi 30 giorni"
+      },
+      "reset": "Azzera",
+      "resultOne": "{{shown}} di {{total}} voce",
+      "resultMany": "{{shown}} di {{total}} voci",
+      "resultMine": "{{mine}} tue",
+      "resultDraftsHidden": "bozze non visibili al tuo ruolo",
+      "column": {
+        "name": "Nome",
+        "status": "Stato",
+        "author": "Autore",
+        "updated": "Aggiornato"
+      },
+      "online": "v{{version}} online",
+      "romajiMissing": "romaji da definire",
+      "unnamed": "Senza nome",
+      "updatedAt": {
+        "today": "oggi {{time}}",
+        "yesterday": "ieri {{time}}",
+        "date": "{{date}} {{time}}"
+      },
+      "emptyTitle": "Qui non c'è ancora nulla",
+      "emptyWriter": "Crea il primo contenuto con il pulsante qui sopra.",
+      "emptyReader": "Quando qualcosa arriverà in revisione, lo vedrai qui.",
+      "noResults": "Nessun contenuto con questi filtri",
+      "resetFilters": "Azzera i filtri",
+      "perm": {
+        "writer": "Vedi tutte le bozze della redazione ma modifichi solo le tue (autore: Tu).",
+        "reader": "Le bozze restano agli editor: qui vedi i contenuti dalla revisione in poi.",
+        "review": "Revisioni quelli scritti da altri.",
+        "publish": "Pubblichi quelli pronti per la pubblicazione."
+      },
+      "loading": "Srotoliamo l'enciclopedia…",
+      "error": "Enciclopedia dispersa. Impossibile caricare i contenuti.",
+      "loadError": "Arrr! Impossibile caricare i contenuti — riprova tra un momento.",
+      "newSoon": "Arrr! La creazione di un nuovo tipo di frutto è ancora in cantiere."
     }
   }
 }

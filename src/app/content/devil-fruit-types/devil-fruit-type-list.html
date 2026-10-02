@@ -1,0 +1,172 @@
+<div class="flex w-full max-w-5xl flex-col gap-3.5">
+  <app-breadcrumb [crumbs]="crumbs()" />
+
+  <div class="flex flex-wrap items-end justify-between gap-3.5">
+    <div
+      animate.enter="anim-card-enter"
+      class="min-w-0 rounded-xl bg-white/80 px-4 py-2 shadow-md backdrop-blur-sm"
+    >
+      <p class="font-display text-[11px] font-bold tracking-widest text-flag-600 uppercase">
+        {{ 'content.devilFruitTypes.kicker' | transloco }}
+      </p>
+      <h1
+        class="flex items-center gap-2.5 font-display text-2xl leading-tight font-bold text-balance text-ocean-950"
+      >
+        <span class="text-lg text-ocean-700">◈</span
+        >{{ 'content.devilFruitTypes.title' | transloco }}
+      </h1>
+      <p class="mt-1 max-w-xl font-heading text-[13px] font-bold text-pretty text-ocean-500">
+        {{ 'content.devilFruitTypes.lead' | transloco }}
+      </p>
+    </div>
+    @if (canWrite()) {
+      <button type="button" [class]="newButtonClasses" (click)="announceNew()">
+        {{ 'content.devilFruitTypes.new' | transloco }}
+      </button>
+    }
+  </div>
+
+  <app-content-list-toolbar
+    [query]="searchText()"
+    [status]="status()"
+    [author]="author()"
+    [updatedWithinDays]="updatedWithinDays()"
+    [statusOptions]="statusOptions()"
+    [otherAuthors]="otherAuthors()"
+    [myUsername]="myUsername()"
+    [resultLine]="resultLine()"
+    (queryChange)="onSearchTyped($event)"
+    (statusChange)="setStatus($event)"
+    (authorChange)="setAuthor($event)"
+    (updatedWithinDaysChange)="setUpdatedWithinDays($event)"
+    (cleared)="clearFilters()"
+  />
+
+  @if (!rows.hasValue() && rows.isLoading()) {
+    <div class="rounded-2xl bg-parchment-100 p-8 shadow-md">
+      <app-loading-placeholder [label]="'content.list.loading' | transloco" />
+    </div>
+  } @else if (rows.error()) {
+    <div class="rounded-2xl bg-parchment-100 p-8 text-center shadow-md">
+      <p class="font-heading text-flag-700">{{ 'content.list.error' | transloco }}</p>
+    </div>
+  } @else if (rows.value(); as current) {
+    <app-pagination
+      [range]="range()"
+      [currentPage]="current.page"
+      [totalPages]="current.totalPages"
+      (previous)="goToPage(current.page - 1)"
+      (next)="goToPage(current.page + 1)"
+      (jumpTo)="goToPage($event)"
+    />
+
+    <div class="overflow-hidden rounded-2xl bg-parchment-100 shadow-md">
+      @if (rowViews().length > 0) {
+        <div
+          class="hidden grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem] gap-3.5 border-b border-parchment-200 bg-parchment-200/50 py-2.5 pr-4.5 pl-5.5 font-heading text-[11px] font-extrabold tracking-widest text-ocean-500 uppercase sm:grid"
+        >
+          <span>{{ 'content.list.column.name' | transloco }}</span>
+          <span>{{ 'content.list.column.status' | transloco }}</span>
+          <span>{{ 'content.list.column.author' | transloco }}</span>
+          <span>{{ 'content.list.column.updated' | transloco }}</span>
+        </div>
+      }
+
+      @for (row of rowViews(); track row.id) {
+        <div
+          class="grid grid-cols-1 items-center gap-3.5 border-b border-l-4 border-b-parchment-200 px-4.5 py-2.5 sm:grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]"
+          [class]="row.borderClass"
+          data-testid="content-row"
+        >
+          <div class="min-w-0">
+            <span class="flex min-w-0 items-center gap-2">
+              <span class="truncate font-heading text-[15px] font-extrabold text-ocean-950">{{
+                row.name
+              }}</span>
+              <span
+                class="flex-none rounded-md bg-parchment-200 px-1.5 py-px font-heading text-[10px] font-extrabold whitespace-nowrap text-ocean-800"
+                >{{ row.versionTag }}</span
+              >
+              @if (row.otherOnlineVersion; as online) {
+                <span
+                  class="flex-none rounded-md bg-status-published-soft px-1.5 py-px font-heading text-[10px] font-extrabold whitespace-nowrap text-status-published-ink"
+                  >{{ 'content.list.online' | transloco: { version: online } }}</span
+                >
+              }
+            </span>
+            <span class="mt-px block truncate font-heading text-xs font-bold text-ocean-500">
+              {{ row.romaji }}
+              <span class="sm:hidden"> · {{ row.author }} · {{ row.updated }}</span>
+            </span>
+            <span class="mt-1.5 block sm:hidden"><app-status-badge [status]="row.status" /></span>
+          </div>
+
+          <div class="hidden sm:block"><app-status-badge [status]="row.status" /></div>
+
+          <div class="hidden min-w-0 items-center gap-2 sm:flex">
+            <span
+              class="grid size-7 flex-none place-items-center rounded-full font-display text-[11px] font-bold"
+              [class]="
+                row.authoredByMe
+                  ? 'bg-treasure-500 text-ocean-950'
+                  : 'bg-parchment-200 text-ocean-800'
+              "
+              >{{ row.authorInitials }}</span
+            >
+            <span
+              class="truncate font-heading text-[13px] text-ocean-950"
+              [class]="row.authoredByMe ? 'font-black' : 'font-bold'"
+              >{{ row.author }}</span
+            >
+          </div>
+
+          <div
+            class="hidden font-heading text-xs font-bold whitespace-nowrap text-ocean-500 sm:block"
+          >
+            {{ row.updated }}
+          </div>
+        </div>
+      }
+
+      @if (sectionIsEmpty()) {
+        <div class="px-6 py-9 text-center">
+          <img src="assets/denden.png" alt="" class="mx-auto w-16" />
+          <p class="mt-2 mb-1 font-display text-lg font-bold text-ocean-950">
+            {{ 'content.list.emptyTitle' | transloco }}
+          </p>
+          <p class="font-heading text-sm font-semibold text-ocean-500">
+            {{ emptyTextKey() | transloco }}
+          </p>
+        </div>
+      } @else if (rowViews().length === 0) {
+        <div class="px-6 py-7 text-center">
+          <p class="mb-1 font-display text-[17px] font-bold text-ocean-950">
+            {{ 'content.list.noResults' | transloco }}
+          </p>
+          <button
+            type="button"
+            class="mt-1.5 cursor-pointer rounded-xl bg-parchment-200 px-4 py-2 font-heading text-[13px] font-extrabold text-ocean-800"
+            (click)="clearFilters()"
+          >
+            {{ 'content.list.resetFilters' | transloco }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <app-pagination
+      [range]="range()"
+      [currentPage]="current.page"
+      [totalPages]="current.totalPages"
+      (previous)="goToPage(current.page - 1)"
+      (next)="goToPage(current.page + 1)"
+      (jumpTo)="goToPage($event)"
+    />
+  }
+
+  <p
+    class="w-fit max-w-3xl rounded-xl bg-white/80 px-3.5 py-2 font-heading text-[13px] leading-normal font-bold text-ocean-500"
+  >
+    {{ permissionLine() }}
+  </p>
+</div>

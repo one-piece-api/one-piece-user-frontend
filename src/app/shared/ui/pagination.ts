@@ -2,19 +2,20 @@ import { Component, computed, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
- * The Ship's Log range/page/nav-buttons row (Step 17), used both above and below the
- * results so navigating never requires scrolling back up - extracted once that row grew
- * responsive behavior (`Page X of Y` dropped below `sm`, a windowed page-number list so a
- * ten-plus-page log never turns into a wall of buttons) that duplicating in
- * `audit-page.html` twice would have risked drifting. The range pill and the nav buttons
- * always share one row, at every width - only the `Page X of Y` label is width-gated.
+ * The range/page/nav-buttons row of a paginated list (the Ship's Log, the content lists),
+ * used both above and below the results so navigating never requires scrolling back up.
+ * One component rather than markup repeated per page: the row has responsive behavior
+ * (`Page X of Y` dropped below `sm`, a windowed page-number list so a ten-plus-page list
+ * never turns into a wall of buttons) that copies would let drift. The range pill and the
+ * nav buttons always share one row, at every width - only the `Page X of Y` label is
+ * width-gated.
  */
 @Component({
-  selector: 'app-audit-pagination',
-  templateUrl: './audit-pagination.html',
+  selector: 'app-pagination',
+  templateUrl: './pagination.html',
   imports: [TranslocoPipe],
 })
-export class AuditPagination {
+export class Pagination {
   readonly range = input<string | null>(null);
   readonly currentPage = input.required<number>();
   readonly totalPages = input.required<number>();

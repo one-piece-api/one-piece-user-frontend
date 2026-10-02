@@ -1,0 +1,77 @@
+<div class="rounded-2xl bg-parchment-100 px-4.5 py-4 shadow-md">
+  <div class="grid items-end gap-2.5 lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))_auto]">
+    <label class="block">
+      <span class="mb-1.5 block font-heading text-xs font-extrabold text-ocean-500">{{
+        'content.list.search' | transloco
+      }}</span>
+      <input
+        type="search"
+        [class]="fieldClasses"
+        [value]="query()"
+        [placeholder]="'content.list.searchPlaceholder' | transloco"
+        (input)="onQueryInput($event)"
+      />
+    </label>
+
+    <label class="block">
+      <span class="mb-1.5 block font-heading text-xs font-extrabold text-ocean-500">{{
+        'content.list.status' | transloco
+      }}</span>
+      <select [class]="fieldClasses" (change)="onStatusChange($event)">
+        <option [value]="noFilter" [selected]="status() === null">
+          {{ 'content.list.allStatuses' | transloco }}
+        </option>
+        @for (option of statusOptions(); track option) {
+          <option [value]="option" [selected]="status() === option">
+            {{ statusLabelKey[option] | transloco }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <label class="block">
+      <span class="mb-1.5 block font-heading text-xs font-extrabold text-ocean-500">{{
+        'content.list.author' | transloco
+      }}</span>
+      <select [class]="fieldClasses" (change)="onAuthorChange($event)">
+        <option [value]="noFilter" [selected]="author() === null">
+          {{ 'content.list.allAuthors' | transloco }}
+        </option>
+        <option [value]="myUsername()" [selected]="author() === myUsername()">
+          {{ 'content.list.you' | transloco }}
+        </option>
+        @for (other of otherAuthors(); track other.username) {
+          <option [value]="other.username" [selected]="author() === other.username">
+            {{ other.username }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <label class="block">
+      <span class="mb-1.5 block font-heading text-xs font-extrabold text-ocean-500">{{
+        'content.list.updated.label' | transloco
+      }}</span>
+      <select [class]="fieldClasses" (change)="onUpdatedChange($event)">
+        @for (option of updatedOptions; track option.labelKey) {
+          <option
+            [value]="updatedOptionValue(option.days)"
+            [selected]="updatedWithinDays() === option.days"
+          >
+            {{ option.labelKey | transloco }}
+          </option>
+        }
+      </select>
+    </label>
+
+    <button
+      type="button"
+      class="cursor-pointer rounded-xl bg-parchment-200 px-4 py-3 font-heading text-sm font-extrabold text-ocean-500 transition-colors hover:text-ocean-900"
+      (click)="cleared.emit()"
+    >
+      {{ 'content.list.reset' | transloco }}
+    </button>
+  </div>
+
+  <p class="mt-3 font-heading text-[13px] font-bold text-ocean-500">{{ resultLine() }}</p>
+</div>

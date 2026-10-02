@@ -3,9 +3,12 @@ export interface NavItem {
   /** A `transloco` translation key, not display text - the shell resolves it at render time. */
   readonly label: string;
   readonly icon: string;
-  readonly route: string;
+  /** Where the item leads. Absent on an item that is only announced (`soon`). */
+  readonly route?: string;
   /** No permission required (undefined) means every signed-in user sees the item. */
   readonly permission?: string;
+  /** Announced but not built yet: shown with a "coming soon" tag, and not a link. */
+  readonly soon?: boolean;
 }
 
 export interface NavGroup {
@@ -15,6 +18,36 @@ export interface NavGroup {
 }
 
 export const NAV_GROUPS: readonly NavGroup[] = [
+  {
+    // One entry per content entity (docs/user-flows/content-editorial-workflow.md 6): the
+    // ones not built yet are announced, so the section shows where the encyclopedia is going.
+    labelKey: 'shell.nav.contents',
+    items: [
+      {
+        id: 'characters',
+        label: 'shell.nav.characters',
+        icon: '☺',
+        permission: 'content:read',
+        soon: true,
+      },
+      {
+        id: 'devil-fruits',
+        label: 'shell.nav.devilFruits',
+        icon: '◆',
+        permission: 'content:read',
+        soon: true,
+      },
+      {
+        id: 'devil-fruit-types',
+        label: 'shell.nav.devilFruitTypes',
+        icon: '◈',
+        route: '/content/devil-fruit-types',
+        permission: 'content:read',
+      },
+      { id: 'crews', label: 'shell.nav.crews', icon: '⚑', permission: 'content:read', soon: true },
+      { id: 'arcs', label: 'shell.nav.arcs', icon: '≡', permission: 'content:read', soon: true },
+    ],
+  },
   {
     labelKey: 'shell.nav.account',
     items: [{ id: 'profile', label: 'shell.nav.profile', icon: '◆', route: '/' }],

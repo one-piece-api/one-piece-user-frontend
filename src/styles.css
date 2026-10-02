@@ -12,6 +12,7 @@
 @theme {
   --color-ocean-950: #123243;
   --color-ocean-900: #1a2360;
+  --color-ocean-800: #1a3d94;
   --color-ocean-700: #1e4fc4;
   --color-ocean-500: #4a6a7c;
   --color-ocean-100: #e9edfb;
@@ -35,6 +36,33 @@
   --color-parchment-50: #dfe3f7;
   --color-parchment-100: #ffffff;
   --color-parchment-200: #eef1fb;
+
+  /* Editorial statuses of a content version: a soft fill, an ink for its text and an
+     accent for dots and borders - one trio per status, as in the reference mockup. */
+  --color-status-draft-soft: #eef3f6;
+  --color-status-draft-ink: #5c7686;
+  --color-status-draft-accent: #9ab0bf;
+  --color-status-review-soft: #fff5e0;
+  --color-status-review-ink: #8a6212;
+  --color-status-review-accent: #ffb01f;
+  --color-status-rejected-soft: #fdeceb;
+  --color-status-rejected-ink: #9c3325;
+  --color-status-rejected-accent: #e2472e;
+  --color-status-ready-soft: #e9edfb;
+  --color-status-ready-ink: #1a3d94;
+  --color-status-ready-accent: #1e4fc4;
+  --color-status-published-soft: #e6f7ec;
+  --color-status-published-ink: #136c3a;
+  --color-status-published-accent: #25b062;
+  --color-status-archived-soft: #f1ecfb;
+  --color-status-archived-ink: #5b3fa8;
+  --color-status-archived-accent: #7a5cc7;
+  --color-status-retired-soft: #e8ebf0;
+  --color-status-retired-ink: #3d4a5c;
+  --color-status-retired-accent: #5c6b80;
+  --color-status-superseded-soft: #eef1fb;
+  --color-status-superseded-ink: #4a6a7c;
+  --color-status-superseded-accent: #8fa3c4;
 
   --font-display: 'Baloo 2', cursive, sans-serif;
   --font-heading: 'Nunito', 'Source Sans 3', sans-serif;

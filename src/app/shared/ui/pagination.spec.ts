@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
-import { provideTranslocoTesting } from '../testing/i18n-testing';
-import { AuditPagination } from './audit-pagination';
+import { provideTranslocoTesting } from '../../testing/i18n-testing';
+import { Pagination } from './pagination';
 
-describe('AuditPagination', () => {
+describe('Pagination', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
   });
 
   it('renders nothing when there is no range to show', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', null);
     fixture.componentRef.setInput('currentPage', 0);
     fixture.componentRef.setInput('totalPages', 0);
@@ -19,7 +19,7 @@ describe('AuditPagination', () => {
   });
 
   it('shows only the range pill when there is a single page', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '1–1 of 1');
     fixture.componentRef.setInput('currentPage', 0);
     fixture.componentRef.setInput('totalPages', 1);
@@ -31,7 +31,7 @@ describe('AuditPagination', () => {
   });
 
   it('shows the range pill in gold and the page label collapsed on mobile', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '1–1 of 3');
     fixture.componentRef.setInput('currentPage', 0);
     fixture.componentRef.setInput('totalPages', 3);
@@ -54,7 +54,7 @@ describe('AuditPagination', () => {
   });
 
   it('gives mobile a compact prev/next pair instead of squeezing the numbered strip onto a narrow row', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '1–1 of 3');
     fixture.componentRef.setInput('currentPage', 0);
     fixture.componentRef.setInput('totalPages', 3);
@@ -78,7 +78,7 @@ describe('AuditPagination', () => {
   });
 
   it('disables the previous arrow on the first page and the next arrow on the last', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '1–1 of 3');
     fixture.componentRef.setInput('currentPage', 0);
     fixture.componentRef.setInput('totalPages', 3);
@@ -103,7 +103,7 @@ describe('AuditPagination', () => {
   });
 
   it('emits previous, next and jumpTo', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '2–2 of 3');
     fixture.componentRef.setInput('currentPage', 1);
     fixture.componentRef.setInput('totalPages', 3);
@@ -128,7 +128,7 @@ describe('AuditPagination', () => {
   });
 
   it('shows every page with no ellipsis when there are 7 or fewer', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '1–1 of 4');
     fixture.componentRef.setInput('currentPage', 0);
     fixture.componentRef.setInput('totalPages', 4);
@@ -143,7 +143,7 @@ describe('AuditPagination', () => {
   });
 
   it('pins the first and last page around a sliding window with ellipses on both sides', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '16–20 of 100');
     fixture.componentRef.setInput('currentPage', 3);
     fixture.componentRef.setInput('totalPages', 10);
@@ -158,7 +158,7 @@ describe('AuditPagination', () => {
   });
 
   it('slides the window so the current page stays visible as you page forward', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '31–35 of 100');
     fixture.componentRef.setInput('currentPage', 6);
     fixture.componentRef.setInput('totalPages', 20);
@@ -170,7 +170,7 @@ describe('AuditPagination', () => {
   });
 
   it('always keeps the first and last page reachable, even from the last page', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '96–100 of 100');
     fixture.componentRef.setInput('currentPage', 9);
     fixture.componentRef.setInput('totalPages', 10);
@@ -188,7 +188,7 @@ describe('AuditPagination', () => {
   });
 
   it('highlights the current page among the numbered buttons', () => {
-    const fixture = TestBed.createComponent(AuditPagination);
+    const fixture = TestBed.createComponent(Pagination);
     fixture.componentRef.setInput('range', '2–2 of 3');
     fixture.componentRef.setInput('currentPage', 1);
     fixture.componentRef.setInput('totalPages', 3);

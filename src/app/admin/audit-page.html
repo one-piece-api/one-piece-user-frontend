@@ -25,7 +25,7 @@
       <p class="font-heading text-flag-700">{{ 'audit.error' | transloco }}</p>
     </app-card>
   } @else if (events.value(); as page) {
-    <app-audit-pagination
+    <app-pagination
       [range]="range()"
       [currentPage]="page.page"
       [totalPages]="page.totalPages"
@@ -54,7 +54,7 @@
       }
     </app-card>
 
-    <app-audit-pagination
+    <app-pagination
       [range]="range()"
       [currentPage]="page.page"
       [totalPages]="page.totalPages"
