@@ -24,15 +24,25 @@
   <div class="overflow-x-auto">
     <ol class="grid min-w-[720px] grid-cols-5 pt-0.5 pb-1">
       @for (column of columns(); track column.main.status) {
-        <li class="flex min-w-0 flex-col items-center text-center">
-          <div class="flex h-7.5 items-end justify-center">
-            @if (column.main.current) {
-              <img src="assets/sunny.png" alt="" class="anim-bob h-7.5" data-testid="route-ship" />
-            }
+        <!-- Rows shared across the columns (subgrid): a label that wraps moves every column alike. -->
+        <li class="row-span-7 grid min-w-0 grid-rows-subgrid justify-items-center text-center">
+          <div class="flex flex-col items-center justify-end px-1.5">
+            <div class="flex h-7.5 items-end justify-center">
+              @if (column.main.current) {
+                <img
+                  src="assets/sunny.png"
+                  alt=""
+                  class="anim-bob h-7.5"
+                  data-testid="route-ship"
+                />
+              }
+            </div>
+            <span
+              class="mt-0.5 font-display text-sm font-bold text-balance"
+              [class]="column.main.labelClasses"
+              >{{ column.main.labelKey | transloco }}</span
+            >
           </div>
-          <span class="mt-0.5 font-display text-sm font-bold" [class]="column.main.labelClasses">{{
-            column.main.labelKey | transloco
-          }}</span>
           <span
             class="line-clamp-2 h-7.5 px-1.5 font-heading text-[11px] leading-[15px] font-bold"
             [class]="column.main.noteClasses"
