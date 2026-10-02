@@ -172,6 +172,66 @@ body {
   animation: bob 2.4s ease-in-out infinite;
 }
 
+/* The selected link of a version chain: a slow breath around its resting scale-110, and two
+   rings of its own border color spreading out of it in turn, like ripples around a pebble. */
+@keyframes selected-pulse {
+  0%,
+  100% {
+    scale: 1.07;
+  }
+  50% {
+    scale: 1.15;
+  }
+}
+
+@keyframes selected-ripple {
+  0% {
+    scale: 1;
+    opacity: 0.7;
+  }
+  100% {
+    scale: 1.6;
+    opacity: 0;
+  }
+}
+
+.anim-selected-pulse {
+  animation: selected-pulse 2.4s ease-in-out infinite;
+}
+
+.anim-selected-pulse::before,
+.anim-selected-pulse::after {
+  content: '';
+  position: absolute;
+  /* Out to the circle's border edge, so a ripple starts exactly on its rim. */
+  inset: -2.5px;
+  z-index: -1;
+  border: 2px solid;
+  border-color: inherit;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: selected-ripple 2.4s ease-out infinite;
+}
+
+.anim-selected-pulse::after {
+  animation-delay: 1.2s;
+}
+
+/* Without motion: no breath, and one still ring in place of the ripples. */
+@media (prefers-reduced-motion: reduce) {
+  .anim-selected-pulse,
+  .anim-selected-pulse::before,
+  .anim-selected-pulse::after {
+    animation: none;
+  }
+
+  .anim-selected-pulse::before {
+    scale: 1.25;
+    opacity: 0.4;
+  }
+}
+
 @keyframes wave-drift {
   0%,
   100% {

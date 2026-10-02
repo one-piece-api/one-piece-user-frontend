@@ -1,13 +1,13 @@
-<ol class="flex min-w-0 flex-1 items-start overflow-x-auto px-1.5 pt-2 pb-0.5">
+<ol class="flex min-w-0 flex-1 items-start overflow-x-auto px-4 pt-5 pb-0.5">
   @for (link of links(); track link.number; let first = $first) {
     <li class="flex items-start">
       @if (!first) {
         <span class="mt-5 h-1 w-7.5 rounded-sm bg-parchment-200"></span>
       }
-      <div class="flex min-w-14.5 flex-col items-center gap-1.5">
+      <div class="flex min-w-14.5 flex-col items-center gap-3.5">
         <button
           type="button"
-          class="relative grid size-11 cursor-pointer place-items-center rounded-full border-[2.5px] font-display text-[15px] font-bold transition-transform hover:-translate-y-0.5 hover:scale-105"
+          class="relative grid size-11 place-items-center rounded-full border-[2.5px] font-display text-[15px] font-bold transition"
           [class]="link.circleClasses"
           [class.border-dashed]="link.neverPublished"
           [title]="link.title"

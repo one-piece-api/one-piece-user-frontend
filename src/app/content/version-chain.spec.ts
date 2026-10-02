@@ -96,6 +96,23 @@ describe('VersionChain', () => {
     expect(draft.className).not.toContain('bg-status-draft-accent');
   });
 
+  it('gives the selected version, and only it, a pulsing halo of the color of its status', () => {
+    render(3);
+
+    const pulsing = circles().filter((circle) => circle.classList.contains('anim-selected-pulse'));
+    expect(pulsing.map((circle) => circle.getAttribute('aria-pressed'))).toEqual(['true']);
+    expect(pulsing[0].className).toContain('shadow-status-archived-accent');
+  });
+
+  it('fades and shrinks the versions that are not selected', () => {
+    render(3);
+
+    const steppedBack = circles().map(
+      (circle) => circle.classList.contains('opacity-60') && circle.classList.contains('scale-90'),
+    );
+    expect(steppedBack).toEqual([true, false, true, true]);
+  });
+
   it('says in the tooltip when a version was never published', () => {
     render(4);
 
