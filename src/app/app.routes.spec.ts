@@ -2,10 +2,13 @@ import { routes } from './app.routes';
 import { permissionGuard } from './shared/nav/permission.guard';
 
 describe('routes', () => {
-  it('opens the Devil Fruit Type section only to who holds content:read', () => {
-    const route = routes.find((candidate) => candidate.path === 'content/devil-fruit-types');
+  it.each(['content/devil-fruit-types', 'content/devil-fruit-types/:id'])(
+    'opens %s only to who holds content:read',
+    (path) => {
+      const route = routes.find((candidate) => candidate.path === path);
 
-    expect(route?.canActivate).toEqual([permissionGuard]);
-    expect(route?.data).toEqual({ permission: 'content:read' });
-  });
+      expect(route?.canActivate).toEqual([permissionGuard]);
+      expect(route?.data).toEqual({ permission: 'content:read' });
+    },
+  );
 });

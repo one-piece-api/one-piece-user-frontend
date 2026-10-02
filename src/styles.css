@@ -64,6 +64,11 @@
   --color-status-superseded-ink: #4a6a7c;
   --color-status-superseded-accent: #8fa3c4;
 
+  /* The entity card: a gold frame, a paler line for its tiles, a muted gold ink for labels. */
+  --color-card-frame: #e3c567;
+  --color-card-line: #f0e3bd;
+  --color-card-ink: #9a8a5c;
+
   --font-display: 'Baloo 2', cursive, sans-serif;
   --font-heading: 'Nunito', 'Source Sans 3', sans-serif;
 }

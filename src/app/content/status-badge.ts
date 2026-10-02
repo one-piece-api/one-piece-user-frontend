@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, booleanAttribute, computed, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { STATUS_LABEL_KEY, type VersionStatus } from './content.model';
 
@@ -25,6 +25,22 @@ const DOT_CLASSES: Record<VersionStatus, string> = {
   SUPERSEDED: 'bg-status-superseded-accent',
 };
 
+/** The glyph standing for each status where there is room for one - the detail header, the chain. */
+export const STATUS_GLYPH: Record<VersionStatus, string> = {
+  DRAFT: '✎',
+  IN_REVIEW: '◷',
+  REJECTED: '✕',
+  READY_TO_PUBLISH: '✓',
+  PUBLISHED: '⚓',
+  ARCHIVED: '▣',
+  RETIRED: '⊘',
+  SUPERSEDED: '⇡',
+};
+
+/** Spacing and type size of the pill: the one of a list row, and the one heading a detail. */
+const COMPACT_CLASSES = 'gap-1.5 px-2.5 py-1 text-xs';
+const PROMINENT_CLASSES = 'gap-2 px-4 py-2 text-sm';
+
 /** The same accent as a left border - the colored edge of a list row. */
 export const STATUS_BORDER_CLASS: Record<VersionStatus, string> = {
   DRAFT: 'border-l-status-draft-accent',
@@ -37,7 +53,10 @@ export const STATUS_BORDER_CLASS: Record<VersionStatus, string> = {
   SUPERSEDED: 'border-l-status-superseded-accent',
 };
 
-/** The pill naming the editorial status of a version: a dot in its accent, then its label. */
+/**
+ * The pill naming the editorial status of a version: a dot in its accent, then its label.
+ * `prominent` is the larger one heading a detail screen, with the status glyph for a dot.
+ */
 @Component({
   selector: 'app-status-badge',
   templateUrl: './status-badge.html',
@@ -45,8 +64,13 @@ export const STATUS_BORDER_CLASS: Record<VersionStatus, string> = {
 })
 export class StatusBadge {
   readonly status = input.required<VersionStatus>();
+  readonly prominent = input(false, { transform: booleanAttribute });
 
-  protected readonly pillClasses = computed(() => PILL_CLASSES[this.status()]);
+  protected readonly pillClasses = computed(
+    () =>
+      `${PILL_CLASSES[this.status()]} ${this.prominent() ? PROMINENT_CLASSES : COMPACT_CLASSES}`,
+  );
   protected readonly dotClasses = computed(() => DOT_CLASSES[this.status()]);
+  protected readonly glyph = computed(() => STATUS_GLYPH[this.status()]);
   protected readonly labelKey = computed(() => STATUS_LABEL_KEY[this.status()]);
 }

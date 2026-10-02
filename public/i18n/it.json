@@ -405,11 +405,17 @@
     "breadcrumb": {
       "contents": "Contenuti"
     },
+    "moment": {
+      "today": "oggi {{time}}",
+      "yesterday": "ieri {{time}}",
+      "date": "{{date}} {{time}}"
+    },
     "devilFruitTypes": {
       "kicker": "Contenuti · /devil-fruit-types",
       "title": "Tipi di Frutto del Diavolo",
       "lead": "Le categorie in cui si dividono i Frutti del Diavolo.",
-      "new": "+ Nuovo tipo di frutto"
+      "new": "+ Nuovo tipo di frutto",
+      "one": "Tipo di Frutto"
     },
     "list": {
       "search": "Cerca",
@@ -440,11 +446,6 @@
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
       "unnamed": "Senza nome",
-      "updatedAt": {
-        "today": "oggi {{time}}",
-        "yesterday": "ieri {{time}}",
-        "date": "{{date}} {{time}}"
-      },
       "emptyTitle": "Qui non c'è ancora nulla",
       "emptyWriter": "Crea il primo contenuto con il pulsante qui sopra.",
       "emptyReader": "Quando qualcosa arriverà in revisione, lo vedrai qui.",
@@ -460,6 +461,35 @@
       "error": "Enciclopedia dispersa. Impossibile caricare i contenuti.",
       "loadError": "Arrr! Impossibile caricare i contenuti — riprova tra un momento.",
       "newSoon": "Arrr! La creazione di un nuovo tipo di frutto è ancora in cantiere."
+    },
+    "detail": {
+      "crumb": "Scheda",
+      "versions": "Versioni",
+      "versionCountOne": "{{count}} versione",
+      "versionCountMany": "{{count}} versioni",
+      "online": "online",
+      "neverPublished": "mai pubblicata",
+      "by": "di {{author}}",
+      "mostRecent": "la più recente",
+      "mostRecentVisible": "la più recente visibile al tuo ruolo",
+      "tab": {
+        "overview": "Panoramica",
+        "workflow": "Workflow"
+      },
+      "workflowSoon": "Arrr! La rotta editoriale di questa versione è ancora in cantiere.",
+      "loading": "Recuperiamo la scheda…",
+      "missingTitle": "Contenuto non trovato",
+      "missingText": "Arrr! Questa voce non esiste, o non è visibile al tuo ruolo.",
+      "backToList": "Torna all'elenco",
+      "error": "Scheda dispersa. Impossibile caricare il contenuto."
+    },
+    "card": {
+      "title": "Scheda",
+      "name": "Nome · {{language}}",
+      "description": "Descrizione · {{language}}",
+      "noName": "— nessun nome in questa lingua —",
+      "noDescription": "— nessuna descrizione in questa lingua —",
+      "incomplete": "traduzione incompleta"
     }
   }
 }

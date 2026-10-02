@@ -1,0 +1,119 @@
+<div class="flex w-full max-w-5xl flex-col gap-3.5">
+  <app-breadcrumb [crumbs]="crumbs()" />
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="rounded-2xl bg-parchment-100 p-8 shadow-md">
+        <app-loading-placeholder [label]="'content.detail.loading' | transloco" />
+      </div>
+    }
+    @case ('missing') {
+      <div class="rounded-2xl bg-parchment-100 px-6 py-9 text-center shadow-md">
+        <img src="assets/denden.png" alt="" class="mx-auto w-16" />
+        <p class="mt-2 mb-1 font-display text-lg font-bold text-ocean-950">
+          {{ 'content.detail.missingTitle' | transloco }}
+        </p>
+        <p class="mb-3 font-heading text-sm font-semibold text-ocean-500">
+          {{ 'content.detail.missingText' | transloco }}
+        </p>
+        <a [routerLink]="listRoute" [class]="backButtonClasses">{{
+          'content.detail.backToList' | transloco
+        }}</a>
+      </div>
+    }
+    @case ('error') {
+      <div class="rounded-2xl bg-parchment-100 p-8 text-center shadow-md">
+        <p class="font-heading text-flag-700">{{ 'content.detail.error' | transloco }}</p>
+      </div>
+    }
+    @case ('ready') {
+      @let version = shown()!;
+      <article
+        animate.enter="anim-pop-enter"
+        class="overflow-hidden rounded-[22px] border-l-6 bg-parchment-100 shadow-lg"
+        [class]="borderClass()"
+      >
+        <header class="flex flex-wrap items-start justify-between gap-3.5 px-5.5 pt-4.5 pb-1">
+          <div class="min-w-0">
+            <p
+              class="inline-flex items-center gap-1.5 font-display text-xs font-bold tracking-[0.12em] text-flag-600 uppercase"
+            >
+              <span class="text-[15px] text-ocean-800">◈</span>
+              <span>{{ 'content.devilFruitTypes.one' | transloco }}</span>
+              <span class="tracking-wider text-ocean-500/60">{{ serial() }}</span>
+            </p>
+            <h1 class="mt-px font-display text-[26px] leading-tight font-bold text-ocean-950">
+              {{ title() }}
+            </h1>
+            <p class="font-heading text-sm font-bold text-ocean-500">{{ version.body.romaji }}</p>
+          </div>
+          <span class="flex-none"><app-status-badge prominent [status]="version.status" /></span>
+        </header>
+
+        <div class="px-5.5 pt-1.5">
+          <div class="flex flex-wrap items-center gap-3.5 border-t border-parchment-200 pt-3">
+            <div class="grid gap-0.5 font-heading text-[11px] text-ocean-500/60">
+              <span class="font-extrabold tracking-widest uppercase">{{
+                'content.detail.versions' | transloco
+              }}</span>
+              <span class="font-bold">{{ versionCount() }}</span>
+            </div>
+            <app-version-chain
+              class="flex min-w-0 flex-1"
+              [versions]="versions()"
+              [selectedNumber]="selected()?.number ?? null"
+              [onlineVersionNumber]="onlineVersionNumber()"
+              (picked)="selectVersion($event)"
+            />
+          </div>
+          @if (selectedBar(); as bar) {
+            <p
+              class="mt-2 rounded-xl bg-parchment-200/50 px-3 py-2 font-heading text-[13px] font-bold text-pretty text-ocean-500"
+              data-testid="selected-version"
+            >
+              <strong class="text-ocean-950">{{ bar.title }}</strong> · {{ bar.line }}
+            </p>
+          }
+        </div>
+
+        <div
+          class="mt-3 flex gap-1 overflow-x-auto border-b border-parchment-200 px-3.5"
+          role="tablist"
+        >
+          @for (tab of tabs; track tab.id) {
+            <button
+              type="button"
+              role="tab"
+              class="inline-flex cursor-pointer items-center gap-1.5 border-b-[3px] px-3 pt-2.5 pb-2 font-display text-[15px] font-bold whitespace-nowrap"
+              [class]="
+                tab.id === openTab()
+                  ? 'border-flag-600 text-ocean-950'
+                  : 'border-transparent text-ocean-500'
+              "
+              [attr.aria-selected]="tab.id === openTab()"
+              (click)="selectTab(tab.id)"
+            >
+              <span
+                class="text-[13px]"
+                [class]="tab.id === openTab() ? 'text-flag-600' : 'text-ocean-500/60'"
+                aria-hidden="true"
+                >{{ tab.icon }}</span
+              >
+              {{ tab.labelKey | transloco }}
+            </button>
+          }
+        </div>
+
+        <div class="min-w-0 px-5.5 pt-5 pb-5.5" role="tabpanel">
+          @if (openTab() === 'overview') {
+            <app-devil-fruit-type-card [devilFruitType]="version.body" [languages]="languages()" />
+          } @else {
+            <p class="py-6 text-center font-heading text-sm font-bold text-ocean-500">
+              {{ 'content.detail.workflowSoon' | transloco }}
+            </p>
+          }
+        </div>
+      </article>
+    }
+  }
+</div>

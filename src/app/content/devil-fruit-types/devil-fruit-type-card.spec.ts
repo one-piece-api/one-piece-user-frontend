@@ -1,0 +1,102 @@
+import { TestBed, type ComponentFixture } from '@angular/core/testing';
+import { provideTranslocoTesting } from '../../testing/i18n-testing';
+import { DevilFruitTypeCard } from './devil-fruit-type-card';
+import type { DevilFruitType } from './devil-fruit-type.model';
+
+const ITALIAN = { code: 'it', name: 'Italiano' };
+const ENGLISH = { code: 'en', name: 'English' };
+
+/** Complete in English, still without a description in Italian. */
+const LOGIA: DevilFruitType = {
+  romaji: 'Shizen-kei',
+  translations: {
+    en: { name: 'Logia', description: 'Turns the body into an element.' },
+    it: { name: 'Rogia', description: null },
+  },
+};
+
+describe('DevilFruitTypeCard', () => {
+  let fixture: ComponentFixture<DevilFruitTypeCard>;
+  let root: HTMLElement;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+  });
+
+  function render(devilFruitType: DevilFruitType, languages = [ITALIAN, ENGLISH]): void {
+    fixture = TestBed.createComponent(DevilFruitTypeCard);
+    fixture.componentRef.setInput('devilFruitType', devilFruitType);
+    fixture.componentRef.setInput('languages', languages);
+    fixture.detectChanges();
+    root = fixture.nativeElement as HTMLElement;
+  }
+
+  function tabs(): HTMLButtonElement[] {
+    return Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+  }
+
+  function text(testId: string): string {
+    return root.querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
+  }
+
+  it('offers one tab per language of the catalog', () => {
+    render(LOGIA);
+
+    expect(tabs().map((tab) => tab.textContent?.trim().slice(0, 2))).toEqual(['IT', 'EN']);
+  });
+
+  it('opens on the language the UI is in', () => {
+    render(LOGIA);
+
+    expect(tabs()[1].getAttribute('aria-selected')).toBe('true');
+    expect(text('card-name')).toBe('Logia');
+    expect(text('card-description')).toBe('Turns the body into an element.');
+    expect(root.textContent).toContain('Description · EN');
+  });
+
+  it('opens on the first language when the catalog does not have the UI one', () => {
+    render(LOGIA, [ITALIAN]);
+
+    expect(tabs()[0].getAttribute('aria-selected')).toBe('true');
+    expect(text('card-name')).toBe('Rogia');
+  });
+
+  it('switches to the language that is picked', () => {
+    render(LOGIA);
+
+    tabs()[0].click();
+    fixture.detectChanges();
+
+    expect(tabs()[0].getAttribute('aria-selected')).toBe('true');
+    expect(text('card-name')).toBe('Rogia');
+    expect(text('card-description')).toBe('— no description in this language —');
+  });
+
+  it('marks the languages whose translation is incomplete', () => {
+    render(LOGIA);
+
+    const marked = tabs().map(
+      (tab) => tab.querySelector('[data-testid="incomplete-marker"]') !== null,
+    );
+    expect(marked).toEqual([true, false]);
+  });
+
+  it('marks a language of the catalog the version has no translation for', () => {
+    render({ romaji: 'Shizen-kei', translations: { en: LOGIA.translations['en'] } });
+
+    expect(tabs()[0].querySelector('[data-testid="incomplete-marker"]')).not.toBeNull();
+  });
+
+  it('keeps the picked language when another version is shown', () => {
+    render(LOGIA);
+    tabs()[0].click();
+
+    fixture.componentRef.setInput('devilFruitType', {
+      romaji: 'Shizen-kei',
+      translations: { it: { name: 'Rogia v2', description: 'Elementale.' } },
+    });
+    fixture.detectChanges();
+
+    expect(text('card-name')).toBe('Rogia v2');
+  });
+});

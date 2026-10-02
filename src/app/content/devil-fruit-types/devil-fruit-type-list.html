@@ -74,11 +74,11 @@
 
       @for (row of rowViews(); track row.id) {
         <div
-          class="grid grid-cols-1 items-center gap-3.5 border-b border-l-4 border-b-parchment-200 px-4.5 py-2.5 sm:grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]"
+          class="grid grid-cols-1 items-center gap-3.5 border-b border-l-4 border-b-parchment-200 px-4.5 py-2.5 hover:bg-parchment-200/50 sm:grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]"
           [class]="row.borderClass"
           data-testid="content-row"
         >
-          <div class="min-w-0">
+          <a [routerLink]="[row.id]" class="block min-w-0">
             <span class="flex min-w-0 items-center gap-2">
               <span class="truncate font-heading text-[15px] font-extrabold text-ocean-950">{{
                 row.name
@@ -99,7 +99,7 @@
               <span class="sm:hidden"> · {{ row.author }} · {{ row.updated }}</span>
             </span>
             <span class="mt-1.5 block sm:hidden"><app-status-badge [status]="row.status" /></span>
-          </div>
+          </a>
 
           <div class="hidden sm:block"><app-status-badge [status]="row.status" /></div>
 

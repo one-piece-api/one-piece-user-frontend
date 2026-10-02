@@ -405,11 +405,17 @@
     "breadcrumb": {
       "contents": "Contents"
     },
+    "moment": {
+      "today": "today {{time}}",
+      "yesterday": "yesterday {{time}}",
+      "date": "{{date}} {{time}}"
+    },
     "devilFruitTypes": {
       "kicker": "Contents · /devil-fruit-types",
       "title": "Devil Fruit Types",
       "lead": "The categories Devil Fruits fall into.",
-      "new": "+ New fruit type"
+      "new": "+ New fruit type",
+      "one": "Fruit Type"
     },
     "list": {
       "search": "Search",
@@ -440,11 +446,6 @@
       "online": "v{{version}} online",
       "romajiMissing": "romaji to be defined",
       "unnamed": "Unnamed",
-      "updatedAt": {
-        "today": "today {{time}}",
-        "yesterday": "yesterday {{time}}",
-        "date": "{{date}} {{time}}"
-      },
       "emptyTitle": "Nothing here yet",
       "emptyWriter": "Create the first content with the button above.",
       "emptyReader": "When something reaches review, you'll see it here.",
@@ -460,6 +461,35 @@
       "error": "Lost the encyclopedia. Could not load the contents.",
       "loadError": "Arrr! Could not load the contents — try again in a moment.",
       "newSoon": "Arrr! Creating a new fruit type is still in the shipyard."
+    },
+    "detail": {
+      "crumb": "Card",
+      "versions": "Versions",
+      "versionCountOne": "{{count}} version",
+      "versionCountMany": "{{count}} versions",
+      "online": "online",
+      "neverPublished": "never published",
+      "by": "by {{author}}",
+      "mostRecent": "the most recent",
+      "mostRecentVisible": "the most recent visible to your role",
+      "tab": {
+        "overview": "Overview",
+        "workflow": "Workflow"
+      },
+      "workflowSoon": "Arrr! The editorial route of this version is still in the shipyard.",
+      "loading": "Fetching the card…",
+      "missingTitle": "Content not found",
+      "missingText": "Arrr! This entry does not exist, or is not visible to your role.",
+      "backToList": "Back to the list",
+      "error": "Lost the card. Could not load the content."
+    },
+    "card": {
+      "title": "Card",
+      "name": "Name · {{language}}",
+      "description": "Description · {{language}}",
+      "noName": "— no name in this language —",
+      "noDescription": "— no description in this language —",
+      "incomplete": "incomplete translation"
     }
   }
 }

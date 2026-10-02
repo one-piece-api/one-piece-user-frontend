@@ -1,8 +1,11 @@
 import {
+  contentSerial,
   localizedName,
   otherOnlineVersion,
   updatedMoment,
+  versionToShow,
   type ContentSummary,
+  type VersionSummary,
 } from './content.model';
 
 function row(versionNumber: number, onlineVersionNumber: number | null): ContentSummary<unknown> {
@@ -67,5 +70,31 @@ describe('updatedMoment', () => {
   it('adds the year when it is not the current one', () => {
     const moment = updatedMoment(new Date(2025, 11, 31, 9, 5).toISOString(), now, 'it');
     expect(moment).toEqual({ kind: 'date', date: '31/12/2025', time: '09:05' });
+  });
+});
+
+describe('versionToShow', () => {
+  const chain = [1, 2, 3].map((number) => ({ number }) as VersionSummary);
+
+  it('is the requested version when the chain has it', () => {
+    expect(versionToShow(chain, 2)?.number).toBe(2);
+  });
+
+  it('is the most recent version when none is requested', () => {
+    expect(versionToShow(chain, null)?.number).toBe(3);
+  });
+
+  it('is the most recent version when the requested one is not in the chain', () => {
+    expect(versionToShow(chain, 7)?.number).toBe(3);
+  });
+
+  it('is nothing for an empty chain', () => {
+    expect(versionToShow([], 1)).toBeNull();
+  });
+});
+
+describe('contentSerial', () => {
+  it('is the first block of the id, in capitals', () => {
+    expect(contentSerial('3f2a9c1b-0000-4000-8000-000000000001')).toBe('#3F2A9C1B');
   });
 });

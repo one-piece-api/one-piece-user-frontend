@@ -1,7 +1,7 @@
 import { httpResource } from '@angular/common/http';
 import { Component, computed, effect, inject, linkedSignal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, type Params } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink, type Params } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Subject, debounceTime } from 'rxjs';
 import { CurrentUserService } from '../../identity/current-user';
@@ -16,13 +16,12 @@ import { ContentListToolbar } from '../content-list-toolbar';
 import {
   localizedName,
   otherOnlineVersion,
-  updatedMoment,
   type ContentListSummary,
   type ContentSummary,
   type ContentUser,
-  type UpdatedMoment,
   type VersionStatus,
 } from '../content.model';
+import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 
 const ENDPOINT = '/api/content/devil-fruit-types';
@@ -75,6 +74,7 @@ interface RowView {
     ContentListToolbar,
     LoadingPlaceholder,
     Pagination,
+    RouterLink,
     StatusBadge,
     TranslocoPipe,
   ],
@@ -282,11 +282,7 @@ export class DevilFruitTypeList {
       author: authoredByMe ? you : row.author.username,
       authorInitials: authoredByMe ? you : initialsOf(row.author.username),
       authoredByMe,
-      updated: this.updatedLabel(updatedMoment(row.updatedAt, new Date(), language)),
+      updated: momentLabel(this.transloco, row.updatedAt),
     };
-  }
-
-  private updatedLabel(moment: UpdatedMoment): string {
-    return this.transloco.translate(`content.list.updatedAt.${moment.kind}`, { ...moment });
   }
 }

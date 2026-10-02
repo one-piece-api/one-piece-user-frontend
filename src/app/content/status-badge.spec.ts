@@ -8,9 +8,10 @@ describe('StatusBadge', () => {
     TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
   });
 
-  function render(status: VersionStatus): HTMLElement {
+  function render(status: VersionStatus, prominent = false): HTMLElement {
     const fixture = TestBed.createComponent(StatusBadge);
     fixture.componentRef.setInput('status', status);
+    fixture.componentRef.setInput('prominent', prominent);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
@@ -34,6 +35,14 @@ describe('StatusBadge', () => {
     expect(pill.className).toContain('bg-status-published-soft');
     expect(pill.className).toContain('text-status-published-ink');
     expect(pill.querySelector('span')?.className).toContain('bg-status-published-accent');
+  });
+
+  it('leads with the glyph of the status, not a dot, when prominent', () => {
+    const pill = render('PUBLISHED', true).querySelector('span') as HTMLElement;
+
+    expect(pill.textContent).toContain('⚓');
+    expect(pill.textContent).toContain('Published');
+    expect(pill.querySelector('.bg-status-published-accent')).toBeNull();
   });
 
   it('has a border color for every status', () => {

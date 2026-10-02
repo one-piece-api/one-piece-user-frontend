@@ -154,6 +154,15 @@ describe('DevilFruitTypeList', () => {
     expect(rows()[0].textContent).toContain('today');
   });
 
+  it('opens the detail of a content from its row', async () => {
+    await open('/content/devil-fruit-types', 'nami', EDITOR);
+    await answerList('page=0', page([PARAMECIA, LOGIA]));
+
+    expect(rows()[0].querySelector('a')?.getAttribute('href')).toBe(
+      '/content/devil-fruit-types/c1',
+    );
+  });
+
   it('flags the online version only when it is not the one the row shows', async () => {
     await open('/content/devil-fruit-types', 'nami', EDITOR);
     await answerList('page=0', page([PARAMECIA, LOGIA]));

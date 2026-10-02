@@ -44,6 +44,35 @@ export interface ContentListSummary {
   statuses: VersionStatus[];
 }
 
+/**
+ * One link of a content's version chain: its workflow, without what it says. `basedOn` is
+ * the version it was opened from (`null` for the first), `everPublished` whether it has
+ * been online at some point.
+ */
+export interface VersionSummary {
+  number: number;
+  status: VersionStatus;
+  author: ContentUser;
+  basedOn: number | null;
+  claimant: ContentUser | null;
+  everPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** One version in full: its workflow and, in `body`, what it says - specific to the entity. */
+export interface Version<TBody> extends VersionSummary {
+  rejectionReason: string | null;
+  body: TBody;
+}
+
+/** A content and the versions of it the caller may see, oldest first. */
+export interface Content {
+  id: string;
+  onlineVersionNumber: number | null;
+  versions: VersionSummary[];
+}
+
 /** Translation key of each status label - templates resolve it with `| transloco`. */
 export const STATUS_LABEL_KEY: Record<VersionStatus, string> = {
   DRAFT: 'content.status.draft',
@@ -71,6 +100,22 @@ export const UPDATED_WITHIN_OPTIONS = [
 export function otherOnlineVersion(row: ContentSummary<unknown>): number | null {
   const online = row.onlineVersionNumber;
   return online !== null && online !== row.versionNumber ? online : null;
+}
+
+/**
+ * The version a detail screen shows: the requested one when the caller may see it, else the
+ * most recent of the chain. `null` only for an empty chain.
+ */
+export function versionToShow(
+  versions: readonly VersionSummary[],
+  requested: number | null,
+): VersionSummary | null {
+  return versions.find((version) => version.number === requested) ?? versions.at(-1) ?? null;
+}
+
+/** The short serial a content is labelled with: the first block of its id, e.g. `#3F2A9C1B`. */
+export function contentSerial(id: string): string {
+  return `#${id.split('-')[0].toUpperCase()}`;
 }
 
 /**

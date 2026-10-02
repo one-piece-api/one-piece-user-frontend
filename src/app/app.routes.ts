@@ -24,6 +24,15 @@ export const routes: Routes = [
     data: { permission: 'content:read' },
   },
   {
+    path: 'content/devil-fruit-types/:id',
+    loadComponent: () =>
+      import('./content/devil-fruit-types/devil-fruit-type-detail').then(
+        (module) => module.DevilFruitTypeDetail,
+      ),
+    canActivate: [permissionGuard],
+    data: { permission: 'content:read' },
+  },
+  {
     path: 'users',
     component: AdminUserList,
     canActivate: [permissionGuard],
