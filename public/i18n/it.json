@@ -402,6 +402,104 @@
       "retired": "Ritirato",
       "superseded": "Sostituita"
     },
+    "statusMeaning": {
+      "draft": "Contenuto in lavorazione.",
+      "inReview": "Sottoposto alla revisione.",
+      "rejected": "Revisione fallita: va riportato in bozza per correggerlo.",
+      "readyToPublish": "Revisione superata: aspetta solo di essere pubblicato.",
+      "published": "Online per i lettori.",
+      "archived": "Messo da parte senza pubblicarlo; si può recuperare.",
+      "retired": "Era pubblicato, poi è stato tolto dalla pubblicazione.",
+      "superseded": "Era online, poi un'altra versione ha preso il suo posto."
+    },
+    "action": {
+      "edit": "Modifica",
+      "delete": "Scarta bozza",
+      "submit": "Invia in revisione",
+      "pullBack": "Ritira dalla revisione",
+      "claim": "Prendi in carico",
+      "release": "Rilascia",
+      "approve": "Approva",
+      "reject": "Rifiuta",
+      "returnToDraft": "Riporta in bozza",
+      "publish": "Pubblica",
+      "archive": "Archivia",
+      "recover": "Recupera",
+      "retire": "Ritira dalla pubblicazione",
+      "restore": "Ripubblica",
+      "openNewVersion": "Nuova bozza da v{{version}}"
+    },
+    "event": {
+      "created": "Bozza creata",
+      "createdFrom": "Nuova bozza da v{{version}}",
+      "edited": "Bozza modificata",
+      "submitted": "Inviato in revisione",
+      "pulledBack": "Ritirato dalla revisione",
+      "claimed": "Preso in carico",
+      "released": "Rilasciato",
+      "approved": "Approvato",
+      "rejected": "Rifiutato",
+      "returnedToDraft": "Riportato in bozza",
+      "published": "Pubblicato",
+      "archived": "Archiviato",
+      "recovered": "Recuperato dall'archivio",
+      "retired": "Ritirato dalla pubblicazione",
+      "restored": "Ripubblicata"
+    },
+    "workflow": {
+      "routeTitle": "Rotta editoriale",
+      "legendShow": "Cosa significa ogni stato",
+      "legendHide": "Nascondi legenda",
+      "legend": {
+        "current": "stato corrente",
+        "followed": "percorso seguito",
+        "alternative": "percorso alternativo"
+      },
+      "link": {
+        "returnToDraft": "ritorno in bozza",
+        "reject": "rifiuto",
+        "archive": "archivia ⇅ recupera",
+        "retire": "ritiro"
+      },
+      "note": {
+        "queued": "in coda · {{when}}",
+        "claimedByYou": "in carico a te",
+        "claimedBy": "in carico a {{reviewer}}",
+        "byWhen": "da {{actor}} · {{when}}",
+        "byActor": "da {{actor}}",
+        "archived": "recuperabile",
+        "retired": "non più online",
+        "superseded": "da un'altra versione"
+      },
+      "timelineTitle": "Cronologia del workflow",
+      "timelineHint": "chi · cosa · quando",
+      "timelineEmpty": "Nessun evento registrato per questa versione.",
+      "reason": "Motivo:",
+      "accessTitle": "I tuoi permessi qui",
+      "accessFootnote": "Vedere, modificare e far avanzare sono tre permessi distinti.",
+      "access": {
+        "visible": "Visibile",
+        "visibleToEditors": "solo agli editor",
+        "visibleToReviewers": "a editor e reviewer",
+        "visibleToAll": "a tutta la redazione",
+        "editable": "Modificabile",
+        "notEditable": "Non modificabile",
+        "ownDraft": "è una tua bozza",
+        "missingWrite": "ti manca content:write",
+        "returnFirst": "va prima riportato in bozza",
+        "belongsTo": "appartiene a {{author}}",
+        "onlyDraft": "si modifica solo in bozza",
+        "workflow": "Workflow: {{actions}}",
+        "noWorkflow": "Nessuna azione di workflow",
+        "authorOnly": "solo l'autore può farlo avanzare",
+        "claimedBy": "in carico a {{reviewer}}",
+        "needsReview": "serve content:review",
+        "ownReview": "non revisioni i tuoi contenuti",
+        "needsPublish": "serve content:publish",
+        "noTransition": "nessuna transizione per il tuo ruolo",
+        "openVersionExists": "il contenuto ha già una versione in lavorazione"
+      }
+    },
     "breadcrumb": {
       "contents": "Contenuti"
     },
@@ -476,7 +574,6 @@
         "overview": "Panoramica",
         "workflow": "Workflow"
       },
-      "workflowSoon": "Arrr! La rotta editoriale di questa versione è ancora in cantiere.",
       "loading": "Recuperiamo la scheda…",
       "missingTitle": "Contenuto non trovato",
       "missingText": "Arrr! Questa voce non esiste, o non è visibile al tuo ruolo.",

@@ -35,6 +35,14 @@ const V1 = summary(1, 'SUPERSEDED');
 const V2 = summary(2, 'PUBLISHED');
 const V3 = summary(3, 'DRAFT', CHOPPER);
 
+/** One audit record of a version, as the events endpoint returns it. */
+const CREATED = {
+  action: 'VERSION_CREATED',
+  actor: CHOPPER,
+  detail: null,
+  occurredAt: '2026-08-20T10:00:00Z',
+};
+
 function body(name: string, italianDescription: string | null = 'Elementale.') {
   return {
     romaji: 'Shizen-kei',
@@ -89,10 +97,17 @@ describe('DevilFruitTypeDetail', () => {
     await afterInteraction();
   }
 
-  async function answerVersion(version: ReturnType<typeof summary>, versionBody: object) {
+  /** Answers the two requests a selected version makes: what it says, and its history. */
+  async function answerVersion(
+    version: ReturnType<typeof summary>,
+    versionBody: object,
+    events: object[] = [],
+  ) {
+    const url = `${DETAIL}/versions/${version.number}`;
     httpTesting
-      .expectOne(`${DETAIL}/versions/${version.number}`)
-      .flush({ ...version, rejectionReason: null, body: versionBody });
+      .expectOne(url)
+      .flush({ ...version, rejectionReason: null, body: versionBody, allowedActions: [] });
+    httpTesting.expectOne(`${url}/events`).flush(events);
     await harness.fixture.whenStable();
     harness.detectChanges();
   }
@@ -220,17 +235,47 @@ describe('DevilFruitTypeDetail', () => {
   it('opens the Workflow tab from the URL and goes back to the overview', async () => {
     await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
     await answerContent([V1, V2, V3], 2);
-    await answerVersion(V3, body('Logia draft'));
+    await answerVersion(V3, body('Logia draft'), [CREATED]);
 
     expect(tab('Workflow')?.getAttribute('aria-selected')).toBe('true');
     expect(root.querySelector('app-devil-fruit-type-card')).toBeNull();
-    expect(root.textContent).toContain('still in the shipyard');
+    expect(root.textContent).toContain('Editorial route');
+    expect(root.textContent).toContain('Workflow timeline');
+    expect(root.textContent).toContain('Your permissions here');
+    expect(root.querySelectorAll('[data-testid="timeline-step"]').length).toBe(1);
 
     tab('Overview')?.click();
     await afterInteraction();
 
     expect(TestBed.inject(Router).url).toBe(PAGE);
     expect(root.querySelector('app-devil-fruit-type-card')).not.toBeNull();
+  });
+
+  it('counts the events of the selected version on the Workflow tab', async () => {
+    await open(PAGE, 'nami', EDITOR);
+    await answerContent([V1, V2, V3], 2);
+    await answerVersion(V3, body('Logia draft'), [CREATED]);
+    expect(tab('Workflow')?.querySelector('[data-testid="event-count"]')?.textContent).toBe('1');
+
+    circles()[1].click();
+    await afterInteraction();
+    await answerVersion(V2, body('Logia'), [CREATED, CREATED, CREATED]);
+
+    expect(tab('Workflow')?.querySelector('[data-testid="event-count"]')?.textContent).toBe('3');
+  });
+
+  it('shows an error when the history of the version cannot be loaded', async () => {
+    await open(PAGE, 'nami', EDITOR);
+    await answerContent([V1, V2, V3], 2);
+    httpTesting
+      .expectOne(`${DETAIL}/versions/3`)
+      .flush({ ...V3, rejectionReason: null, body: body('Logia draft'), allowedActions: [] });
+    httpTesting
+      .expectOne(`${DETAIL}/versions/3/events`)
+      .flush('nope', { status: 500, statusText: 'Error' });
+    await afterInteraction();
+
+    expect(root.textContent).toContain('Lost the card');
   });
 
   it('says the content is not found when the caller may not see it', async () => {

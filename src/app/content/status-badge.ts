@@ -2,8 +2,8 @@ import { Component, booleanAttribute, computed, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { STATUS_LABEL_KEY, type VersionStatus } from './content.model';
 
-/** Fill and text color of each status pill - literal class names, so Tailwind keeps them. */
-const PILL_CLASSES: Record<VersionStatus, string> = {
+/** Soft fill and ink of each status - a pill, a timeline dot. Literal class names, so Tailwind keeps them. */
+export const STATUS_SOFT_CLASS: Record<VersionStatus, string> = {
   DRAFT: 'bg-status-draft-soft text-status-draft-ink',
   IN_REVIEW: 'bg-status-review-soft text-status-review-ink',
   REJECTED: 'bg-status-rejected-soft text-status-rejected-ink',
@@ -68,7 +68,7 @@ export class StatusBadge {
 
   protected readonly pillClasses = computed(
     () =>
-      `${PILL_CLASSES[this.status()]} ${this.prominent() ? PROMINENT_CLASSES : COMPACT_CLASSES}`,
+      `${STATUS_SOFT_CLASS[this.status()]} ${this.prominent() ? PROMINENT_CLASSES : COMPACT_CLASSES}`,
   );
   protected readonly dotClasses = computed(() => DOT_CLASSES[this.status()]);
   protected readonly glyph = computed(() => STATUS_GLYPH[this.status()]);

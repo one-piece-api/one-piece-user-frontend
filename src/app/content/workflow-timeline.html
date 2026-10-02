@@ -1,0 +1,46 @@
+<section class="min-w-0">
+  <div class="mb-1 flex items-baseline justify-between gap-2.5">
+    <h2 class="font-display text-[19px] font-bold text-ocean-950">
+      {{ 'content.workflow.timelineTitle' | transloco }}
+    </h2>
+    <span class="font-heading text-xs font-extrabold text-ocean-500/60">{{
+      'content.workflow.timelineHint' | transloco
+    }}</span>
+  </div>
+
+  <ol>
+    @for (step of steps(); track $index) {
+      <li
+        class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2.5 border-b border-parchment-200 py-2.5 font-heading"
+        data-testid="timeline-step"
+      >
+        <span
+          class="grid size-6.5 place-items-center rounded-full text-xs font-extrabold"
+          [class]="step.toneClasses"
+          aria-hidden="true"
+          >{{ step.glyph }}</span
+        >
+        <div class="min-w-0">
+          <p class="text-sm font-extrabold text-ocean-950">{{ step.label }}</p>
+          <p class="text-xs font-bold text-ocean-500/70">{{ step.who }}</p>
+          @if (step.reason) {
+            <p
+              class="mt-1.5 rounded-[9px] bg-flag-100 px-2.5 py-1.5 text-[13px] leading-normal font-bold text-ocean-950"
+              data-testid="timeline-reason"
+            >
+              <strong class="text-flag-700">{{ 'content.workflow.reason' | transloco }}</strong>
+              {{ step.reason }}
+            </p>
+          }
+        </div>
+        <span class="text-xs font-extrabold whitespace-nowrap text-ocean-500/60">{{
+          step.when
+        }}</span>
+      </li>
+    } @empty {
+      <li class="py-3 font-heading text-[13px] font-bold text-ocean-500/70">
+        {{ 'content.workflow.timelineEmpty' | transloco }}
+      </li>
+    }
+  </ol>
+</section>

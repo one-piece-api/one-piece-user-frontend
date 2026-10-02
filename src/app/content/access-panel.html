@@ -1,0 +1,29 @@
+<section class="min-w-0">
+  <h2 class="mb-2.5 font-display text-[19px] font-bold text-ocean-950">
+    {{ 'content.workflow.accessTitle' | transloco }}
+  </h2>
+  <ul class="grid gap-2">
+    @for (row of rows(); track row.kind) {
+      <li
+        class="flex items-start gap-2.5 rounded-xl px-2.5 py-2 font-heading"
+        [class]="row.classes"
+        [attr.data-testid]="'access-' + row.kind"
+      >
+        <span
+          class="grid size-5 flex-none place-items-center rounded-full bg-white text-[11px] font-extrabold"
+          aria-hidden="true"
+          >{{ row.mark }}</span
+        >
+        <span class="min-w-0">
+          <span class="block text-[13px] font-extrabold">{{ row.label }}</span>
+          @if (row.note) {
+            <span class="block text-xs font-bold text-ocean-500">{{ row.note }}</span>
+          }
+        </span>
+      </li>
+    }
+  </ul>
+  <p class="mt-2.5 font-heading text-xs leading-relaxed font-bold text-ocean-500/70">
+    {{ 'content.workflow.accessFootnote' | transloco }}
+  </p>
+</section>

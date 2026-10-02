@@ -60,10 +60,44 @@ export interface VersionSummary {
   updatedAt: string;
 }
 
-/** One version in full: its workflow and, in `body`, what it says - specific to the entity. */
+/** What can be done to a version - the backend names them, the screens offer and describe them. */
+export type VersionAction =
+  | 'EDIT'
+  | 'DELETE'
+  | 'SUBMIT'
+  | 'PULL_BACK'
+  | 'CLAIM'
+  | 'RELEASE'
+  | 'APPROVE'
+  | 'REJECT'
+  | 'RETURN_TO_DRAFT'
+  | 'PUBLISH'
+  | 'ARCHIVE'
+  | 'RECOVER'
+  | 'RETIRE'
+  | 'RESTORE'
+  | 'OPEN_NEW_VERSION';
+
+/**
+ * One version in full: its workflow and, in `body`, what it says - specific to the entity.
+ * `allowedActions` is what the caller may do with it, decided by the backend: the browser
+ * never works that out again from roles, ownership or claims.
+ */
 export interface Version<TBody> extends VersionSummary {
   rejectionReason: string | null;
   body: TBody;
+  allowedActions: VersionAction[];
+}
+
+/**
+ * One step in the history of a version, as the audit log recorded it. `action` is a stable
+ * name (see `version-event.ts`), `detail` what the action carried - a rejection reason.
+ */
+export interface VersionEvent {
+  action: string;
+  actor: ContentUser;
+  detail: string | null;
+  occurredAt: string;
 }
 
 /** A content and the versions of it the caller may see, oldest first. */
@@ -83,6 +117,37 @@ export const STATUS_LABEL_KEY: Record<VersionStatus, string> = {
   ARCHIVED: 'content.status.archived',
   RETIRED: 'content.status.retired',
   SUPERSEDED: 'content.status.superseded',
+};
+
+/** Translation key of what each status means - the legend and the tooltips of the route. */
+export const STATUS_MEANING_KEY: Record<VersionStatus, string> = {
+  DRAFT: 'content.statusMeaning.draft',
+  IN_REVIEW: 'content.statusMeaning.inReview',
+  REJECTED: 'content.statusMeaning.rejected',
+  READY_TO_PUBLISH: 'content.statusMeaning.readyToPublish',
+  PUBLISHED: 'content.statusMeaning.published',
+  ARCHIVED: 'content.statusMeaning.archived',
+  RETIRED: 'content.statusMeaning.retired',
+  SUPERSEDED: 'content.statusMeaning.superseded',
+};
+
+/** Translation key of each action, worded as the command it is ("Submit for review"). */
+export const ACTION_LABEL_KEY: Record<VersionAction, string> = {
+  EDIT: 'content.action.edit',
+  DELETE: 'content.action.delete',
+  SUBMIT: 'content.action.submit',
+  PULL_BACK: 'content.action.pullBack',
+  CLAIM: 'content.action.claim',
+  RELEASE: 'content.action.release',
+  APPROVE: 'content.action.approve',
+  REJECT: 'content.action.reject',
+  RETURN_TO_DRAFT: 'content.action.returnToDraft',
+  PUBLISH: 'content.action.publish',
+  ARCHIVE: 'content.action.archive',
+  RECOVER: 'content.action.recover',
+  RETIRE: 'content.action.retire',
+  RESTORE: 'content.action.restore',
+  OPEN_NEW_VERSION: 'content.action.openNewVersion',
 };
 
 /** The "updated" filter: no limit, today, the last week, the last month. */

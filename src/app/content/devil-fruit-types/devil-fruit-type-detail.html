@@ -100,6 +100,18 @@
                 >{{ tab.icon }}</span
               >
               {{ tab.labelKey | transloco }}
+              @if (tab.id === 'workflow') {
+                <span
+                  class="rounded-full px-2 font-heading text-[11px] font-extrabold"
+                  [class]="
+                    tab.id === openTab()
+                      ? 'bg-ocean-900 text-treasure-500'
+                      : 'bg-parchment-200 text-ocean-500'
+                  "
+                  data-testid="event-count"
+                  >{{ events().length }}</span
+                >
+              }
             </button>
           }
         </div>
@@ -108,9 +120,7 @@
           @if (openTab() === 'overview') {
             <app-devil-fruit-type-card [devilFruitType]="version.body" [languages]="languages()" />
           } @else {
-            <p class="py-6 text-center font-heading text-sm font-bold text-ocean-500">
-              {{ 'content.detail.workflowSoon' | transloco }}
-            </p>
+            <app-version-workflow [version]="version" [events]="events()" />
           }
         </div>
       </article>

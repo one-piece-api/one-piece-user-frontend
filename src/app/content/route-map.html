@@ -1,0 +1,185 @@
+<section class="min-w-0">
+  <div class="mb-1.5 flex flex-wrap items-baseline justify-between gap-3">
+    <div class="flex flex-wrap items-baseline gap-2.5">
+      <h2 class="font-display text-[19px] font-bold text-ocean-950">
+        {{ 'content.workflow.routeTitle' | transloco }}
+      </h2>
+      <span class="font-heading text-xs font-extrabold text-ocean-500/60"
+        >v{{ version().number }}</span
+      >
+    </div>
+    <button
+      type="button"
+      class="cursor-pointer rounded-[10px] bg-parchment-200 px-3 py-1.5 font-heading text-xs font-extrabold text-ocean-800"
+      [attr.aria-expanded]="legendOpen()"
+      data-testid="legend-toggle"
+      (click)="toggleLegend()"
+    >
+      {{
+        (legendOpen() ? 'content.workflow.legendHide' : 'content.workflow.legendShow') | transloco
+      }}
+    </button>
+  </div>
+
+  <div class="overflow-x-auto">
+    <ol class="grid min-w-[720px] grid-cols-5 pt-0.5 pb-1">
+      @for (column of columns(); track column.main.status) {
+        <li class="flex min-w-0 flex-col items-center text-center">
+          <div class="flex h-7.5 items-end justify-center">
+            @if (column.main.current) {
+              <img src="assets/sunny.png" alt="" class="anim-bob h-7.5" data-testid="route-ship" />
+            }
+          </div>
+          <span class="mt-0.5 font-display text-sm font-bold" [class]="column.main.labelClasses">{{
+            column.main.labelKey | transloco
+          }}</span>
+          <span
+            class="line-clamp-2 h-7.5 px-1.5 font-heading text-[11px] leading-[15px] font-bold"
+            [class]="column.main.noteClasses"
+            data-testid="route-note"
+            >{{ column.main.note }}</span
+          >
+
+          <div class="relative mt-1 flex h-10.5 w-full items-center justify-center">
+            @if (column.previousLine; as line) {
+              <span class="absolute top-[19px] right-1/2 left-0 border-t-3" [class]="line"></span>
+            }
+            @if (column.nextLine; as line) {
+              <span class="absolute top-[19px] right-0 left-1/2 border-t-3" [class]="line"></span>
+            }
+            <ng-container
+              [ngTemplateOutlet]="disc"
+              [ngTemplateOutletContext]="{ $implicit: column.main }"
+            />
+          </div>
+
+          <div class="relative flex h-8.5 w-full justify-center">
+            @if (column.drop; as drop) {
+              <span class="relative h-full w-0 border-l-3" [class]="drop.lineClasses">
+                @if (drop.arrow) {
+                  <span
+                    class="absolute -top-[5px] -left-[7px] text-[10px] leading-none"
+                    [class]="drop.labelClasses"
+                    aria-hidden="true"
+                    >▲</span
+                  >
+                }
+              </span>
+              <span
+                class="absolute top-2.5 left-[calc(50%+10px)] font-heading text-[10px] font-extrabold tracking-wide whitespace-nowrap"
+                [class]="drop.labelClasses"
+                >{{ drop.labelKey | transloco }}</span
+              >
+            }
+          </div>
+
+          <div class="relative flex h-10.5 w-full items-center justify-center">
+            @if (column.returnCorner) {
+              <span
+                class="absolute top-0 right-0 left-1/2 h-[21px] rounded-bl-[14px] border-b-3 border-l-3"
+                [class]="returnLineClasses()"
+              ></span>
+            }
+            @if (column.returnTail) {
+              <span
+                class="absolute top-[18px] right-1/2 left-0 border-t-3"
+                [class]="returnLineClasses()"
+              ></span>
+            }
+            @if (column.branch; as branch) {
+              <ng-container
+                [ngTemplateOutlet]="disc"
+                [ngTemplateOutletContext]="{ $implicit: branch }"
+              />
+              @if (branch.current) {
+                <img
+                  src="assets/sunny.png"
+                  alt=""
+                  class="anim-bob absolute top-1 left-[calc(50%+28px)] h-7"
+                  data-testid="route-ship"
+                />
+              }
+            }
+          </div>
+          @if (column.branch; as branch) {
+            <span class="mt-1 font-display text-sm font-bold" [class]="branch.labelClasses">{{
+              branch.labelKey | transloco
+            }}</span>
+            <span
+              class="min-h-[15px] px-1.5 font-heading text-[11px] leading-snug font-bold"
+              [class]="branch.noteClasses"
+              data-testid="route-note"
+              >{{ branch.note }}</span
+            >
+          }
+        </li>
+      }
+    </ol>
+  </div>
+
+  <div
+    class="mt-2.5 flex flex-wrap gap-3.5 border-t border-parchment-200 pt-2.5 font-heading text-[11px] font-extrabold text-ocean-500/70"
+  >
+    <span class="inline-flex items-center gap-1.5">
+      <img src="assets/sunny.png" alt="" class="h-3.5" />
+      {{ 'content.workflow.legend.current' | transloco }}
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+      <span
+        class="grid size-3.5 place-items-center rounded-full bg-success-600 text-[9px] text-white"
+        aria-hidden="true"
+        >✓</span
+      >
+      {{ 'content.workflow.legend.followed' | transloco }}
+    </span>
+    <span class="inline-flex items-center gap-1.5">
+      <span class="w-4.5 border-t-3 border-dashed border-ocean-500/25"></span>
+      {{ 'content.workflow.legend.alternative' | transloco }}
+    </span>
+  </div>
+
+  @if (legendOpen()) {
+    <ul
+      class="mt-3 grid grid-cols-[repeat(auto-fill,minmax(min(230px,100%),1fr))] gap-2"
+      animate.enter="anim-pop-enter"
+      data-testid="status-legend"
+    >
+      @for (entry of legend; track entry.status) {
+        <li class="flex items-start gap-2.5 rounded-xl bg-parchment-200/50 px-2.5 py-2">
+          <span
+            class="grid size-6 flex-none place-items-center rounded-full text-[11px] font-extrabold ring-2 ring-inset"
+            [class]="entry.discClasses"
+            aria-hidden="true"
+            >{{ entry.glyph }}</span
+          >
+          <span class="min-w-0 font-heading">
+            <span class="flex flex-wrap items-baseline gap-1.5">
+              <span class="text-[13px] font-extrabold" [class]="entry.labelClasses">{{
+                entry.labelKey | transloco
+              }}</span>
+              <span class="text-[10px] font-extrabold tracking-wider text-ocean-500/60">{{
+                entry.status
+              }}</span>
+            </span>
+            <span class="block text-xs leading-snug font-bold text-ocean-500">{{
+              entry.meaningKey | transloco
+            }}</span>
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+<ng-template #disc let-node>
+  <span
+    class="relative grid size-10.5 place-items-center rounded-full border-2 text-[15px] font-extrabold"
+    [class]="node.circleClasses"
+    [title]="node.title"
+    [attr.aria-current]="node.current ? 'step' : null"
+    [attr.data-status]="node.status"
+    [attr.data-state]="node.state"
+    data-testid="route-node"
+    >{{ node.glyph }}</span
+  >
+</ng-template>

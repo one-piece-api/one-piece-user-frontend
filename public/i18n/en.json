@@ -402,6 +402,104 @@
       "retired": "Retired",
       "superseded": "Superseded"
     },
+    "statusMeaning": {
+      "draft": "Content being written.",
+      "inReview": "Submitted for review.",
+      "rejected": "Review failed: it must go back to draft to be fixed.",
+      "readyToPublish": "Review passed: it only waits to be published.",
+      "published": "Online for the readers.",
+      "archived": "Set aside without publishing it; it can be recovered.",
+      "retired": "It was published, then it was taken down.",
+      "superseded": "It was online, then another version took its place."
+    },
+    "action": {
+      "edit": "Edit",
+      "delete": "Discard draft",
+      "submit": "Submit for review",
+      "pullBack": "Pull back from review",
+      "claim": "Claim",
+      "release": "Release",
+      "approve": "Approve",
+      "reject": "Reject",
+      "returnToDraft": "Return to draft",
+      "publish": "Publish",
+      "archive": "Archive",
+      "recover": "Recover",
+      "retire": "Retire",
+      "restore": "Republish",
+      "openNewVersion": "New draft from v{{version}}"
+    },
+    "event": {
+      "created": "Draft created",
+      "createdFrom": "New draft from v{{version}}",
+      "edited": "Draft edited",
+      "submitted": "Submitted for review",
+      "pulledBack": "Pulled back from review",
+      "claimed": "Claimed",
+      "released": "Released",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "returnedToDraft": "Returned to draft",
+      "published": "Published",
+      "archived": "Archived",
+      "recovered": "Recovered from the archive",
+      "retired": "Retired",
+      "restored": "Republished"
+    },
+    "workflow": {
+      "routeTitle": "Editorial route",
+      "legendShow": "What each status means",
+      "legendHide": "Hide the legend",
+      "legend": {
+        "current": "current status",
+        "followed": "route followed",
+        "alternative": "alternative route"
+      },
+      "link": {
+        "returnToDraft": "back to draft",
+        "reject": "rejection",
+        "archive": "archive ⇅ recover",
+        "retire": "retirement"
+      },
+      "note": {
+        "queued": "queued · {{when}}",
+        "claimedByYou": "claimed by you",
+        "claimedBy": "claimed by {{reviewer}}",
+        "byWhen": "by {{actor}} · {{when}}",
+        "byActor": "by {{actor}}",
+        "archived": "recoverable",
+        "retired": "no longer online",
+        "superseded": "by another version"
+      },
+      "timelineTitle": "Workflow timeline",
+      "timelineHint": "who · what · when",
+      "timelineEmpty": "No event recorded for this version.",
+      "reason": "Reason:",
+      "accessTitle": "Your permissions here",
+      "accessFootnote": "Seeing, editing and moving forward are three separate permissions.",
+      "access": {
+        "visible": "Visible",
+        "visibleToEditors": "to editors only",
+        "visibleToReviewers": "to editors and reviewers",
+        "visibleToAll": "to the whole editorial crew",
+        "editable": "Editable",
+        "notEditable": "Not editable",
+        "ownDraft": "it is your draft",
+        "missingWrite": "you lack content:write",
+        "returnFirst": "it must go back to draft first",
+        "belongsTo": "it belongs to {{author}}",
+        "onlyDraft": "only a draft can be edited",
+        "workflow": "Workflow: {{actions}}",
+        "noWorkflow": "No workflow action",
+        "authorOnly": "only its author can move it forward",
+        "claimedBy": "claimed by {{reviewer}}",
+        "needsReview": "content:review is needed",
+        "ownReview": "you do not review your own content",
+        "needsPublish": "content:publish is needed",
+        "noTransition": "no transition for your role",
+        "openVersionExists": "the content already has a version in progress"
+      }
+    },
     "breadcrumb": {
       "contents": "Contents"
     },
@@ -476,7 +574,6 @@
         "overview": "Overview",
         "workflow": "Workflow"
       },
-      "workflowSoon": "Arrr! The editorial route of this version is still in the shipyard.",
       "loading": "Fetching the card…",
       "missingTitle": "Content not found",
       "missingText": "Arrr! This entry does not exist, or is not visible to your role.",

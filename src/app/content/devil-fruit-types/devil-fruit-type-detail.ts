@@ -13,11 +13,13 @@ import {
   versionToShow,
   type Content,
   type Version,
+  type VersionEvent,
 } from '../content.model';
 import { LanguageCatalogService } from '../language-catalog';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { VersionChain } from '../version-chain';
+import { VersionWorkflow } from '../version-workflow';
 import { DevilFruitTypeCard } from './devil-fruit-type-card';
 import { namesOf, type DevilFruitType } from './devil-fruit-type.model';
 
@@ -33,13 +35,20 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
+/** A version and its history, loaded together so the screen never shows one without the other. */
+interface VersionView {
+  readonly version: Version<DevilFruitType>;
+  readonly events: VersionEvent[];
+}
+
 /** What the backend answers for a content that is not there - or not for this caller. */
 const NOT_FOUND_STATUSES = [400, 404];
 
 /**
  * The detail of a Devil Fruit Type (UF-CNT-12): its header, the chain of the versions the
- * caller may see, and the selected version's card. The selected version and the open tab
- * live in the URL's query parameters; without them the most recent visible version is shown.
+ * caller may see, and the selected version's card and workflow. The selected version and the
+ * open tab live in the URL's query parameters; without them the most recent visible version
+ * is shown.
  */
 @Component({
   selector: 'app-devil-fruit-type-detail',
@@ -52,6 +61,7 @@ const NOT_FOUND_STATUSES = [400, 404];
     StatusBadge,
     TranslocoPipe,
     VersionChain,
+    VersionWorkflow,
   ],
 })
 export class DevilFruitTypeDetail {
@@ -81,22 +91,30 @@ export class DevilFruitTypeDetail {
     versionToShow(this.versions(), Number(this.v()) || null),
   );
 
-  private readonly version = httpResource<Version<DevilFruitType>>(() => {
+  private readonly versionUrl = computed(() => {
     const selected = this.selected();
     return selected ? `${ENDPOINT}/${this.id()}/versions/${selected.number}` : undefined;
   });
-
-  /** The version on screen: the last one loaded stays up while the next one is on its way. */
-  protected readonly shown = linkedSignal<
-    Version<DevilFruitType> | undefined,
-    Version<DevilFruitType> | undefined
-  >({
-    source: () => (this.version.hasValue() ? this.version.value() : undefined),
-    computation: (loaded, previous) => loaded ?? previous?.value,
+  private readonly version = httpResource<Version<DevilFruitType>>(() => this.versionUrl());
+  private readonly versionEvents = httpResource<VersionEvent[]>(() => {
+    const url = this.versionUrl();
+    return url ? `${url}/events` : undefined;
   });
 
+  /** The version on screen: the last one loaded stays up while the next one is on its way. */
+  private readonly view = linkedSignal<VersionView | undefined, VersionView | undefined>({
+    source: () =>
+      this.version.hasValue() && this.versionEvents.hasValue()
+        ? { version: this.version.value(), events: this.versionEvents.value() }
+        : undefined,
+    computation: (loaded, previous) => loaded ?? previous?.value,
+  });
+  protected readonly shown = computed(() => this.view()?.version);
+  /** Its history, oldest first: the Workflow tab, and the counter on it. */
+  protected readonly events = computed(() => this.view()?.events ?? []);
+
   protected readonly state = computed<'loading' | 'missing' | 'error' | 'ready'>(() => {
-    const error = this.content.error() ?? this.version.error();
+    const error = this.content.error() ?? this.version.error() ?? this.versionEvents.error();
     if (error) {
       return isNotFound(error) ? 'missing' : 'error';
     }
