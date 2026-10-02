@@ -1,9 +1,4 @@
 import { Routes } from '@angular/router';
-import { AdminAuditPage } from './admin/audit-page';
-import { LanguagesPage } from './admin/languages-page';
-import { RolesPage } from './admin/roles-page';
-import { AdminUserDetail } from './admin/user-detail';
-import { AdminUserList } from './admin/user-list';
 import { SessionExpired } from './identity/session-expired';
 import { WhoAmI } from './identity/who-am-i';
 import { Forbidden } from './shared/nav/forbidden';
@@ -14,7 +9,8 @@ export const routes: Routes = [
   { path: 'session-expired', component: SessionExpired },
   { path: 'forbidden', component: Forbidden },
   {
-    // Loaded on demand: the content screens stay out of the bundle every page starts with.
+    // Loaded on demand, like every route below: only the pages anyone can land on stay in
+    // the bundle every page starts with.
     path: 'content/devil-fruit-types',
     loadComponent: () =>
       import('./content/devil-fruit-types/devil-fruit-type-list').then(
@@ -34,31 +30,31 @@ export const routes: Routes = [
   },
   {
     path: 'users',
-    component: AdminUserList,
+    loadComponent: () => import('./admin/user-list').then((module) => module.AdminUserList),
     canActivate: [permissionGuard],
     data: { permission: 'users:read' },
   },
   {
     path: 'users/:userId',
-    component: AdminUserDetail,
+    loadComponent: () => import('./admin/user-detail').then((module) => module.AdminUserDetail),
     canActivate: [permissionGuard],
     data: { permission: 'users:read' },
   },
   {
     path: 'audit',
-    component: AdminAuditPage,
+    loadComponent: () => import('./admin/audit-page').then((module) => module.AdminAuditPage),
     canActivate: [permissionGuard],
     data: { permission: 'audit:read' },
   },
   {
     path: 'roles',
-    component: RolesPage,
+    loadComponent: () => import('./admin/roles-page').then((module) => module.RolesPage),
     canActivate: [permissionGuard],
     data: { permission: 'roles:manage' },
   },
   {
     path: 'languages',
-    component: LanguagesPage,
+    loadComponent: () => import('./admin/languages-page').then((module) => module.LanguagesPage),
     canActivate: [permissionGuard],
     data: { permission: 'languages:manage' },
   },

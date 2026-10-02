@@ -1,7 +1,21 @@
 import { routes } from './app.routes';
 import { permissionGuard } from './shared/nav/permission.guard';
 
+/** The pages anyone can land on, signed in or not: the only ones in the initial bundle. */
+const EAGER_PATHS = ['', 'session-expired', 'forbidden'];
+
 describe('routes', () => {
+  it('loads on demand every page behind a permission', () => {
+    const guarded = routes.filter((route) => !EAGER_PATHS.includes(route.path ?? ''));
+
+    expect(guarded.length).toBeGreaterThan(0);
+    for (const route of guarded) {
+      expect(route.loadComponent, route.path).toBeDefined();
+      expect(route.component, route.path).toBeUndefined();
+      expect(route.canActivate, route.path).toEqual([permissionGuard]);
+    }
+  });
+
   it.each(['content/devil-fruit-types', 'content/devil-fruit-types/:id'])(
     'opens %s only to who holds content:read',
     (path) => {
