@@ -667,6 +667,52 @@
       "noDescription": "— no description in this language —",
       "incomplete": "incomplete translation"
     },
+    "comparison": {
+      "title": "Compare versions",
+      "open": "± Compare with v{{base}}",
+      "openFirst": "± See the fields",
+      "kicker": "Version {{version}} · {{status}}",
+      "comparing": "Comparing v{{base}} → v{{version}}",
+      "firstVersion": "First version",
+      "opened": "opened {{when}} by {{author}}",
+      "mode": {
+        "changes": "± Changes",
+        "card": "Full card"
+      },
+      "count": {
+        "ADDED": "{{count}} added",
+        "REMOVED": "{{count}} removed",
+        "MODIFIED": "{{count}} modified",
+        "UNCHANGED": "{{count}} unchanged"
+      },
+      "change": {
+        "ADDED": "added",
+        "REMOVED": "removed",
+        "MODIFIED": "modified",
+        "UNCHANGED": "unchanged"
+      },
+      "field": {
+        "romaji": "Romaji",
+        "name": "Name · {{language}}",
+        "description": "Description · {{language}}"
+      },
+      "baseLabel": "Version to compare with",
+      "before": "before",
+      "empty": "empty",
+      "emptyNote": "nothing existed before v1",
+      "loading": "Fetching both versions…",
+      "error": "Arrr! One of the two versions could not be loaded.",
+      "noChanges": "No differences between these two versions.",
+      "showUnchanged": {
+        "one": "Show 1 unchanged field",
+        "many": "Show {{count}} unchanged fields"
+      },
+      "hideUnchanged": {
+        "one": "Hide 1 unchanged field",
+        "many": "Hide {{count}} unchanged fields"
+      },
+      "frozen": "Content frozen in this version."
+    },
     "editor": {
       "crumb": "Edit",
       "newTitle": "New fruit type",

@@ -1,0 +1,257 @@
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -- backdrop-click-to-dismiss on the dialog itself; ESC already closes it natively -->
+<dialog
+  #dialog
+  class="m-auto max-h-[calc(100vh-40px)] w-[calc(100%-32px)] max-w-[1120px] overflow-y-auto rounded-3xl bg-parchment-100 p-0 shadow-2xl backdrop:bg-ocean-950/60"
+  aria-labelledby="comparison-title"
+  (close)="onClose()"
+  (click)="onBackdropClick($event, dialog)"
+>
+  @if (target() !== null) {
+    <div
+      class="sticky top-0 z-10 grid gap-3 border-b border-parchment-200 bg-parchment-100 px-5.5 pt-4.5 pb-3.5"
+    >
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          @if (heading(); as heading) {
+            <p class="font-display text-xs font-bold tracking-[0.12em] text-flag-600 uppercase">
+              {{ heading.kicker }}
+            </p>
+            <h2
+              id="comparison-title"
+              class="font-display text-[22px] leading-tight font-bold text-ocean-950"
+            >
+              {{ heading.title }}
+            </h2>
+            <p class="font-heading text-[13px] font-bold text-ocean-500">{{ heading.line }}</p>
+          } @else {
+            <h2 id="comparison-title" class="font-display text-[22px] font-bold text-ocean-950">
+              {{ 'content.comparison.title' | transloco }}
+            </h2>
+          }
+        </div>
+        <button
+          type="button"
+          class="grid size-9 flex-none cursor-pointer place-items-center rounded-full bg-parchment-200 text-lg text-ocean-800"
+          [attr.aria-label]="'ui.modal.close' | transloco"
+          (click)="dialog.close()"
+        >
+          ×
+        </button>
+      </div>
+
+      <app-version-chain
+        class="flex min-w-0"
+        [versions]="versions()"
+        [selectedNumber]="shownNumber()"
+        [onlineVersionNumber]="onlineVersionNumber()"
+        (picked)="show($event)"
+      />
+
+      <div class="flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex gap-0.75 rounded-[11px] bg-parchment-200 p-0.75" role="tablist">
+          @for (option of modes; track option) {
+            <button
+              type="button"
+              role="tab"
+              class="cursor-pointer rounded-[9px] px-3.25 py-1.5 font-display text-sm font-bold whitespace-nowrap"
+              [class]="
+                mode() === option
+                  ? 'bg-white text-ocean-950 shadow-[0_2px_6px_rgba(18,35,90,.14)]'
+                  : 'text-ocean-500'
+              "
+              [attr.aria-selected]="mode() === option"
+              (click)="mode.set(option)"
+            >
+              {{ 'content.comparison.mode.' + option | transloco }}
+            </button>
+          }
+        </div>
+        @if (mode() === 'changes' && state() === 'ready') {
+          <div class="flex flex-wrap items-center gap-1.5" data-testid="comparison-summary">
+            @for (item of summary(); track item.change) {
+              <span
+                class="inline-flex items-center gap-1.25 rounded-full px-2.5 py-0.75 font-heading text-xs font-extrabold"
+                [class]="item.chipClasses"
+              >
+                <span class="font-display text-sm" aria-hidden="true">{{ item.sign }}</span>
+                {{ 'content.comparison.count.' + item.change | transloco: { count: item.count } }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+
+      @if (mode() === 'changes') {
+        <div class="grid gap-2.5 sm:grid-cols-2">
+          <div
+            class="flex flex-wrap items-center gap-2 rounded-[10px] bg-flag-100 px-3 py-1.75 text-flag-700"
+          >
+            <span class="font-display text-[15px] font-bold" aria-hidden="true">−</span>
+            @if (baseOptions().length) {
+              <select
+                class="rounded-[9px] border-2 border-flag-100 bg-white px-2.5 py-0.75 font-heading text-[13px] font-extrabold text-flag-700"
+                [attr.aria-label]="'content.comparison.baseLabel' | transloco"
+                data-testid="comparison-base"
+                (change)="pickBase($any($event.target).value)"
+              >
+                @for (option of baseOptions(); track option.number) {
+                  <option [value]="option.number" [selected]="option.number === baseNumber()">
+                    {{ option.label }}
+                  </option>
+                }
+              </select>
+              <span class="font-heading text-xs font-bold text-flag-700/70">{{
+                'content.comparison.before' | transloco
+              }}</span>
+            } @else {
+              <span class="font-display text-[15px] font-bold">{{
+                'content.comparison.empty' | transloco
+              }}</span>
+              <span class="font-heading text-xs font-bold text-flag-700/70">{{
+                'content.comparison.emptyNote' | transloco
+              }}</span>
+            }
+          </div>
+          @if (heading(); as heading) {
+            <div
+              class="flex flex-wrap items-center gap-2 rounded-[10px] bg-success-100 px-3 py-1.75 text-success-700"
+            >
+              <span class="font-display text-[15px] font-bold" aria-hidden="true">+</span>
+              <span class="font-display text-[15px] font-bold">{{ heading.after }}</span>
+              <span class="font-heading text-xs font-bold text-success-700/70">{{
+                heading.afterLine
+              }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="px-5.5 pt-4 pb-5.5">
+      @switch (state()) {
+        @case ('loading') {
+          <app-loading-placeholder [label]="'content.comparison.loading' | transloco" />
+        }
+        @case ('error') {
+          <p class="font-heading text-flag-700">{{ 'content.comparison.error' | transloco }}</p>
+        }
+        @case ('ready') {
+          @if (mode() === 'changes') {
+            <div class="grid gap-2.5">
+              @for (row of changedRows(); track row.key) {
+                <div
+                  class="overflow-hidden rounded-xl border border-parchment-200"
+                  data-testid="comparison-row"
+                >
+                  <div
+                    class="flex items-center justify-between gap-2.5 border-b border-parchment-200 bg-parchment-200/40 px-3.5 py-1.5"
+                  >
+                    <span class="font-heading text-xs font-extrabold text-ocean-500">{{
+                      row.label
+                    }}</span>
+                    <span
+                      class="inline-flex items-center gap-1.25 rounded-lg px-2.25 py-px font-heading text-[11px] font-extrabold whitespace-nowrap"
+                      [class]="row.classes.chip"
+                    >
+                      <span class="font-display text-sm leading-none" aria-hidden="true">{{
+                        row.sign
+                      }}</span>
+                      {{ row.changeKey | transloco }}
+                    </span>
+                  </div>
+                  <div class="grid gap-px bg-parchment-200 sm:grid-cols-2">
+                    <div
+                      class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5"
+                      [class]="row.classes.before"
+                    >
+                      <span
+                        class="w-3 flex-none font-display text-base leading-snug font-bold"
+                        aria-hidden="true"
+                        >{{ row.classes.beforeSign }}</span
+                      >
+                      <p
+                        class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
+                      >
+                        <span
+                          class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
+                          >{{ baseNumber() === null ? '' : 'v' + baseNumber() }}</span
+                        ><span [class.line-through]="row.struck">{{ row.before ?? '—' }}</span>
+                      </p>
+                    </div>
+                    <div
+                      class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5"
+                      [class]="row.classes.after"
+                    >
+                      <span
+                        class="w-3 flex-none font-display text-base leading-snug font-bold"
+                        aria-hidden="true"
+                        >{{ row.classes.afterSign }}</span
+                      >
+                      <p
+                        class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
+                      >
+                        <span
+                          class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
+                          >{{ 'v' + shownNumber() }}</span
+                        >{{ row.after ?? '—' }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              @if (!changedRows().length) {
+                <p
+                  class="rounded-xl bg-status-draft-soft px-3.5 py-3 font-heading text-[13px] font-bold text-status-draft-ink"
+                  data-testid="comparison-no-changes"
+                >
+                  {{ 'content.comparison.noChanges' | transloco }}
+                </p>
+              }
+
+              @if (unchangedRows().length) {
+                <button
+                  type="button"
+                  class="inline-flex cursor-pointer items-center gap-1.5 justify-self-start rounded-[10px] bg-status-draft-soft px-3.25 py-1.75 font-heading text-xs font-extrabold text-status-draft-ink"
+                  [attr.aria-expanded]="showUnchanged()"
+                  data-testid="comparison-toggle-unchanged"
+                  (click)="showUnchanged.set(!showUnchanged())"
+                >
+                  <span class="font-display text-sm" aria-hidden="true">=</span>
+                  {{ unchangedToggleKey() | transloco: { count: unchangedRows().length } }}
+                </button>
+              }
+
+              @if (showUnchanged()) {
+                <dl
+                  class="grid overflow-hidden rounded-xl border border-dashed border-parchment-200"
+                  data-testid="comparison-unchanged"
+                >
+                  @for (row of unchangedRows(); track row.key) {
+                    <div
+                      class="grid gap-x-3 gap-y-0.5 border-b border-dashed border-parchment-200 px-3.5 py-2 last:border-b-0 sm:grid-cols-[minmax(110px,180px)_minmax(0,1fr)]"
+                    >
+                      <dt class="font-heading text-xs font-extrabold text-ocean-500/60">
+                        {{ row.label }}
+                      </dt>
+                      <dd
+                        class="font-heading text-[13px] leading-normal font-bold wrap-anywhere text-ocean-500/80"
+                      >
+                        {{ row.after }}
+                      </dd>
+                    </div>
+                  }
+                </dl>
+              }
+            </div>
+          } @else if (shownBody(); as body) {
+            <app-devil-fruit-type-card [devilFruitType]="body" [languages]="languages()" />
+            <p class="mt-2.5 font-heading text-xs font-bold text-ocean-500">
+              {{ 'content.comparison.frozen' | transloco }}
+            </p>
+          }
+        }
+      }
+    </div>
+  }
+</dialog>

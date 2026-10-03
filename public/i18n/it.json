@@ -667,6 +667,52 @@
       "noDescription": "— nessuna descrizione in questa lingua —",
       "incomplete": "traduzione incompleta"
     },
+    "comparison": {
+      "title": "Confronto versioni",
+      "open": "± Confronta con v{{base}}",
+      "openFirst": "± Vedi i campi",
+      "kicker": "Versione {{version}} · {{status}}",
+      "comparing": "Confronto v{{base}} → v{{version}}",
+      "firstVersion": "Prima versione",
+      "opened": "aperta {{when}} da {{author}}",
+      "mode": {
+        "changes": "± Modifiche",
+        "card": "Scheda completa"
+      },
+      "count": {
+        "ADDED": "{{count}} aggiunti",
+        "REMOVED": "{{count}} rimossi",
+        "MODIFIED": "{{count}} modificati",
+        "UNCHANGED": "{{count}} invariati"
+      },
+      "change": {
+        "ADDED": "aggiunto",
+        "REMOVED": "rimosso",
+        "MODIFIED": "modificato",
+        "UNCHANGED": "invariato"
+      },
+      "field": {
+        "romaji": "Romaji",
+        "name": "Nome · {{language}}",
+        "description": "Descrizione · {{language}}"
+      },
+      "baseLabel": "Versione di partenza del confronto",
+      "before": "prima",
+      "empty": "vuoto",
+      "emptyNote": "prima della v1 non esisteva",
+      "loading": "Recuperiamo le due versioni…",
+      "error": "Arrr! Impossibile caricare una delle due versioni.",
+      "noChanges": "Nessuna differenza tra queste due versioni.",
+      "showUnchanged": {
+        "one": "Mostra 1 campo invariato",
+        "many": "Mostra {{count}} campi invariati"
+      },
+      "hideUnchanged": {
+        "one": "Nascondi 1 campo invariato",
+        "many": "Nascondi {{count}} campi invariati"
+      },
+      "frozen": "Contenuto congelato in questa versione."
+    },
     "editor": {
       "crumb": "Modifica",
       "newTitle": "Nuovo tipo di frutto",

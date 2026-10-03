@@ -1,4 +1,5 @@
 import {
+  diffDevilFruitTypes,
   draftFieldKey,
   draftOf,
   isTranslationComplete,
@@ -135,4 +136,93 @@ describe('draftFieldKey', () => {
       expect(draftFieldKey(field)).toBeNull();
     },
   );
+});
+
+describe('diffDevilFruitTypes', () => {
+  const v1 = {
+    romaji: 'Rogia',
+    translations: {
+      it: { name: 'Rogia', description: 'Frutti elementali.' },
+      en: { name: 'Logia', description: null },
+    },
+  };
+
+  /** "romaji", "name.it": the fields of a comparison, in order, with their change. */
+  function changes(diffs: ReturnType<typeof diffDevilFruitTypes>): string[] {
+    return diffs.map(
+      ({ field, change }) => [field.field, field.language].filter(Boolean).join('.') + ':' + change,
+    );
+  }
+
+  it('lists the romaji, then the names, then the descriptions, in the catalog order', () => {
+    const v2 = {
+      romaji: 'Rogia',
+      translations: {
+        it: { name: 'Rogia', description: 'Frutti elementali, i più rari.' },
+        en: { name: null, description: 'Elemental fruits.' },
+      },
+    };
+
+    expect(changes(diffDevilFruitTypes(v1, v2, ['it', 'en']))).toEqual([
+      'romaji:UNCHANGED',
+      'name.it:UNCHANGED',
+      'name.en:REMOVED',
+      'description.it:MODIFIED',
+      'description.en:ADDED',
+    ]);
+  });
+
+  it('compares the first version with an empty content: everything it says is added', () => {
+    const diffs = diffDevilFruitTypes(null, v1, ['it', 'en']);
+
+    expect(changes(diffs)).toEqual([
+      'romaji:ADDED',
+      'name.it:ADDED',
+      'name.en:ADDED',
+      'description.it:ADDED',
+    ]);
+    expect(diffs[0]).toEqual({
+      field: { field: 'romaji', language: null },
+      before: null,
+      after: 'Rogia',
+      change: 'ADDED',
+    });
+  });
+
+  it('shows a language present on one side only as added or removed', () => {
+    const withFrench = {
+      romaji: 'Rogia',
+      translations: { it: v1.translations.it, fr: { name: 'Logia', description: 'Élémentaire.' } },
+    };
+
+    expect(changes(diffDevilFruitTypes(v1, withFrench, ['it', 'en', 'fr']))).toEqual([
+      'romaji:UNCHANGED',
+      'name.it:UNCHANGED',
+      'name.en:REMOVED',
+      'name.fr:ADDED',
+      'description.it:UNCHANGED',
+      'description.fr:ADDED',
+    ]);
+  });
+
+  it('puts a language outside the catalog last', () => {
+    const withGerman = {
+      romaji: 'Rogia',
+      translations: { ...v1.translations, de: { name: 'Logia', description: null } },
+    };
+
+    expect(
+      diffDevilFruitTypes(v1, withGerman, ['en', 'it'])
+        .filter(({ field }) => field.field === 'name')
+        .map(({ field }) => field.language),
+    ).toEqual(['en', 'it', 'de']);
+  });
+
+  it('finds no change between two identical versions', () => {
+    expect(
+      diffDevilFruitTypes(v1, structuredClone(v1), ['it', 'en']).every(
+        ({ change }) => change === 'UNCHANGED',
+      ),
+    ).toBe(true);
+  });
 });

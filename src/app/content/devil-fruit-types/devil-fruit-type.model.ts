@@ -1,3 +1,5 @@
+import { diffField, type FieldDiff } from '../version-comparison';
+
 /** What a Devil Fruit Type says in one language. */
 export interface DevilFruitTypeTranslation {
   name: string | null;
@@ -117,4 +119,65 @@ export function draftFieldKey(field: string): string | null {
   }
   const translation = /^translations\[([^\]]+)\]\.(name|description)$/.exec(field);
   return translation ? `${translation[1]}.${translation[2]}` : null;
+}
+
+/** One field of a Devil Fruit Type: the romaji, or a name or a description in one language. */
+export interface DevilFruitTypeField {
+  readonly field: DraftField;
+  /** The language of a name or a description; `null` for the romaji, shared by all. */
+  readonly language: string | null;
+}
+
+/**
+ * Compares a version of a Devil Fruit Type with its base - `null`, an empty content, for the
+ * first version (UF-CNT-21): the romaji, then the names, then the descriptions, one per
+ * language present on either side - a language on one side only shows as added or removed.
+ * Languages follow the catalog's order, any outside it last. A field empty on both sides is
+ * left out.
+ */
+export function diffDevilFruitTypes(
+  base: DevilFruitType | null,
+  target: DevilFruitType,
+  catalogOrder: readonly string[],
+): FieldDiff<DevilFruitTypeField>[] {
+  const languages = languagesOf(base, target, catalogOrder);
+  const translation = (devilFruitType: DevilFruitType | null, language: string) =>
+    devilFruitType?.translations[language];
+  const diffs = [
+    diffField<DevilFruitTypeField>(
+      { field: 'romaji', language: null },
+      base?.romaji,
+      target.romaji,
+    ),
+    ...languages.map((language) =>
+      diffField<DevilFruitTypeField>(
+        { field: 'name', language },
+        translation(base, language)?.name,
+        translation(target, language)?.name,
+      ),
+    ),
+    ...languages.map((language) =>
+      diffField<DevilFruitTypeField>(
+        { field: 'description', language },
+        translation(base, language)?.description,
+        translation(target, language)?.description,
+      ),
+    ),
+  ];
+  return diffs.filter((diff) => diff !== null);
+}
+
+/** The languages either version has a translation in: the catalog's first, then the rest. */
+function languagesOf(
+  base: DevilFruitType | null,
+  target: DevilFruitType,
+  catalogOrder: readonly string[],
+): string[] {
+  const present = new Set([
+    ...Object.keys(base?.translations ?? {}),
+    ...Object.keys(target.translations),
+  ]);
+  const inCatalog = catalogOrder.filter((language) => present.has(language));
+  const outside = [...present].filter((language) => !catalogOrder.includes(language)).sort();
+  return [...inCatalog, ...outside];
 }

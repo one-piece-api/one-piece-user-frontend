@@ -24,6 +24,7 @@ import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { RejectDialog } from '../reject-dialog';
 import { VersionChain } from '../version-chain';
+import { defaultBase } from '../version-comparison';
 import { REJECTED_ACTION } from '../version-event';
 import {
   NEW_VERSION,
@@ -35,6 +36,7 @@ import {
 } from '../version-transition';
 import { VersionWorkflow } from '../version-workflow';
 import { DevilFruitTypeCard } from './devil-fruit-type-card';
+import { DevilFruitTypeComparison } from './devil-fruit-type-comparison';
 import { draftFieldKey, namesOf, type DevilFruitType } from './devil-fruit-type.model';
 
 const ENDPOINT = '/api/content/devil-fruit-types';
@@ -71,6 +73,7 @@ const NOT_FOUND_STATUSES = [400, 404];
     Breadcrumb,
     ConfirmDialog,
     DevilFruitTypeCard,
+    DevilFruitTypeComparison,
     LoadingPlaceholder,
     RejectDialog,
     RouterLink,
@@ -200,13 +203,22 @@ export class DevilFruitTypeDetail {
     if (this.isMostRecent(version.number)) {
       parts.push(this.transloco.translate(this.mostRecentKey()));
     }
-    return { title: `v${version.number} · ${status}`, line: parts.join(' · ') };
+    const base = defaultBase(this.versions(), version.number);
+    const compareLabel =
+      base === null
+        ? this.transloco.translate('content.comparison.openFirst')
+        : this.transloco.translate('content.comparison.open', { base });
+    return { title: `v${version.number} · ${status}`, line: parts.join(' · '), compareLabel };
   });
 
   protected readonly tabs = TABS;
   protected readonly openTab = computed<TabId>(() =>
     this.tab() === 'workflow' ? 'workflow' : 'overview',
   );
+
+  /** The version being compared with an earlier one, `null` while the panel is closed. */
+  protected readonly comparing = signal<number | null>(null);
+  protected readonly versionsUrl = computed(() => `${ENDPOINT}/${this.id()}/versions`);
 
   /** A transition posted and not answered yet. */
   protected readonly acting = signal(false);
@@ -275,6 +287,10 @@ export class DevilFruitTypeDetail {
 
   protected readonly backButtonClasses = buttonClasses('secondary');
   protected readonly listRoute = LIST_ROUTE;
+
+  protected compare(): void {
+    this.comparing.set(this.shown()?.number ?? null);
+  }
 
   protected selectVersion(number: number): void {
     this.navigate({ [PARAM.version]: number });

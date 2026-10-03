@@ -957,4 +957,219 @@ describe('DevilFruitTypeDetail', () => {
       expect(draftNode()).toBeNull();
     });
   });
+
+  describe('comparing versions', () => {
+    /** v3, a draft opened again from v1 - not from v2, the previous one. */
+    const V3_FROM_V1 = { ...summary(3, 'DRAFT', CHOPPER), basedOn: 1 };
+
+    const FIRST = {
+      romaji: 'Rogia',
+      translations: {
+        it: { name: 'Rogia', description: 'Frutti elementali.' },
+        en: { name: 'Logia', description: null },
+      },
+    };
+    const ONLINE = {
+      romaji: 'Rogia',
+      translations: {
+        it: { name: 'Rogia', description: 'Frutti che trasformano il corpo.' },
+        en: { name: 'Logia', description: 'Fruits that turn the body.' },
+      },
+    };
+    const DRAFT = {
+      romaji: 'Rogia',
+      translations: {
+        it: { name: 'Rogia', description: 'Frutti elementali, i più rari.' },
+        en: { name: null, description: 'Elemental fruits.' },
+      },
+    };
+
+    function panel(): HTMLElement {
+      return root.querySelector('app-devil-fruit-type-comparison') as HTMLElement;
+    }
+
+    function panelOpen(): boolean {
+      return panel().querySelector('dialog')!.hasAttribute('open');
+    }
+
+    function compareButton(): HTMLButtonElement {
+      return root.querySelector<HTMLButtonElement>('[data-testid="compare-versions"]')!;
+    }
+
+    /** "Name · EN − removed"…: the changed rows, as label and change. */
+    function rows(): string[] {
+      return Array.from(panel().querySelectorAll('[data-testid="comparison-row"]')).map((row) =>
+        Array.from(row.firstElementChild?.children ?? [])
+          .map((part) => part.textContent?.replace(/\s+/g, ' ').trim())
+          .join(' '),
+      );
+    }
+
+    function summaryText(): string {
+      const summary = panel().querySelector('[data-testid="comparison-summary"]');
+      return summary?.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+    }
+
+    function baseSelect(): HTMLSelectElement | null {
+      return panel().querySelector<HTMLSelectElement>('[data-testid="comparison-base"]');
+    }
+
+    function panelTab(label: string): HTMLButtonElement {
+      return Array.from(panel().querySelectorAll<HTMLButtonElement>('[role="tab"]')).find(
+        (candidate) => candidate.textContent?.includes(label),
+      )!;
+    }
+
+    /** Answers what the panel reads of a version - nothing else of it is asked. */
+    async function answerPanel(version: ReturnType<typeof summary>, versionBody: object) {
+      httpTesting
+        .expectOne(`${DETAIL}/versions/${version.number}`)
+        .flush({ ...version, rejectionReason: null, body: versionBody, allowedActions: [] });
+      await afterInteraction();
+    }
+
+    /** nami on v3, the draft chopper opened from v1, with v2 online. */
+    async function openOnDraft(): Promise<void> {
+      await open(PAGE, 'nami', EDITOR);
+      await answerContent([V1, V2, V3_FROM_V1], 2);
+      await answerVersion(V3_FROM_V1, DRAFT);
+    }
+
+    /** Opens the panel on v3 and answers its two versions: v3 and its default base, v1. */
+    async function compareDraft(): Promise<void> {
+      await openOnDraft();
+      compareButton().click();
+      await afterInteraction();
+      await answerPanel(V3_FROM_V1, DRAFT);
+      await answerPanel(V1, FIRST);
+    }
+
+    it('offers to compare with the version it was opened from', async () => {
+      await openOnDraft();
+
+      expect(compareButton().textContent?.trim()).toBe('± Compare with v1');
+      expect(panelOpen()).toBe(false);
+    });
+
+    it('offers to see the fields of the first version', async () => {
+      await open(`${PAGE}?v=1`, 'nami', EDITOR);
+      await answerContent([V1, V2, V3_FROM_V1], 2);
+      await answerVersion(V1, FIRST);
+
+      expect(compareButton().textContent?.trim()).toBe('± See the fields');
+    });
+
+    it('compares with the based-on version by default, changed fields only', async () => {
+      await compareDraft();
+
+      expect(panelOpen()).toBe(true);
+      expect(panel().textContent).toContain('Comparing v1 → v3');
+      expect(baseSelect()?.value).toBe('1');
+      expect(Array.from(baseSelect()!.options).map((option) => option.value)).toEqual(['2', '1']);
+      expect(summaryText()).toBe('+ 1 added − 1 removed ~ 1 modified = 2 unchanged');
+      expect(rows()).toEqual([
+        'Name · EN − removed',
+        'Description · IT ~ modified',
+        'Description · EN + added',
+      ]);
+      expect(panel().querySelector('[data-testid="comparison-unchanged"]')).toBeNull();
+      expect(TestBed.inject(Router).url).toBe(PAGE);
+    });
+
+    it('lists the unchanged fields on request', async () => {
+      await compareDraft();
+
+      const toggle = panel().querySelector<HTMLButtonElement>(
+        '[data-testid="comparison-toggle-unchanged"]',
+      )!;
+      expect(toggle.textContent).toContain('Show 2 unchanged fields');
+      toggle.click();
+      harness.detectChanges();
+
+      const unchanged = panel().querySelector('[data-testid="comparison-unchanged"]');
+      expect(unchanged?.textContent).toContain('Romaji');
+      expect(unchanged?.textContent).toContain('Name · IT');
+      expect(toggle.textContent).toContain('Hide 2 unchanged fields');
+    });
+
+    it('compares with another earlier version once picked', async () => {
+      await compareDraft();
+
+      const select = baseSelect()!;
+      select.value = '2';
+      select.dispatchEvent(new Event('change'));
+      await afterInteraction();
+      await answerPanel(V2, ONLINE);
+
+      expect(panel().textContent).toContain('Comparing v2 → v3');
+      expect(summaryText()).toBe('+ 0 added − 1 removed ~ 2 modified = 2 unchanged');
+    });
+
+    it('compares the first version with an empty content', async () => {
+      await open(`${PAGE}?v=1`, 'nami', EDITOR);
+      await answerContent([V1, V2, V3_FROM_V1], 2);
+      await answerVersion(V1, FIRST);
+
+      compareButton().click();
+      await afterInteraction();
+      await answerPanel(V1, FIRST);
+
+      expect(baseSelect()).toBeNull();
+      expect(panel().textContent).toContain('nothing existed before v1');
+      expect(panel().textContent).toContain('First version');
+      expect(summaryText()).toBe('+ 4 added − 0 removed ~ 0 modified = 0 unchanged');
+    });
+
+    it('moves along the chain inside the panel, back to the default base, URL untouched', async () => {
+      await compareDraft();
+
+      const v2 = Array.from(
+        panel().querySelectorAll<HTMLButtonElement>('[data-testid="version-link"]'),
+      ).find((link) => link.textContent?.includes('v2'))!;
+      v2.click();
+      await afterInteraction();
+      await answerPanel(V2, ONLINE);
+      // v1 is the base again: already loaded, it is not asked for twice.
+
+      expect(panel().textContent).toContain('Comparing v1 → v2');
+      expect(baseSelect()?.value).toBe('1');
+      expect(TestBed.inject(Router).url).toBe(PAGE);
+      expect(selectedBar()).toContain('v3 · Draft');
+    });
+
+    it('shows the whole card, and starts from the changes again when reopened', async () => {
+      await compareDraft();
+
+      panelTab('Full card').click();
+      harness.detectChanges();
+      expect(panel().querySelector('app-devil-fruit-type-card')).not.toBeNull();
+      expect(rows()).toEqual([]);
+
+      panel().querySelector<HTMLButtonElement>('button[aria-label="Close"]')!.click();
+      await afterInteraction();
+      expect(panelOpen()).toBe(false);
+
+      compareButton().click();
+      await afterInteraction();
+      await answerPanel(V3_FROM_V1, DRAFT);
+      await answerPanel(V1, FIRST);
+
+      expect(panelOpen()).toBe(true);
+      expect(panelTab('Changes').getAttribute('aria-selected')).toBe('true');
+      expect(panel().querySelector('app-devil-fruit-type-card')).toBeNull();
+    });
+
+    it('says when a version cannot be loaded', async () => {
+      await openOnDraft();
+      compareButton().click();
+      await afterInteraction();
+      await answerPanel(V3_FROM_V1, DRAFT);
+      httpTesting
+        .expectOne(`${DETAIL}/versions/1`)
+        .flush('nope', { status: 500, statusText: 'Error' });
+      await afterInteraction();
+
+      expect(panel().textContent).toContain('could not be loaded');
+    });
+  });
 });

@@ -95,12 +95,24 @@
             />
           </div>
           @if (selectedBar(); as bar) {
-            <p
-              class="mt-2 rounded-xl bg-parchment-200/50 px-3 py-2 font-heading text-[13px] font-bold text-pretty text-ocean-500"
-              data-testid="selected-version"
+            <div
+              class="mt-2 flex flex-wrap items-center justify-between gap-2.5 rounded-xl bg-parchment-200/50 px-3 py-2"
             >
-              <strong class="text-ocean-950">{{ bar.title }}</strong> · {{ bar.line }}
-            </p>
+              <p
+                class="min-w-0 font-heading text-[13px] font-bold text-pretty text-ocean-500"
+                data-testid="selected-version"
+              >
+                <strong class="text-ocean-950">{{ bar.title }}</strong> · {{ bar.line }}
+              </p>
+              <button
+                type="button"
+                class="cursor-pointer rounded-[10px] border-2 border-ocean-100 bg-white px-2.75 py-1 font-heading text-xs font-extrabold whitespace-nowrap text-ocean-800"
+                data-testid="compare-versions"
+                (click)="compare()"
+              >
+                {{ bar.compareLabel }}
+              </button>
+            </div>
           }
         </div>
 
@@ -166,6 +178,15 @@
     [busy]="acting()"
     (confirmed)="rejectWith($event)"
     (cancelled)="cancelReason()"
+  />
+
+  <app-devil-fruit-type-comparison
+    [versionsUrl]="versionsUrl()"
+    [versions]="versions()"
+    [onlineVersionNumber]="onlineVersionNumber()"
+    [languages]="languages()"
+    [target]="comparing()"
+    (closed)="comparing.set(null)"
   />
 
   @if (confirmation(); as dialog) {
