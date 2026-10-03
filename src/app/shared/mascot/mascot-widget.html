@@ -1,4 +1,8 @@
-<div class="pointer-events-none fixed right-4 bottom-4 z-50 flex flex-col items-end">
+<div
+  #layer
+  popover="manual"
+  class="pointer-events-none fixed inset-auto right-4 bottom-4 m-0 flex flex-col items-end overflow-visible border-0 bg-transparent p-0"
+>
   @if (mascotService.open()) {
     @let msg = mascotService.message();
     <div

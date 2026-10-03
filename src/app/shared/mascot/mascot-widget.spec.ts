@@ -29,6 +29,31 @@ describe('MascotWidget', () => {
     expect(root.querySelector('[role="status"]')).toBeNull();
   });
 
+  it('lives in the top layer and comes back on top of it with every message', async () => {
+    const calls: string[] = [];
+    // jsdom has no popover API: record what a browser would be asked to do.
+    HTMLElement.prototype.showPopover = function () {
+      calls.push('show');
+    };
+    HTMLElement.prototype.hidePopover = function () {
+      calls.push('hide');
+    };
+    try {
+      const fixture = await createAt('/');
+      const layer = (fixture.nativeElement as HTMLElement).querySelector('[popover]');
+      expect(layer?.getAttribute('popover')).toBe('manual');
+      calls.length = 0;
+
+      TestBed.inject(MascotService).show('Ahoy!', 'success');
+      fixture.detectChanges();
+
+      expect(calls).toEqual(['hide', 'show']);
+    } finally {
+      Reflect.deleteProperty(HTMLElement.prototype, 'showPopover');
+      Reflect.deleteProperty(HTMLElement.prototype, 'hidePopover');
+    }
+  });
+
   it('opens the idle greeting when the launcher is clicked', async () => {
     const fixture = await createAt('/');
 

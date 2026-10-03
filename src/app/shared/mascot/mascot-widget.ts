@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, effect, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MascotService, type MascotTone } from './mascot';
@@ -59,6 +59,11 @@ const TONE_MINIMIZE_CLASSES: Record<MascotTone, string> = {
  * The floating Den Den Mushi: an always-visible launcher when collapsed, a single-message
  * bubble when open. Also pipes up on its own every so often with a tip for whatever page
  * the crew is currently on (see `TIPS`) - a port of the reference mockup's `_tip` interval.
+ *
+ * It lives in the browser's top layer as a manual popover: a modal `<dialog>` sits there
+ * too, above anything a z-index can reach, and would otherwise hide what the mascot says
+ * while it is open. Each new message reopens the popover, which puts it back on top of the
+ * top layer - above whichever dialog is open at that moment.
  */
 @Component({
   selector: 'app-mascot-widget',
@@ -75,8 +80,14 @@ export class MascotWidget {
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
   private readonly tipIndexByTopic = new Map<TipTopic, number>();
+  private readonly layer = viewChild.required<ElementRef<HTMLElement>>('layer');
 
   constructor() {
+    effect(() => {
+      this.mascotService.message();
+      this.mascotService.open();
+      raiseToTop(this.layer().nativeElement);
+    });
     const intervalId = setInterval(() => this.showNextTip(), TIP_INTERVAL_MS);
     inject(DestroyRef).onDestroy(() => clearInterval(intervalId));
   }
@@ -93,4 +104,14 @@ export class MascotWidget {
     const tip = this.transloco.translateObject<Tip>(key);
     this.mascotService.show(tip.text, 'info', tip.code);
   }
+}
+
+/** Shows the popover again, last in the top layer - so above everything shown before it. */
+function raiseToTop(popover: HTMLElement): void {
+  // jsdom has no popover API yet; every browser this app targets has.
+  if (typeof popover.showPopover !== 'function') {
+    return;
+  }
+  popover.hidePopover();
+  popover.showPopover();
 }
