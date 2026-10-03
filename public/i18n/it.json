@@ -453,6 +453,7 @@
       "legend": {
         "current": "stato corrente",
         "followed": "percorso seguito",
+        "available": "transizione disponibile per te · clicca il nodo",
         "alternative": "percorso alternativo"
       },
       "link": {
@@ -500,7 +501,24 @@
         "noTransition": "nessuna transizione per il tuo ruolo",
         "openVersionExists": "il contenuto ha già una versione in lavorazione"
       },
-      "editTitle": "Clicca per riaprire la bozza in modifica"
+      "editTitle": "Clicca per riaprire la bozza in modifica",
+      "nextTitle": "Clicca per: {{action}} · {{meaning}}",
+      "done": {
+        "submitted": "Inviato in revisione! Ora la palla passa a chi ha content:review.",
+        "pulledBack": "Ritirato dalla revisione: è di nuovo una tua bozza modificabile."
+      },
+      "refused": {
+        "incomplete": "Arrr! Prima della revisione manca: {{fields}}.",
+        "taken": "Arrr! Un altro contenuto usa già {{fields}}: dev'essere unico. Correggi la bozza e riprova.",
+        "identical": "Arrr! Questa versione è identica alla v{{version}}. Per riportare online un contenuto di prima si usa Ripubblica, non una nuova revisione.",
+        "stale": "Arrr! Nel frattempo la versione è cambiata: ecco com'è adesso.",
+        "failed": "Arrr! Azione non riuscita. Riprova tra poco.",
+        "field": {
+          "romaji": "romaji",
+          "name": "nome {{language}}",
+          "description": "descrizione {{language}}"
+        }
+      }
     },
     "breadcrumb": {
       "contents": "Contenuti"

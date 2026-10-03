@@ -453,6 +453,7 @@
       "legend": {
         "current": "current status",
         "followed": "route followed",
+        "available": "transition available to you · click the node",
         "alternative": "alternative route"
       },
       "link": {
@@ -500,7 +501,24 @@
         "noTransition": "no transition for your role",
         "openVersionExists": "the content already has a version in progress"
       },
-      "editTitle": "Click to reopen the draft for editing"
+      "editTitle": "Click to reopen the draft for editing",
+      "nextTitle": "Click to: {{action}} · {{meaning}}",
+      "done": {
+        "submitted": "Submitted for review! The ball is now with whoever holds content:review.",
+        "pulledBack": "Pulled back from review: it is your editable draft again."
+      },
+      "refused": {
+        "incomplete": "Arrr! Still missing before review: {{fields}}.",
+        "taken": "Arrr! Another content already uses {{fields}}: it must be unique. Fix the draft and try again.",
+        "identical": "Arrr! This version is identical to v{{version}}. To bring earlier content back online, use Republish, not a new review.",
+        "stale": "Arrr! The version changed in the meantime: here it is as it stands now.",
+        "failed": "Arrr! That did not work. Try again in a moment.",
+        "field": {
+          "romaji": "romaji",
+          "name": "name {{language}}",
+          "description": "description {{language}}"
+        }
+      }
     },
     "breadcrumb": {
       "contents": "Contents"

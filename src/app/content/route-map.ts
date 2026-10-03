@@ -3,8 +3,10 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CurrentUserService } from '../identity/current-user';
 import {
+  ACTION_LABEL_KEY,
   STATUS_LABEL_KEY,
   STATUS_MEANING_KEY,
+  type VersionAction,
   type VersionEvent,
   type VersionStatus,
   type VersionSummary,
@@ -75,13 +77,20 @@ const EDIT_GLYPH = '✎';
 const VISITED_MAIN_CLASSES = 'border-success-600 bg-success-600 text-white';
 const VISITED_GLYPH = '✓';
 const IDLE_NODE_CLASSES = 'border-parchment-50 bg-white text-ocean-500/40';
+/** A status the caller may take the version to: dashed gold, breathing, and a click away. */
+const NEXT_NODE_CLASSES = `border-dashed border-treasure-600 bg-treasure-100 text-treasure-700 ${ACTIONABLE_NODE_CLASSES}`;
+const NEXT_INK_CLASSES = 'text-treasure-700';
 
 const VISITED_LABEL_CLASSES = 'text-ocean-950';
 const IDLE_LABEL_CLASSES = 'text-ocean-500/60';
 const VISITED_NOTE_CLASSES = 'text-ocean-500/70';
 
-/** The main line: green where the version went, a faint rule elsewhere. */
+/** The stretch the caller may take the version along, wherever it is on the map. */
+const NEXT_LINE = { line: 'border-dashed border-treasure-600', label: NEXT_INK_CLASSES };
+
+/** The main line: gold where the version may go now, green where it went, a faint rule elsewhere. */
 const MAIN_LINE_CLASSES: Record<ConnectorState, string> = {
+  next: NEXT_LINE.line,
   followed: 'border-solid border-success-600',
   idle: 'border-solid border-parchment-50',
 };
@@ -127,7 +136,7 @@ interface NodeView {
   readonly note: string;
   readonly noteClasses: string;
   /** What clicking the status does - `null` for a status that only says where the version is. */
-  readonly action: 'EDIT' | null;
+  readonly action: VersionAction | null;
 }
 
 /** The stretch under a status of the main line: down to its branch, or - under Draft - back from Rejected. */
@@ -153,8 +162,9 @@ interface ColumnView {
 /**
  * "Rotta editoriale": where a version stands in the editorial workflow, drawn as a map.
  * The ship marks the current status, a green check the ones already gone through - read
- * from the version's own history - and dashed lines the ways it did not take. The nodes
- * say where the version is; the Draft one, on a draft the caller may edit, also reopens it.
+ * from the version's own history - and dashed lines the ways it did not take. A status
+ * the caller may take the version to pulses in gold, and clicking it asks for that
+ * transition; the Draft one, on a draft the caller may edit, reopens it.
  */
 @Component({
   selector: 'app-route-map',
@@ -168,12 +178,17 @@ export class RouteMap {
   readonly version = input.required<VersionSummary>();
   /** The history of the version, oldest first. */
   readonly events = input.required<readonly VersionEvent[]>();
-  /** The caller asked to edit the version, from its Draft status. */
-  readonly edit = output<void>();
+  /** A transition is on its way: the nodes wait for it instead of asking for another. */
+  readonly busy = input(false);
+  /** The caller clicked a status to act on the version: edit it, or take it there. */
+  readonly act = output<VersionAction>();
 
   protected readonly legendOpen = signal(false);
 
-  private readonly route = computed(() => editorialRoute(this.version().status, this.events()));
+  private readonly route = computed(() => {
+    const version = this.version();
+    return editorialRoute(version.status, this.events(), version.allowedActions);
+  });
 
   protected readonly columns = computed<ColumnView[]>(() => {
     this.transloco.activeLang();
@@ -224,6 +239,9 @@ export class RouteMap {
   }
 
   private branchLine(branch: VersionStatus, state: ConnectorState) {
+    if (state === 'next') {
+      return NEXT_LINE;
+    }
     return (state === 'followed' ? FOLLOWED_BRANCH_LINE[branch] : null) ?? IDLE_BRANCH_LINE;
   }
 
@@ -261,6 +279,18 @@ export class RouteMap {
           note: this.currentNote(node),
           noteClasses: classes.ink,
         };
+      case 'next': {
+        const action = this.transloco.translate(ACTION_LABEL_KEY[node.transition]);
+        return {
+          ...base,
+          action: node.transition,
+          title: this.transloco.translate('content.workflow.nextTitle', { action, meaning }),
+          circleClasses: NEXT_NODE_CLASSES,
+          labelClasses: NEXT_INK_CLASSES,
+          note: `→ ${action}`,
+          noteClasses: NEXT_INK_CLASSES,
+        };
+      }
       case 'visited':
         return {
           ...base,

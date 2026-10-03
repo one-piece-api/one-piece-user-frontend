@@ -1,11 +1,13 @@
-import type { VersionEvent, VersionStatus } from './content.model';
+import type { VersionAction, VersionEvent, VersionStatus } from './content.model';
 import { eventKind } from './version-event';
+import { VERSION_TRANSITIONS } from './version-transition';
 
 /**
  * The editorial route of a version as a map: five statuses on the main line and, hanging
  * under three of them, the branch that leaves the line there. No Angular in here - the
- * route is derived from a status and a history alone, see `editorialRoute`.
+ * route is derived from a status, a history and what the caller may do, see `editorialRoute`.
  */
+
 const MAIN_LINE: readonly VersionStatus[] = [
   'DRAFT',
   'IN_REVIEW',
@@ -17,18 +19,29 @@ const MAIN_LINE: readonly VersionStatus[] = [
 /** The branch under each status of the main line, by position. */
 const BRANCHES: readonly (VersionStatus | null)[] = [null, 'REJECTED', 'ARCHIVED', 'RETIRED', null];
 
-/** Where the version is now, where it has been, where it never went. */
-export type NodeState = 'current' | 'visited' | 'idle';
+/**
+ * Where the version is now, where the caller may take it next, where it has been, where it
+ * never went.
+ */
+export type NodeState = 'current' | 'next' | 'visited' | 'idle';
 
-/** A stretch between two statuses: travelled by this version, in either direction, or not. */
-export type ConnectorState = 'followed' | 'idle';
+/**
+ * A stretch between two statuses: the one the caller may take the version along, travelled
+ * by this version in either direction, or neither.
+ */
+export type ConnectorState = 'next' | 'followed' | 'idle';
 
-/** One status on the map. `reachedBy` is the event that last brought the version there. */
-export interface RouteNode {
+/**
+ * One status on the map. `reachedBy` is the event that last brought the version there;
+ * `transition` the action taking it there from where it is, on a `next` status only.
+ */
+export type RouteNode = {
   readonly status: VersionStatus;
-  readonly state: NodeState;
   readonly reachedBy: VersionEvent | null;
-}
+} & (
+  | { readonly state: 'next'; readonly transition: VersionAction }
+  | { readonly state: Exclude<NodeState, 'next'>; readonly transition: null }
+);
 
 /**
  * One column of the map: a status of the main line, its branch if it has one, and the
@@ -49,22 +62,32 @@ export interface EditorialRoute {
 }
 
 /**
- * The map of a version in `status` whose history is `events`, oldest first. The statuses
- * the events led through are the route followed; the current status closes it even when no
- * event says so - a version is superseded by the publication of another one.
+ * The map of a version in `status` whose history is `events`, oldest first, for a caller
+ * allowed `allowedActions` on it. The statuses the events led through are the route
+ * followed; the current status closes it even when no event says so - a version is
+ * superseded by the publication of another one. A status an allowed transition leads to
+ * is `next`, whether or not the version has been there before.
  */
 export function editorialRoute(
   status: VersionStatus,
   events: readonly VersionEvent[],
+  allowedActions: readonly VersionAction[] = [],
 ): EditorialRoute {
   const journey = journeyOf(status, events);
-  const node = (of: VersionStatus): RouteNode => ({
-    status: of,
-    state: stateOf(of, status, journey),
-    reachedBy: journey.arrivals.get(of) ?? null,
-  });
-  const connector = (from: VersionStatus, to: VersionStatus): ConnectorState =>
-    journey.legs.has(leg(from, to)) || journey.legs.has(leg(to, from)) ? 'followed' : 'idle';
+  const transitions = transitionsFrom(allowedActions);
+  const node = (of: VersionStatus): RouteNode => {
+    const reachedBy = journey.arrivals.get(of) ?? null;
+    const transition = of === status ? undefined : transitions.get(of);
+    return transition
+      ? { status: of, state: 'next', reachedBy, transition }
+      : { status: of, state: stateOf(of, status, journey), reachedBy, transition: null };
+  };
+  const connector = (from: VersionStatus, to: VersionStatus): ConnectorState => {
+    if ((from === status && transitions.has(to)) || (to === status && transitions.has(from))) {
+      return 'next';
+    }
+    return journey.legs.has(leg(from, to)) || journey.legs.has(leg(to, from)) ? 'followed' : 'idle';
+  };
 
   const columns = MAIN_LINE.map((main, index): RouteColumn => {
     const previous = MAIN_LINE[index - 1];
@@ -106,7 +129,29 @@ function journeyOf(status: VersionStatus, events: readonly VersionEvent[]): Jour
   return { path, arrivals, legs };
 }
 
-function stateOf(of: VersionStatus, current: VersionStatus, journey: Journey): NodeState {
+/**
+ * The status each allowed transition leads to, and that transition - only the ones the
+ * screens can run (`VERSION_TRANSITIONS`).
+ */
+function transitionsFrom(
+  allowedActions: readonly VersionAction[],
+): ReadonlyMap<VersionStatus, VersionAction> {
+  const transitions = new Map<VersionStatus, VersionAction>();
+  for (const action of allowedActions) {
+    const target = VERSION_TRANSITIONS[action]?.target;
+    if (target && !transitions.has(target)) {
+      transitions.set(target, action);
+    }
+  }
+  return transitions;
+}
+
+/** Where the version stands with respect to a status, regardless of what the caller may do. */
+function stateOf(
+  of: VersionStatus,
+  current: VersionStatus,
+  journey: Journey,
+): Exclude<NodeState, 'next'> {
   if (of === current) {
     return 'current';
   }

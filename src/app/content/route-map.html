@@ -143,6 +143,10 @@
       {{ 'content.workflow.legend.followed' | transloco }}
     </span>
     <span class="inline-flex items-center gap-1.5">
+      <span class="size-3 rounded-full border-2 border-dashed border-treasure-600"></span>
+      {{ 'content.workflow.legend.available' | transloco }}
+    </span>
+    <span class="inline-flex items-center gap-1.5">
       <span class="w-4.5 border-t-3 border-dashed border-ocean-500/25"></span>
       {{ 'content.workflow.legend.alternative' | transloco }}
     </span>
@@ -185,15 +189,16 @@
   @if (node.action) {
     <button
       type="button"
-      class="relative grid size-10.5 place-items-center rounded-full border-2 text-[15px] font-extrabold"
+      class="relative grid size-10.5 place-items-center rounded-full border-2 text-[15px] font-extrabold disabled:cursor-wait disabled:opacity-60"
       [class]="node.circleClasses"
       [title]="node.title"
       [attr.aria-label]="node.title"
       [attr.aria-current]="node.current ? 'step' : null"
       [attr.data-status]="node.status"
       [attr.data-state]="node.state"
+      [disabled]="busy()"
       data-testid="route-node"
-      (click)="edit.emit()"
+      (click)="act.emit(node.action)"
     >
       {{ node.glyph }}
     </button>

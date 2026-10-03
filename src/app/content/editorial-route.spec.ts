@@ -185,6 +185,28 @@ describe('editorialRoute', () => {
     expect(connectors(route).main).toEqual(['idle', 'idle', 'idle', 'idle']);
   });
 
+  it('marks the status an allowed transition leads to as next, and the stretch to it', () => {
+    const route = editorialRoute('DRAFT', history(CREATED), ['EDIT', 'DELETE', 'SUBMIT']);
+
+    expect(node(route, 'IN_REVIEW')).toMatchObject({ state: 'next', transition: 'SUBMIT' });
+    expect(node(route, 'DRAFT')).toMatchObject({ state: 'current', transition: null });
+    expect(connectors(route).main).toEqual(['next', 'idle', 'idle', 'idle']);
+  });
+
+  it('makes a status already gone through next when the transition leads back to it', () => {
+    const route = editorialRoute('IN_REVIEW', history(CREATED, SUBMITTED), ['PULL_BACK']);
+
+    expect(node(route, 'DRAFT')).toMatchObject({ state: 'next', transition: 'PULL_BACK' });
+    expect(connectors(route).main).toEqual(['next', 'idle', 'idle', 'idle']);
+  });
+
+  it('ignores an allowed action the screens cannot run, and one that leads nowhere on the map', () => {
+    const route = editorialRoute('IN_REVIEW', history(CREATED, SUBMITTED), ['CLAIM', 'EDIT']);
+
+    expect(nodes(route).filter((candidate) => candidate.state === 'next')).toEqual([]);
+    expect(connectors(route).main).toEqual(['followed', 'idle', 'idle', 'idle']);
+  });
+
   it('ignores an action it does not know', () => {
     const route = editorialRoute('IN_REVIEW', history(CREATED, 'VERSION_TELEPORTED', SUBMITTED));
 

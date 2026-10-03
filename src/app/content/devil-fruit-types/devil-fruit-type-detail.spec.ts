@@ -4,6 +4,7 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { MascotService } from '../../shared/mascot/mascot';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import type { VersionStatus } from '../content.model';
 import { DevilFruitTypeDetail } from './devil-fruit-type-detail';
@@ -329,5 +330,135 @@ describe('DevilFruitTypeDetail', () => {
     await afterInteraction();
 
     expect(TestBed.inject(Router).url).toBe(`${PAGE}/edit`);
+  });
+
+  describe('moving the version along the route', () => {
+    const DRAFT = summary(3, 'DRAFT');
+    const VERSION = `${DETAIL}/versions/3`;
+
+    /** nami's own v3 draft, open on the Workflow tab. */
+    async function openOwnDraft(): Promise<void> {
+      await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
+      await answerContent([V1, V2, DRAFT], 2);
+      await answerOwnVersion('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
+    }
+
+    async function answerOwnVersion(status: VersionStatus, allowedActions: string[]) {
+      httpTesting.expectOne(VERSION).flush({
+        ...summary(3, status),
+        rejectionReason: null,
+        body: body('Logia draft'),
+        allowedActions,
+      });
+      httpTesting.expectOne(`${VERSION}/events`).flush([CREATED]);
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+    }
+
+    /** The page reloads the content and the version after every attempt, refused or not. */
+    async function answerReload(status: VersionStatus, allowedActions: string[]) {
+      httpTesting
+        .expectOne(DETAIL)
+        .flush({ id: ID, onlineVersionNumber: 2, versions: [V1, V2, summary(3, status)] });
+      await answerOwnVersion(status, allowedActions);
+    }
+
+    function node(status: VersionStatus): HTMLButtonElement {
+      return root.querySelector<HTMLButtonElement>(
+        `button[data-testid="route-node"][data-status="${status}"]`,
+      )!;
+    }
+
+    function mascotSays(): string {
+      return TestBed.inject(MascotService).message().text;
+    }
+
+    it('submits the draft from the In review status and shows it in review', async () => {
+      await openOwnDraft();
+
+      node('IN_REVIEW').click();
+      harness.detectChanges();
+      expect(node('IN_REVIEW').disabled).toBe(true);
+      const submit = httpTesting.expectOne(`${VERSION}/submit`);
+      expect(submit.request.method).toBe('POST');
+      submit.flush({});
+      await afterInteraction();
+      await answerReload('IN_REVIEW', ['PULL_BACK']);
+
+      expect(mascotSays()).toContain('Submitted for review!');
+      expect(root.querySelector('[aria-current="step"]')?.getAttribute('data-status')).toBe(
+        'IN_REVIEW',
+      );
+      expect(node('DRAFT').dataset['state']).toBe('next');
+    });
+
+    it('lists what an incomplete draft still lacks, in words', async () => {
+      await openOwnDraft();
+
+      node('IN_REVIEW').click();
+      httpTesting.expectOne(`${VERSION}/submit`).flush(
+        {
+          errorCode: 'CONTENT_VERSION_INCOMPLETE',
+          errors: [
+            { field: 'romaji', message: 'is required for review' },
+            { field: 'translations[en].description', message: 'is required for review' },
+          ],
+        },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await afterInteraction();
+      await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
+
+      expect(mascotSays()).toBe('Arrr! Still missing before review: romaji, description EN.');
+    });
+
+    it('names the version a submission would repeat', async () => {
+      await openOwnDraft();
+
+      node('IN_REVIEW').click();
+      httpTesting
+        .expectOne(`${VERSION}/submit`)
+        .flush(
+          { errorCode: 'CONTENT_VERSION_IDENTICAL', identicalTo: 1 },
+          { status: 422, statusText: 'Unprocessable Entity' },
+        );
+      await afterInteraction();
+      await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
+
+      expect(mascotSays()).toContain('identical to v1');
+    });
+
+    it('pulls an unclaimed version back from the Draft status', async () => {
+      await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
+      await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);
+      await answerOwnVersion('IN_REVIEW', ['PULL_BACK']);
+
+      node('DRAFT').click();
+      httpTesting.expectOne(`${VERSION}/pull-back`).flush({});
+      await afterInteraction();
+      await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
+
+      expect(mascotSays()).toContain('Pulled back from review');
+      expect(node('DRAFT').getAttribute('aria-current')).toBe('step');
+    });
+
+    it('shows the version as it now is when someone acted first', async () => {
+      await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
+      await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);
+      await answerOwnVersion('IN_REVIEW', ['PULL_BACK']);
+
+      node('DRAFT').click();
+      httpTesting
+        .expectOne(`${VERSION}/pull-back`)
+        .flush(
+          { errorCode: 'CONTENT_VERSION_ACTION_CONFLICT' },
+          { status: 409, statusText: 'Conflict' },
+        );
+      await afterInteraction();
+      await answerReload('IN_REVIEW', []);
+
+      expect(mascotSays()).toContain('changed in the meantime');
+      expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
+    });
   });
 });

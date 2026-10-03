@@ -120,7 +120,12 @@
           @if (openTab() === 'overview') {
             <app-devil-fruit-type-card [devilFruitType]="version.body" [languages]="languages()" />
           } @else {
-            <app-version-workflow [version]="version" [events]="events()" (edit)="openEditor()" />
+            <app-version-workflow
+              [version]="version"
+              [events]="events()"
+              [busy]="acting()"
+              (act)="act($event)"
+            />
           }
         </div>
       </article>

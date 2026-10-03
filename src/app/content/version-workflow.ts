@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { AccessPanel } from './access-panel';
-import type { Version, VersionEvent } from './content.model';
+import type { Version, VersionAction, VersionEvent } from './content.model';
 import { RouteMap } from './route-map';
 import { WorkflowTimeline } from './workflow-timeline';
 
@@ -19,6 +19,8 @@ export class VersionWorkflow {
   readonly version = input.required<Version<unknown>>();
   /** The history of the version, oldest first. */
   readonly events = input.required<readonly VersionEvent[]>();
-  /** The caller asked to edit the version. */
-  readonly edit = output<void>();
+  /** A transition is on its way: the route waits for it. */
+  readonly busy = input(false);
+  /** The caller asked to act on the version: edit it, or move it along the workflow. */
+  readonly act = output<VersionAction>();
 }

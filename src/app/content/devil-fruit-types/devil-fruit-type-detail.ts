@@ -1,8 +1,10 @@
-import { HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, computed, inject, input, linkedSignal } from '@angular/core';
+import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
+import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink, type Params } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { firstValueFrom } from 'rxjs';
 import { CurrentUserService } from '../../identity/current-user';
+import { MascotService } from '../../shared/mascot/mascot';
 import { Breadcrumb, type Crumb } from '../../shared/ui/breadcrumb';
 import { buttonClasses } from '../../shared/ui/button-variants';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
@@ -13,15 +15,22 @@ import {
   versionToShow,
   type Content,
   type Version,
+  type VersionAction,
   type VersionEvent,
 } from '../content.model';
 import { LanguageCatalogService } from '../language-catalog';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { VersionChain } from '../version-chain';
+import {
+  VERSION_TRANSITIONS,
+  transitionRefusal,
+  type TransitionRefusal,
+  type VersionTransition,
+} from '../version-transition';
 import { VersionWorkflow } from '../version-workflow';
 import { DevilFruitTypeCard } from './devil-fruit-type-card';
-import { namesOf, type DevilFruitType } from './devil-fruit-type.model';
+import { draftFieldKey, namesOf, type DevilFruitType } from './devil-fruit-type.model';
 
 const ENDPOINT = '/api/content/devil-fruit-types';
 const LIST_ROUTE = '/content/devil-fruit-types';
@@ -65,9 +74,11 @@ const NOT_FOUND_STATUSES = [400, 404];
   ],
 })
 export class DevilFruitTypeDetail {
+  private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
+  private readonly mascot = inject(MascotService);
   private readonly currentUser = inject(CurrentUserService);
   private readonly languageCatalog = inject(LanguageCatalogService);
 
@@ -194,6 +205,9 @@ export class DevilFruitTypeDetail {
     this.tab() === 'workflow' ? 'workflow' : 'overview',
   );
 
+  /** A transition posted and not answered yet. */
+  protected readonly acting = signal(false);
+
   protected readonly backButtonClasses = buttonClasses('secondary');
   protected readonly listRoute = LIST_ROUTE;
 
@@ -201,9 +215,62 @@ export class DevilFruitTypeDetail {
     this.navigate({ [PARAM.version]: number });
   }
 
-  /** Reopens the draft on screen in the editor. */
-  protected openEditor(): void {
-    void this.router.navigate(['edit'], { relativeTo: this.route });
+  /** Acts on the version on screen: reopens it in the editor, or runs a transition on it. */
+  protected act(action: VersionAction): void {
+    if (action === 'EDIT') {
+      void this.router.navigate(['edit'], { relativeTo: this.route });
+      return;
+    }
+    const transition = VERSION_TRANSITIONS[action];
+    const url = this.versionUrl();
+    if (transition && url) {
+      void this.runTransition(transition, `${url}/${transition.path}`);
+    }
+  }
+
+  /**
+   * Posts the transition, says how it went, and reloads the content whatever the outcome:
+   * a refusal often means the version moved meanwhile, and the screen should show where.
+   */
+  private async runTransition(transition: VersionTransition, url: string): Promise<void> {
+    this.acting.set(true);
+    try {
+      await firstValueFrom(this.http.post<Version<DevilFruitType>>(url, null));
+      this.mascot.show(this.transloco.translate(transition.doneKey), 'success');
+    } catch (error) {
+      this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
+    } finally {
+      this.content.reload();
+      this.version.reload();
+      this.versionEvents.reload();
+      this.acting.set(false);
+    }
+  }
+
+  private refusalMessage(refusal: TransitionRefusal): string {
+    const key = (name: string) => `content.workflow.refused.${name}`;
+    switch (refusal.kind) {
+      case 'incomplete':
+      case 'taken':
+        return this.transloco.translate(key(refusal.kind), {
+          fields: refusal.fields.map((field) => this.fieldLabel(field)).join(', '),
+        });
+      case 'identical':
+        return this.transloco.translate(key('identical'), { version: refusal.version });
+      case 'stale':
+      case 'failed':
+        return this.transloco.translate(key(refusal.kind));
+    }
+  }
+
+  /** "romaji", "nome EN": a field named as the backend names it, in words. */
+  private fieldLabel(field: string): string {
+    const [language, name] = (draftFieldKey(field) ?? field).split('.');
+    return name
+      ? this.transloco.translate(`content.workflow.refused.field.${name}`, {
+          language: language.toUpperCase(),
+        })
+      : this.transloco.translate('content.workflow.refused.field.romaji');
   }
 
   protected selectTab(tab: TabId): void {

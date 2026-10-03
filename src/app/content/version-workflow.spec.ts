@@ -263,8 +263,8 @@ describe('VersionWorkflow', () => {
         'nami',
         EDITOR,
       );
-      let asked = 0;
-      fixture.componentInstance.edit.subscribe(() => asked++);
+      const asked: VersionAction[] = [];
+      fixture.componentInstance.act.subscribe((action) => asked.push(action));
 
       const node = mapNode('DRAFT');
       expect(node.tagName).toBe('BUTTON');
@@ -273,7 +273,7 @@ describe('VersionWorkflow', () => {
       expect(mapText('DRAFT')).toContain('click to edit');
       node.click();
 
-      expect(asked).toBe(1);
+      expect(asked).toEqual(['EDIT']);
     });
 
     it('leaves the Draft status of someone else’s draft as a plain status', async () => {
@@ -282,6 +282,75 @@ describe('VersionWorkflow', () => {
       expect(mapNode('DRAFT').tagName).toBe('SPAN');
       expect(mapText('DRAFT')).not.toContain('click to edit');
       expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
+    });
+  });
+
+  describe('moving the version along the route', () => {
+    function asked(): VersionAction[] {
+      const actions: VersionAction[] = [];
+      fixture.componentInstance.act.subscribe((action) => actions.push(action));
+      return actions;
+    }
+
+    it('offers the author of a draft to submit it, on the In review status', async () => {
+      await render(
+        version('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']),
+        [event('VERSION_CREATED')],
+        'nami',
+        EDITOR,
+      );
+      const actions = asked();
+
+      const node = mapNode('IN_REVIEW');
+      expect(node.tagName).toBe('BUTTON');
+      expect(node.dataset['state']).toBe('next');
+      expect(node.className).toContain('border-dashed');
+      expect(node.className).toContain('anim-node-pulse');
+      expect(node.title).toBe('Click to: Submit for review · Submitted for review.');
+      expect(mapText('IN_REVIEW')).toContain('→ Submit for review');
+      node.click();
+
+      expect(actions).toEqual(['SUBMIT']);
+    });
+
+    it('offers the author of an unclaimed version in review to pull it back, on Draft', async () => {
+      await render(version('IN_REVIEW', ['PULL_BACK']), WAITING, 'nami', EDITOR);
+      const actions = asked();
+
+      // Already gone through, Draft is the way back now rather than a check.
+      const node = mapNode('DRAFT');
+      expect(node.dataset['state']).toBe('next');
+      expect(mapText('DRAFT')).toContain('→ Pull back from review');
+      node.click();
+
+      expect(actions).toEqual(['PULL_BACK']);
+    });
+
+    it('offers nothing to whoever may not move the version', async () => {
+      await render(version('IN_REVIEW'), WAITING, 'chopper', EDITOR);
+
+      expect(mapNode('DRAFT').dataset['state']).toBe('visited');
+      expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
+    });
+
+    it('never offers a transition the screens cannot run yet', async () => {
+      await render(version('IN_REVIEW', ['CLAIM']), WAITING, 'zoro', REVIEWER);
+
+      expect(root.querySelectorAll('[data-state="next"]').length).toBe(0);
+    });
+
+    it('waits while a transition is on its way', async () => {
+      await render(version('IN_REVIEW', ['PULL_BACK']), WAITING, 'nami', EDITOR);
+      fixture.componentRef.setInput('busy', true);
+      fixture.detectChanges();
+
+      expect((mapNode('DRAFT') as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('explains the gold nodes in the inline legend', async () => {
+      await render(version('DRAFT'), [event('VERSION_CREATED')], 'nami', EDITOR);
+
+      expect(root.textContent).toContain('transition available to you · click the node');
     });
   });
 });
