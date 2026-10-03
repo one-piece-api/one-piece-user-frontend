@@ -27,7 +27,7 @@ import { VersionActions } from '../version-actions';
 import { VersionWorkflow } from '../version-workflow';
 import { DevilFruitTypeCard } from './devil-fruit-type-card';
 import { DevilFruitTypeComparison } from './devil-fruit-type-comparison';
-import { DEVIL_FRUIT_TYPE_ICON, namesOf, type DevilFruitType } from './devil-fruit-type.model';
+import { namesOf, type DevilFruitType } from './devil-fruit-type.model';
 
 const ENDPOINT = '/api/content/devil-fruit-types';
 const LIST_ROUTE = '/content/devil-fruit-types';
@@ -36,7 +36,7 @@ const LIST_ROUTE = '/content/devil-fruit-types';
 const PARAM = { version: 'v', tab: 'tab' } as const;
 
 const TABS = [
-  { id: 'overview', labelKey: 'content.detail.tab.overview', icon: DEVIL_FRUIT_TYPE_ICON },
+  { id: 'overview', labelKey: 'content.detail.tab.overview', icon: '◈' },
   { id: 'workflow', labelKey: 'content.detail.tab.workflow', icon: '⚓' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
@@ -157,7 +157,7 @@ export class DevilFruitTypeDetail {
       { label: this.transloco.translate('content.breadcrumb.contents') },
       {
         label: this.transloco.translate('content.devilFruitTypes.title'),
-        icon: DEVIL_FRUIT_TYPE_ICON,
+        icon: '◈',
         route: LIST_ROUTE,
       },
     ];
