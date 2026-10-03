@@ -523,7 +523,9 @@
         "published": "Pubblicato! La v{{version}} è online.",
         "opened": "Nuova bozza v{{version}} a partire dalla v{{base}}, a tuo nome.",
         "openedKeepingOnline": "Nuova bozza v{{version}} a partire dalla v{{base}}, a tuo nome. La v{{online}} resta online finché questa non viene pubblicata.",
-        "reopened": "Nuova bozza v{{version}} a partire dalla v{{base}} archiviata, che resta nello storico."
+        "reopened": "Nuova bozza v{{version}} a partire dalla v{{base}} archiviata, che resta nello storico.",
+        "archived": "Archiviato. Lo recuperi dal Workflow quando serve.",
+        "recovered": "Recuperato: è di nuovo pronto per la pubblicazione."
       },
       "refused": {
         "incomplete": "Arrr! Prima della revisione manca: {{fields}}.",
@@ -553,6 +555,12 @@
         "bodyReplacing": "La v{{version}} va online, visibile a tutti i lettori. La v{{online}} diventa \"sostituita\" e resta nello storico.",
         "note": "Ogni versione resta nello storico, pubblicata o no.",
         "confirm": "Sì, pubblica"
+      },
+      "archive": {
+        "title": "Archiviare \"{{name}}\"?",
+        "body": "La v{{version}} resta approvata ma non viene pubblicata: la ritrovi archiviata e puoi recuperarla quando vuoi.",
+        "note": "Archiviare non è ritirare: questa versione non è mai andata online.",
+        "confirm": "Sì, archivia"
       }
     },
     "breadcrumb": {

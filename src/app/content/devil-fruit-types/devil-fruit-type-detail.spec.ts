@@ -718,6 +718,63 @@ describe('DevilFruitTypeDetail', () => {
       expect(confirmDialog()).toBeNull();
       httpTesting.expectNone(`${VERSION}/publish`);
     });
+
+    it('confirms an archiving in its own color, replacing nothing, then shows it archived', async () => {
+      await openReadyVersion();
+
+      expect(node('ARCHIVED').dataset['state']).toBe('next');
+      node('ARCHIVED').click();
+      harness.detectChanges();
+      expect(confirmDialog()?.textContent).toContain('Archive "Logia draft"?');
+      expect(confirmDialog()?.textContent).toContain('v3 stays approved but is not published');
+      expect(confirmDialog()?.textContent).not.toContain('superseded');
+      const action = confirmDialog()!.querySelector<HTMLButtonElement>(
+        '[data-testid="confirm-action"]',
+      )!;
+      expect(action.className).toContain('bg-status-archived-ink');
+      httpTesting.expectNone(`${VERSION}/archive`);
+
+      action.click();
+      const archive = httpTesting.expectOne(`${VERSION}/archive`);
+      expect(archive.request.method).toBe('POST');
+      archive.flush({});
+      await afterInteraction();
+      await answerReload('ARCHIVED', ['RECOVER']);
+
+      expect(confirmDialog()).toBeNull();
+      expect(mascotSays()).toBe('Archived. Recover it from the Workflow whenever you need it.');
+      expect(TestBed.inject(MascotService).message().tone).toBe('info');
+      expect(node('READY_TO_PUBLISH').dataset['state']).toBe('next');
+    });
+
+    it('recovers an archived version from the Ready to publish status, with no confirmation', async () => {
+      await open(`${PAGE}?tab=workflow`, 'vivi', PUBLISHER);
+      await answerContent([V1, V2, summary(3, 'ARCHIVED')], 2);
+      await answerOwnVersion('ARCHIVED', ['RECOVER']);
+
+      node('READY_TO_PUBLISH').click();
+      harness.detectChanges();
+      expect(confirmDialog()).toBeNull();
+      httpTesting.expectOne(`${VERSION}/recover`).flush({});
+      await afterInteraction();
+      await answerReload('READY_TO_PUBLISH', ['PUBLISH', 'ARCHIVE']);
+
+      expect(mascotSays()).toBe('Recovered: it is ready to publish again.');
+      expect(root.querySelector('[aria-current="step"]')?.getAttribute('data-status')).toBe(
+        'READY_TO_PUBLISH',
+      );
+    });
+
+    it('offers no recovery while the content has another open version', async () => {
+      await open(`${PAGE}?tab=workflow`, 'vivi', PUBLISHER);
+      await answerContent([V1, V2, summary(3, 'ARCHIVED')], 2);
+      await answerOwnVersion('ARCHIVED', []);
+
+      expect(
+        root.querySelector('[data-status="READY_TO_PUBLISH"]')?.getAttribute('data-state'),
+      ).toBe('idle');
+      expect(node('READY_TO_PUBLISH')).toBeNull();
+    });
   });
 
   describe('opening a new version', () => {

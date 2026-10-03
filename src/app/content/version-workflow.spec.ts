@@ -345,8 +345,8 @@ describe('VersionWorkflow', () => {
     });
 
     it('never offers a transition the screens cannot run yet', async () => {
-      const approved = version('READY_TO_PUBLISH', ['ARCHIVE']);
-      await render(approved, WAITING, 'vivi', ['content:read', 'content:publish']);
+      const online = version('PUBLISHED', ['RETIRE']);
+      await render(online, WAITING, 'vivi', ['content:read', 'content:publish', 'content:retire']);
 
       expect(root.querySelectorAll('[data-state="next"]').length).toBe(0);
     });

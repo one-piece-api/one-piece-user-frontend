@@ -212,28 +212,31 @@ export class DevilFruitTypeDetail {
   protected readonly acting = signal(false);
   /** The transition waiting for the reason the caller is writing - a rejection. */
   protected readonly askingReasonFor = signal<VersionTransition | null>(null);
-  /** The transition waiting for the caller to confirm it - a publication. */
+  /** The transition waiting for the caller to confirm it - a publication, an archiving. */
   protected readonly confirming = signal<VersionTransition | null>(null);
 
   /**
    * "Publish "Logia"?": what the confirm dialog says about the transition waiting for it,
-   * naming the version that goes and, if another one is online, the one it replaces.
+   * naming the version that moves and, when it goes online in place of another, that one.
    */
   protected readonly confirmation = computed(() => {
     this.transloco.activeLang();
-    const key = this.confirming()?.confirmKey;
+    const transition = this.confirming();
+    const key = transition?.confirmKey;
     const version = this.shown();
     if (!key || !version) {
       return null;
     }
     const online = this.onlineVersionNumber();
-    const replacing = online !== null && online !== version.number;
+    const replacing =
+      transition.target === 'PUBLISHED' && online !== null && online !== version.number;
     const params = { name: this.title(), version: version.number, online };
     return {
       title: this.transloco.translate(`${key}.title`, params),
       body: this.transloco.translate(`${key}.${replacing ? 'bodyReplacing' : 'body'}`, params),
       note: this.transloco.translate(`${key}.note`),
       confirmLabel: this.transloco.translate(`${key}.confirm`),
+      tone: transition.confirmTone ?? 'primary',
     };
   });
 

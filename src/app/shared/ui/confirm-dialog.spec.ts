@@ -133,5 +133,8 @@ describe('ConfirmDialog', () => {
     host.tone.set('primary');
     fixture.detectChanges();
     expect(action().className).toContain('bg-ocean-700');
+    host.tone.set('archive');
+    fixture.detectChanges();
+    expect(action().className).toContain('bg-status-archived-ink');
   });
 });

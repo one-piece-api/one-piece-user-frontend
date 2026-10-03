@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { apiErrorOf } from '../shared/http/api-error';
 import type { MascotTone } from '../shared/mascot/mascot';
+import type { ConfirmTone } from '../shared/ui/confirm-dialog';
 import type { VersionAction, VersionStatus } from './content.model';
 
 /** What the screens know of a workflow transition they can run. */
@@ -15,10 +16,12 @@ export interface VersionTransition {
   /** Posted with a reason the caller writes first, not with an empty body. */
   readonly asksReason?: boolean;
   /**
-   * Confirmed first, in words under this key: `title`, `body` - `bodyReplacing` when
-   * another version is online - `note` and `confirm`.
+   * Confirmed first, in words under this key: `title`, `body` - `bodyReplacing` when the
+   * version goes online in place of another - `note` and `confirm`; with the button in
+   * `confirmTone`, `primary` unless said.
    */
   readonly confirmKey?: string;
+  readonly confirmTone?: ConfirmTone;
 }
 
 /** A rejection reason says what to fix: at least a short sentence - as the backend checks. */
@@ -64,6 +67,19 @@ export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransitio
     path: 'publish',
     doneKey: 'content.workflow.done.published',
     confirmKey: 'content.workflow.publish',
+  },
+  ARCHIVE: {
+    target: 'ARCHIVED',
+    path: 'archive',
+    doneKey: 'content.workflow.done.archived',
+    doneTone: 'info',
+    confirmKey: 'content.workflow.archive',
+    confirmTone: 'archive',
+  },
+  RECOVER: {
+    target: 'READY_TO_PUBLISH',
+    path: 'recover',
+    doneKey: 'content.workflow.done.recovered',
   },
 };
 

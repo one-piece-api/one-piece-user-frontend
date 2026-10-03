@@ -523,7 +523,9 @@
         "published": "Published! v{{version}} is online.",
         "opened": "New draft v{{version}} from v{{base}}, in your name.",
         "openedKeepingOnline": "New draft v{{version}} from v{{base}}, in your name. v{{online}} stays online until this one is published.",
-        "reopened": "New draft v{{version}} from the archived v{{base}}, which stays in the history."
+        "reopened": "New draft v{{version}} from the archived v{{base}}, which stays in the history.",
+        "archived": "Archived. Recover it from the Workflow whenever you need it.",
+        "recovered": "Recovered: it is ready to publish again."
       },
       "refused": {
         "incomplete": "Arrr! Still missing before review: {{fields}}.",
@@ -553,6 +555,12 @@
         "bodyReplacing": "v{{version}} goes online, visible to every reader. v{{online}} becomes \"superseded\" and stays in the history.",
         "note": "Every version stays in the history, published or not.",
         "confirm": "Yes, publish"
+      },
+      "archive": {
+        "title": "Archive \"{{name}}\"?",
+        "body": "v{{version}} stays approved but is not published: you will find it archived and can recover it whenever you like.",
+        "note": "Archiving is not retiring: this version has never been online.",
+        "confirm": "Yes, archive"
       }
     },
     "breadcrumb": {

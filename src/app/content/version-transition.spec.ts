@@ -54,6 +54,11 @@ describe('routeTargetOf', () => {
     expect(routeTargetOf('OPEN_NEW_VERSION')).toBe('DRAFT');
   });
 
+  it('offers archiving on Archived and recovering on Ready to publish', () => {
+    expect(routeTargetOf('ARCHIVE')).toBe('ARCHIVED');
+    expect(routeTargetOf('RECOVER')).toBe('READY_TO_PUBLISH');
+  });
+
   it('offers nothing for an action the screens cannot run yet', () => {
     expect(routeTargetOf('RETIRE')).toBeUndefined();
   });
