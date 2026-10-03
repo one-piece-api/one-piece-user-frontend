@@ -95,7 +95,7 @@
           "code": "languages:manage"
         },
         "tip2": {
-          "text": "Aggiungere una lingua qui la rende obbligatoria alla prossima invio in revisione di ogni bozza in corso - i contenuti già pubblicati restano intatti.",
+          "text": "Aggiungere una lingua qui la rende obbligatoria al prossimo invio in revisione di ogni bozza in corso - i contenuti già pubblicati restano intatti.",
           "code": "modello di localizzazione"
         }
       },
@@ -396,7 +396,7 @@
     "catalogHeading": "Lingue Supportate",
     "newLanguage": "Nuova Lingua",
     "empty": "Ancora nessuna lingua nel catalogo.",
-    "hint": "Aggiungere una lingua la rende obbligatoria alla prossima invio in revisione di ogni bozza in corso - i contenuti già pubblicati non ne risentono.",
+    "hint": "Aggiungere una lingua la rende obbligatoria al prossimo invio in revisione di ogni bozza in corso - i contenuti già pubblicati non ne risentono.",
     "deleteAria": "Elimina lingua {{code}}",
     "created": "Lingua {{name}} ({{code}}) aggiunta al catalogo!",
     "deleted": "Lingua {{code}} rimossa dal catalogo.",
