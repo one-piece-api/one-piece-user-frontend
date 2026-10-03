@@ -5,6 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { MascotService } from '../../shared/mascot/mascot';
+import { polyfillDialog } from '../../testing/dialog-polyfill';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import type { VersionAction, VersionStatus } from '../content.model';
 import { DevilFruitTypeEditor } from './devil-fruit-type-editor';
@@ -45,6 +46,8 @@ const DRAFT_BODY = {
     en: { name: 'Logia', description: null },
   },
 };
+
+polyfillDialog();
 
 describe('DevilFruitTypeEditor', () => {
   let httpTesting: HttpTestingController;
@@ -365,6 +368,137 @@ describe('DevilFruitTypeEditor', () => {
       await settle();
 
       expect(root.textContent).toContain('Content not found');
+    });
+  });
+
+  describe('discarding the draft', () => {
+    /** Opens a content whose only version is nami's first draft. */
+    async function openFirstDraft(): Promise<void> {
+      await open(`${SECTION}/${ID}/edit`);
+      const first = link(1, 'DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
+      httpTesting.expectOne(DETAIL).flush({ id: ID, onlineVersionNumber: null, versions: [first] });
+      await settle();
+      httpTesting
+        .expectOne(`${DETAIL}/versions/1`)
+        .flush({ ...first, rejectionReason: null, body: DRAFT_BODY });
+      await settle();
+    }
+
+    function discardButton(): HTMLButtonElement | null {
+      return root.querySelector('[data-testid="discard-draft"]');
+    }
+
+    function confirmation(): HTMLDialogElement {
+      return root.querySelector('app-confirm-dialog dialog')!;
+    }
+
+    async function confirm(): Promise<void> {
+      confirmation().querySelector<HTMLButtonElement>('[data-testid="confirm-action"]')!.click();
+      await settle();
+    }
+
+    async function askToDiscard(): Promise<void> {
+      discardButton()!.click();
+      await settle();
+    }
+
+    it('is not offered for a content not saved yet', async () => {
+      await open(`${SECTION}/new`);
+
+      expect(discardButton()).toBeNull();
+    });
+
+    it('is not offered when the backend does not allow it', async () => {
+      await open(`${SECTION}/${ID}/edit`);
+      const editOnly = link(2, 'DRAFT', ['EDIT']);
+      httpTesting
+        .expectOne(DETAIL)
+        .flush({ id: ID, onlineVersionNumber: 1, versions: [ONLINE, editOnly] });
+      await settle();
+      httpTesting
+        .expectOne(`${DETAIL}/versions/2`)
+        .flush({ ...editOnly, rejectionReason: null, body: DRAFT_BODY });
+      await settle();
+
+      expect(root.querySelector('form')).not.toBeNull();
+      expect(discardButton()).toBeNull();
+    });
+
+    it('asks first, saying the content goes back to the version before', async () => {
+      await openDraft();
+
+      await askToDiscard();
+
+      expect(confirmation().open).toBe(true);
+      expect(confirmation().textContent).toContain('Discard the draft of "Logia"?');
+      expect(confirmation().textContent).toContain('goes back to how it was in v1');
+      expect(confirmation().textContent).toContain('only the line in the ship’s log remains');
+    });
+
+    it('asks first, saying a first draft goes away entirely', async () => {
+      await openFirstDraft();
+
+      await askToDiscard();
+
+      expect(confirmation().textContent).toContain('Discard the draft "Logia"?');
+      expect(confirmation().textContent).toContain('it will be removed entirely');
+    });
+
+    it('does nothing when the editor thinks better of it', async () => {
+      await openDraft();
+      await askToDiscard();
+
+      confirmation().close();
+      await settle();
+
+      expect(confirmation().open).toBe(false);
+      expect(TestBed.inject(Router).url).toBe(`${SECTION}/${ID}/edit`);
+    });
+
+    it('removes a later draft and shows the content at the version left', async () => {
+      await openDraft();
+      await askToDiscard();
+
+      await confirm();
+      const request = httpTesting.expectOne(`${DETAIL}/versions/2`);
+      expect(request.request.method).toBe('DELETE');
+      request.flush(null, { status: 204, statusText: 'No Content' });
+      await settle();
+
+      expect(TestBed.inject(Router).url).toBe(`${SECTION}/${ID}`);
+      expect(mascotSays()).toBe('Draft discarded: v1 remains.');
+    });
+
+    it('removes a first draft with its content and goes back to the list', async () => {
+      await openFirstDraft();
+      await askToDiscard();
+
+      await confirm();
+      httpTesting
+        .expectOne(`${DETAIL}/versions/1`)
+        .flush(null, { status: 204, statusText: 'No Content' });
+      await settle();
+
+      expect(TestBed.inject(Router).url).toBe(SECTION);
+      expect(mascotSays()).toBe('Draft removed.');
+    });
+
+    it('says so when the version is no longer a draft, and closes the question', async () => {
+      await openDraft();
+      await askToDiscard();
+
+      await confirm();
+      httpTesting
+        .expectOne(`${DETAIL}/versions/2`)
+        .flush(
+          { errorCode: 'CONTENT_VERSION_ACTION_CONFLICT' },
+          { status: 409, statusText: 'Conflict' },
+        );
+      await settle();
+
+      expect(confirmation().open).toBe(false);
+      expect(mascotSays()).toContain('no longer a draft');
+      expect(TestBed.inject(Router).url).toBe(`${SECTION}/${ID}/edit`);
     });
   });
 });

@@ -634,7 +634,19 @@
       "saveFailed": "Arrr! Bozza non salvata. Riprova tra poco.",
       "lockedTitle": "Niente da modificare qui",
       "lockedText": "Si modifica solo una propria bozza, e questa voce non ne ha una tua.",
-      "backToDetail": "Torna alla scheda"
+      "backToDetail": "Torna alla scheda",
+      "discard": {
+        "button": "Scarta bozza",
+        "titleWhole": "Scartare la bozza \"{{name}}\"?",
+        "titleBack": "Scartare la bozza di \"{{name}}\"?",
+        "bodyWhole": "La bozza non è mai stata pubblicata, quindi verrà eliminata del tutto. I testi scritti andranno persi.",
+        "bodyBack": "Le modifiche di questa bozza andranno perse. Il contenuto torna com'era nella v{{version}}, che non viene toccata.",
+        "note": "Azione irreversibile: resta solo la riga nel diario di bordo.",
+        "confirm": "Sì, scarta",
+        "goneWhole": "Bozza eliminata.",
+        "goneBack": "Bozza scartata: resta la v{{version}}.",
+        "failed": "Arrr! Bozza non scartata. Riprova tra poco."
+      }
     }
   }
 }

@@ -634,7 +634,19 @@
       "saveFailed": "Arrr! Draft not saved. Try again in a moment.",
       "lockedTitle": "Nothing to edit here",
       "lockedText": "Only your own draft can be edited, and this entry has none of yours.",
-      "backToDetail": "Back to the entry"
+      "backToDetail": "Back to the entry",
+      "discard": {
+        "button": "Discard draft",
+        "titleWhole": "Discard the draft \"{{name}}\"?",
+        "titleBack": "Discard the draft of \"{{name}}\"?",
+        "bodyWhole": "The draft was never published, so it will be removed entirely. What was written will be lost.",
+        "bodyBack": "The changes in this draft will be lost. The content goes back to how it was in v{{version}}, which is left untouched.",
+        "note": "This cannot be undone: only the line in the ship’s log remains.",
+        "confirm": "Yes, discard",
+        "goneWhole": "Draft removed.",
+        "goneBack": "Draft discarded: v{{version}} remains.",
+        "failed": "Arrr! Draft not discarded. Try again in a moment."
+      }
     }
   }
 }

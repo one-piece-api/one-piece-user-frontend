@@ -234,6 +234,16 @@
         </div>
 
         <div class="mt-4.5 flex flex-wrap justify-end gap-2.5 border-t border-parchment-200 pt-4">
+          @if (canDiscard()) {
+            <button
+              type="button"
+              class="mr-auto cursor-pointer rounded-[13px] bg-flag-600 px-5 py-3 font-display text-[15px] font-bold text-white shadow-[0_3px_0_var(--color-flag-700)] hover:bg-flag-700"
+              data-testid="discard-draft"
+              (click)="confirmingDiscard.set(true)"
+            >
+              ✕ {{ 'content.editor.discard.button' | transloco }}
+            </button>
+          }
           <a
             [routerLink]="backRoute()"
             class="cursor-pointer rounded-[13px] bg-parchment-200 px-5 py-3 font-heading text-sm font-extrabold text-ocean-500"
@@ -248,6 +258,20 @@
           </button>
         </div>
       </form>
+
+      @if (discardDialog(); as dialog) {
+        <app-confirm-dialog
+          tone="danger"
+          [open]="confirmingDiscard()"
+          [busy]="discarding()"
+          [title]="dialog.title"
+          [body]="dialog.body"
+          [note]="dialog.note"
+          [confirmLabel]="dialog.confirmLabel"
+          (confirmed)="discard()"
+          (cancelled)="confirmingDiscard.set(false)"
+        />
+      }
     }
   }
 </div>

@@ -7,6 +7,7 @@ import { apiErrorOf } from '../../shared/http/api-error';
 import { MascotService } from '../../shared/mascot/mascot';
 import { Breadcrumb, type Crumb } from '../../shared/ui/breadcrumb';
 import { buttonClasses } from '../../shared/ui/button-variants';
+import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import {
   STATUS_LABEL_KEY,
@@ -89,12 +90,13 @@ interface CheckView {
  * description per language of the catalog, and how far the draft is from being ready for
  * review. Without an id it writes a new content, which is created by its first save; with
  * one it edits the draft the caller may edit - told by the backend, never worked out here.
- * A draft is saved incomplete: the checklist informs, it does not block.
+ * A draft is saved incomplete: the checklist informs, it does not block. The draft can also
+ * be discarded (UF-CNT-11), after a confirmation saying what is left once it is gone.
  */
 @Component({
   selector: 'app-devil-fruit-type-editor',
   templateUrl: './devil-fruit-type-editor.html',
-  imports: [Breadcrumb, LoadingPlaceholder, RouterLink, TranslocoPipe],
+  imports: [Breadcrumb, ConfirmDialog, LoadingPlaceholder, RouterLink, TranslocoPipe],
 })
 export class DevilFruitTypeEditor {
   private readonly http = inject(HttpClient);
@@ -283,6 +285,37 @@ export class DevilFruitTypeEditor {
 
   protected readonly saving = signal(false);
 
+  /** Discarding is offered when the backend allows it - never for a content not saved yet. */
+  protected readonly canDiscard = computed(
+    () => this.editable()?.allowedActions.includes('DELETE') ?? false,
+  );
+  protected readonly confirmingDiscard = signal(false);
+  protected readonly discarding = signal(false);
+
+  /**
+   * What discarding leaves behind: nothing, for a first version - the content goes with
+   * it - or the version before it, which a draft, always the latest, has right below.
+   */
+  private readonly versionLeft = computed(() => {
+    const number = this.editable()?.number ?? 1;
+    return number > 1 ? number - 1 : null;
+  });
+
+  /** The confirmation, worded for what is left: the previous version, or nothing at all. */
+  protected readonly discardDialog = computed(() => {
+    this.transloco.activeLang();
+    const left = this.versionLeft();
+    const name = this.title();
+    const key = (part: string) =>
+      `content.editor.discard.${part}${left === null ? 'Whole' : 'Back'}`;
+    return {
+      title: this.transloco.translate(key('title'), { name }),
+      body: this.transloco.translate(key('body'), { version: left }),
+      note: this.transloco.translate('content.editor.discard.note'),
+      confirmLabel: this.transloco.translate('content.editor.discard.confirm'),
+    };
+  });
+
   protected readonly backButtonClasses = buttonClasses('secondary');
   protected readonly listRoute = LIST_ROUTE;
   protected readonly maxLength = {
@@ -331,6 +364,50 @@ export class DevilFruitTypeEditor {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /**
+   * Removes the draft for good, then leaves for what is left: the content back at its
+   * previous version, or the list when the content went with it.
+   */
+  protected async discard(): Promise<void> {
+    const url = this.versionUrl();
+    if (!url || this.discarding()) {
+      return;
+    }
+    const left = this.versionLeft();
+    this.discarding.set(true);
+    try {
+      await firstValueFrom(this.http.delete<void>(url));
+      if (left === null) {
+        this.mascot.show(this.transloco.translate('content.editor.discard.goneWhole'), 'success');
+        await this.router.navigate([LIST_ROUTE]);
+      } else {
+        const message = this.transloco.translate('content.editor.discard.goneBack', {
+          version: left,
+        });
+        this.mascot.show(message, 'success');
+        await this.router.navigate([this.backRoute()]);
+      }
+    } catch (error) {
+      this.onDiscardRefused(error);
+    } finally {
+      // Closed on every outcome: the dialog's top layer would otherwise hide the mascot.
+      this.confirmingDiscard.set(false);
+      this.discarding.set(false);
+    }
+  }
+
+  /** A 403 or a server failure already got its message from `apiErrorInterceptor`. */
+  private onDiscardRefused(error: unknown): void {
+    if (!(error instanceof HttpErrorResponse) || error.status === 403 || error.status >= 500) {
+      return;
+    }
+    const messageKey =
+      apiErrorOf(error)?.errorCode === NOT_A_DRAFT
+        ? 'content.editor.notDraftMessage'
+        : 'content.editor.discard.failed';
+    this.mascot.show(this.transloco.translate(messageKey), 'error');
   }
 
   /**
