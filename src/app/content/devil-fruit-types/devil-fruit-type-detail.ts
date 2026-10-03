@@ -29,7 +29,9 @@ import { REJECTED_ACTION } from '../version-event';
 import {
   NEW_VERSION,
   VERSION_TRANSITIONS,
+  confirmsOverride,
   newVersionDoneKey,
+  overriddenUser,
   transitionRefusal,
   type TransitionRefusal,
   type VersionTransition,
@@ -251,6 +253,28 @@ export class DevilFruitTypeDetail {
     };
   });
 
+  /** An action on someone else's version or claim, waiting for the administrator to confirm it. */
+  protected readonly overriding = signal<VersionAction | null>(null);
+
+  /** "Act in nami's place?": what the override dialog says, naming whose work it is. */
+  protected readonly overrideConfirmation = computed(() => {
+    this.transloco.activeLang();
+    const action = this.overriding();
+    const version = this.shown();
+    if (!action || !version) {
+      return null;
+    }
+    const params = { owner: overriddenUser(action, version), version: version.number };
+    const key = (part: string) =>
+      this.transloco.translate(`content.workflow.override.${part}`, params);
+    return {
+      title: key('title'),
+      body: key(`body.${action}`),
+      note: key('note'),
+      confirmLabel: key('confirm'),
+    };
+  });
+
   /** "Logia · Devil Fruit Type by nami": what the reject dialog is about. */
   protected readonly rejectTarget = computed(() => {
     this.transloco.activeLang();
@@ -297,10 +321,32 @@ export class DevilFruitTypeDetail {
   }
 
   /**
-   * Acts on the version on screen: reopens it in the editor, opens a new version from it,
-   * asks the reason of a rejection or a confirmation first, or runs a transition on it.
+   * Acts on the version on screen - after a confirmation naming whose work it is, when the
+   * caller acts on someone else's version or claim as an administrator.
    */
   protected act(action: VersionAction): void {
+    const version = this.shown();
+    if (version && confirmsOverride(action, version.overrideActions)) {
+      this.overriding.set(action);
+    } else {
+      this.proceed(action);
+    }
+  }
+
+  /** The administrator confirmed: the action goes on as for anyone else. */
+  protected confirmOverride(): void {
+    const action = this.overriding();
+    this.overriding.set(null);
+    if (action) {
+      this.proceed(action);
+    }
+  }
+
+  /**
+   * Reopens the version in the editor, opens a new version from it, asks the reason of a
+   * rejection or a confirmation first, or runs a transition on it.
+   */
+  private proceed(action: VersionAction): void {
     if (action === 'EDIT') {
       this.openEditor();
       return;

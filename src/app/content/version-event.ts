@@ -44,12 +44,14 @@ const EVENT_KINDS: Record<string, EventKind> = {
 };
 
 /**
- * The action that opens a version, the one carrying a rejection reason as its detail, and
- * the one carrying the number of the version that went online in its place.
+ * The action that opens a version, the one carrying a rejection reason as its detail, the
+ * one carrying the number of the version that went online in its place, and the one
+ * carrying - when an administrator forced it - the reviewer whose claim was released.
  */
 export const CREATED_ACTION = 'VERSION_CREATED';
 export const REJECTED_ACTION = 'VERSION_REJECTED';
 export const SUPERSEDED_ACTION = 'VERSION_SUPERSEDED';
+export const RELEASED_ACTION = 'VERSION_RELEASED';
 
 /** What is known of an audit action, `null` for one this screen has never heard of. */
 export function eventKind(action: string): EventKind | null {

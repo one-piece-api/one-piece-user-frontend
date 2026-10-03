@@ -21,7 +21,12 @@ const NAMI = { id: 'u1', username: 'nami', email: 'nami@onepiece.local' };
 @Component({ template: '' })
 class Elsewhere {}
 
-function link(number: number, status: VersionStatus, allowedActions: VersionAction[] = []) {
+function link(
+  number: number,
+  status: VersionStatus,
+  allowedActions: VersionAction[] = [],
+  overrideActions: VersionAction[] = [],
+) {
   return {
     number,
     status,
@@ -30,6 +35,7 @@ function link(number: number, status: VersionStatus, allowedActions: VersionActi
     claimant: null,
     everPublished: status === 'PUBLISHED',
     allowedActions,
+    overrideActions,
     createdAt: '2026-10-01T08:00:00Z',
     updatedAt: '2026-10-01T08:00:00Z',
   };
@@ -454,6 +460,26 @@ describe('DevilFruitTypeEditor', () => {
 
       expect(confirmation().textContent).toContain('Discard the draft "Logia"?');
       expect(confirmation().textContent).toContain('it will be removed entirely');
+    });
+
+    it('names the author when an administrator discards someone else’s draft', async () => {
+      await open(`${SECTION}/${ID}/edit`);
+      const ownActions: VersionAction[] = ['EDIT', 'DELETE', 'SUBMIT'];
+      const othersDraft = link(1, 'DRAFT', ownActions, ownActions);
+      httpTesting
+        .expectOne(DETAIL)
+        .flush({ id: ID, onlineVersionNumber: null, versions: [othersDraft] });
+      await settle();
+      httpTesting
+        .expectOne(`${DETAIL}/versions/1`)
+        .flush({ ...othersDraft, rejectionReason: null, body: DRAFT_BODY });
+      await settle();
+
+      await askToDiscard();
+
+      expect(confirmation().textContent).toContain(
+        "The draft is nami's: the ship’s log will record that you discarded it, as an administrator.",
+      );
     });
 
     it('does nothing when the editor thinks better of it', async () => {

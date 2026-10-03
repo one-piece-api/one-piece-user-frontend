@@ -10,6 +10,7 @@ function version(number: number, basedOn: number | null, status: VersionStatus):
     claimant: null,
     everPublished: status !== 'DRAFT',
     allowedActions: [],
+    overrideActions: [],
     createdAt: '2026-10-01T08:45:00Z',
     updatedAt: '2026-10-01T08:45:00Z',
   };

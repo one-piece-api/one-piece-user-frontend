@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { apiErrorOf } from '../shared/http/api-error';
 import type { MascotTone } from '../shared/mascot/mascot';
 import type { ConfirmTone } from '../shared/ui/confirm-dialog';
-import type { VersionAction, VersionStatus } from './content.model';
+import type { VersionAction, VersionStatus, VersionSummary } from './content.model';
 
 /** What the screens know of a workflow transition they can run. */
 export interface VersionTransition {
@@ -124,6 +124,38 @@ export function newVersionDoneKey(baseStatus: VersionStatus, onlineVersion: numb
     return NEW_VERSION.doneKey.fromArchived;
   }
   return onlineVersion === null ? NEW_VERSION.doneKey.plain : NEW_VERSION.doneKey.keepingOnline;
+}
+
+/**
+ * The overrides confirmed first, naming whose version or claim it is: an administrator acting
+ * on someone else's work (2.3). The other override - claiming one's own version - touches
+ * nobody else's work, and goes at once like any claim.
+ */
+const CONFIRMED_OVERRIDES: readonly VersionAction[] = [
+  'EDIT',
+  'DELETE',
+  'SUBMIT',
+  'PULL_BACK',
+  'RETURN_TO_DRAFT',
+  'RELEASE',
+];
+
+/** Whether running `action` acts on someone else's work, and so asks for a confirmation first. */
+export function confirmsOverride(
+  action: VersionAction,
+  overrideActions: readonly VersionAction[],
+): boolean {
+  return overrideActions.includes(action) && CONFIRMED_OVERRIDES.includes(action);
+}
+
+/** Whose work an override acts on: the claim's holder for a release, the author otherwise. */
+export function overriddenUser(
+  action: VersionAction,
+  version: Pick<VersionSummary, 'author' | 'claimant'>,
+): string {
+  return action === 'RELEASE' && version.claimant
+    ? version.claimant.username
+    : version.author.username;
 }
 
 /**

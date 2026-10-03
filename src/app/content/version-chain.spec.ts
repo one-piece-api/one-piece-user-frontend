@@ -14,6 +14,7 @@ function version(number: number, status: VersionStatus, everPublished: boolean):
     claimant: null,
     everPublished,
     allowedActions: [],
+    overrideActions: [],
     createdAt: '2026-08-20T10:00:00Z',
     updatedAt: '2026-08-20T10:00:00Z',
   };

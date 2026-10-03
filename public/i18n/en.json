@@ -438,6 +438,7 @@
       "pulledBack": "Pulled back from review",
       "claimed": "Claimed",
       "released": "Released",
+      "releasedFrom": "Claim taken from {{reviewer}}",
       "approved": "Approved",
       "rejected": "Rejected",
       "returnedToDraft": "Returned to draft",
@@ -477,12 +478,15 @@
         "supersededBy": "by v{{version}}",
         "editHere": "✎ click to edit",
         "claimHere": "✋ claim it",
-        "releaseHere": "claimed by you · ↩ click to release"
+        "releaseHere": "claimed by you · ↩ click to release",
+        "editOverride": "{{owner}}'s draft · ✎ click to step in",
+        "releaseOverride": "claimed by {{owner}} · ↩ click to free it"
       },
       "timelineTitle": "Workflow timeline",
       "timelineHint": "who · what · when",
       "timelineEmpty": "No event recorded for this version.",
       "reason": "Reason:",
+      "overrideBadge": "admin override",
       "accessTitle": "Your permissions here",
       "accessFootnote": "Seeing, editing and moving forward are three separate permissions.",
       "access": {
@@ -493,6 +497,7 @@
         "editable": "Editable",
         "notEditable": "Not editable",
         "ownDraft": "it is your draft",
+        "overrideDraft": "belongs to {{author}}: you may step in as an administrator",
         "missingWrite": "you lack content:write",
         "returnFirst": "it must go back to draft first",
         "belongsTo": "it belongs to {{author}}",
@@ -506,11 +511,14 @@
         "needsPublish": "content:publish is needed",
         "noTransition": "no transition for your role",
         "openVersionExists": "the content already has a version in progress",
-        "claimHere": "click In review to claim it"
+        "claimHere": "click In review to claim it",
+        "asAdmin": "partly as an administrator, in someone else's place"
       },
       "editTitle": "Click to reopen the draft for editing",
       "claimTitle": "Click to claim the review",
       "releaseTitle": "Click to release the review",
+      "editOverrideTitle": "Click to edit {{owner}}'s draft as an administrator",
+      "releaseOverrideTitle": "Click to take the review away from {{owner}}",
       "nextTitle": "Click to: {{action}} · {{meaning}}",
       "done": {
         "submitted": "Submitted for review! The ball is now with whoever holds content:review.",
@@ -577,6 +585,18 @@
         "bodyReplacing": "v{{version}} goes back online exactly as it was. v{{online}}, online today, becomes \"superseded\" and stays in the history.",
         "note": "No new version is created: an existing one is republished.",
         "confirm": "Yes, republish"
+      },
+      "override": {
+        "title": "Act in {{owner}}'s place?",
+        "body": {
+          "EDIT": "You open {{owner}}'s draft v{{version}} for editing. It stays theirs: the author does not change.",
+          "SUBMIT": "You submit {{owner}}'s v{{version}} for review in their place. {{owner}} stays the author.",
+          "PULL_BACK": "You pull {{owner}}'s v{{version}} back from review: it goes back to draft.",
+          "RETURN_TO_DRAFT": "You return {{owner}}'s rejected v{{version}} to draft in their place.",
+          "RELEASE": "You take v{{version}} away from {{owner}}, who is reviewing it: it is free again for any reviewer."
+        },
+        "note": "The history will record that you did it, as an administrator.",
+        "confirm": "Yes, go ahead"
       }
     },
     "breadcrumb": {
@@ -766,6 +786,7 @@
         "bodyWhole": "The draft was never published, so it will be removed entirely. What was written will be lost.",
         "bodyBack": "The changes in this draft will be lost. The content goes back to how it was in v{{version}}, which is left untouched.",
         "note": "This cannot be undone: only the line in the ship’s log remains.",
+        "noteOverride": "This cannot be undone. The draft is {{author}}'s: the ship’s log will record that you discarded it, as an administrator.",
         "confirm": "Yes, discard",
         "goneWhole": "Draft removed.",
         "goneBack": "Draft discarded: v{{version}} remains.",

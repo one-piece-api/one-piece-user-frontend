@@ -306,17 +306,27 @@ export class DevilFruitTypeEditor {
     return number > 1 ? number - 1 : null;
   });
 
-  /** The confirmation, worded for what is left: the previous version, or nothing at all. */
+  /**
+   * The confirmation, worded for what is left: the previous version, or nothing at all - and,
+   * for an administrator discarding someone else's draft, naming whose it is.
+   */
   protected readonly discardDialog = computed(() => {
     this.transloco.activeLang();
     const left = this.versionLeft();
     const name = this.title();
     const key = (part: string) =>
       `content.editor.discard.${part}${left === null ? 'Whole' : 'Back'}`;
+    const draft = this.editable();
+    const override = draft?.overrideActions.includes('DELETE') ?? false;
+    const note = override
+      ? this.transloco.translate('content.editor.discard.noteOverride', {
+          author: draft?.author.username,
+        })
+      : this.transloco.translate('content.editor.discard.note');
     return {
       title: this.transloco.translate(key('title'), { name }),
       body: this.transloco.translate(key('body'), { version: left }),
-      note: this.transloco.translate('content.editor.discard.note'),
+      note,
       confirmLabel: this.transloco.translate('content.editor.discard.confirm'),
     };
   });

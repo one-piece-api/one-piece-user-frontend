@@ -18,7 +18,7 @@ function at(day: number, hour: number): string {
 }
 
 function event(action: string, actor = NAMI, hour = 8, detail: string | null = null): VersionEvent {
-  return { action, actor, detail, occurredAt: at(20, hour) };
+  return { action, actor, detail, override: false, occurredAt: at(20, hour) };
 }
 
 function version(
@@ -38,6 +38,7 @@ function version(
     rejectionReason: null,
     body: null,
     allowedActions,
+    overrideActions: [],
     ...overrides,
   };
 }
@@ -469,6 +470,57 @@ describe('VersionWorkflow', () => {
       await render(version('DRAFT'), [event('VERSION_CREATED')], 'nami', EDITOR);
 
       expect(root.textContent).toContain('transition available to you · click the node');
+    });
+  });
+
+  describe('the administrative override', () => {
+    const ADMIN = [
+      'content:read',
+      'content:write',
+      'content:review',
+      'content:publish',
+      'content:retire',
+      'content:admin',
+    ];
+    const OWN_ACTIONS: VersionAction[] = ['EDIT', 'DELETE', 'SUBMIT'];
+
+    it('names whose draft an administrator steps into, on the map and in the panel', async () => {
+      const draft = version('DRAFT', OWN_ACTIONS, { overrideActions: OWN_ACTIONS });
+      await render(draft, [event('VERSION_CREATED')], 'luffy', ADMIN);
+
+      expect(mapNode('DRAFT').tagName).toBe('BUTTON');
+      expect(mapText('DRAFT')).toContain("nami's draft · ✎ click to step in");
+      expect(access('editable')).toContain('belongs to nami: you may step in as an administrator');
+      expect(access('workflow')).toContain('partly as an administrator');
+    });
+
+    it('offers an administrator to free the review someone else holds', async () => {
+      const held = version('IN_REVIEW', ['RELEASE'], {
+        claimant: ZORO,
+        overrideActions: ['RELEASE'],
+      });
+      await render(held, [...WAITING, event('VERSION_CLAIMED', ZORO, 10)], 'luffy', ADMIN);
+      const actions: VersionAction[] = [];
+      fixture.componentInstance.act.subscribe((action) => actions.push(action));
+
+      expect(mapText('IN_REVIEW')).toContain('claimed by zoro · ↩ click to free it');
+      mapNode('IN_REVIEW').click();
+
+      expect(actions).toEqual(['RELEASE']);
+    });
+
+    it("marks in the timeline what an administrator did in someone else's place", async () => {
+      const LUFFY = { id: 'u9', username: 'luffy', email: 'luffy@onepiece.local' };
+      const events = [
+        ...WAITING,
+        event('VERSION_CLAIMED', ZORO, 10),
+        { ...event('VERSION_RELEASED', LUFFY, 11, 'zoro'), override: true },
+      ];
+      await render(version('IN_REVIEW'), events, 'nami', EDITOR);
+
+      expect(steps()[0]).toContain('Claim taken from zoro');
+      expect(steps()[0]).toContain('luffy admin override');
+      expect(root.querySelectorAll('[data-testid="timeline-override"]').length).toBe(1);
     });
   });
 });

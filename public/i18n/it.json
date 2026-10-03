@@ -438,6 +438,7 @@
       "pulledBack": "Ritirato dalla revisione",
       "claimed": "Preso in carico",
       "released": "Rilasciato",
+      "releasedFrom": "Presa in carico tolta a {{reviewer}}",
       "approved": "Approvato",
       "rejected": "Rifiutato",
       "returnedToDraft": "Riportato in bozza",
@@ -477,12 +478,15 @@
         "supersededBy": "dalla v{{version}}",
         "editHere": "✎ clicca per modificare",
         "claimHere": "✋ prendi in carico",
-        "releaseHere": "in carico a te · ↩ clicca per rilasciare"
+        "releaseHere": "in carico a te · ↩ clicca per rilasciare",
+        "editOverride": "bozza di {{owner}} · ✎ clicca per intervenire",
+        "releaseOverride": "in carico a {{owner}} · ↩ clicca per liberarla"
       },
       "timelineTitle": "Cronologia del workflow",
       "timelineHint": "chi · cosa · quando",
       "timelineEmpty": "Nessun evento registrato per questa versione.",
       "reason": "Motivo:",
+      "overrideBadge": "intervento admin",
       "accessTitle": "I tuoi permessi qui",
       "accessFootnote": "Vedere, modificare e far avanzare sono tre permessi distinti.",
       "access": {
@@ -493,6 +497,7 @@
         "editable": "Modificabile",
         "notEditable": "Non modificabile",
         "ownDraft": "è una tua bozza",
+        "overrideDraft": "è di {{author}}: puoi intervenire come amministratore",
         "missingWrite": "ti manca content:write",
         "returnFirst": "va prima riportato in bozza",
         "belongsTo": "appartiene a {{author}}",
@@ -506,11 +511,14 @@
         "needsPublish": "serve content:publish",
         "noTransition": "nessuna transizione per il tuo ruolo",
         "openVersionExists": "il contenuto ha già una versione in lavorazione",
-        "claimHere": "clicca su In revisione per prenderlo in carico"
+        "claimHere": "clicca su In revisione per prenderlo in carico",
+        "asAdmin": "in parte come amministratore, al posto di altri"
       },
       "editTitle": "Clicca per riaprire la bozza in modifica",
       "claimTitle": "Clicca per prendere in carico la revisione",
       "releaseTitle": "Clicca per rilasciare la revisione",
+      "editOverrideTitle": "Clicca per modificare la bozza di {{owner}} come amministratore",
+      "releaseOverrideTitle": "Clicca per togliere la revisione a {{owner}}",
       "nextTitle": "Clicca per: {{action}} · {{meaning}}",
       "done": {
         "submitted": "Inviato in revisione! Ora la palla passa a chi ha content:review.",
@@ -577,6 +585,18 @@
         "bodyReplacing": "La v{{version}} torna online così com'era. La v{{online}}, oggi online, diventa \"sostituita\" e resta nello storico.",
         "note": "Non si crea una nuova versione: si ripubblica una già esistente.",
         "confirm": "Sì, ripubblica"
+      },
+      "override": {
+        "title": "Intervenire al posto di {{owner}}?",
+        "body": {
+          "EDIT": "Apri in modifica la bozza v{{version}} di {{owner}}. Resta sua: l'autore non cambia.",
+          "SUBMIT": "Invii in revisione la v{{version}} di {{owner}} al posto suo. L'autore resta {{owner}}.",
+          "PULL_BACK": "Ritiri dalla revisione la v{{version}} di {{owner}}: torna in bozza.",
+          "RETURN_TO_DRAFT": "Riporti in bozza la v{{version}} rifiutata di {{owner}}, al posto suo.",
+          "RELEASE": "Togli la v{{version}} a {{owner}}, che la sta revisionando: torna libera per qualsiasi reviewer."
+        },
+        "note": "Nella cronologia resterà scritto che l'hai fatto tu, come amministratore.",
+        "confirm": "Sì, procedi"
       }
     },
     "breadcrumb": {
@@ -766,6 +786,7 @@
         "bodyWhole": "La bozza non è mai stata pubblicata, quindi verrà eliminata del tutto. I testi scritti andranno persi.",
         "bodyBack": "Le modifiche di questa bozza andranno perse. Il contenuto torna com'era nella v{{version}}, che non viene toccata.",
         "note": "Azione irreversibile: resta solo la riga nel diario di bordo.",
+        "noteOverride": "Azione irreversibile. La bozza è di {{author}}: nel diario di bordo resterà scritto che l'hai scartata tu, come amministratore.",
         "confirm": "Sì, scarta",
         "goneWhole": "Bozza eliminata.",
         "goneBack": "Bozza scartata: resta la v{{version}}.",

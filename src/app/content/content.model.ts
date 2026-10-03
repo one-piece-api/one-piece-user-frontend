@@ -26,7 +26,8 @@ export interface ContentUser {
  * One row of an entity list: a content, represented by one of its versions.
  * `onlineVersionNumber` is the version currently online - possibly another one, `null`
  * when nothing is. `body` is what the row shows of the version, specific to the entity;
- * `allowedActions` what the caller may do with that version.
+ * `allowedActions` what the caller may do with that version, `overrideActions` those of them
+ * allowed only through `content:admin`.
  */
 export interface ContentSummary<TBody> {
   id: string;
@@ -37,6 +38,7 @@ export interface ContentSummary<TBody> {
   onlineVersionNumber: number | null;
   body: TBody;
   allowedActions: VersionAction[];
+  overrideActions: VersionAction[];
 }
 
 /** What surrounds a list whatever filter is on: its size, the caller's share, their statuses. */
@@ -51,6 +53,8 @@ export interface ContentListSummary {
  * the version it was opened from (`null` for the first), `everPublished` whether it has
  * been online at some point. `allowedActions` is what the caller may do with it, decided by
  * the backend: the browser never works that out again from roles, ownership or claims.
+ * `overrideActions` are those of them allowed only through `content:admin` - on someone
+ * else's version or claim, or a review of the caller's own version.
  */
 export interface VersionSummary {
   number: number;
@@ -60,6 +64,7 @@ export interface VersionSummary {
   claimant: ContentUser | null;
   everPublished: boolean;
   allowedActions: VersionAction[];
+  overrideActions: VersionAction[];
   createdAt: string;
   updatedAt: string;
 }
@@ -90,12 +95,15 @@ export interface Version<TBody> extends VersionSummary {
 
 /**
  * One step in the history of a version, as the audit log recorded it. `action` is a stable
- * name (see `version-event.ts`), `detail` what the action carried - a rejection reason.
+ * name (see `version-event.ts`), `detail` what the action carried - a rejection reason, or
+ * the reviewer whose claim an administrator released. `override` says the actor could act
+ * only through `content:admin`, on someone else's version or claim.
  */
 export interface VersionEvent {
   action: string;
   actor: ContentUser;
   detail: string | null;
+  override: boolean;
   occurredAt: string;
 }
 

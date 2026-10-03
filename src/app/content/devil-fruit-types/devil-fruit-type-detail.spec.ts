@@ -32,6 +32,7 @@ function summary(number: number, status: VersionStatus, author = NAMI) {
     basedOn: number === 1 ? null : number - 1,
     claimant: null,
     everPublished: status === 'PUBLISHED' || status === 'SUPERSEDED',
+    overrideActions: [] as string[],
     createdAt: '2026-08-20T10:00:00Z',
     updatedAt: '2026-08-20T10:00:00Z',
   };
@@ -47,6 +48,7 @@ const CREATED = {
   action: 'VERSION_CREATED',
   actor: CHOPPER,
   detail: null,
+  override: false,
   occurredAt: '2026-08-20T10:00:00Z',
 };
 
@@ -717,6 +719,105 @@ describe('DevilFruitTypeDetail', () => {
 
       expect(confirmDialog()).toBeNull();
       httpTesting.expectNone(`${VERSION}/publish`);
+    });
+
+    describe('as an administrator', () => {
+      const ADMIN = [
+        ...EDITOR,
+        'content:review',
+        'content:publish',
+        'content:retire',
+        'content:admin',
+      ];
+      const ZORO = { id: 'u3', username: 'zoro', email: 'zoro@onepiece.local' };
+      const LUFFY = { id: 'u9', username: 'luffy', email: 'luffy@onepiece.local' };
+
+      /** luffy on v3, by `author`, offered `allowedActions` - those in `overrideActions` only as an administrator. */
+      async function openAsAdmin(
+        status: VersionStatus,
+        allowedActions: string[],
+        overrideActions: string[],
+        { author = NAMI, claimant = null as typeof ZORO | null } = {},
+      ): Promise<void> {
+        await open(`${PAGE}?tab=workflow`, 'luffy', ADMIN);
+        await answerContent([V1, V2, summary(3, status, author)], 2);
+        httpTesting.expectOne(VERSION).flush({
+          ...summary(3, status, author),
+          claimant,
+          rejectionReason: null,
+          body: body('Logia draft'),
+          allowedActions,
+          overrideActions,
+        });
+        httpTesting.expectOne(`${VERSION}/events`).flush([CREATED]);
+        await harness.fixture.whenStable();
+        harness.detectChanges();
+      }
+
+      function confirmOverride(): void {
+        confirmDialog()!
+          .querySelector<HTMLButtonElement>('[data-testid="confirm-action"]')!
+          .click();
+      }
+
+      it('confirms editing someone else’s draft, naming its author, then opens the editor', async () => {
+        const ownActions = ['EDIT', 'DELETE', 'SUBMIT'];
+        await openAsAdmin('DRAFT', ownActions, ownActions);
+
+        node('DRAFT').click();
+        harness.detectChanges();
+        expect(confirmDialog()?.textContent).toContain("Act in nami's place?");
+        expect(confirmDialog()?.textContent).toContain("You open nami's draft v3 for editing.");
+        expect(TestBed.inject(Router).url).not.toContain('/edit');
+
+        confirmOverride();
+        await afterInteraction();
+
+        expect(TestBed.inject(Router).url).toBe(`${PAGE}/edit`);
+      });
+
+      it('submits nothing when the administrator cancels', async () => {
+        const ownActions = ['EDIT', 'DELETE', 'SUBMIT'];
+        await openAsAdmin('DRAFT', ownActions, ownActions);
+
+        node('IN_REVIEW').click();
+        harness.detectChanges();
+        expect(confirmDialog()?.textContent).toContain("You submit nami's v3 for review");
+        confirmDialog()!.close();
+        harness.detectChanges();
+
+        expect(confirmDialog()).toBeNull();
+        httpTesting.expectNone(`${VERSION}/submit`);
+      });
+
+      it('confirms releasing the review someone else holds, naming them, then frees it', async () => {
+        await openAsAdmin('IN_REVIEW', ['RELEASE'], ['RELEASE'], { claimant: ZORO });
+
+        node('IN_REVIEW').click();
+        harness.detectChanges();
+        expect(confirmDialog()?.textContent).toContain('You take v3 away from zoro');
+        httpTesting.expectNone(`${VERSION}/release`);
+
+        confirmOverride();
+        httpTesting.expectOne(`${VERSION}/release`).flush({});
+        await afterInteraction();
+        await answerReload('IN_REVIEW', ['CLAIM']);
+
+        expect(confirmDialog()).toBeNull();
+        expect(mascotSays()).toContain('Released');
+      });
+
+      it('claims their own version at once, with no confirmation', async () => {
+        await openAsAdmin('IN_REVIEW', ['PULL_BACK', 'CLAIM'], ['CLAIM'], { author: LUFFY });
+
+        node('IN_REVIEW').click();
+        harness.detectChanges();
+
+        expect(confirmDialog()).toBeNull();
+        httpTesting.expectOne(`${VERSION}/claim`).flush({});
+        await afterInteraction();
+        await answerReload('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT']);
+      });
     });
 
     it('confirms an archiving in its own color, replacing nothing, then shows it archived', async () => {

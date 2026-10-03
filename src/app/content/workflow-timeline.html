@@ -22,7 +22,16 @@
         >
         <div class="min-w-0">
           <p class="text-sm font-extrabold text-ocean-950">{{ step.label }}</p>
-          <p class="text-xs font-bold text-ocean-500/70">{{ step.who }}</p>
+          <p class="text-xs font-bold text-ocean-500/70">
+            {{ step.who }}
+            @if (step.override) {
+              <span
+                class="ml-1 rounded-full bg-flag-100 px-1.75 py-px text-[10px] font-extrabold tracking-wider text-flag-700 uppercase"
+                data-testid="timeline-override"
+                >{{ 'content.workflow.overrideBadge' | transloco }}</span
+              >
+            }
+          </p>
           @if (step.reason) {
             <p
               class="mt-1.5 rounded-[9px] bg-flag-100 px-2.5 py-1.5 text-[13px] leading-normal font-bold text-ocean-950"

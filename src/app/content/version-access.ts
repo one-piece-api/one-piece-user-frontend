@@ -20,7 +20,10 @@ export interface AccessRow {
   readonly noteParams: Record<string, string>;
 }
 
-type AccessVersion = Pick<Version<unknown>, 'status' | 'author' | 'claimant' | 'allowedActions'>;
+type AccessVersion = Pick<
+  Version<unknown>,
+  'status' | 'author' | 'claimant' | 'allowedActions' | 'overrideActions'
+>;
 
 type Note = Pick<AccessRow, 'noteKey' | 'noteParams'>;
 
@@ -45,14 +48,22 @@ export function versionAccess(version: AccessVersion, caller: AccessCaller): Acc
       kind: 'workflow',
       granted: actions.length > 0,
       actions,
-      ...(actions.length > 0 ? actionNote(actions) : idleNote(version, caller)),
+      ...(actions.length > 0 ? actionNote(actions, version) : idleNote(version, caller)),
     },
   ];
 }
 
-/** Where to go to do it, when that is not obvious: a review is taken on the map. */
-function actionNote(actions: readonly VersionAction[]): Note {
-  return actions.includes('CLAIM') ? note('claimHere') : NO_NOTE;
+/**
+ * Where to go to do it, when that is not obvious - a review is taken on the map - or that
+ * some of it is done as an administrator, in someone else's place.
+ */
+function actionNote(actions: readonly VersionAction[], version: AccessVersion): Note {
+  if (actions.includes('CLAIM')) {
+    return note('claimHere');
+  }
+  return actions.some((action) => version.overrideActions.includes(action))
+    ? note('asAdmin')
+    : NO_NOTE;
 }
 
 /** Who else sees a version in this status. */
@@ -71,6 +82,9 @@ function visibleNote(version: AccessVersion): Note {
 function editableNote(version: AccessVersion, caller: AccessCaller): Note {
   const mine = version.author.username === caller.username;
   if (version.allowedActions.includes('EDIT')) {
+    if (version.overrideActions.includes('EDIT')) {
+      return note('overrideDraft', { author: version.author.username });
+    }
     return mine ? note('ownDraft') : NO_NOTE;
   }
   if (!caller.permissions.includes('content:write')) {

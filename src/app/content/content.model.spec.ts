@@ -20,6 +20,7 @@ function row(versionNumber: number, onlineVersionNumber: number | null): Content
     onlineVersionNumber,
     body: null,
     allowedActions: [],
+    overrideActions: [],
   };
 }
 
@@ -123,6 +124,7 @@ describe('editableVersion', () => {
       claimant: null,
       everPublished: number !== 2,
       allowedActions,
+      overrideActions: [],
       createdAt: '2026-10-01T08:45:00Z',
       updatedAt: '2026-10-01T08:45:00Z',
     };

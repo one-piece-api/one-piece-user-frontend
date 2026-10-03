@@ -4,7 +4,13 @@ import { CurrentUserService } from '../identity/current-user';
 import type { VersionEvent } from './content.model';
 import { momentLabel } from './moment-label';
 import { STATUS_SOFT_CLASS } from './status-badge';
-import { CREATED_ACTION, REJECTED_ACTION, SUPERSEDED_ACTION, eventKind } from './version-event';
+import {
+  CREATED_ACTION,
+  REJECTED_ACTION,
+  RELEASED_ACTION,
+  SUPERSEDED_ACTION,
+  eventKind,
+} from './version-event';
 
 /** An action the screen has no name for: listed as recorded, in the tone of a draft. */
 const UNKNOWN_GLYPH = '•';
@@ -18,12 +24,15 @@ interface StepView {
   readonly who: string;
   readonly when: string;
   readonly reason: string | null;
+  /** Done by an administrator on someone else's version or claim. */
+  readonly override: boolean;
 }
 
 /**
  * "Cronologia del workflow": who did what to a version and when, the most recent first -
  * every record the audit log holds about it, a claim as much as a change of status. A
- * rejection shows its reason.
+ * rejection shows its reason; what an administrator did on someone else's version or claim
+ * is marked as such.
  */
 @Component({
   selector: 'app-workflow-timeline',
@@ -55,10 +64,14 @@ export class WorkflowTimeline {
       who: this.who(event),
       when: momentLabel(this.transloco, event.occurredAt),
       reason: event.action === REJECTED_ACTION ? event.detail : null,
+      override: event.override,
     };
   }
 
-  /** The action in words - which version a new draft came from, which one took this one's place. */
+  /**
+   * The action in words - which version a new draft came from, which one took this one's
+   * place, whose claim an administrator released.
+   */
   private labelOf(event: VersionEvent, labelKey: string): string {
     const basedOn = this.basedOn();
     if (event.action === CREATED_ACTION && basedOn !== null) {
@@ -66,6 +79,9 @@ export class WorkflowTimeline {
     }
     if (event.action === SUPERSEDED_ACTION && event.detail) {
       return this.transloco.translate('content.event.supersededBy', { version: event.detail });
+    }
+    if (event.action === RELEASED_ACTION && event.override && event.detail) {
+      return this.transloco.translate('content.event.releasedFrom', { reviewer: event.detail });
     }
     return this.transloco.translate(labelKey);
   }

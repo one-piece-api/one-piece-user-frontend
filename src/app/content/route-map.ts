@@ -20,6 +20,7 @@ import {
 import { momentLabel } from './moment-label';
 import { STATUS_GLYPH } from './status-badge';
 import { SUPERSEDED_ACTION } from './version-event';
+import { overriddenUser } from './version-transition';
 
 /**
  * How each status is painted on the map - literal class names, so Tailwind keeps them:
@@ -85,6 +86,9 @@ interface InPlaceAction {
   readonly titleKey: string;
   readonly noteKey: string;
   readonly pulse: boolean;
+  /** The same, worded for an administrator acting on someone else's draft or claim. */
+  readonly overrideTitleKey?: string;
+  readonly overrideNoteKey?: string;
 }
 const IN_PLACE_ACTIONS: Partial<Record<VersionStatus, readonly InPlaceAction[]>> = {
   DRAFT: [
@@ -94,6 +98,8 @@ const IN_PLACE_ACTIONS: Partial<Record<VersionStatus, readonly InPlaceAction[]>>
       titleKey: 'content.workflow.editTitle',
       noteKey: 'content.workflow.note.editHere',
       pulse: true,
+      overrideTitleKey: 'content.workflow.editOverrideTitle',
+      overrideNoteKey: 'content.workflow.note.editOverride',
     },
   ],
   IN_REVIEW: [
@@ -110,6 +116,8 @@ const IN_PLACE_ACTIONS: Partial<Record<VersionStatus, readonly InPlaceAction[]>>
       titleKey: 'content.workflow.releaseTitle',
       noteKey: 'content.workflow.note.releaseHere',
       pulse: false,
+      overrideTitleKey: 'content.workflow.releaseOverrideTitle',
+      overrideNoteKey: 'content.workflow.note.releaseOverride',
     },
   ],
 };
@@ -304,14 +312,15 @@ export class RouteMap {
         const inPlace = this.inPlaceAction(node.status);
         if (inPlace) {
           const clickable = inPlace.pulse ? ACTIONABLE_NODE_CLASSES : 'cursor-pointer';
+          const { titleKey, noteKey, params } = this.inPlaceWords(inPlace);
           return {
             ...base,
             action: inPlace.action,
-            title: this.transloco.translate(inPlace.titleKey),
+            title: this.transloco.translate(titleKey, params),
             glyph: inPlace.glyph,
             circleClasses: `${classes.current} ${CURRENT_NODE_CLASSES} ${clickable}`,
             labelClasses: classes.ink,
-            note: this.transloco.translate(inPlace.noteKey),
+            note: this.transloco.translate(noteKey, params),
             noteClasses: classes.ink,
           };
         }
@@ -362,6 +371,20 @@ export class RouteMap {
   private inPlaceAction(status: VersionStatus): InPlaceAction | undefined {
     const allowed = this.version().allowedActions;
     return IN_PLACE_ACTIONS[status]?.find((entry) => allowed.includes(entry.action));
+  }
+
+  /**
+   * How the map words an action on the current status: as for anyone, or - for an
+   * administrator on someone else's draft or claim - naming whose it is.
+   */
+  private inPlaceWords(inPlace: InPlaceAction) {
+    const version = this.version();
+    const { overrideTitleKey, overrideNoteKey } = inPlace;
+    if (overrideTitleKey && overrideNoteKey && version.overrideActions.includes(inPlace.action)) {
+      const params = { owner: overriddenUser(inPlace.action, version) };
+      return { titleKey: overrideTitleKey, noteKey: overrideNoteKey, params };
+    }
+    return { titleKey: inPlace.titleKey, noteKey: inPlace.noteKey, params: {} };
   }
 
   /** What the map says under the status the version is in: whose it is, who holds it, since when. */

@@ -16,8 +16,19 @@ const reviewer = (username: string): AccessCaller => ({
 const PUBLISHER: AccessCaller = { username: 'vivi', permissions: [READ, 'content:publish'] };
 
 /** A version by nami in `status`, with what the backend allows the caller. */
-function version(status: VersionStatus, allowedActions: VersionAction[] = [], claimant = false) {
-  return { status, author: NAMI, claimant: claimant ? ZORO : null, allowedActions };
+function version(
+  status: VersionStatus,
+  allowedActions: VersionAction[] = [],
+  claimant = false,
+  overrideActions: VersionAction[] = [],
+) {
+  return {
+    status,
+    author: NAMI,
+    claimant: claimant ? ZORO : null,
+    allowedActions,
+    overrideActions,
+  };
 }
 
 /** The three lines by kind, each reduced to what it grants and the reason it gives. */

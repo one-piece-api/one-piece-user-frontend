@@ -1,5 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { newVersionDoneKey, routeTargetOf, transitionRefusal } from './version-transition';
+import {
+  confirmsOverride,
+  newVersionDoneKey,
+  overriddenUser,
+  routeTargetOf,
+  transitionRefusal,
+} from './version-transition';
 
 function refused(status: number, body: unknown): HttpErrorResponse {
   return new HttpErrorResponse({ status, error: body });
@@ -78,5 +84,40 @@ describe('newVersionDoneKey', () => {
   it('says which version stays online, when one is', () => {
     expect(newVersionDoneKey('SUPERSEDED', 2)).toBe('content.workflow.done.openedKeepingOnline');
     expect(newVersionDoneKey('RETIRED', null)).toBe('content.workflow.done.opened');
+  });
+});
+
+describe('confirmsOverride', () => {
+  it('asks first before acting on someone else’s version or claim', () => {
+    for (const action of [
+      'EDIT',
+      'DELETE',
+      'SUBMIT',
+      'PULL_BACK',
+      'RETURN_TO_DRAFT',
+      'RELEASE',
+    ] as const) {
+      expect(confirmsOverride(action, [action])).toBe(true);
+    }
+  });
+
+  it('lets an administrator claim their own version at once', () => {
+    expect(confirmsOverride('CLAIM', ['CLAIM'])).toBe(false);
+  });
+
+  it('never asks for what the caller may do without the override', () => {
+    expect(confirmsOverride('EDIT', [])).toBe(false);
+    expect(confirmsOverride('SUBMIT', ['EDIT'])).toBe(false);
+  });
+});
+
+describe('overriddenUser', () => {
+  const NAMI = { id: 'u1', username: 'nami', email: 'nami@onepiece.local' };
+  const ZORO = { id: 'u3', username: 'zoro', email: 'zoro@onepiece.local' };
+
+  it('is the reviewer holding the version for a release, the author otherwise', () => {
+    expect(overriddenUser('RELEASE', { author: NAMI, claimant: ZORO })).toBe('zoro');
+    expect(overriddenUser('PULL_BACK', { author: NAMI, claimant: null })).toBe('nami');
+    expect(overriddenUser('EDIT', { author: NAMI, claimant: null })).toBe('nami');
   });
 });

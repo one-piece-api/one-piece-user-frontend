@@ -9,6 +9,7 @@ function history(...actions: string[]): VersionEvent[] {
     action,
     actor: NAMI,
     detail: null,
+    override: false,
     occurredAt: new Date(Date.UTC(2026, 8, 1, 8 + hour)).toISOString(),
   }));
 }
