@@ -32,6 +32,7 @@ const EVENT_KINDS: Record<string, EventKind> = {
     status: 'DRAFT',
   },
   VERSION_PUBLISHED: { labelKey: 'content.event.published', glyph: '⚓', status: 'PUBLISHED' },
+  VERSION_SUPERSEDED: { labelKey: 'content.event.superseded', glyph: '⇡', status: 'SUPERSEDED' },
   VERSION_ARCHIVED: { labelKey: 'content.event.archived', glyph: '▣', status: 'ARCHIVED' },
   VERSION_RECOVERED: {
     labelKey: 'content.event.recovered',
@@ -42,9 +43,13 @@ const EVENT_KINDS: Record<string, EventKind> = {
   VERSION_RESTORED: { labelKey: 'content.event.restored', glyph: '↺', status: 'PUBLISHED' },
 };
 
-/** The action that opens a version, and the one carrying a rejection reason as its detail. */
+/**
+ * The action that opens a version, the one carrying a rejection reason as its detail, and
+ * the one carrying the number of the version that went online in its place.
+ */
 export const CREATED_ACTION = 'VERSION_CREATED';
 export const REJECTED_ACTION = 'VERSION_REJECTED';
+export const SUPERSEDED_ACTION = 'VERSION_SUPERSEDED';
 
 /** What is known of an audit action, `null` for one this screen has never heard of. */
 export function eventKind(action: string): EventKind | null {

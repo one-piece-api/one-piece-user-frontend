@@ -20,6 +20,7 @@ const APPROVED = 'VERSION_APPROVED';
 const REJECTED = 'VERSION_REJECTED';
 const RETURNED = 'VERSION_RETURNED_TO_DRAFT';
 const PUBLISHED = 'VERSION_PUBLISHED';
+const SUPERSEDED = 'VERSION_SUPERSEDED';
 
 const TO_PUBLICATION = [CREATED, SUBMITTED, CLAIMED, APPROVED, PUBLISHED];
 
@@ -151,6 +152,21 @@ describe('editorialRoute', () => {
     expect(connectors(route).main).toEqual(['followed', 'followed', 'followed', 'followed']);
   });
 
+  it('reaches Superseded by the record of the publication that replaced the version', () => {
+    const route = editorialRoute('SUPERSEDED', history(...TO_PUBLICATION, SUPERSEDED));
+
+    expect(statesOf(route).current).toEqual(['SUPERSEDED']);
+    expect(node(route, 'SUPERSEDED').reachedBy?.action).toBe(SUPERSEDED);
+    expect(connectors(route).main).toEqual(['followed', 'followed', 'followed', 'followed']);
+  });
+
+  it('offers a publisher to take a version ready to publish online', () => {
+    const route = editorialRoute('READY_TO_PUBLISH', history(CREATED), ['PUBLISH', 'ARCHIVE']);
+
+    expect(node(route, 'PUBLISHED')).toMatchObject({ state: 'next', transition: 'PUBLISH' });
+    expect(connectors(route).main[2]).toBe('next');
+  });
+
   it('takes the branch to Archived, and back when the version is recovered', () => {
     const archived = history(CREATED, SUBMITTED, CLAIMED, APPROVED, 'VERSION_ARCHIVED');
 
@@ -201,7 +217,7 @@ describe('editorialRoute', () => {
   });
 
   it('ignores an action the screens cannot run, one that leads nowhere and one that stays put', () => {
-    const allowed: VersionAction[] = ['PUBLISH', 'EDIT', 'CLAIM', 'RELEASE'];
+    const allowed: VersionAction[] = ['ARCHIVE', 'EDIT', 'CLAIM', 'RELEASE'];
     const route = editorialRoute('IN_REVIEW', history(CREATED, SUBMITTED), allowed);
 
     expect(nodes(route).filter((candidate) => candidate.state === 'next')).toEqual([]);

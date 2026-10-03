@@ -19,6 +19,7 @@ import {
 } from './editorial-route';
 import { momentLabel } from './moment-label';
 import { STATUS_GLYPH } from './status-badge';
+import { SUPERSEDED_ACTION } from './version-event';
 
 /**
  * How each status is painted on the map - literal class names, so Tailwind keeps them:
@@ -383,7 +384,9 @@ export class RouteMap {
       case 'RETIRED':
         return note('retired');
       case 'SUPERSEDED':
-        return note('superseded');
+        return arrival?.action === SUPERSEDED_ACTION && arrival.detail
+          ? note('supersededBy', { version: arrival.detail })
+          : note('superseded');
     }
   }
 

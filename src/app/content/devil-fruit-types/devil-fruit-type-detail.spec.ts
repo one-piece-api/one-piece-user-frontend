@@ -649,5 +649,74 @@ describe('DevilFruitTypeDetail', () => {
       expect(node('DRAFT').getAttribute('aria-current')).toBe('step');
       expect(root.querySelector('[data-testid="rejection-banner"]')).toBeNull();
     });
+
+    const PUBLISHER = ['content:read', 'content:publish', 'content:retire'];
+
+    function confirmDialog(): HTMLDialogElement | null {
+      return root.querySelector('app-confirm-dialog dialog');
+    }
+
+    /** vivi on v3, ready to publish, with v2 online unless said otherwise. */
+    async function openReadyVersion(onlineVersionNumber: number | null = 2): Promise<void> {
+      await open(`${PAGE}?tab=workflow`, 'vivi', PUBLISHER);
+      const chain = onlineVersionNumber === null ? [] : [V1, V2];
+      await answerContent([...chain, summary(3, 'READY_TO_PUBLISH')], onlineVersionNumber);
+      await answerOwnVersion('READY_TO_PUBLISH', ['PUBLISH', 'ARCHIVE']);
+    }
+
+    it('confirms a publication naming the version it replaces, then shows it online', async () => {
+      await openReadyVersion();
+
+      expect(node('PUBLISHED').dataset['state']).toBe('next');
+      node('PUBLISHED').click();
+      harness.detectChanges();
+      expect(confirmDialog()?.open).toBe(true);
+      expect(confirmDialog()?.textContent).toContain('Publish "Logia draft"?');
+      expect(confirmDialog()?.textContent).toContain(
+        'v3 goes online, visible to every reader. v2 becomes "superseded" and stays in the history.',
+      );
+      httpTesting.expectNone(`${VERSION}/publish`);
+
+      confirmDialog()!.querySelector<HTMLButtonElement>('[data-testid="confirm-action"]')!.click();
+      const publish = httpTesting.expectOne(`${VERSION}/publish`);
+      expect(publish.request.method).toBe('POST');
+      publish.flush({});
+      await afterInteraction();
+      httpTesting.expectOne(DETAIL).flush({
+        id: ID,
+        onlineVersionNumber: 3,
+        versions: [V1, summary(2, 'SUPERSEDED'), summary(3, 'PUBLISHED')],
+      });
+      await afterInteraction();
+      await answerOwnVersion('PUBLISHED', ['RETIRE']);
+
+      expect(confirmDialog()).toBeNull();
+      expect(mascotSays()).toBe('Published! v3 is online.');
+      expect(root.querySelector('[aria-current="step"]')?.getAttribute('data-status')).toBe(
+        'PUBLISHED',
+      );
+    });
+
+    it('replaces nothing when no version is online', async () => {
+      await openReadyVersion(null);
+
+      node('PUBLISHED').click();
+      harness.detectChanges();
+
+      expect(confirmDialog()?.textContent).toContain('v3 goes online, visible to every reader.');
+      expect(confirmDialog()?.textContent).not.toContain('superseded');
+    });
+
+    it('publishes nothing when the publisher cancels', async () => {
+      await openReadyVersion();
+
+      node('PUBLISHED').click();
+      harness.detectChanges();
+      confirmDialog()!.close();
+      harness.detectChanges();
+
+      expect(confirmDialog()).toBeNull();
+      httpTesting.expectNone(`${VERSION}/publish`);
+    });
   });
 });

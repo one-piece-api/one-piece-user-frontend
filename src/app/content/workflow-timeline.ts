@@ -4,7 +4,7 @@ import { CurrentUserService } from '../identity/current-user';
 import type { VersionEvent } from './content.model';
 import { momentLabel } from './moment-label';
 import { STATUS_SOFT_CLASS } from './status-badge';
-import { CREATED_ACTION, REJECTED_ACTION, eventKind } from './version-event';
+import { CREATED_ACTION, REJECTED_ACTION, SUPERSEDED_ACTION, eventKind } from './version-event';
 
 /** An action the screen has no name for: listed as recorded, in the tone of a draft. */
 const UNKNOWN_GLYPH = '•';
@@ -49,7 +49,7 @@ export class WorkflowTimeline {
   private toStepView(event: VersionEvent): StepView {
     const kind = eventKind(event.action);
     return {
-      label: kind ? this.labelOf(event.action, kind.labelKey) : event.action,
+      label: kind ? this.labelOf(event, kind.labelKey) : event.action,
       glyph: kind?.glyph ?? UNKNOWN_GLYPH,
       toneClasses: kind ? STATUS_SOFT_CLASS[kind.status] : UNKNOWN_TONE_CLASSES,
       who: this.who(event),
@@ -58,11 +58,16 @@ export class WorkflowTimeline {
     };
   }
 
-  private labelOf(action: string, labelKey: string): string {
+  /** The action in words - which version a new draft came from, which one took this one's place. */
+  private labelOf(event: VersionEvent, labelKey: string): string {
     const basedOn = this.basedOn();
-    return action === CREATED_ACTION && basedOn !== null
-      ? this.transloco.translate('content.event.createdFrom', { version: basedOn })
-      : this.transloco.translate(labelKey);
+    if (event.action === CREATED_ACTION && basedOn !== null) {
+      return this.transloco.translate('content.event.createdFrom', { version: basedOn });
+    }
+    if (event.action === SUPERSEDED_ACTION && event.detail) {
+      return this.transloco.translate('content.event.supersededBy', { version: event.detail });
+    }
+    return this.transloco.translate(labelKey);
   }
 
   /** The actor by username - "You" for the caller, the e-mail for a record older than usernames. */

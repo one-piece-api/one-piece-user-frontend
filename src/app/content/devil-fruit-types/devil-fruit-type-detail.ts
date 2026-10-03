@@ -7,6 +7,7 @@ import { CurrentUserService } from '../../identity/current-user';
 import { MascotService } from '../../shared/mascot/mascot';
 import { Breadcrumb, type Crumb } from '../../shared/ui/breadcrumb';
 import { buttonClasses } from '../../shared/ui/button-variants';
+import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import {
   STATUS_LABEL_KEY,
@@ -66,6 +67,7 @@ const NOT_FOUND_STATUSES = [400, 404];
   templateUrl: './devil-fruit-type-detail.html',
   imports: [
     Breadcrumb,
+    ConfirmDialog,
     DevilFruitTypeCard,
     LoadingPlaceholder,
     RejectDialog,
@@ -208,6 +210,30 @@ export class DevilFruitTypeDetail {
   protected readonly acting = signal(false);
   /** The transition waiting for the reason the caller is writing - a rejection. */
   protected readonly askingReasonFor = signal<VersionTransition | null>(null);
+  /** The transition waiting for the caller to confirm it - a publication. */
+  protected readonly confirming = signal<VersionTransition | null>(null);
+
+  /**
+   * "Publish "Logia"?": what the confirm dialog says about the transition waiting for it,
+   * naming the version that goes and, if another one is online, the one it replaces.
+   */
+  protected readonly confirmation = computed(() => {
+    this.transloco.activeLang();
+    const key = this.confirming()?.confirmKey;
+    const version = this.shown();
+    if (!key || !version) {
+      return null;
+    }
+    const online = this.onlineVersionNumber();
+    const replacing = online !== null && online !== version.number;
+    const params = { name: this.title(), version: version.number, online };
+    return {
+      title: this.transloco.translate(`${key}.title`, params),
+      body: this.transloco.translate(`${key}.${replacing ? 'bodyReplacing' : 'body'}`, params),
+      note: this.transloco.translate(`${key}.note`),
+      confirmLabel: this.transloco.translate(`${key}.confirm`),
+    };
+  });
 
   /** "Logia · Devil Fruit Type by nami": what the reject dialog is about. */
   protected readonly rejectTarget = computed(() => {
@@ -252,7 +278,7 @@ export class DevilFruitTypeDetail {
 
   /**
    * Acts on the version on screen: reopens it in the editor, asks the reason of a rejection
-   * first, or runs a transition on it.
+   * or a confirmation first, or runs a transition on it.
    */
   protected act(action: VersionAction): void {
     if (action === 'EDIT') {
@@ -262,9 +288,23 @@ export class DevilFruitTypeDetail {
     const transition = VERSION_TRANSITIONS[action];
     if (transition?.asksReason) {
       this.askingReasonFor.set(transition);
+    } else if (transition?.confirmKey) {
+      this.confirming.set(transition);
     } else if (transition) {
       void this.runTransition(transition, null);
     }
+  }
+
+  /** Confirmed: the transition goes, and the dialog closes once it is answered. */
+  protected confirm(): void {
+    const transition = this.confirming();
+    if (transition) {
+      void this.runTransition(transition, null).then(() => this.confirming.set(null));
+    }
+  }
+
+  protected cancelConfirmation(): void {
+    this.confirming.set(null);
   }
 
   /** The reason is written: the rejection goes, and the dialog closes once it is answered. */
@@ -296,7 +336,10 @@ export class DevilFruitTypeDetail {
         this.http.post<Version<DevilFruitType>>(`${url}/${transition.path}`, body),
       );
       this.mascot.show(
-        this.transloco.translate(transition.doneKey, { author: version.author.username }),
+        this.transloco.translate(transition.doneKey, {
+          author: version.author.username,
+          version: version.number,
+        }),
         transition.doneTone ?? 'success',
       );
     } catch (error) {

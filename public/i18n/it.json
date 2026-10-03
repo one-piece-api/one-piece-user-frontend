@@ -441,6 +441,8 @@
       "rejected": "Rifiutato",
       "returnedToDraft": "Riportato in bozza",
       "published": "Pubblicato",
+      "superseded": "Sostituita",
+      "supersededBy": "Sostituita dalla v{{version}}",
       "archived": "Archiviato",
       "recovered": "Recuperato dall'archivio",
       "retired": "Ritirato dalla pubblicazione",
@@ -471,6 +473,7 @@
         "archived": "recuperabile",
         "retired": "non più online",
         "superseded": "da un'altra versione",
+        "supersededBy": "dalla v{{version}}",
         "editHere": "✎ clicca per modificare",
         "claimHere": "✋ prendi in carico",
         "releaseHere": "in carico a te · ↩ clicca per rilasciare"
@@ -515,7 +518,8 @@
         "released": "Rilasciato: torna disponibile per gli altri reviewer.",
         "approved": "Approvato! Ora è nella coda di chi ha content:publish.",
         "rejected": "Rifiutato: torna a {{author}} con la tua motivazione, per riportarlo in bozza e correggerlo.",
-        "returnedToDraft": "Riportato in bozza: correggi quello che serve e rimandalo in revisione."
+        "returnedToDraft": "Riportato in bozza: correggi quello che serve e rimandalo in revisione.",
+        "published": "Pubblicato! La v{{version}} è online."
       },
       "refused": {
         "incomplete": "Arrr! Prima della revisione manca: {{fields}}.",
@@ -538,6 +542,13 @@
         "hintReady": "Motivazione pronta: l'autore la leggerà così.",
         "tooShort": "La motivazione è obbligatoria: scrivi cosa va corretto, almeno una frase.",
         "confirm": "Rifiuta"
+      },
+      "publish": {
+        "title": "Pubblicare \"{{name}}\"?",
+        "body": "La v{{version}} va online, visibile a tutti i lettori.",
+        "bodyReplacing": "La v{{version}} va online, visibile a tutti i lettori. La v{{online}} diventa \"sostituita\" e resta nello storico.",
+        "note": "Ogni versione resta nello storico, pubblicata o no.",
+        "confirm": "Sì, pubblica"
       }
     },
     "breadcrumb": {

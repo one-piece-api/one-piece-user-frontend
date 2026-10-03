@@ -14,6 +14,11 @@ export interface VersionTransition {
   readonly doneTone?: MascotTone;
   /** Posted with a reason the caller writes first, not with an empty body. */
   readonly asksReason?: boolean;
+  /**
+   * Confirmed first, in words under this key: `title`, `body` - `bodyReplacing` when
+   * another version is online - `note` and `confirm`.
+   */
+  readonly confirmKey?: string;
 }
 
 /** A rejection reason says what to fix: at least a short sentence - as the backend checks. */
@@ -53,6 +58,12 @@ export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransitio
     path: 'return-to-draft',
     doneKey: 'content.workflow.done.returnedToDraft',
     doneTone: 'info',
+  },
+  PUBLISH: {
+    target: 'PUBLISHED',
+    path: 'publish',
+    doneKey: 'content.workflow.done.published',
+    confirmKey: 'content.workflow.publish',
   },
 };
 

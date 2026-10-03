@@ -207,6 +207,17 @@ describe('VersionWorkflow', () => {
       expect(steps()[1]).toContain('Draft created');
     });
 
+    it('names the version that took the place of a superseded one', async () => {
+      const events = [
+        event('VERSION_PUBLISHED', VIVI, 10),
+        event('VERSION_SUPERSEDED', VIVI, 12, '3'),
+      ];
+      await render(version('SUPERSEDED', [], { everPublished: true }), events, 'nami', EDITOR);
+
+      expect(steps()[0]).toBe('⇡ Superseded by v3 vivi 08/20 12:00 PM');
+      expect(mapText('SUPERSEDED')).toContain('by v3');
+    });
+
     it('lists an action it has no name for as it was recorded', async () => {
       await render(version('DRAFT'), [event('VERSION_TELEPORTED')], 'nami', EDITOR);
 
@@ -334,10 +345,23 @@ describe('VersionWorkflow', () => {
     });
 
     it('never offers a transition the screens cannot run yet', async () => {
-      const approved = version('READY_TO_PUBLISH', ['PUBLISH', 'ARCHIVE']);
-      await render(approved, WAITING, 'zoro', REVIEWER);
+      const approved = version('READY_TO_PUBLISH', ['ARCHIVE']);
+      await render(approved, WAITING, 'vivi', ['content:read', 'content:publish']);
 
       expect(root.querySelectorAll('[data-state="next"]').length).toBe(0);
+    });
+
+    it('offers a publisher to publish a version ready to publish, on Published', async () => {
+      const approved = version('READY_TO_PUBLISH', ['PUBLISH', 'ARCHIVE']);
+      await render(approved, WAITING, 'vivi', ['content:read', 'content:publish']);
+      const actions = asked();
+
+      const node = mapNode('PUBLISHED');
+      expect(node.dataset['state']).toBe('next');
+      expect(mapText('PUBLISHED')).toContain('→ Publish');
+      node.click();
+
+      expect(actions).toEqual(['PUBLISH']);
     });
 
     it('waits while a transition is on its way', async () => {

@@ -167,4 +167,17 @@
     (confirmed)="rejectWith($event)"
     (cancelled)="cancelReason()"
   />
+
+  @if (confirmation(); as dialog) {
+    <app-confirm-dialog
+      [open]="true"
+      [busy]="acting()"
+      [title]="dialog.title"
+      [body]="dialog.body"
+      [note]="dialog.note"
+      [confirmLabel]="dialog.confirmLabel"
+      (confirmed)="confirm()"
+      (cancelled)="cancelConfirmation()"
+    />
+  }
 </div>
