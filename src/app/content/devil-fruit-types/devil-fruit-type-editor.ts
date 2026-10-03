@@ -246,6 +246,11 @@ export class DevilFruitTypeEditor {
         });
   });
 
+  /** What the last review asked to fix, on a draft taken back after a rejection. */
+  protected readonly toFix = computed(() =>
+    this.version.hasValue() ? this.version.value().rejectionReason : null,
+  );
+
   /** "Editing · Draft". */
   protected readonly badge = computed(() => {
     this.transloco.activeLang();

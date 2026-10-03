@@ -12,7 +12,13 @@ export interface VersionTransition {
   /** What the mascot says once it is done, and in which tone - success unless said. */
   readonly doneKey: string;
   readonly doneTone?: MascotTone;
+  /** Posted with a reason the caller writes first, not with an empty body. */
+  readonly asksReason?: boolean;
 }
+
+/** A rejection reason says what to fix: at least a short sentence - as the backend checks. */
+export const REJECTION_REASON_MIN_LENGTH = 8;
+export const REJECTION_REASON_MAX_LENGTH = 2000;
 
 /**
  * The transitions the screens run, the same for every kind of content - the route map
@@ -28,6 +34,24 @@ export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransitio
     target: 'IN_REVIEW',
     path: 'release',
     doneKey: 'content.workflow.done.released',
+    doneTone: 'info',
+  },
+  APPROVE: {
+    target: 'READY_TO_PUBLISH',
+    path: 'approve',
+    doneKey: 'content.workflow.done.approved',
+  },
+  REJECT: {
+    target: 'REJECTED',
+    path: 'reject',
+    doneKey: 'content.workflow.done.rejected',
+    doneTone: 'info',
+    asksReason: true,
+  },
+  RETURN_TO_DRAFT: {
+    target: 'DRAFT',
+    path: 'return-to-draft',
+    doneKey: 'content.workflow.done.returnedToDraft',
     doneTone: 'info',
   },
 };

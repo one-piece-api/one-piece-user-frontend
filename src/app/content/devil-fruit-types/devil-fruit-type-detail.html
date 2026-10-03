@@ -50,6 +50,34 @@
           <span class="flex-none"><app-status-badge prominent [status]="version.status" /></span>
         </header>
 
+        @if (rejection(); as rejection) {
+          <div
+            class="mx-5.5 mt-2.5 flex items-start gap-2.75 rounded-[14px] border-2 border-flag-100 bg-status-rejected-soft px-3.5 py-2.75"
+            data-testid="rejection-banner"
+          >
+            <span
+              class="grid size-6 flex-none place-items-center rounded-full bg-status-rejected-accent text-xs font-extrabold text-white"
+              aria-hidden="true"
+              >✕</span
+            >
+            <div class="min-w-0">
+              <p class="font-heading text-sm leading-normal font-bold text-pretty text-ocean-950">
+                <strong class="text-status-rejected-ink">{{
+                  'content.detail.rejectionReason' | transloco
+                }}</strong>
+                {{ rejection.reason }}
+              </p>
+              @if (rejection.meta) {
+                <p
+                  class="mt-0.5 font-heading text-[11px] font-extrabold text-status-rejected-ink/60"
+                >
+                  {{ rejection.meta }}
+                </p>
+              }
+            </div>
+          </div>
+        }
+
         <div class="px-5.5 pt-1.5">
           <div class="flex flex-wrap items-center gap-3.5 border-t border-parchment-200 pt-3">
             <div class="grid gap-0.5 font-heading text-[11px] text-ocean-500/60">
@@ -131,4 +159,12 @@
       </article>
     }
   }
+
+  <app-reject-dialog
+    [open]="askingReasonFor() !== null"
+    [target]="rejectTarget()"
+    [busy]="acting()"
+    (confirmed)="rejectWith($event)"
+    (cancelled)="cancelReason()"
+  />
 </div>

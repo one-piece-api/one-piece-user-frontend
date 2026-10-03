@@ -5,13 +5,14 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { MascotService } from '../../shared/mascot/mascot';
+import { polyfillDialog } from '../../testing/dialog-polyfill';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import type { VersionStatus } from '../content.model';
 import { DevilFruitTypeDetail } from './devil-fruit-type-detail';
 
 const ID = '3f2a9c1b-0000-4000-8000-000000000001';
 
-/** Where the Draft status of the route leads: the editor, not under test here. */
+/** Where the page leads away to - the editor, the list - not under test here. */
 @Component({ template: '' })
 class EditorStandIn {}
 const DETAIL = `/api/content/devil-fruit-types/${ID}`;
@@ -59,6 +60,8 @@ function body(name: string, italianDescription: string | null = 'Elementale.') {
   };
 }
 
+polyfillDialog();
+
 describe('DevilFruitTypeDetail', () => {
   let httpTesting: HttpTestingController;
   let harness: RouterTestingHarness;
@@ -74,6 +77,7 @@ describe('DevilFruitTypeDetail', () => {
           [
             { path: 'content/devil-fruit-types/:id', component: DevilFruitTypeDetail },
             { path: 'content/devil-fruit-types/:id/edit', component: EditorStandIn },
+            { path: 'content/devil-fruit-types', component: EditorStandIn },
           ],
           withComponentInputBinding(),
         ),
@@ -343,24 +347,35 @@ describe('DevilFruitTypeDetail', () => {
       await answerOwnVersion('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
     }
 
-    async function answerOwnVersion(status: VersionStatus, allowedActions: string[]) {
+    async function answerOwnVersion(
+      status: VersionStatus,
+      allowedActions: string[],
+      rejectionReason: string | null = null,
+      events: object[] = [CREATED],
+    ) {
       httpTesting.expectOne(VERSION).flush({
         ...summary(3, status),
-        rejectionReason: null,
+        rejectionReason,
         body: body('Logia draft'),
         allowedActions,
       });
-      httpTesting.expectOne(`${VERSION}/events`).flush([CREATED]);
+      httpTesting.expectOne(`${VERSION}/events`).flush(events);
       await harness.fixture.whenStable();
       harness.detectChanges();
     }
 
     /** The page reloads the content and the version after every attempt, refused or not. */
-    async function answerReload(status: VersionStatus, allowedActions: string[]) {
+    async function answerReload(
+      status: VersionStatus,
+      allowedActions: string[],
+      rejectionReason: string | null = null,
+      events: object[] = [CREATED],
+    ) {
       httpTesting
         .expectOne(DETAIL)
         .flush({ id: ID, onlineVersionNumber: 2, versions: [V1, V2, summary(3, status)] });
-      await answerOwnVersion(status, allowedActions);
+      await afterInteraction();
+      await answerOwnVersion(status, allowedActions, rejectionReason, events);
     }
 
     function node(status: VersionStatus): HTMLButtonElement {
@@ -507,6 +522,132 @@ describe('DevilFruitTypeDetail', () => {
 
       expect(mascotSays()).toContain('changed in the meantime');
       expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
+    });
+
+    const REASON = 'The English description is missing.';
+    const REJECTED_BY_ZORO = {
+      action: 'VERSION_REJECTED',
+      actor: { id: 'u3', username: 'zoro', email: 'zoro@onepiece.local' },
+      detail: REASON,
+      occurredAt: '2026-08-20T11:00:00Z',
+    };
+
+    function rejectDialog(): HTMLDialogElement {
+      return root.querySelector('app-reject-dialog dialog')!;
+    }
+
+    it('approves a version the caller holds from the Ready to publish status', async () => {
+      await open(`${PAGE}?tab=workflow`, 'zoro', REVIEWER);
+      await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);
+      await answerOwnVersion('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT']);
+
+      expect(node('READY_TO_PUBLISH').dataset['state']).toBe('next');
+      node('READY_TO_PUBLISH').click();
+      const approve = httpTesting.expectOne(`${VERSION}/approve`);
+      expect(approve.request.method).toBe('POST');
+      approve.flush({});
+      await afterInteraction();
+      await answerReload('READY_TO_PUBLISH', []);
+
+      expect(mascotSays()).toContain('Approved!');
+      expect(node('READY_TO_PUBLISH')).toBeNull();
+    });
+
+    it('asks the reason before rejecting, then sends it and shows the version rejected', async () => {
+      await open(`${PAGE}?tab=workflow`, 'zoro', REVIEWER);
+      await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);
+      await answerOwnVersion('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT']);
+
+      node('REJECTED').click();
+      harness.detectChanges();
+      expect(rejectDialog().open).toBe(true);
+      expect(rejectDialog().textContent).toContain('Logia draft · Fruit Type by nami');
+      httpTesting.expectNone(`${VERSION}/reject`);
+
+      const reason = rejectDialog().querySelector<HTMLTextAreaElement>('textarea')!;
+      reason.value = `  ${REASON}  `;
+      reason.dispatchEvent(new Event('input'));
+      harness.detectChanges();
+      rejectDialog().querySelector<HTMLButtonElement>('[data-testid="reject-action"]')!.click();
+      const reject = httpTesting.expectOne(`${VERSION}/reject`);
+      expect(reject.request.body).toEqual({ reason: REASON });
+      reject.flush({});
+      await afterInteraction();
+      // A reviewer does not see rejected versions: the chain falls back to the online one.
+      httpTesting.expectOne(DETAIL).flush({ id: ID, onlineVersionNumber: 2, versions: [V1, V2] });
+      await afterInteraction();
+      await answerVersion(V2, body('Logia'));
+
+      expect(rejectDialog().open).toBe(false);
+      expect(selectedBar()).toContain('v2 · Published');
+      expect(mascotSays()).toContain('it goes back to nami with your reason');
+      expect(TestBed.inject(MascotService).message().tone).toBe('info');
+    });
+
+    it('leads back to the list when the caller no longer sees anything of the content', async () => {
+      await open(`${PAGE}?tab=workflow`, 'zoro', REVIEWER);
+      await answerContent([summary(3, 'IN_REVIEW')], null);
+      await answerOwnVersion('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT']);
+
+      node('REJECTED').click();
+      harness.detectChanges();
+      const reason = rejectDialog().querySelector<HTMLTextAreaElement>('textarea')!;
+      reason.value = REASON;
+      reason.dispatchEvent(new Event('input'));
+      harness.detectChanges();
+      rejectDialog().querySelector<HTMLButtonElement>('[data-testid="reject-action"]')!.click();
+      httpTesting.expectOne(`${VERSION}/reject`).flush({});
+      await afterInteraction();
+      httpTesting
+        .expectOne(DETAIL)
+        .flush(
+          { errorCode: 'CONTENT_DEVIL_FRUIT_TYPE_NOT_FOUND' },
+          { status: 404, statusText: 'Not Found' },
+        );
+      await afterInteraction();
+
+      expect(TestBed.inject(Router).url).toBe('/content/devil-fruit-types');
+      expect(mascotSays()).toContain('it goes back to nami with your reason');
+    });
+
+    it('sends nothing when the reviewer cancels the rejection', async () => {
+      await open(`${PAGE}?tab=workflow`, 'zoro', REVIEWER);
+      await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);
+      await answerOwnVersion('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT']);
+
+      node('REJECTED').click();
+      harness.detectChanges();
+      rejectDialog().close();
+      harness.detectChanges();
+
+      expect(rejectDialog().open).toBe(false);
+      httpTesting.expectNone(`${VERSION}/reject`);
+    });
+
+    it('shows why a rejected version was rejected, by whom and when', async () => {
+      await open(PAGE, 'nami', EDITOR);
+      await answerContent([V1, V2, summary(3, 'REJECTED')], 2);
+      await answerOwnVersion('REJECTED', ['RETURN_TO_DRAFT'], REASON, [CREATED, REJECTED_BY_ZORO]);
+
+      const banner = root.querySelector('[data-testid="rejection-banner"]')?.textContent ?? '';
+      expect(banner).toContain(`Reason for rejection: ${REASON}`);
+      expect(banner).toContain('by zoro · 08/20');
+    });
+
+    it('takes a rejected version back to draft from the Draft status', async () => {
+      await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
+      await answerContent([V1, V2, summary(3, 'REJECTED')], 2);
+      await answerOwnVersion('REJECTED', ['RETURN_TO_DRAFT'], REASON, [CREATED, REJECTED_BY_ZORO]);
+
+      expect(node('DRAFT').dataset['state']).toBe('next');
+      node('DRAFT').click();
+      httpTesting.expectOne(`${VERSION}/return-to-draft`).flush({});
+      await afterInteraction();
+      await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT'], REASON);
+
+      expect(mascotSays()).toContain('Back in draft');
+      expect(node('DRAFT').getAttribute('aria-current')).toBe('step');
+      expect(root.querySelector('[data-testid="rejection-banner"]')).toBeNull();
     });
   });
 });

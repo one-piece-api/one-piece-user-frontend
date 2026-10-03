@@ -21,7 +21,9 @@ import {
 import { LanguageCatalogService } from '../language-catalog';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
+import { RejectDialog } from '../reject-dialog';
 import { VersionChain } from '../version-chain';
+import { REJECTED_ACTION } from '../version-event';
 import {
   VERSION_TRANSITIONS,
   transitionRefusal,
@@ -66,6 +68,7 @@ const NOT_FOUND_STATUSES = [400, 404];
     Breadcrumb,
     DevilFruitTypeCard,
     LoadingPlaceholder,
+    RejectDialog,
     RouterLink,
     StatusBadge,
     TranslocoPipe,
@@ -186,12 +189,8 @@ export class DevilFruitTypeDetail {
       return null;
     }
     const status = this.transloco.translate(STATUS_LABEL_KEY[version.status]);
-    const authoredByMe = version.author.username === this.currentUser.me.value()?.username;
-    const author = authoredByMe
-      ? this.transloco.translate('content.list.you')
-      : version.author.username;
     const parts = [
-      this.transloco.translate('content.detail.by', { author }),
+      this.transloco.translate('content.detail.by', { author: this.who(version.author.username) }),
       momentLabel(this.transloco, version.createdAt),
     ];
     if (this.isMostRecent(version.number)) {
@@ -207,6 +206,42 @@ export class DevilFruitTypeDetail {
 
   /** A transition posted and not answered yet. */
   protected readonly acting = signal(false);
+  /** The transition waiting for the reason the caller is writing - a rejection. */
+  protected readonly askingReasonFor = signal<VersionTransition | null>(null);
+
+  /** "Logia · Devil Fruit Type by nami": what the reject dialog is about. */
+  protected readonly rejectTarget = computed(() => {
+    this.transloco.activeLang();
+    const version = this.shown();
+    if (!version) {
+      return '';
+    }
+    const entity = this.transloco.translate('content.devilFruitTypes.one');
+    const by = this.transloco.translate('content.detail.by', { author: version.author.username });
+    return `${this.title()} · ${entity} ${by}`;
+  });
+
+  /**
+   * "Reason for rejection", while the version on screen is rejected: what the reviewer
+   * wrote, then who and when - read from the history.
+   */
+  protected readonly rejection = computed(() => {
+    this.transloco.activeLang();
+    const version = this.shown();
+    if (version?.status !== 'REJECTED' || !version.rejectionReason) {
+      return null;
+    }
+    const rejected = this.events()
+      .filter((event) => event.action === REJECTED_ACTION)
+      .at(-1);
+    const meta = rejected
+      ? this.transloco.translate('content.workflow.note.byWhen', {
+          actor: this.who(rejected.actor.username),
+          when: momentLabel(this.transloco, rejected.occurredAt),
+        })
+      : '';
+    return { reason: version.rejectionReason, meta };
+  });
 
   protected readonly backButtonClasses = buttonClasses('secondary');
   protected readonly listRoute = LIST_ROUTE;
@@ -215,38 +250,84 @@ export class DevilFruitTypeDetail {
     this.navigate({ [PARAM.version]: number });
   }
 
-  /** Acts on the version on screen: reopens it in the editor, or runs a transition on it. */
+  /**
+   * Acts on the version on screen: reopens it in the editor, asks the reason of a rejection
+   * first, or runs a transition on it.
+   */
   protected act(action: VersionAction): void {
     if (action === 'EDIT') {
       void this.router.navigate(['edit'], { relativeTo: this.route });
       return;
     }
     const transition = VERSION_TRANSITIONS[action];
-    const url = this.versionUrl();
-    if (transition && url) {
-      void this.runTransition(transition, `${url}/${transition.path}`);
+    if (transition?.asksReason) {
+      this.askingReasonFor.set(transition);
+    } else if (transition) {
+      void this.runTransition(transition, null);
     }
   }
 
+  /** The reason is written: the rejection goes, and the dialog closes once it is answered. */
+  protected rejectWith(reason: string): void {
+    const transition = this.askingReasonFor();
+    if (transition) {
+      void this.runTransition(transition, { reason }).then(() => this.askingReasonFor.set(null));
+    }
+  }
+
+  protected cancelReason(): void {
+    this.askingReasonFor.set(null);
+  }
+
   /**
-   * Posts the transition, says how it went, and reloads the content whatever the outcome:
-   * a refusal often means the version moved meanwhile, and the screen should show where.
+   * Posts the transition, says how it went, and reads the content again whatever the
+   * outcome: a refusal often means the version moved meanwhile, and the screen should show
+   * where.
    */
-  private async runTransition(transition: VersionTransition, url: string): Promise<void> {
+  private async runTransition(transition: VersionTransition, body: object | null): Promise<void> {
+    const url = this.versionUrl();
+    const version = this.shown();
+    if (!url || !version) {
+      return;
+    }
     this.acting.set(true);
     try {
-      await firstValueFrom(this.http.post<Version<DevilFruitType>>(url, null));
+      await firstValueFrom(
+        this.http.post<Version<DevilFruitType>>(`${url}/${transition.path}`, body),
+      );
       this.mascot.show(
-        this.transloco.translate(transition.doneKey),
+        this.transloco.translate(transition.doneKey, { author: version.author.username }),
         transition.doneTone ?? 'success',
       );
     } catch (error) {
       this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
     } finally {
+      await this.refresh();
+      this.acting.set(false);
+    }
+  }
+
+  /**
+   * Reads the content again after a transition. One the caller can no longer see at all -
+   * a reviewer who just rejected the only version they could see - leads back to the list,
+   * where the mascot's word on what happened stays up; otherwise the screen shows the
+   * version as it now is.
+   */
+  private async refresh(): Promise<void> {
+    const versionUrlBefore = this.versionUrl();
+    try {
+      this.content.set(await firstValueFrom(this.http.get<Content>(`${ENDPOINT}/${this.id()}`)));
+    } catch (error) {
+      if (isNotFound(error)) {
+        void this.router.navigate([LIST_ROUTE]);
+        return;
+      }
       this.content.reload();
+    }
+    // A version no longer visible gives way to another, which loads by itself.
+    if (this.versionUrl() === versionUrlBefore) {
       this.version.reload();
       this.versionEvents.reload();
-      this.acting.set(false);
     }
   }
 
@@ -280,6 +361,13 @@ export class DevilFruitTypeDetail {
     this.navigate({ [PARAM.tab]: tab === 'overview' ? null : tab });
   }
 
+  /** A user as the screen names them: "you" for the caller. */
+  private who(username: string): string {
+    return username === this.currentUser.me.value()?.username
+      ? this.transloco.translate('content.list.you')
+      : username;
+  }
+
   private isMostRecent(number: number): boolean {
     return this.versions().at(-1)?.number === number;
   }
@@ -305,6 +393,6 @@ export class DevilFruitTypeDetail {
   }
 }
 
-function isNotFound(error: Error): boolean {
+function isNotFound(error: unknown): boolean {
   return error instanceof HttpErrorResponse && NOT_FOUND_STATUSES.includes(error.status);
 }

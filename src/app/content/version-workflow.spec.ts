@@ -334,8 +334,8 @@ describe('VersionWorkflow', () => {
     });
 
     it('never offers a transition the screens cannot run yet', async () => {
-      const held = version('IN_REVIEW', ['APPROVE', 'REJECT'], { claimant: ZORO });
-      await render(held, WAITING, 'zoro', REVIEWER);
+      const approved = version('READY_TO_PUBLISH', ['PUBLISH', 'ARCHIVE']);
+      await render(approved, WAITING, 'zoro', REVIEWER);
 
       expect(root.querySelectorAll('[data-state="next"]').length).toBe(0);
     });

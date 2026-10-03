@@ -512,7 +512,10 @@
         "submitted": "Submitted for review! The ball is now with whoever holds content:review.",
         "pulledBack": "Pulled back from review: it is your editable draft again.",
         "claimed": "Claimed: you can now approve or reject it. Other reviewers see it as taken.",
-        "released": "Released: it is available to other reviewers again."
+        "released": "Released: it is available to other reviewers again.",
+        "approved": "Approved! It is now in the queue of whoever holds content:publish.",
+        "rejected": "Rejected: it goes back to {{author}} with your reason, to be returned to draft and fixed.",
+        "returnedToDraft": "Back in draft: fix what is needed and send it to review again."
       },
       "refused": {
         "incomplete": "Arrr! Still missing before review: {{fields}}.",
@@ -525,6 +528,16 @@
           "name": "name {{language}}",
           "description": "description {{language}}"
         }
+      },
+      "reject": {
+        "title": "Reject this review?",
+        "body": "The content becomes Rejected and goes back to whoever wrote it, who will return it to draft to fix it. The reason is mandatory: it is what they will read to fix it.",
+        "reason": "Reason",
+        "placeholder": "What needs fixing before it goes back to review…",
+        "hintShort": "Required · at least one sentence ({{count}}/{{min}} characters)",
+        "hintReady": "Reason ready: the author will read it just like this.",
+        "tooShort": "The reason is mandatory: write what needs fixing, at least one sentence.",
+        "confirm": "Reject"
       }
     },
     "breadcrumb": {
@@ -604,7 +617,8 @@
       "missingTitle": "Content not found",
       "missingText": "Arrr! This entry does not exist, or is not visible to your role.",
       "backToList": "Back to the list",
-      "error": "Lost the card. Could not load the content."
+      "error": "Lost the card. Could not load the content.",
+      "rejectionReason": "Reason for rejection:"
     },
     "card": {
       "title": "Card",
@@ -671,7 +685,8 @@
         "goneWhole": "Draft removed.",
         "goneBack": "Draft discarded: v{{version}} remains.",
         "failed": "Arrr! Draft not discarded. Try again in a moment."
-      }
+      },
+      "toFix": "To fix:"
     }
   }
 }

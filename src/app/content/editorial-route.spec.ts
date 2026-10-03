@@ -201,7 +201,7 @@ describe('editorialRoute', () => {
   });
 
   it('ignores an action the screens cannot run, one that leads nowhere and one that stays put', () => {
-    const allowed: VersionAction[] = ['APPROVE', 'EDIT', 'CLAIM', 'RELEASE'];
+    const allowed: VersionAction[] = ['PUBLISH', 'EDIT', 'CLAIM', 'RELEASE'];
     const route = editorialRoute('IN_REVIEW', history(CREATED, SUBMITTED), allowed);
 
     expect(nodes(route).filter((candidate) => candidate.state === 'next')).toEqual([]);

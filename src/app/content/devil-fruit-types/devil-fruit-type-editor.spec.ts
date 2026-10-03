@@ -90,8 +90,11 @@ describe('DevilFruitTypeEditor', () => {
     await settle();
   }
 
-  /** Opens nami's draft v2: the content, then the version it can edit. */
-  async function openDraft(): Promise<void> {
+  /**
+   * Opens nami's draft v2: the content, then the version it can edit - still carrying the
+   * reason of a rejection when it was taken back after one.
+   */
+  async function openDraft(rejectionReason: string | null = null): Promise<void> {
     await open(`${SECTION}/${ID}/edit`);
     httpTesting
       .expectOne(DETAIL)
@@ -99,7 +102,7 @@ describe('DevilFruitTypeEditor', () => {
     await settle();
     httpTesting
       .expectOne(`${DETAIL}/versions/2`)
-      .flush({ ...DRAFT, rejectionReason: null, body: DRAFT_BODY });
+      .flush({ ...DRAFT, rejectionReason, body: DRAFT_BODY });
     await settle();
   }
 
@@ -309,6 +312,15 @@ describe('DevilFruitTypeEditor', () => {
       expect(tab('EN').textContent).toContain('incomplete');
       expect(tab('IT').textContent).not.toContain('incomplete');
       expect(cancelHref()).toBe(`${SECTION}/${ID}`);
+      expect(root.querySelector('[data-testid="to-fix"]')).toBeNull();
+    });
+
+    it('reminds what to fix on a draft taken back after a rejection', async () => {
+      await openDraft('The English description is missing.');
+
+      expect(root.querySelector('[data-testid="to-fix"]')?.textContent?.trim()).toBe(
+        'To fix: The English description is missing.',
+      );
     });
 
     it('saves the whole draft in place of the version, then shows it', async () => {

@@ -1,0 +1,79 @@
+<!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -- backdrop-click-to-dismiss on the dialog itself; ESC already closes it natively -->
+<dialog
+  #dialog
+  class="m-auto w-full max-w-[500px] rounded-3xl bg-parchment-100 p-7 shadow-2xl backdrop:bg-ocean-950/55"
+  aria-labelledby="reject-title"
+  (close)="onClose()"
+  (click)="onBackdropClick($event, dialog)"
+>
+  <div class="mb-4 flex items-center gap-3">
+    <span
+      class="grid size-11 flex-none place-items-center rounded-full bg-flag-100 font-display text-xl font-bold text-flag-700"
+      aria-hidden="true"
+      >!</span
+    >
+    <div class="min-w-0">
+      <h2 id="reject-title" class="font-display text-[22px] leading-tight font-bold text-ocean-950">
+        {{ 'content.workflow.reject.title' | transloco }}
+      </h2>
+      <p class="font-heading text-[13px] font-bold text-ocean-500/70">{{ target() }}</p>
+    </div>
+  </div>
+  <p
+    class="mb-3.5 font-heading text-[15px] leading-relaxed font-semibold text-pretty text-ocean-500"
+  >
+    {{ 'content.workflow.reject.body' | transloco }}
+  </p>
+  <label
+    for="reject-reason"
+    class="mb-1.5 block font-heading text-[13px] font-extrabold text-ocean-500/70"
+  >
+    {{ 'content.workflow.reject.reason' | transloco }}
+  </label>
+  <textarea
+    id="reject-reason"
+    rows="5"
+    class="w-full resize-y rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+    [class]="touched() && !ready() ? 'border-flag-600' : 'border-ocean-800/20'"
+    [placeholder]="'content.workflow.reject.placeholder' | transloco"
+    [maxLength]="maxLength"
+    [value]="reason()"
+    [attr.aria-invalid]="touched() && !ready() ? true : null"
+    aria-describedby="reject-hint"
+    data-testid="reject-reason"
+    (input)="onInput($event)"
+  ></textarea>
+  <p
+    id="reject-hint"
+    class="mt-1.5 font-heading text-xs font-extrabold"
+    [class]="ready() ? 'text-success-700' : touched() ? 'text-flag-600' : 'text-ocean-500/50'"
+    data-testid="reject-hint"
+  >
+    @if (ready()) {
+      {{ 'content.workflow.reject.hintReady' | transloco }}
+    } @else {
+      {{ 'content.workflow.reject.hintShort' | transloco: { count: length(), min: minLength } }}
+    }
+  </p>
+  <div class="mt-5 flex flex-wrap justify-end gap-2.5">
+    <button
+      type="button"
+      class="cursor-pointer rounded-[14px] bg-parchment-200 px-5 py-3 font-heading text-[15px] font-extrabold text-ocean-500 disabled:pointer-events-none disabled:opacity-50"
+      [disabled]="busy()"
+      (click)="dialog.close()"
+    >
+      {{ 'common.cancel' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="cursor-pointer rounded-[14px] bg-flag-600 px-5.5 py-3 font-heading text-[15px] font-extrabold text-white hover:bg-flag-700 disabled:pointer-events-none disabled:opacity-50"
+      [disabled]="busy()"
+      data-testid="reject-action"
+      (click)="reject()"
+    >
+      {{
+        busy() ? ('common.working' | transloco) : ('content.workflow.reject.confirm' | transloco)
+      }}
+    </button>
+  </div>
+</dialog>

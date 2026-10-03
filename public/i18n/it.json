@@ -512,7 +512,10 @@
         "submitted": "Inviato in revisione! Ora la palla passa a chi ha content:review.",
         "pulledBack": "Ritirato dalla revisione: è di nuovo una tua bozza modificabile.",
         "claimed": "Preso in carico: ora puoi approvarlo o rifiutarlo. Gli altri reviewer lo vedono occupato.",
-        "released": "Rilasciato: torna disponibile per gli altri reviewer."
+        "released": "Rilasciato: torna disponibile per gli altri reviewer.",
+        "approved": "Approvato! Ora è nella coda di chi ha content:publish.",
+        "rejected": "Rifiutato: torna a {{author}} con la tua motivazione, per riportarlo in bozza e correggerlo.",
+        "returnedToDraft": "Riportato in bozza: correggi quello che serve e rimandalo in revisione."
       },
       "refused": {
         "incomplete": "Arrr! Prima della revisione manca: {{fields}}.",
@@ -525,6 +528,16 @@
           "name": "nome {{language}}",
           "description": "descrizione {{language}}"
         }
+      },
+      "reject": {
+        "title": "Rifiutare la revisione?",
+        "body": "Il contenuto passa a Rifiutato e torna a chi l'ha scritto, che lo riporterà in bozza per correggerlo. La motivazione è obbligatoria: è quello che leggerà per correggere.",
+        "reason": "Motivazione",
+        "placeholder": "Cosa va corretto prima di rimandarlo in revisione…",
+        "hintShort": "Obbligatoria · almeno una frase ({{count}}/{{min}} caratteri)",
+        "hintReady": "Motivazione pronta: l'autore la leggerà così.",
+        "tooShort": "La motivazione è obbligatoria: scrivi cosa va corretto, almeno una frase.",
+        "confirm": "Rifiuta"
       }
     },
     "breadcrumb": {
@@ -604,7 +617,8 @@
       "missingTitle": "Contenuto non trovato",
       "missingText": "Arrr! Questa voce non esiste, o non è visibile al tuo ruolo.",
       "backToList": "Torna all'elenco",
-      "error": "Scheda dispersa. Impossibile caricare il contenuto."
+      "error": "Scheda dispersa. Impossibile caricare il contenuto.",
+      "rejectionReason": "Motivo del rifiuto:"
     },
     "card": {
       "title": "Scheda",
@@ -671,7 +685,8 @@
         "goneWhole": "Bozza eliminata.",
         "goneBack": "Bozza scartata: resta la v{{version}}.",
         "failed": "Arrr! Bozza non scartata. Riprova tra poco."
-      }
+      },
+      "toFix": "Da correggere:"
     }
   }
 }
