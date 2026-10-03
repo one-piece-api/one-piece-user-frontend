@@ -118,15 +118,15 @@ describe('AppShell', () => {
     expect(root.textContent).toContain('Devil Fruit Types');
 
     const announced = Array.from(root.querySelectorAll('nav button')).map((button) =>
-      Array.from(button.querySelectorAll(':scope > span'))
+      Array.from(button.querySelectorAll(':scope > :is(app-icon, span)'))
         .map((part) => part.textContent?.trim())
-        .join(' '),
+        .join(' ')
+        .trim(),
     );
     expect(announced).toEqual([
-      '☺ Characters coming soon',
-      '◆ Devil Fruits coming soon',
-      '⚑ Crews coming soon',
-      '≡ Story Arcs coming soon',
+      'Characters coming soon',
+      'Devil Fruits coming soon',
+      'Crews coming soon',
     ]);
   });
 

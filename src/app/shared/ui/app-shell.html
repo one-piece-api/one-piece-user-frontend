@@ -39,7 +39,7 @@
                   (click)="announceSoon(item)"
                   class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left font-heading text-sm font-bold text-parchment-100/45 transition-colors hover:bg-white/5"
                 >
-                  <span class="w-5 text-center text-parchment-100/40">{{ item.icon }}</span>
+                  <app-icon class="w-5 text-parchment-100/40" [icon]="item.icon" />
                   <span class="min-w-0 flex-1">{{ item.label | transloco }}</span>
                   <span
                     class="flex-none rounded-md bg-treasure-500/15 px-1.5 py-px text-[10px] font-extrabold text-treasure-500"
@@ -54,7 +54,7 @@
                   (click)="closeDrawer()"
                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-parchment-100/70 transition-colors hover:bg-white/5 hover:text-parchment-100"
                 >
-                  <span class="w-5 text-center text-treasure-500">{{ item.icon }}</span>
+                  <app-icon class="w-5 text-treasure-500" [icon]="item.icon" />
                   <span>{{ item.label | transloco }}</span>
                 </a>
               }

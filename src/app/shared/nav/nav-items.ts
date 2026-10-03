@@ -1,3 +1,4 @@
+import { DEVIL_FRUIT_TYPE_ICON } from '../../content/devil-fruit-types/devil-fruit-type.model';
 import { STATUS_LABEL_KEY } from '../../content/content.model';
 import { STATUS_PAGES, statusPageRoute } from '../../content/dashboard/dashboard.model';
 import { STATUS_GLYPH } from '../../content/status-badge';
@@ -56,26 +57,31 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       {
         id: 'characters',
         label: 'shell.nav.characters',
-        icon: '☺',
+        icon: 'assets/characters.webp',
         permission: 'content:read',
         soon: true,
       },
       {
         id: 'devil-fruits',
         label: 'shell.nav.devilFruits',
-        icon: '◆',
+        icon: 'assets/devil-fruit.webp',
         permission: 'content:read',
         soon: true,
       },
       {
         id: 'devil-fruit-types',
         label: 'shell.nav.devilFruitTypes',
-        icon: '◈',
+        icon: DEVIL_FRUIT_TYPE_ICON,
         route: '/content/devil-fruit-types',
         permission: 'content:read',
       },
-      { id: 'crews', label: 'shell.nav.crews', icon: '⚑', permission: 'content:read', soon: true },
-      { id: 'arcs', label: 'shell.nav.arcs', icon: '≡', permission: 'content:read', soon: true },
+      {
+        id: 'crews',
+        label: 'shell.nav.crews',
+        icon: 'assets/crews.webp',
+        permission: 'content:read',
+        soon: true,
+      },
     ],
   },
   {

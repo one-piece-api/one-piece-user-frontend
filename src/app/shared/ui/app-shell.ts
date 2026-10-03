@@ -6,6 +6,7 @@ import { CurrentUserService } from '../../identity/current-user';
 import { LanguageSwitcher } from '../i18n/language-switcher';
 import { MascotService } from '../mascot/mascot';
 import { NAV_GROUPS, type NavGroup, type NavItem } from '../nav/nav-items';
+import { Icon } from './icon';
 import { initialsOf } from './initials';
 
 /**
@@ -16,7 +17,7 @@ import { initialsOf } from './initials';
 @Component({
   selector: 'app-shell',
   templateUrl: './app-shell.html',
-  imports: [RouterLink, RouterLinkActive, TranslocoPipe, LanguageSwitcher],
+  imports: [RouterLink, RouterLinkActive, TranslocoPipe, LanguageSwitcher, Icon],
 })
 export class AppShell {
   protected readonly currentUser = inject(CurrentUserService);

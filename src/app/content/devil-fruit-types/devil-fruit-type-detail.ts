@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { CurrentUserService } from '../../identity/current-user';
 import { Breadcrumb, type Crumb } from '../../shared/ui/breadcrumb';
 import { buttonClasses } from '../../shared/ui/button-variants';
+import { Icon } from '../../shared/ui/icon';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import {
   STATUS_LABEL_KEY,
@@ -27,7 +28,7 @@ import { VersionActions } from '../version-actions';
 import { VersionWorkflow } from '../version-workflow';
 import { DevilFruitTypeCard } from './devil-fruit-type-card';
 import { DevilFruitTypeComparison } from './devil-fruit-type-comparison';
-import { namesOf, type DevilFruitType } from './devil-fruit-type.model';
+import { DEVIL_FRUIT_TYPE_ICON, namesOf, type DevilFruitType } from './devil-fruit-type.model';
 
 const ENDPOINT = '/api/content/devil-fruit-types';
 const LIST_ROUTE = '/content/devil-fruit-types';
@@ -36,7 +37,7 @@ const LIST_ROUTE = '/content/devil-fruit-types';
 const PARAM = { version: 'v', tab: 'tab' } as const;
 
 const TABS = [
-  { id: 'overview', labelKey: 'content.detail.tab.overview', icon: '◈' },
+  { id: 'overview', labelKey: 'content.detail.tab.overview', icon: DEVIL_FRUIT_TYPE_ICON },
   { id: 'workflow', labelKey: 'content.detail.tab.workflow', icon: '⚓' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
@@ -61,6 +62,7 @@ const NOT_FOUND_STATUSES = [400, 404];
   templateUrl: './devil-fruit-type-detail.html',
   imports: [
     Breadcrumb,
+    Icon,
     DevilFruitTypeCard,
     DevilFruitTypeComparison,
     LoadingPlaceholder,
@@ -73,6 +75,7 @@ const NOT_FOUND_STATUSES = [400, 404];
   ],
 })
 export class DevilFruitTypeDetail {
+  protected readonly typeIcon = DEVIL_FRUIT_TYPE_ICON;
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -157,7 +160,7 @@ export class DevilFruitTypeDetail {
       { label: this.transloco.translate('content.breadcrumb.contents') },
       {
         label: this.transloco.translate('content.devilFruitTypes.title'),
-        icon: '◈',
+        icon: DEVIL_FRUIT_TYPE_ICON,
         route: LIST_ROUTE,
       },
     ];

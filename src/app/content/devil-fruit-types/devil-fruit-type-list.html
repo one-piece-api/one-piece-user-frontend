@@ -12,8 +12,9 @@
       <h1
         class="flex items-center gap-2.5 font-display text-2xl leading-tight font-bold text-balance text-ocean-950"
       >
-        <span class="text-lg text-ocean-700">◈</span
-        >{{ 'content.devilFruitTypes.title' | transloco }}
+        <app-icon class="text-lg text-ocean-700" [icon]="typeIcon" />{{
+          'content.devilFruitTypes.title' | transloco
+        }}
       </h1>
       <p class="mt-1 max-w-xl font-heading text-[13px] font-bold text-pretty text-ocean-500">
         {{ 'content.devilFruitTypes.lead' | transloco }}

@@ -9,6 +9,7 @@ import type { PageResponse } from '../../shared/http/page-response';
 import { MascotService } from '../../shared/mascot/mascot';
 import { Breadcrumb, type Crumb } from '../../shared/ui/breadcrumb';
 import { buttonClasses } from '../../shared/ui/button-variants';
+import { Icon } from '../../shared/ui/icon';
 import { initialsOf } from '../../shared/ui/initials';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import { Pagination } from '../../shared/ui/pagination';
@@ -23,6 +24,7 @@ import {
 } from '../content.model';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
+import { DEVIL_FRUIT_TYPE_ICON } from './devil-fruit-type.model';
 
 const ENDPOINT = '/api/content/devil-fruit-types';
 
@@ -71,6 +73,7 @@ interface RowView {
   templateUrl: './devil-fruit-type-list.html',
   imports: [
     Breadcrumb,
+    Icon,
     ContentListToolbar,
     LoadingPlaceholder,
     Pagination,
@@ -80,6 +83,7 @@ interface RowView {
   ],
 })
 export class DevilFruitTypeList {
+  protected readonly typeIcon = DEVIL_FRUIT_TYPE_ICON;
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -120,7 +124,10 @@ export class DevilFruitTypeList {
     this.transloco.activeLang();
     return [
       { label: this.transloco.translate('content.breadcrumb.contents') },
-      { label: this.transloco.translate('content.devilFruitTypes.title'), icon: '◈' },
+      {
+        label: this.transloco.translate('content.devilFruitTypes.title'),
+        icon: DEVIL_FRUIT_TYPE_ICON,
+      },
     ];
   });
 

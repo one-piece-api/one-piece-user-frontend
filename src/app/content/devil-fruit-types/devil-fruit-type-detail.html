@@ -38,7 +38,7 @@
             <p
               class="inline-flex items-center gap-1.5 font-display text-xs font-bold tracking-[0.12em] text-flag-600 uppercase"
             >
-              <span class="text-[15px] text-ocean-800">◈</span>
+              <app-icon class="text-[15px] text-ocean-800" [icon]="typeIcon" />
               <span>{{ 'content.devilFruitTypes.one' | transloco }}</span>
               <span class="tracking-wider text-ocean-500/60">{{ serial() }}</span>
             </p>
@@ -133,12 +133,11 @@
               [attr.aria-selected]="tab.id === openTab()"
               (click)="selectTab(tab.id)"
             >
-              <span
+              <app-icon
                 class="text-[13px]"
                 [class]="tab.id === openTab() ? 'text-flag-600' : 'text-ocean-500/60'"
-                aria-hidden="true"
-                >{{ tab.icon }}</span
-              >
+                [icon]="tab.icon"
+              />
               {{ tab.labelKey | transloco }}
               @if (tab.id === 'workflow') {
                 <span

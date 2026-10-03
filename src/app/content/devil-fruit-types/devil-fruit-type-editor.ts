@@ -7,6 +7,7 @@ import { apiErrorOf } from '../../shared/http/api-error';
 import { MascotService } from '../../shared/mascot/mascot';
 import { Breadcrumb, type Crumb } from '../../shared/ui/breadcrumb';
 import { buttonClasses } from '../../shared/ui/button-variants';
+import { Icon } from '../../shared/ui/icon';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import {
@@ -22,6 +23,7 @@ import {
   NAME_MAX_LENGTH,
   ROMAJI_MAX_LENGTH,
   draftFieldKey,
+  DEVIL_FRUIT_TYPE_ICON,
   draftOf,
   isTranslationComplete,
   namesOf,
@@ -96,9 +98,10 @@ interface CheckView {
 @Component({
   selector: 'app-devil-fruit-type-editor',
   templateUrl: './devil-fruit-type-editor.html',
-  imports: [Breadcrumb, ConfirmDialog, LoadingPlaceholder, RouterLink, TranslocoPipe],
+  imports: [Breadcrumb, ConfirmDialog, Icon, LoadingPlaceholder, RouterLink, TranslocoPipe],
 })
 export class DevilFruitTypeEditor {
+  protected readonly typeIcon = DEVIL_FRUIT_TYPE_ICON;
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -264,7 +267,7 @@ export class DevilFruitTypeEditor {
       { label: this.transloco.translate('content.breadcrumb.contents') },
       {
         label: this.transloco.translate('content.devilFruitTypes.title'),
-        icon: '◈',
+        icon: DEVIL_FRUIT_TYPE_ICON,
         route: LIST_ROUTE,
       },
     ];
