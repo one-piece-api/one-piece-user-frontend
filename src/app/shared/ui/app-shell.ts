@@ -26,6 +26,8 @@ export class AppShell {
   protected readonly logoutUrl = logoutUrl();
   protected readonly navGroups = NAV_GROUPS;
   protected readonly drawerOpen = signal(false);
+  /** The sections (by label key) the reader folded; all start open so every entry is in sight. */
+  private readonly collapsedGroups = signal<ReadonlySet<string>>(new Set());
 
   /** One computed string so the open/closed translate utilities are never both present at once. */
   protected readonly asideClasses = computed(
@@ -34,6 +36,20 @@ export class AppShell {
         this.drawerOpen() ? 'translate-x-0' : '-translate-x-full'
       }`,
   );
+
+  protected isCollapsed(groupKey: string): boolean {
+    return this.collapsedGroups().has(groupKey);
+  }
+
+  protected toggleGroup(groupKey: string): void {
+    this.collapsedGroups.update((collapsed) => {
+      const next = new Set(collapsed);
+      if (!next.delete(groupKey)) {
+        next.add(groupKey);
+      }
+      return next;
+    });
+  }
 
   protected visibleItems(group: NavGroup) {
     return group.items.filter((item) =>

@@ -27,36 +27,47 @@
       @for (group of navGroups; track group.labelKey) {
         @if (visibleItems(group).length > 0) {
           <div class="flex flex-col gap-1">
-            <div
-              class="px-3 pb-1 font-heading text-[11px] font-bold tracking-widest text-parchment-100/40 uppercase"
+            <button
+              type="button"
+              (click)="toggleGroup(group.labelKey)"
+              [attr.aria-expanded]="!isCollapsed(group.labelKey)"
+              class="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 pb-1 text-left font-heading text-[11px] font-bold tracking-widest text-parchment-100/40 uppercase transition-colors hover:text-parchment-100/70"
             >
               {{ group.labelKey | transloco }}
-            </div>
-            @for (item of visibleItems(group); track item.id) {
-              @if (item.soon) {
-                <button
-                  type="button"
-                  (click)="announceSoon(item)"
-                  class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left font-heading text-sm font-bold text-parchment-100/45 transition-colors hover:bg-white/5"
-                >
-                  <app-icon class="w-5 text-parchment-100/40" [icon]="item.icon" />
-                  <span class="min-w-0 flex-1">{{ item.label | transloco }}</span>
-                  <span
-                    class="flex-none rounded-md bg-treasure-500/15 px-1.5 py-px text-[10px] font-extrabold text-treasure-500"
-                    >{{ 'shell.nav.soon' | transloco }}</span
+              <span
+                class="text-sm transition-transform duration-150"
+                [class.rotate-90]="!isCollapsed(group.labelKey)"
+                aria-hidden="true"
+                >›</span
+              >
+            </button>
+            @if (!isCollapsed(group.labelKey)) {
+              @for (item of visibleItems(group); track item.id) {
+                @if (item.soon) {
+                  <button
+                    type="button"
+                    (click)="announceSoon(item)"
+                    class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left font-heading text-sm font-bold text-parchment-100/45 transition-colors hover:bg-white/5"
                   >
-                </button>
-              } @else {
-                <a
-                  [routerLink]="item.route"
-                  routerLinkActive="bg-white/10 text-parchment-100"
-                  [routerLinkActiveOptions]="{ exact: !!item.exact }"
-                  (click)="closeDrawer()"
-                  class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-parchment-100/70 transition-colors hover:bg-white/5 hover:text-parchment-100"
-                >
-                  <app-icon class="w-5 text-treasure-500" [icon]="item.icon" />
-                  <span>{{ item.label | transloco }}</span>
-                </a>
+                    <app-icon class="w-5 text-parchment-100/40" [icon]="item.icon" />
+                    <span class="min-w-0 flex-1">{{ item.label | transloco }}</span>
+                    <span
+                      class="flex-none rounded-md bg-treasure-500/15 px-1.5 py-px text-[10px] font-extrabold text-treasure-500"
+                      >{{ 'shell.nav.soon' | transloco }}</span
+                    >
+                  </button>
+                } @else {
+                  <a
+                    [routerLink]="item.route"
+                    routerLinkActive="bg-white/10 text-parchment-100"
+                    [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                    (click)="closeDrawer()"
+                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-parchment-100/70 transition-colors hover:bg-white/5 hover:text-parchment-100"
+                  >
+                    <app-icon class="w-5 text-treasure-500" [icon]="item.icon" />
+                    <span>{{ item.label | transloco }}</span>
+                  </a>
+                }
               }
             }
           </div>

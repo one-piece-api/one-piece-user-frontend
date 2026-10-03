@@ -117,17 +117,50 @@ describe('AppShell', () => {
     expect(hrefs).toContain('/content/devil-fruit-types');
     expect(root.textContent).toContain('Devil Fruit Types');
 
-    const announced = Array.from(root.querySelectorAll('nav button')).map((button) =>
-      Array.from(button.querySelectorAll(':scope > :is(app-icon, span)'))
-        .map((part) => part.textContent?.trim())
-        .join(' ')
-        .trim(),
+    const announced = Array.from(root.querySelectorAll('nav button:not([aria-expanded])')).map(
+      (button) =>
+        Array.from(button.querySelectorAll(':scope > :is(app-icon, span)'))
+          .map((part) => part.textContent?.trim())
+          .join(' ')
+          .trim(),
     );
     expect(announced).toEqual([
       'Characters coming soon',
       'Devil Fruits coming soon',
       'Crews coming soon',
     ]);
+  });
+
+  it('folds and unfolds a section from its heading', async () => {
+    const fixture = TestBed.createComponent(AppShell);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/me').flush({
+      username: 'zoro',
+      email: 'zoro@onepiece.local',
+      roles: ['REVIEWER'],
+      permissions: ['content:read'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const heading = Array.from(root.querySelectorAll<HTMLButtonElement>('nav button')).find(
+      (button) => button.textContent?.includes('Contents'),
+    )!;
+    expect(heading.getAttribute('aria-expanded')).toBe('true');
+    expect(root.textContent).toContain('Devil Fruit Types');
+
+    heading.click();
+    fixture.detectChanges();
+
+    expect(heading.getAttribute('aria-expanded')).toBe('false');
+    expect(root.textContent).not.toContain('Devil Fruit Types');
+
+    heading.click();
+    fixture.detectChanges();
+
+    expect(root.textContent).toContain('Devil Fruit Types');
   });
 
   it('hides the content section from who lacks content:read', async () => {
@@ -145,7 +178,7 @@ describe('AppShell', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).not.toContain('Contents');
-    expect(root.querySelectorAll('nav button').length).toBe(0);
+    expect(root.querySelectorAll('nav button:not([aria-expanded])').length).toBe(0);
   });
 
   it('lets the mascot say an announced section is not open yet', async () => {
@@ -162,7 +195,7 @@ describe('AppShell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    (root.querySelector('nav button') as HTMLButtonElement).click();
+    (root.querySelector('nav button:not([aria-expanded])') as HTMLButtonElement).click();
 
     const mascot = TestBed.inject(MascotService);
     expect(mascot.open()).toBe(true);
