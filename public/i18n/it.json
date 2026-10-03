@@ -98,6 +98,30 @@
           "text": "Aggiungere una lingua qui la rende obbligatoria alla prossima invio in revisione di ogni bozza in corso - i contenuti già pubblicati restano intatti.",
           "code": "modello di localizzazione"
         }
+      },
+      "dashboard": {
+        "tip1": {
+          "text": "Tocca un contatore per aprirne la pagina: lì prendi in carico, approvi o pubblichi direttamente dalla riga, senza aprire la scheda.",
+          "code": "dashboard · pagine di stato"
+        },
+        "tip2": {
+          "text": "Nelle pagine Bozza e In revisione puoi restringere l'elenco alle tue bozze, o alle revisioni che hai in carico: il lavoro del resto della ciurma resta a un tocco.",
+          "code": "prima il tuo lavoro"
+        }
+      },
+      "content": {
+        "tip1": {
+          "text": "Ogni voce fa la stessa rotta: bozza, revisione, pubblicazione. Nessuno revisiona quello che ha scritto.",
+          "code": "content:review → content:publish"
+        },
+        "tip2": {
+          "text": "Il romaji è unico e condiviso da tutte le lingue: cambialo e cambia per IT ed EN insieme.",
+          "code": "romaji · chiave unica"
+        },
+        "tip3": {
+          "text": "Ogni versione resta nello storico: da una precedente puoi aprire una nuova bozza e rimandarla in revisione.",
+          "code": "versioni · nello storico"
+        }
       }
     }
   },

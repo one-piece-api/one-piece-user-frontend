@@ -98,6 +98,30 @@
           "text": "Adding a language here makes it required on every in-progress draft's next submission - already-published content is untouched.",
           "code": "localization model"
         }
+      },
+      "dashboard": {
+        "tip1": {
+          "text": "Tap a counter to open its status page: there you claim, approve or publish right from the row, without opening the card.",
+          "code": "dashboard · status pages"
+        },
+        "tip2": {
+          "text": "On the Draft and In review pages you can narrow the list to your own drafts, or to the reviews you hold - the rest of the crew's work stays one tap away.",
+          "code": "your work first"
+        }
+      },
+      "content": {
+        "tip1": {
+          "text": "Every entry sails the same route: draft, review, publishing. Nobody reviews what they wrote themselves.",
+          "code": "content:review → content:publish"
+        },
+        "tip2": {
+          "text": "The romaji is unique and shared by every language: change it and it changes for IT and EN alike.",
+          "code": "romaji · unique key"
+        },
+        "tip3": {
+          "text": "Every version stays in the log: from an older one you can open a new draft and send it back through review.",
+          "code": "versions · in the history"
+        }
       }
     }
   },

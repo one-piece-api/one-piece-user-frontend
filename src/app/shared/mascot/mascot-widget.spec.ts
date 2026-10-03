@@ -120,6 +120,30 @@ describe('MascotWidget', () => {
     expect(mascotService.message().code).toBe('languages:manage');
   });
 
+  it('pipes up with a contextual tip on the dashboard and its status pages', async () => {
+    vi.useFakeTimers();
+    const fixture = await createAt('/dashboard/in-review');
+    const mascotService = TestBed.inject(MascotService);
+
+    vi.advanceTimersByTime(24_000);
+    fixture.detectChanges();
+
+    expect(mascotService.open()).toBe(true);
+    expect(mascotService.message().code).toBe('dashboard · status pages');
+  });
+
+  it('pipes up with a contextual tip in a content section', async () => {
+    vi.useFakeTimers();
+    const fixture = await createAt('/content/devil-fruit-types');
+    const mascotService = TestBed.inject(MascotService);
+
+    vi.advanceTimersByTime(24_000);
+    fixture.detectChanges();
+
+    expect(mascotService.open()).toBe(true);
+    expect(mascotService.message().code).toBe('content:review → content:publish');
+  });
+
   it('stays quiet on routes with no tip topic', async () => {
     vi.useFakeTimers();
     await createAt('/forbidden');

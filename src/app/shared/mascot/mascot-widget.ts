@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MascotService, type MascotTone } from './mascot';
 
-type TipTopic = 'profile' | 'users' | 'roles' | 'audit' | 'languages';
+type TipTopic = 'profile' | 'users' | 'roles' | 'audit' | 'languages' | 'dashboard' | 'content';
 
 interface Tip {
   readonly text: string;
@@ -18,6 +18,8 @@ const TIPS: Record<TipTopic, readonly string[]> = {
   roles: ['mascot.tips.roles.tip1', 'mascot.tips.roles.tip2', 'mascot.tips.roles.tip3'],
   audit: ['mascot.tips.audit.tip1', 'mascot.tips.audit.tip2'],
   languages: ['mascot.tips.languages.tip1', 'mascot.tips.languages.tip2'],
+  dashboard: ['mascot.tips.dashboard.tip1', 'mascot.tips.dashboard.tip2'],
+  content: ['mascot.tips.content.tip1', 'mascot.tips.content.tip2', 'mascot.tips.content.tip3'],
 };
 
 const TIP_INTERVAL_MS = 24_000;
@@ -28,6 +30,8 @@ function topicForUrl(url: string): TipTopic | null {
   if (url.startsWith('/audit')) return 'audit';
   if (url.startsWith('/languages')) return 'languages';
   if (url.startsWith('/profile')) return 'profile';
+  if (url.startsWith('/dashboard')) return 'dashboard';
+  if (url.startsWith('/content')) return 'content';
   return null;
 }
 
