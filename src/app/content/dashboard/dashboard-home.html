@@ -17,9 +17,10 @@
       data-testid="dashboard-tiles"
     >
       @for (tile of tiles(); track tile.status) {
-        <section
+        <a
+          [routerLink]="tile.route"
           animate.enter="anim-pop-enter"
-          class="relative flex min-w-0 flex-col gap-2.5 overflow-hidden rounded-[20px] border-2 px-3.5 pt-3.5 pb-3.25"
+          class="relative flex min-w-0 flex-col gap-2.5 overflow-hidden rounded-[20px] border-2 px-3.5 pt-3.5 pb-3.25 transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-treasure-500"
           [class]="tile.classes.tile"
           [class.opacity-60]="tile.count === 0"
           [attr.data-status]="tile.status"
@@ -66,7 +67,7 @@
               {{ tile.quipKey | transloco }}
             </p>
           }
-        </section>
+        </a>
       }
     </div>
   }

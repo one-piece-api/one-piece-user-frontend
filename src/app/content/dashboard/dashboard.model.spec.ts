@@ -3,7 +3,13 @@ import {
   activityName,
   activityStatus,
   activityVerbKey,
+  hasMineScope,
+  legendFor,
   mineTagKey,
+  rowActions,
+  rowNoteKey,
+  statusPageOf,
+  statusPageRoute,
   type Activity,
 } from './dashboard.model';
 
@@ -87,5 +93,106 @@ describe('activityLink', () => {
   it('leads nowhere once the caller no longer sees the content, or it is gone', () => {
     expect(activityLink(activity({ title: null }))).toBeNull();
     expect(activityLink(activity({ entityType: null, title: null }))).toBeNull();
+  });
+});
+
+describe('status pages', () => {
+  it('names a status page by its slug, and nothing else', () => {
+    expect(statusPageOf('in-review')?.status).toBe('IN_REVIEW');
+    expect(statusPageOf('superseded')).toBeNull();
+    expect(statusPageOf(null)).toBeNull();
+  });
+
+  it('leads to the page of a status, or to the overview for one with none', () => {
+    expect(statusPageRoute('READY_TO_PUBLISH')).toBe('/dashboard/ready');
+    expect(statusPageRoute('SUPERSEDED')).toBe('/dashboard');
+  });
+
+  it('opens Review to writers and reviewers, Draft to writers only', () => {
+    expect(statusPageOf('in-review')?.anyPermission).toEqual(['content:write', 'content:review']);
+    expect(statusPageOf('draft')?.anyPermission).toEqual(['content:write']);
+  });
+
+  it('has a "mine" for drafts and reviews only', () => {
+    expect(hasMineScope('DRAFT')).toBe(true);
+    expect(hasMineScope('IN_REVIEW')).toBe(true);
+    expect(hasMineScope('PUBLISHED')).toBe(false);
+  });
+});
+
+describe('rowActions', () => {
+  it('offers claiming first and letting go last, as in the mockup', () => {
+    expect(rowActions({ allowedActions: ['RELEASE', 'REJECT', 'APPROVE'] })).toEqual([
+      'APPROVE',
+      'REJECT',
+      'RELEASE',
+    ]);
+    expect(rowActions({ allowedActions: ['DELETE', 'SUBMIT', 'EDIT'] })).toEqual([
+      'EDIT',
+      'SUBMIT',
+      'DELETE',
+    ]);
+  });
+
+  it('offers at most four', () => {
+    const many = rowActions({
+      allowedActions: ['EDIT', 'DELETE', 'SUBMIT', 'APPROVE', 'REJECT', 'RELEASE'],
+    });
+    expect(many).toHaveLength(4);
+  });
+});
+
+describe('rowNoteKey', () => {
+  const nami = { id: 'u1', username: 'nami', email: 'nami@onepiece.local' };
+  const zoro = { id: 'u2', username: 'zoro', email: 'zoro@onepiece.local' };
+
+  it('says nothing when the row offers an action', () => {
+    expect(
+      rowNoteKey(
+        { allowedActions: ['CLAIM'], status: 'IN_REVIEW', author: nami, claimant: null },
+        'zoro',
+      ),
+    ).toBeNull();
+  });
+
+  it('tells the author their version waits for a reviewer', () => {
+    expect(
+      rowNoteKey({ allowedActions: [], status: 'IN_REVIEW', author: nami, claimant: null }, 'nami'),
+    ).toBe('content.dashboard.note.awaitingReviewer');
+  });
+
+  it('says a review held by someone else is taken', () => {
+    expect(
+      rowNoteKey({ allowedActions: [], status: 'IN_REVIEW', author: nami, claimant: zoro }, 'law'),
+    ).toBe('content.dashboard.note.busy');
+  });
+
+  it('names whose draft it is', () => {
+    expect(
+      rowNoteKey({ allowedActions: [], status: 'DRAFT', author: nami, claimant: null }, 'zoro'),
+    ).toBe('content.dashboard.note.draftOf');
+  });
+
+  it('is read only otherwise', () => {
+    expect(
+      rowNoteKey({ allowedActions: [], status: 'PUBLISHED', author: nami, claimant: null }, 'zoro'),
+    ).toBe('content.dashboard.note.readOnly');
+  });
+});
+
+describe('legendFor', () => {
+  it('describes the actions of the status the caller holds a permission for', () => {
+    const reviewer = (permission: string) =>
+      ['content:read', 'content:review'].includes(permission);
+    expect(legendFor('IN_REVIEW', reviewer).map((entry) => entry.action)).toEqual([
+      'CLAIM',
+      'APPROVE',
+      'REJECT',
+      'RELEASE',
+    ]);
+  });
+
+  it('is empty for whoever can only read', () => {
+    expect(legendFor('PUBLISHED', (permission) => permission === 'content:read')).toEqual([]);
   });
 });

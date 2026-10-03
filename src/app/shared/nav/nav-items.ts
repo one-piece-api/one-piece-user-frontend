@@ -1,3 +1,7 @@
+import { STATUS_LABEL_KEY } from '../../content/content.model';
+import { STATUS_PAGES, statusPageRoute } from '../../content/dashboard/dashboard.model';
+import { STATUS_GLYPH } from '../../content/status-badge';
+
 export interface NavItem {
   readonly id: string;
   /** A `transloco` translation key, not display text - the shell resolves it at render time. */
@@ -7,6 +11,10 @@ export interface NavItem {
   readonly route?: string;
   /** No permission required (undefined) means every signed-in user sees the item. */
   readonly permission?: string;
+  /** Seen by whoever holds any of these - when one permission alone does not say it. */
+  readonly anyPermission?: readonly string[];
+  /** Highlighted only on its own route, not on the ones nested under it. */
+  readonly exact?: boolean;
   /** Announced but not built yet: shown with a "coming soon" tag, and not a link. */
   readonly soon?: boolean;
 }
@@ -20,7 +28,7 @@ export interface NavGroup {
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
     // The overview across entity types (docs/user-flows/content-editorial-workflow.md 6);
-    // one entry per status joins it with the status pages.
+    // then one entry per status page, for whoever sees that status.
     labelKey: 'shell.nav.dashboard',
     items: [
       {
@@ -29,7 +37,15 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         icon: '◎',
         route: '/dashboard',
         permission: 'content:read',
+        exact: true,
       },
+      ...STATUS_PAGES.map((page) => ({
+        id: `dashboard:${page.slug}`,
+        label: STATUS_LABEL_KEY[page.status],
+        icon: STATUS_GLYPH[page.status],
+        route: statusPageRoute(page.status),
+        anyPermission: page.anyPermission,
+      })),
     ],
   },
   {

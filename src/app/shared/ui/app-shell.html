@@ -50,7 +50,7 @@
                 <a
                   [routerLink]="item.route"
                   routerLinkActive="bg-white/10 text-parchment-100"
-                  [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+                  [routerLinkActiveOptions]="{ exact: !!item.exact }"
                   (click)="closeDrawer()"
                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-parchment-100/70 transition-colors hover:bg-white/5 hover:text-parchment-100"
                 >

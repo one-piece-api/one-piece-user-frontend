@@ -837,6 +837,97 @@
           "VERSION_RESTORED": "You put back online",
           "other": "You worked on"
         }
+      },
+      "status": {
+        "kicker": "Dashboard · status",
+        "back": "Back to the dashboard",
+        "loading": "Fetching the contents…",
+        "error": "Arrr! This status could not be loaded.",
+        "scope": {
+          "draftAll": "All drafts",
+          "draftMine": "My drafts",
+          "reviewAll": "All in review",
+          "reviewMine": "Claimed by me"
+        },
+        "legend": {
+          "title": "From here you can",
+          "show": "Legend ▾",
+          "hide": "Hide ▴",
+          "none": "Only browse: open an entry for its detail.",
+          "newDraft": "New draft",
+          "desc": {
+            "DRAFT": {
+              "EDIT": "open the draft in the editor",
+              "SUBMIT": "hand it to the reviewers; if fields are missing, the Den Den Mushi tells you which",
+              "DELETE": "delete your draft, after a confirmation"
+            },
+            "IN_REVIEW": {
+              "CLAIM": "the review becomes yours, the others see it taken",
+              "APPROVE": "it moves to Ready to publish",
+              "REJECT": "back to its author with a mandatory reason",
+              "RELEASE": "puts it back in the queue for another reviewer",
+              "PULL_BACK": "brings one of yours back to draft"
+            },
+            "REJECTED": {
+              "RETURN_TO_DRAFT": "brings it back to draft to fix what the rejection says"
+            },
+            "READY_TO_PUBLISH": {
+              "PUBLISH": "puts it online for the readers",
+              "ARCHIVE": "sets it aside without publishing it"
+            },
+            "PUBLISHED": {
+              "RETIRE": "takes it off the site, it stays in the history",
+              "OPEN_NEW_VERSION": "opens a new version; the online one stays until you publish"
+            },
+            "ARCHIVED": {
+              "RECOVER": "brings it back among the ready to publish",
+              "OPEN_NEW_VERSION": "brings it back to work as a new version"
+            },
+            "RETIRED": {
+              "RESTORE": "puts this version back online",
+              "OPEN_NEW_VERSION": "opens a new version to review"
+            }
+          }
+        },
+        "filter": {
+          "entity": "Entity",
+          "author": "Author",
+          "sort": "Sort",
+          "allEntities": "All",
+          "anyone": "Anyone",
+          "reset": "Reset"
+        },
+        "sort": {
+          "desc": "Newest first",
+          "asc": "Oldest first"
+        },
+        "result": {
+          "one": "{{shown}} entry",
+          "many": "{{shown}} entries",
+          "of": "of {{total}}"
+        },
+        "column": {
+          "name": "Name",
+          "entity": "Entity",
+          "author": "Author",
+          "updated": "Updated",
+          "actions": "Actions"
+        },
+        "claim": {
+          "you": "✋ claimed by you",
+          "other": "✋ claimed by {{name}}"
+        },
+        "empty": {
+          "draftMine": "You have no open drafts.",
+          "reviewMine": "You hold no reviews.",
+          "any": "Nothing in this status."
+        }
+      },
+      "note": {
+        "awaitingReviewer": "waiting for a reviewer",
+        "busy": "taken",
+        "draftOf": "{{author}}'s draft",
+        "readOnly": "read only"
       }
     }
   }

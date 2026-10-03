@@ -1,0 +1,362 @@
+<div class="flex w-full max-w-5xl flex-col gap-4.5">
+  @let head = heading();
+  <div
+    animate.enter="anim-card-enter"
+    class="flex max-w-full items-center gap-3 self-start rounded-xl bg-white/80 py-2 pr-4 pl-2 shadow-md backdrop-blur-sm"
+  >
+    <a
+      [routerLink]="dashboardRoute"
+      class="grid size-9.5 flex-none place-items-center rounded-[10px] bg-parchment-200 font-display text-xl font-bold text-ocean-800 hover:bg-parchment-50"
+      [attr.aria-label]="'content.dashboard.status.back' | transloco"
+      >‹</a
+    >
+    <div class="min-w-0">
+      <p
+        class="font-heading text-[11px] font-bold tracking-widest whitespace-nowrap text-flag-600 uppercase"
+      >
+        {{ 'content.dashboard.status.kicker' | transloco }}
+      </p>
+      <h1
+        class="flex items-center gap-2.5 font-display text-2xl leading-tight font-bold text-ocean-950"
+      >
+        <span
+          class="grid size-7.5 flex-none place-items-center rounded-[9px] text-[15px]"
+          [class]="head.glyphClasses"
+          aria-hidden="true"
+          >{{ head.glyph }}</span
+        >
+        {{ head.labelKey | transloco }}
+      </h1>
+    </div>
+  </div>
+
+  <section class="min-w-0 rounded-[20px] bg-parchment-100 p-5 shadow-lg">
+    <div class="mb-3.5 flex flex-wrap items-center justify-between gap-3">
+      <p
+        class="max-w-[520px] flex-[1_1_220px] font-heading text-[13px] leading-snug font-bold text-pretty text-status-draft-ink"
+      >
+        {{ head.meaningKey | transloco }}
+      </p>
+      @if (scopes().length) {
+        <div class="flex gap-1 rounded-xl bg-parchment-200 p-1" role="tablist">
+          @for (scope of scopes(); track scope.mine) {
+            <button
+              type="button"
+              role="tab"
+              class="flex cursor-pointer items-center gap-1.75 rounded-[9px] px-3.25 py-1.75 font-heading text-[13px] font-extrabold whitespace-nowrap"
+              [class]="
+                scope.selected
+                  ? 'bg-white text-ocean-950 shadow-[0_2px_6px_rgba(18,35,90,.14)]'
+                  : 'text-ocean-500'
+              "
+              [attr.aria-selected]="scope.selected"
+              data-testid="status-scope"
+              (click)="selectScope(scope.mine)"
+            >
+              {{ scope.labelKey | transloco }}
+              <span
+                class="rounded-full px-1.75 py-px text-[11px]"
+                [class]="
+                  scope.selected
+                    ? 'bg-treasure-500 text-ocean-950'
+                    : 'bg-parchment-50 text-ocean-500'
+                "
+                >{{ scope.count }}</span
+              >
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="mb-3.5">
+      @if (legend().length) {
+        <button
+          type="button"
+          class="flex w-full cursor-pointer items-center gap-2.5 rounded-xl bg-parchment-200/60 px-3 py-2 text-left"
+          [attr.aria-expanded]="legendOpen()"
+          data-testid="status-legend-toggle"
+          (click)="toggleLegend()"
+        >
+          <span
+            class="font-heading text-xs font-extrabold tracking-wider text-ocean-500 uppercase"
+            >{{ 'content.dashboard.status.legend.title' | transloco }}</span
+          >
+          @if (!legendOpen()) {
+            <span class="flex gap-1">
+              @for (entry of legend(); track entry.action) {
+                <span
+                  class="grid size-5.5 place-items-center rounded-md text-[11px]"
+                  [class]="entry.classes"
+                  [title]="entry.labelKey | transloco: { version: '' }"
+                  aria-hidden="true"
+                  >{{ entry.glyph }}</span
+                >
+              }
+            </span>
+          }
+          <span class="ml-auto font-heading text-xs font-extrabold text-ocean-800">{{
+            (legendOpen()
+              ? 'content.dashboard.status.legend.hide'
+              : 'content.dashboard.status.legend.show'
+            ) | transloco
+          }}</span>
+        </button>
+        @if (legendOpen()) {
+          <div class="mt-2 grid gap-1.5 px-1" data-testid="status-legend">
+            @for (entry of legend(); track entry.action) {
+              <p
+                class="flex items-start gap-2.5 font-heading text-[13px] leading-snug font-bold text-ocean-500"
+              >
+                <span
+                  class="grid size-6 flex-none place-items-center rounded-md text-xs"
+                  [class]="entry.classes"
+                  aria-hidden="true"
+                  >{{ entry.glyph }}</span
+                >
+                <span
+                  ><strong class="text-ocean-950">{{
+                    entry.labelKey | transloco: { version: '' }
+                  }}</strong>
+                  · {{ entry.descriptionKey | transloco }}</span
+                >
+              </p>
+            }
+          </div>
+        }
+      } @else {
+        <p class="font-heading text-xs font-bold text-ocean-500" data-testid="status-legend-none">
+          {{ 'content.dashboard.status.legend.none' | transloco }}
+        </p>
+      }
+    </div>
+
+    <div class="mb-2.5 flex flex-wrap items-end gap-2.5">
+      <label class="grid gap-1">
+        <span
+          class="font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/70 uppercase"
+          >{{ 'content.dashboard.status.filter.entity' | transloco }}</span
+        >
+        <select
+          class="rounded-[10px] border-2 border-parchment-200 bg-white px-2.5 py-1.5 font-heading text-[13px] font-bold text-ocean-950"
+          data-testid="status-filter-entity"
+          (change)="selectEntity($any($event.target).value)"
+        >
+          <option value="" [selected]="entity() === null">
+            {{ 'content.dashboard.status.filter.allEntities' | transloco }}
+          </option>
+          @for (option of entityOptions; track option.type) {
+            <option [value]="option.type" [selected]="entity() === option.type">
+              {{ option.labelKey | transloco }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="grid gap-1">
+        <span
+          class="font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/70 uppercase"
+          >{{ 'content.dashboard.status.filter.author' | transloco }}</span
+        >
+        <select
+          class="rounded-[10px] border-2 border-parchment-200 bg-white px-2.5 py-1.5 font-heading text-[13px] font-bold text-ocean-950"
+          data-testid="status-filter-author"
+          (change)="selectAuthor($any($event.target).value)"
+        >
+          @let authorsShown = authorOptions();
+          <option value="" [selected]="author() === null">
+            {{ 'content.dashboard.status.filter.anyone' | transloco }}
+          </option>
+          @if (authorsShown.includesMe) {
+            <option [value]="authorsShown.me" [selected]="author() === authorsShown.me">
+              {{ 'content.list.you' | transloco }}
+            </option>
+          }
+          @for (user of authorsShown.others; track user.username) {
+            <option [value]="user.username" [selected]="author() === user.username">
+              {{ user.username }}
+            </option>
+          }
+        </select>
+      </label>
+      <label class="grid gap-1">
+        <span
+          class="font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/70 uppercase"
+          >{{ 'content.dashboard.status.filter.sort' | transloco }}</span
+        >
+        <select
+          class="rounded-[10px] border-2 border-parchment-200 bg-white px-2.5 py-1.5 font-heading text-[13px] font-bold text-ocean-950"
+          data-testid="status-filter-sort"
+          (change)="selectSort($any($event.target).value)"
+        >
+          <option value="desc" [selected]="!ascending()">
+            {{ 'content.dashboard.status.sort.desc' | transloco }}
+          </option>
+          <option value="asc" [selected]="ascending()">
+            {{ 'content.dashboard.status.sort.asc' | transloco }}
+          </option>
+        </select>
+      </label>
+      <button
+        type="button"
+        class="cursor-pointer rounded-[10px] bg-parchment-200 px-3.5 py-2 font-heading text-[13px] font-extrabold text-ocean-500 disabled:cursor-default disabled:opacity-50"
+        [disabled]="!filtered() && !ascending()"
+        data-testid="status-filter-reset"
+        (click)="resetFilters()"
+      >
+        {{ 'content.dashboard.status.filter.reset' | transloco }}
+      </button>
+    </div>
+
+    <p
+      class="mb-2.5 font-heading text-xs font-extrabold text-ocean-500/70"
+      data-testid="status-result"
+    >
+      {{ resultLine() }}
+    </p>
+
+    @if (result.error()) {
+      <p class="font-heading text-flag-700">{{ 'content.dashboard.status.error' | transloco }}</p>
+    } @else if (!result.hasValue()) {
+      <app-loading-placeholder [label]="'content.dashboard.status.loading' | transloco" />
+    } @else {
+      <div
+        class="hidden grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,.9fr)_auto] gap-3 border-b border-parchment-200 px-3 pb-2 font-heading text-[11px] font-extrabold tracking-widest text-ocean-500/70 uppercase lg:grid"
+      >
+        <span>{{ 'content.dashboard.status.column.name' | transloco }}</span>
+        <span>{{ 'content.dashboard.status.column.entity' | transloco }}</span>
+        <span>{{ 'content.dashboard.status.column.author' | transloco }}</span>
+        <button
+          type="button"
+          class="cursor-pointer text-left tracking-widest uppercase"
+          data-testid="status-sort-toggle"
+          (click)="toggleSort()"
+        >
+          {{ 'content.dashboard.status.column.updated' | transloco }} {{ ascending() ? '↑' : '↓' }}
+        </button>
+        <span class="min-w-[120px] text-right">{{
+          'content.dashboard.status.column.actions' | transloco
+        }}</span>
+      </div>
+
+      <div class="grid gap-1.5 pt-1.5">
+        @for (view of rows(); track view.row.contentId) {
+          <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -- the row's name is the keyboard-reachable link; a click anywhere else on the row is a pointer shortcut to it -->
+          <div
+            class="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border-2 border-transparent bg-parchment-200/40 px-3 py-2.5 hover:border-ocean-100 hover:bg-ocean-100/50 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,.9fr)_auto]"
+            data-testid="status-row"
+            (click)="open(view)"
+          >
+            <div class="min-w-0">
+              <p class="flex min-w-0 flex-wrap items-center gap-2">
+                <a
+                  [routerLink]="view.link"
+                  [queryParams]="{ v: view.versionParam }"
+                  class="min-w-0 truncate font-display text-[15px] font-bold text-ocean-950 hover:text-flag-600"
+                  data-testid="status-row-link"
+                  (click)="$event.stopPropagation()"
+                  >{{ view.name }}</a
+                >
+                <span class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                  >v{{ view.versionParam }}</span
+                >
+                @if (view.claim) {
+                  <span
+                    class="rounded-full px-2 py-px font-heading text-[11px] font-extrabold whitespace-nowrap"
+                    [class]="
+                      view.claimedByMe
+                        ? 'bg-treasure-100 text-treasure-700'
+                        : 'bg-parchment-200 text-ocean-500'
+                    "
+                    data-testid="status-row-claim"
+                    >{{ view.claim }}</span
+                  >
+                }
+              </p>
+              <p
+                class="mt-0.5 flex flex-wrap items-center gap-x-2 font-heading text-xs font-bold text-ocean-500 lg:hidden"
+              >
+                <span>{{ view.entityLabel }}</span>
+                <span>· {{ view.author }}</span>
+                <span>· {{ view.updated }}</span>
+              </p>
+            </div>
+            <span class="hidden font-heading text-[13px] font-bold text-ocean-500 lg:block">{{
+              view.entityLabel
+            }}</span>
+            <span class="hidden min-w-0 items-center gap-2 lg:flex">
+              <span
+                class="grid size-6.5 flex-none place-items-center rounded-full font-heading text-[10px] font-extrabold"
+                [class]="
+                  view.authoredByMe
+                    ? 'bg-treasure-500 text-ocean-950'
+                    : 'bg-parchment-200 text-ocean-800'
+                "
+                aria-hidden="true"
+                >{{ view.authorInitials }}</span
+              >
+              <span class="truncate font-heading text-[13px] font-bold text-ocean-950">{{
+                view.author
+              }}</span>
+            </span>
+            <span class="hidden font-heading text-xs font-bold text-ocean-500 lg:block">{{
+              view.updated
+            }}</span>
+            <span class="flex min-w-[120px] flex-wrap items-center justify-end gap-1.5">
+              @for (icon of view.actions; track icon.action) {
+                <span class="group relative">
+                  <button
+                    type="button"
+                    class="grid size-8.5 cursor-pointer place-items-center rounded-[10px] font-display text-base font-bold transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+                    [class]="icon.classes"
+                    [attr.aria-label]="icon.label"
+                    [disabled]="acting()"
+                    [attr.data-action]="icon.action"
+                    data-testid="status-row-action"
+                    (click)="act($event, view, icon.action)"
+                  >
+                    {{ icon.glyph }}
+                  </button>
+                  <span
+                    class="pointer-events-none absolute right-0 bottom-full z-10 mb-1.5 hidden rounded-lg bg-ocean-950 px-2.5 py-1 font-heading text-xs font-bold whitespace-nowrap text-white shadow-lg group-focus-within:block group-hover:block"
+                    role="tooltip"
+                    >{{ icon.label }}</span
+                  >
+                </span>
+              }
+              @if (view.note) {
+                <span
+                  class="font-heading text-xs font-bold text-ocean-500/70 italic"
+                  data-testid="status-row-note"
+                  >{{ view.note }}</span
+                >
+              }
+            </span>
+          </div>
+        } @empty {
+          <div
+            class="flex flex-col items-center gap-2 rounded-xl bg-parchment-200/40 px-4 py-7 text-center font-heading text-sm font-bold text-ocean-500"
+            data-testid="status-empty"
+          >
+            <img src="assets/denden.png" alt="" class="w-14" />
+            {{ emptyKey() | transloco }}
+          </div>
+        }
+      </div>
+
+      @if (result.value().rows.totalElements > 0) {
+        <div class="mt-3.5">
+          <app-pagination
+            [range]="range()"
+            [currentPage]="result.value().rows.page"
+            [totalPages]="result.value().rows.totalPages"
+            (previous)="goToPage(result.value().rows.page - 1)"
+            (next)="goToPage(result.value().rows.page + 1)"
+            (jumpTo)="goToPage($event)"
+          />
+        </div>
+      }
+    }
+  </section>
+
+  <app-version-actions [reload]="reload" />
+</div>

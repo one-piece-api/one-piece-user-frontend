@@ -35,7 +35,11 @@ export class AppShell {
   );
 
   protected visibleItems(group: NavGroup) {
-    return group.items.filter((item) => this.currentUser.hasPermission(item.permission));
+    return group.items.filter((item) =>
+      item.anyPermission
+        ? this.currentUser.hasAnyPermission(item.anyPermission)
+        : this.currentUser.hasPermission(item.permission),
+    );
   }
 
   /** An announced section is not a destination yet: the mascot says so instead. */

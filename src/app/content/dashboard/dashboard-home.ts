@@ -16,6 +16,7 @@ import {
   activityStatus,
   activityVerbKey,
   mineTagKey,
+  statusPageRoute,
   type Activity,
   type Dashboard,
 } from './dashboard.model';
@@ -99,7 +100,7 @@ interface ActivityRow {
  * The dashboard home (UF-CNT-19): a greeting with the caller's roles, one tile per status
  * they see - how many contents are there, and how many are theirs - and their own latest
  * actions. Every number comes from the backend, already limited to what the caller sees;
- * the tiles lead nowhere yet - the status pages come next (implementation plan, Step 17).
+ * each tile opens its status page.
  */
 @Component({
   selector: 'app-dashboard-home',
@@ -130,6 +131,7 @@ export class DashboardHome {
       mine: tile.mine,
       mineTagKey: mineTagKey(tile),
       classes: TILE_CLASSES[tile.status],
+      route: statusPageRoute(tile.status),
     })),
   );
 

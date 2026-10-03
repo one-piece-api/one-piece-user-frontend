@@ -1,13 +1,11 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink, type Params } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { CurrentUserService } from '../../identity/current-user';
-import { MascotService } from '../../shared/mascot/mascot';
 import { Breadcrumb, type Crumb } from '../../shared/ui/breadcrumb';
 import { buttonClasses } from '../../shared/ui/button-variants';
-import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import {
   STATUS_LABEL_KEY,
@@ -22,24 +20,14 @@ import {
 import { LanguageCatalogService } from '../language-catalog';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
-import { RejectDialog } from '../reject-dialog';
 import { VersionChain } from '../version-chain';
 import { defaultBase } from '../version-comparison';
 import { REJECTED_ACTION } from '../version-event';
-import {
-  NEW_VERSION,
-  VERSION_TRANSITIONS,
-  confirmsOverride,
-  newVersionDoneKey,
-  overriddenUser,
-  transitionRefusal,
-  type TransitionRefusal,
-  type VersionTransition,
-} from '../version-transition';
+import { VersionActions } from '../version-actions';
 import { VersionWorkflow } from '../version-workflow';
 import { DevilFruitTypeCard } from './devil-fruit-type-card';
 import { DevilFruitTypeComparison } from './devil-fruit-type-comparison';
-import { draftFieldKey, namesOf, type DevilFruitType } from './devil-fruit-type.model';
+import { namesOf, type DevilFruitType } from './devil-fruit-type.model';
 
 const ENDPOINT = '/api/content/devil-fruit-types';
 const LIST_ROUTE = '/content/devil-fruit-types';
@@ -73,14 +61,13 @@ const NOT_FOUND_STATUSES = [400, 404];
   templateUrl: './devil-fruit-type-detail.html',
   imports: [
     Breadcrumb,
-    ConfirmDialog,
     DevilFruitTypeCard,
     DevilFruitTypeComparison,
     LoadingPlaceholder,
-    RejectDialog,
     RouterLink,
     StatusBadge,
     TranslocoPipe,
+    VersionActions,
     VersionChain,
     VersionWorkflow,
   ],
@@ -90,7 +77,6 @@ export class DevilFruitTypeDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
-  private readonly mascot = inject(MascotService);
   private readonly currentUser = inject(CurrentUserService);
   private readonly languageCatalog = inject(LanguageCatalogService);
 
@@ -222,70 +208,12 @@ export class DevilFruitTypeDetail {
   protected readonly comparing = signal<number | null>(null);
   protected readonly versionsUrl = computed(() => `${ENDPOINT}/${this.id()}/versions`);
 
-  /** A transition posted and not answered yet. */
-  protected readonly acting = signal(false);
-  /** The transition waiting for the reason the caller is writing - a rejection. */
-  protected readonly askingReasonFor = signal<VersionTransition | null>(null);
-  /** The transition waiting for the caller to confirm it - a publication, an archiving. */
-  protected readonly confirming = signal<VersionTransition | null>(null);
-
-  /**
-   * "Publish "Logia"?": what the confirm dialog says about the transition waiting for it,
-   * naming the version that moves and, when it goes online in place of another, that one.
-   */
-  protected readonly confirmation = computed(() => {
-    this.transloco.activeLang();
-    const transition = this.confirming();
-    const key = transition?.confirmKey;
-    const version = this.shown();
-    if (!key || !version) {
-      return null;
-    }
-    const online = this.replacedVersion(transition, version.number);
-    const replacing = online !== null;
-    const params = { name: this.title(), version: version.number, online };
-    return {
-      title: this.transloco.translate(`${key}.title`, params),
-      body: this.transloco.translate(`${key}.${replacing ? 'bodyReplacing' : 'body'}`, params),
-      note: this.transloco.translate(`${key}.note`),
-      confirmLabel: this.transloco.translate(`${key}.confirm`),
-      tone: transition.confirmTone ?? 'primary',
-    };
-  });
-
-  /** An action on someone else's version or claim, waiting for the administrator to confirm it. */
-  protected readonly overriding = signal<VersionAction | null>(null);
-
-  /** "Act in nami's place?": what the override dialog says, naming whose work it is. */
-  protected readonly overrideConfirmation = computed(() => {
-    this.transloco.activeLang();
-    const action = this.overriding();
-    const version = this.shown();
-    if (!action || !version) {
-      return null;
-    }
-    const params = { owner: overriddenUser(action, version), version: version.number };
-    const key = (part: string) =>
-      this.transloco.translate(`content.workflow.override.${part}`, params);
-    return {
-      title: key('title'),
-      body: key(`body.${action}`),
-      note: key('note'),
-      confirmLabel: key('confirm'),
-    };
-  });
-
-  /** "Logia · Devil Fruit Type by nami": what the reject dialog is about. */
-  protected readonly rejectTarget = computed(() => {
-    this.transloco.activeLang();
-    const version = this.shown();
-    if (!version) {
-      return '';
-    }
-    const entity = this.transloco.translate('content.devilFruitTypes.one');
-    const by = this.transloco.translate('content.detail.by', { author: version.author.username });
-    return `${this.title()} · ${entity} ${by}`;
-  });
+  /** Runs the workflow actions, with their dialogs - shared with the dashboard. */
+  private readonly actions = viewChild(VersionActions);
+  /** An action posted and not answered yet. */
+  protected readonly acting = computed(() => this.actions()?.acting() ?? false);
+  /** Reads the content again once an action is answered. */
+  protected readonly reload = () => this.refresh();
 
   /**
    * "Reason for rejection", while the version on screen is rejected: what the reviewer
@@ -320,158 +248,23 @@ export class DevilFruitTypeDetail {
     this.navigate({ [PARAM.version]: number });
   }
 
-  /**
-   * Acts on the version on screen - after a confirmation naming whose work it is, when the
-   * caller acts on someone else's version or claim as an administrator.
-   */
+  /** Acts on the version on screen, through the actions shared with the dashboard. */
   protected act(action: VersionAction): void {
     const version = this.shown();
-    if (version && confirmsOverride(action, version.overrideActions)) {
-      this.overriding.set(action);
-    } else {
-      this.proceed(action);
-    }
-  }
-
-  /** The administrator confirmed: the action goes on as for anyone else. */
-  protected confirmOverride(): void {
-    const action = this.overriding();
-    this.overriding.set(null);
-    if (action) {
-      this.proceed(action);
-    }
-  }
-
-  /**
-   * Reopens the version in the editor, opens a new version from it, asks the reason of a
-   * rejection or a confirmation first, or runs a transition on it.
-   */
-  private proceed(action: VersionAction): void {
-    if (action === 'EDIT') {
-      this.openEditor();
+    if (!version) {
       return;
     }
-    if (action === NEW_VERSION.action) {
-      void this.openNewVersion();
-      return;
-    }
-    const transition = VERSION_TRANSITIONS[action];
-    if (transition?.asksReason) {
-      this.askingReasonFor.set(transition);
-    } else if (transition?.confirmKey) {
-      this.confirming.set(transition);
-    } else if (transition) {
-      void this.runTransition(transition, null);
-    }
-  }
-
-  /** Confirmed: the transition goes, and the dialog closes once it is answered. */
-  protected confirm(): void {
-    const transition = this.confirming();
-    if (transition) {
-      void this.runTransition(transition, null).then(() => this.confirming.set(null));
-    }
-  }
-
-  protected cancelConfirmation(): void {
-    this.confirming.set(null);
-  }
-
-  /** The reason is written: the rejection goes, and the dialog closes once it is answered. */
-  protected rejectWith(reason: string): void {
-    const transition = this.askingReasonFor();
-    if (transition) {
-      void this.runTransition(transition, { reason }).then(() => this.askingReasonFor.set(null));
-    }
-  }
-
-  protected cancelReason(): void {
-    this.askingReasonFor.set(null);
-  }
-
-  /**
-   * The version online now that the transition takes offline by putting another one
-   * online in its place - published or restored - `null` when it does not.
-   */
-  private replacedVersion(transition: VersionTransition, moving: number): number | null {
-    const online = this.onlineVersionNumber();
-    return transition.target === 'PUBLISHED' && online !== null && online !== moving
-      ? online
-      : null;
-  }
-
-  /**
-   * Posts the transition, says how it went, and reads the content again whatever the
-   * outcome: a refusal often means the version moved meanwhile, and the screen should show
-   * where.
-   */
-  private async runTransition(transition: VersionTransition, body: object | null): Promise<void> {
-    const url = this.versionUrl();
-    const version = this.shown();
-    if (!url || !version) {
-      return;
-    }
-    const online = this.replacedVersion(transition, version.number);
-    const doneKey = (online !== null && transition.doneReplacingKey) || transition.doneKey;
-    this.acting.set(true);
-    try {
-      await firstValueFrom(
-        this.http.post<Version<DevilFruitType>>(`${url}/${transition.path}`, body),
-      );
-      this.mascot.show(
-        this.transloco.translate(doneKey, {
-          author: version.author.username,
-          version: version.number,
-          online,
-        }),
-        transition.doneTone ?? 'success',
-      );
-    } catch (error) {
-      this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
-    } finally {
-      await this.refresh();
-      this.acting.set(false);
-    }
-  }
-
-  /**
-   * Opens the next version of the content from the one on screen, then the editor on it -
-   * no confirmation, as in the mockup: nothing online changes, and the new draft can be
-   * discarded. A refusal - someone opened one first - shows the content as it now is.
-   */
-  private async openNewVersion(): Promise<void> {
-    const base = this.shown();
-    if (!base) {
-      return;
-    }
-    const online = this.onlineVersionNumber();
-    this.acting.set(true);
-    try {
-      const opened = await firstValueFrom(
-        this.http.post<Version<DevilFruitType>>(`${ENDPOINT}/${this.id()}/versions`, {
-          basedOn: base.number,
-        }),
-      );
-      this.mascot.show(
-        this.transloco.translate(newVersionDoneKey(base.status, online), {
-          version: opened.number,
-          base: base.number,
-          online,
-        }),
-        'info',
-      );
-      this.openEditor();
-    } catch (error) {
-      this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
-      await this.refresh();
-    } finally {
-      this.acting.set(false);
-    }
-  }
-
-  /** The editor of the content's draft - the caller's own, the one they may edit. */
-  private openEditor(): void {
-    void this.router.navigate(['edit'], { relativeTo: this.route });
+    this.actions()?.run(
+      {
+        contentUrl: `${ENDPOINT}/${this.id()}`,
+        contentRoute: `${LIST_ROUTE}/${this.id()}`,
+        name: this.title(),
+        entityLabel: this.transloco.translate('content.devilFruitTypes.one'),
+        version,
+        onlineVersionNumber: this.onlineVersionNumber(),
+      },
+      action,
+    );
   }
 
   /**
@@ -496,32 +289,6 @@ export class DevilFruitTypeDetail {
       this.version.reload();
       this.versionEvents.reload();
     }
-  }
-
-  private refusalMessage(refusal: TransitionRefusal): string {
-    const key = (name: string) => `content.workflow.refused.${name}`;
-    switch (refusal.kind) {
-      case 'incomplete':
-      case 'taken':
-        return this.transloco.translate(key(refusal.kind), {
-          fields: refusal.fields.map((field) => this.fieldLabel(field)).join(', '),
-        });
-      case 'identical':
-        return this.transloco.translate(key('identical'), { version: refusal.version });
-      case 'stale':
-      case 'failed':
-        return this.transloco.translate(key(refusal.kind));
-    }
-  }
-
-  /** "romaji", "nome EN": a field named as the backend names it, in words. */
-  private fieldLabel(field: string): string {
-    const [language, name] = (draftFieldKey(field) ?? field).split('.');
-    return name
-      ? this.transloco.translate(`content.workflow.refused.field.${name}`, {
-          language: language.toUpperCase(),
-        })
-      : this.transloco.translate('content.workflow.refused.field.romaji');
   }
 
   protected selectTab(tab: TabId): void {

@@ -1,4 +1,5 @@
 import { routes } from './app.routes';
+import { statusPageGuard } from './content/dashboard/status-page.guard';
 import { permissionGuard } from './shared/nav/permission.guard';
 
 /**
@@ -15,7 +16,7 @@ describe('routes', () => {
     for (const route of guarded) {
       expect(route.loadComponent, route.path).toBeDefined();
       expect(route.component, route.path).toBeUndefined();
-      expect(route.canActivate, route.path).toEqual([permissionGuard]);
+      expect([[permissionGuard], [statusPageGuard]], route.path).toContainEqual(route.canActivate);
     }
   });
 
@@ -28,4 +29,11 @@ describe('routes', () => {
       expect(route?.data).toEqual({ permission: 'content:read' });
     },
   );
+
+  it('opens a dashboard status page by its own rule: who sees that status', () => {
+    const route = routes.find((candidate) => candidate.path === 'dashboard/:status');
+
+    expect(route?.canActivate).toEqual([statusPageGuard]);
+    expect(route?.loadComponent).toBeDefined();
+  });
 });

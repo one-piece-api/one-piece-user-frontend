@@ -837,6 +837,97 @@
           "VERSION_RESTORED": "Hai ripubblicato",
           "other": "Hai lavorato su"
         }
+      },
+      "status": {
+        "kicker": "Dashboard · stato",
+        "back": "Torna alla dashboard",
+        "loading": "Recuperiamo i contenuti…",
+        "error": "Arrr! Impossibile caricare questo stato.",
+        "scope": {
+          "draftAll": "Tutte le bozze",
+          "draftMine": "Le mie bozze",
+          "reviewAll": "Tutti in revisione",
+          "reviewMine": "In carico a me"
+        },
+        "legend": {
+          "title": "Da qui puoi",
+          "show": "Legenda ▾",
+          "hide": "Nascondi ▴",
+          "none": "Solo consultare: apri un elemento per il dettaglio.",
+          "newDraft": "Nuova bozza",
+          "desc": {
+            "DRAFT": {
+              "EDIT": "apri la bozza nell'editor",
+              "SUBMIT": "la passa ai reviewer; se mancano campi, il Lumacofono ti dice quali",
+              "DELETE": "elimina la tua bozza, chiede conferma"
+            },
+            "IN_REVIEW": {
+              "CLAIM": "la revisione diventa tua, gli altri la vedono occupata",
+              "APPROVE": "passa a Pronto per la pubblicazione",
+              "REJECT": "torna all'autore con una motivazione obbligatoria",
+              "RELEASE": "la rimette in coda per un altro reviewer",
+              "PULL_BACK": "riporta in bozza un tuo contenuto"
+            },
+            "REJECTED": {
+              "RETURN_TO_DRAFT": "lo riporta in bozza per correggere quanto indicato nel rifiuto"
+            },
+            "READY_TO_PUBLISH": {
+              "PUBLISH": "lo mette online per i lettori",
+              "ARCHIVE": "lo mette da parte senza pubblicarlo"
+            },
+            "PUBLISHED": {
+              "RETIRE": "lo toglie dal sito, resta nello storico",
+              "OPEN_NEW_VERSION": "apre una nuova versione; quella online resta finché non pubblichi"
+            },
+            "ARCHIVED": {
+              "RECOVER": "lo riporta tra i pronti per la pubblicazione",
+              "OPEN_NEW_VERSION": "lo riporta in lavorazione come nuova versione"
+            },
+            "RETIRED": {
+              "RESTORE": "rimette online questa versione",
+              "OPEN_NEW_VERSION": "apre una nuova versione da rivedere"
+            }
+          }
+        },
+        "filter": {
+          "entity": "Entità",
+          "author": "Autore",
+          "sort": "Ordinamento",
+          "allEntities": "Tutte",
+          "anyone": "Tutti",
+          "reset": "Azzera"
+        },
+        "sort": {
+          "desc": "Più recenti",
+          "asc": "Meno recenti"
+        },
+        "result": {
+          "one": "{{shown}} contenuto",
+          "many": "{{shown}} contenuti",
+          "of": "su {{total}}"
+        },
+        "column": {
+          "name": "Nome",
+          "entity": "Entità",
+          "author": "Autore",
+          "updated": "Aggiornato",
+          "actions": "Azioni"
+        },
+        "claim": {
+          "you": "✋ in carico a te",
+          "other": "✋ in carico a {{name}}"
+        },
+        "empty": {
+          "draftMine": "Non hai bozze aperte.",
+          "reviewMine": "Non hai revisioni prese in carico.",
+          "any": "Nessun contenuto in questo stato."
+        }
+      },
+      "note": {
+        "awaitingReviewer": "in attesa di un reviewer",
+        "busy": "occupato",
+        "draftOf": "bozza di {{author}}",
+        "readOnly": "sola lettura"
       }
     }
   }

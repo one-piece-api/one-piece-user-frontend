@@ -22,4 +22,9 @@ export class CurrentUserService {
     }
     return (this.me.value()?.permissions ?? []).includes(permission);
   }
+
+  /** Whether the caller holds at least one of these. */
+  hasAnyPermission(permissions: readonly string[]): boolean {
+    return permissions.some((permission) => this.hasPermission(permission));
+  }
 }

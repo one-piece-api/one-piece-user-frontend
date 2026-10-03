@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { SessionExpired } from './identity/session-expired';
 import { WhoAmI } from './identity/who-am-i';
 import { Forbidden } from './shared/nav/forbidden';
+import { statusPageGuard } from './content/dashboard/status-page.guard';
 import { homeGuard } from './shared/nav/home.guard';
 import { permissionGuard } from './shared/nav/permission.guard';
 
@@ -17,6 +18,13 @@ export const routes: Routes = [
       import('./content/dashboard/dashboard-home').then((module) => module.DashboardHome),
     canActivate: [permissionGuard],
     data: { permission: 'content:read' },
+  },
+  {
+    // Who sees which status is the status page's own rule, not a single permission.
+    path: 'dashboard/:status',
+    loadComponent: () =>
+      import('./content/dashboard/dashboard-status').then((module) => module.DashboardStatus),
+    canActivate: [statusPageGuard],
   },
   {
     // Loaded on demand, like every route below: only the pages anyone can land on stay in
