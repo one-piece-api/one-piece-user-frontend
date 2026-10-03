@@ -364,6 +364,40 @@ describe('VersionWorkflow', () => {
       expect(actions).toEqual(['PUBLISH']);
     });
 
+    it('offers an editor a new draft from a closed version, on Draft', async () => {
+      const online = version('PUBLISHED', ['OPEN_NEW_VERSION'], { everPublished: true });
+      await render(
+        online,
+        [event('VERSION_CREATED'), event('VERSION_PUBLISHED', VIVI, 11)],
+        'chopper',
+        EDITOR,
+      );
+      const actions = asked();
+
+      const node = mapNode('DRAFT');
+      expect(node.tagName).toBe('BUTTON');
+      expect(node.dataset['state']).toBe('next');
+      expect(node.className).toContain('anim-node-pulse');
+      expect(mapText('DRAFT')).toContain('→ New draft from v2');
+      expect(mapNode('PUBLISHED').dataset['state']).toBe('current');
+      node.click();
+
+      expect(actions).toEqual(['OPEN_NEW_VERSION']);
+    });
+
+    it('calls a new draft from an archived version reopening it', async () => {
+      const archived = version('ARCHIVED', ['OPEN_NEW_VERSION']);
+      await render(
+        archived,
+        [event('VERSION_CREATED'), event('VERSION_ARCHIVED', VIVI, 11)],
+        'chopper',
+        EDITOR,
+      );
+
+      expect(mapText('DRAFT')).toContain('→ Reopen as draft');
+      expect(access('workflow')).toBe('→ Workflow: reopen as draft');
+    });
+
     it('waits while a transition is on its way', async () => {
       await render(version('IN_REVIEW', ['PULL_BACK']), WAITING, 'nami', EDITOR);
       fixture.componentRef.setInput('busy', true);

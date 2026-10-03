@@ -427,7 +427,8 @@
       "recover": "Recover",
       "retire": "Retire",
       "restore": "Republish",
-      "openNewVersion": "New draft from v{{version}}"
+      "openNewVersion": "New draft from v{{version}}",
+      "reopenArchived": "Reopen as draft"
     },
     "event": {
       "created": "Draft created",
@@ -519,7 +520,10 @@
         "approved": "Approved! It is now in the queue of whoever holds content:publish.",
         "rejected": "Rejected: it goes back to {{author}} with your reason, to be returned to draft and fixed.",
         "returnedToDraft": "Back in draft: fix what is needed and send it to review again.",
-        "published": "Published! v{{version}} is online."
+        "published": "Published! v{{version}} is online.",
+        "opened": "New draft v{{version}} from v{{base}}, in your name.",
+        "openedKeepingOnline": "New draft v{{version}} from v{{base}}, in your name. v{{online}} stays online until this one is published.",
+        "reopened": "New draft v{{version}} from the archived v{{base}}, which stays in the history."
       },
       "refused": {
         "incomplete": "Arrr! Still missing before review: {{fields}}.",

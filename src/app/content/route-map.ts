@@ -3,8 +3,8 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CurrentUserService } from '../identity/current-user';
 import {
-  ACTION_LABEL_KEY,
   STATUS_LABEL_KEY,
+  actionLabelKey,
   STATUS_MEANING_KEY,
   type VersionAction,
   type VersionEvent,
@@ -324,7 +324,10 @@ export class RouteMap {
         };
       }
       case 'next': {
-        const action = this.transloco.translate(ACTION_LABEL_KEY[node.transition]);
+        const version = this.version();
+        const action = this.transloco.translate(actionLabelKey(node.transition, version.status), {
+          version: version.number,
+        });
         return {
           ...base,
           action: node.transition,

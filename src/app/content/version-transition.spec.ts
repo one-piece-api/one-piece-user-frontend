@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { transitionRefusal } from './version-transition';
+import { newVersionDoneKey, routeTargetOf, transitionRefusal } from './version-transition';
 
 function refused(status: number, body: unknown): HttpErrorResponse {
   return new HttpErrorResponse({ status, error: body });
@@ -45,5 +45,27 @@ describe('transitionRefusal', () => {
   it('has nothing more to say about any other failure', () => {
     expect(transitionRefusal(refused(500, null))).toEqual({ kind: 'failed' });
     expect(transitionRefusal(new Error('offline'))).toEqual({ kind: 'failed' });
+  });
+});
+
+describe('routeTargetOf', () => {
+  it('offers a transition where it takes the version, and a new version on Draft', () => {
+    expect(routeTargetOf('PUBLISH')).toBe('PUBLISHED');
+    expect(routeTargetOf('OPEN_NEW_VERSION')).toBe('DRAFT');
+  });
+
+  it('offers nothing for an action the screens cannot run yet', () => {
+    expect(routeTargetOf('RETIRE')).toBeUndefined();
+  });
+});
+
+describe('newVersionDoneKey', () => {
+  it('says an archived base stays in the history', () => {
+    expect(newVersionDoneKey('ARCHIVED', 1)).toBe('content.workflow.done.reopened');
+  });
+
+  it('says which version stays online, when one is', () => {
+    expect(newVersionDoneKey('SUPERSEDED', 2)).toBe('content.workflow.done.openedKeepingOnline');
+    expect(newVersionDoneKey('RETIRED', null)).toBe('content.workflow.done.opened');
   });
 });

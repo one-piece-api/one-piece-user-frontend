@@ -167,6 +167,14 @@ describe('editorialRoute', () => {
     expect(connectors(route).main[2]).toBe('next');
   });
 
+  it('offers an editor a new draft on Draft, leaving the version and its route where they are', () => {
+    const route = editorialRoute('PUBLISHED', history(...TO_PUBLICATION), ['OPEN_NEW_VERSION']);
+
+    expect(node(route, 'DRAFT')).toMatchObject({ state: 'next', transition: 'OPEN_NEW_VERSION' });
+    expect(statesOf(route).current).toEqual(['PUBLISHED']);
+    expect(connectors(route).main).toEqual(['followed', 'followed', 'followed', 'idle']);
+  });
+
   it('takes the branch to Archived, and back when the version is recovered', () => {
     const archived = history(CREATED, SUBMITTED, CLAIMED, APPROVED, 'VERSION_ARCHIVED');
 

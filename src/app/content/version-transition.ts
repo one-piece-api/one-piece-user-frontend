@@ -27,8 +27,8 @@ export const REJECTION_REASON_MAX_LENGTH = 2000;
 
 /**
  * The transitions the screens run, the same for every kind of content - the route map
- * offers them, the detail posts them. An action not listed here is never offered, even
- * when the backend allows it: its endpoint does not exist yet. Claiming and releasing
+ * offers them, the detail posts them. An action not listed here - nor `NEW_VERSION` - is
+ * never offered, even when the backend allows it: its endpoint does not exist yet. Claiming and releasing
  * leave the version where it is: they are run from its current status, not towards another.
  */
 export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransition>> = {
@@ -66,6 +66,39 @@ export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransitio
     confirmKey: 'content.workflow.publish',
   },
 };
+
+/**
+ * Opening a new version from the one on screen (UF-CNT-08). The route map offers it on
+ * Draft, where the new version starts, but it is not a transition of this version: it is
+ * posted to the content's versions, and leaves this one where it is. What the mascot says
+ * once it is done depends on the base: an archived one stays in the history; from any other,
+ * the version online - if there is one - stays online.
+ */
+export const NEW_VERSION = {
+  action: 'OPEN_NEW_VERSION',
+  target: 'DRAFT',
+  doneKey: {
+    fromArchived: 'content.workflow.done.reopened',
+    keepingOnline: 'content.workflow.done.openedKeepingOnline',
+    plain: 'content.workflow.done.opened',
+  },
+} as const satisfies { action: VersionAction; target: VersionStatus; doneKey: object };
+
+/** What the mascot says once a new version is open, by the status of its base and what is online. */
+export function newVersionDoneKey(baseStatus: VersionStatus, onlineVersion: number | null): string {
+  if (baseStatus === 'ARCHIVED') {
+    return NEW_VERSION.doneKey.fromArchived;
+  }
+  return onlineVersion === null ? NEW_VERSION.doneKey.plain : NEW_VERSION.doneKey.keepingOnline;
+}
+
+/**
+ * The status the route map offers an action on: where a transition takes the version, or -
+ * for a new version - Draft. `undefined` for an action the screens cannot run yet.
+ */
+export function routeTargetOf(action: VersionAction): VersionStatus | undefined {
+  return action === NEW_VERSION.action ? NEW_VERSION.target : VERSION_TRANSITIONS[action]?.target;
+}
 
 /**
  * Why a transition did not happen, as the screen tells it: what the version still lacks,

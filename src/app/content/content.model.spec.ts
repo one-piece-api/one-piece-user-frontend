@@ -1,4 +1,5 @@
 import {
+  actionLabelKey,
   contentSerial,
   editableVersion,
   localizedName,
@@ -92,6 +93,17 @@ describe('versionToShow', () => {
 
   it('is nothing for an empty chain', () => {
     expect(versionToShow([], 1)).toBeNull();
+  });
+});
+
+describe('actionLabelKey', () => {
+  it('calls a new version from an archived one reopening it', () => {
+    expect(actionLabelKey('OPEN_NEW_VERSION', 'ARCHIVED')).toBe('content.action.reopenArchived');
+  });
+
+  it('names every other action the same whatever the status', () => {
+    expect(actionLabelKey('OPEN_NEW_VERSION', 'PUBLISHED')).toBe('content.action.openNewVersion');
+    expect(actionLabelKey('PUBLISH', 'READY_TO_PUBLISH')).toBe('content.action.publish');
   });
 });
 

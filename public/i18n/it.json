@@ -427,7 +427,8 @@
       "recover": "Recupera",
       "retire": "Ritira dalla pubblicazione",
       "restore": "Ripubblica",
-      "openNewVersion": "Nuova bozza da v{{version}}"
+      "openNewVersion": "Nuova bozza da v{{version}}",
+      "reopenArchived": "Riapri in bozza"
     },
     "event": {
       "created": "Bozza creata",
@@ -519,7 +520,10 @@
         "approved": "Approvato! Ora è nella coda di chi ha content:publish.",
         "rejected": "Rifiutato: torna a {{author}} con la tua motivazione, per riportarlo in bozza e correggerlo.",
         "returnedToDraft": "Riportato in bozza: correggi quello che serve e rimandalo in revisione.",
-        "published": "Pubblicato! La v{{version}} è online."
+        "published": "Pubblicato! La v{{version}} è online.",
+        "opened": "Nuova bozza v{{version}} a partire dalla v{{base}}, a tuo nome.",
+        "openedKeepingOnline": "Nuova bozza v{{version}} a partire dalla v{{base}}, a tuo nome. La v{{online}} resta online finché questa non viene pubblicata.",
+        "reopened": "Nuova bozza v{{version}} a partire dalla v{{base}} archiviata, che resta nello storico."
       },
       "refused": {
         "incomplete": "Arrr! Prima della revisione manca: {{fields}}.",

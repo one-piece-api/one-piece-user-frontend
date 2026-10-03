@@ -1,6 +1,6 @@
 import type { VersionAction, VersionEvent, VersionStatus } from './content.model';
 import { eventKind } from './version-event';
-import { VERSION_TRANSITIONS } from './version-transition';
+import { routeTargetOf } from './version-transition';
 
 /**
  * The editorial route of a version as a map: five statuses on the main line and, hanging
@@ -131,8 +131,8 @@ function journeyOf(status: VersionStatus, events: readonly VersionEvent[]): Jour
 
 /**
  * The status each allowed transition leads to, and that transition - only the ones the
- * screens can run (`VERSION_TRANSITIONS`), and only the ones leaving `status`: claiming and
- * releasing keep the version where it is.
+ * screens can run (`routeTargetOf`), and only the ones leaving `status`: claiming and
+ * releasing keep the version where it is. A new version is offered on Draft, where it starts.
  */
 function transitionsFrom(
   status: VersionStatus,
@@ -140,7 +140,7 @@ function transitionsFrom(
 ): ReadonlyMap<VersionStatus, VersionAction> {
   const transitions = new Map<VersionStatus, VersionAction>();
   for (const action of allowedActions) {
-    const target = VERSION_TRANSITIONS[action]?.target;
+    const target = routeTargetOf(action);
     if (target && target !== status && !transitions.has(target)) {
       transitions.set(target, action);
     }

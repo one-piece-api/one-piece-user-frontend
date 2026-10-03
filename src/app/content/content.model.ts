@@ -149,6 +149,17 @@ export const ACTION_LABEL_KEY: Record<VersionAction, string> = {
   OPEN_NEW_VERSION: 'content.action.openNewVersion',
 };
 
+/**
+ * The translation key of an action on a version in `status`, resolved with the version's
+ * `number` as `version`. Opening a new version from an archived one is "reopening" it, as the
+ * mockup words it; every other action reads the same whatever the status.
+ */
+export function actionLabelKey(action: VersionAction, status: VersionStatus): string {
+  return action === 'OPEN_NEW_VERSION' && status === 'ARCHIVED'
+    ? 'content.action.reopenArchived'
+    : ACTION_LABEL_KEY[action];
+}
+
 /** The "updated" filter: no limit, today, the last week, the last month. */
 export const UPDATED_WITHIN_OPTIONS = [
   { days: null, labelKey: 'content.list.updated.always' },

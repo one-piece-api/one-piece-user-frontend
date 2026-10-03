@@ -1,7 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CurrentUserService } from '../identity/current-user';
-import { ACTION_LABEL_KEY, type Version } from './content.model';
+import { actionLabelKey, type Version } from './content.model';
 import { versionAccess, type AccessRow } from './version-access';
 
 /** Granted, refused, and "you can move it forward" - a fill, an ink and a mark each. */
@@ -74,9 +74,11 @@ export class AccessPanel {
 
   /** "submit for review · discard draft": the allowed actions, as one lower-case line. */
   private actionsOf(row: AccessRow): string {
-    const version = this.version().number;
+    const { number, status } = this.version();
     return row.actions
-      .map((action) => this.transloco.translate(ACTION_LABEL_KEY[action], { version }))
+      .map((action) =>
+        this.transloco.translate(actionLabelKey(action, status), { version: number }),
+      )
       .map((label) => label.toLocaleLowerCase(this.transloco.getActiveLang()))
       .join(' · ');
   }

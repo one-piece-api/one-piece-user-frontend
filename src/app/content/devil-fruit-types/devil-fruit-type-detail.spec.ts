@@ -719,4 +719,109 @@ describe('DevilFruitTypeDetail', () => {
       httpTesting.expectNone(`${VERSION}/publish`);
     });
   });
+
+  describe('opening a new version', () => {
+    const VERSIONS = `${DETAIL}/versions`;
+
+    /** chopper on a closed version of nami's, which he may open a new draft from. */
+    async function openClosedVersion(
+      chain: ReturnType<typeof summary>[],
+      onlineVersionNumber: number | null,
+      shown: ReturnType<typeof summary>,
+    ): Promise<void> {
+      await open(`${PAGE}?v=${shown.number}&tab=workflow`, 'chopper', EDITOR);
+      await answerContent(chain, onlineVersionNumber);
+      const url = `${VERSIONS}/${shown.number}`;
+      httpTesting.expectOne(url).flush({
+        ...shown,
+        rejectionReason: null,
+        body: body('Logia'),
+        allowedActions: ['OPEN_NEW_VERSION'],
+      });
+      httpTesting.expectOne(`${url}/events`).flush([]);
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+    }
+
+    function draftNode(): HTMLButtonElement {
+      return root.querySelector<HTMLButtonElement>(
+        'button[data-testid="route-node"][data-status="DRAFT"]',
+      )!;
+    }
+
+    function mascotSays(): string {
+      return TestBed.inject(MascotService).message().text;
+    }
+
+    it('opens the next version from the one on screen, then its editor', async () => {
+      await openClosedVersion([V1, V2], 2, V2);
+
+      draftNode().click();
+      const opening = httpTesting.expectOne(VERSIONS);
+      expect(opening.request.method).toBe('POST');
+      expect(opening.request.body).toEqual({ basedOn: 2 });
+      opening.flush({
+        ...summary(3, 'DRAFT', CHOPPER),
+        rejectionReason: null,
+        body: body('Logia'),
+        allowedActions: ['EDIT', 'DELETE', 'SUBMIT'],
+      });
+      await afterInteraction();
+
+      expect(TestBed.inject(Router).url).toBe(`${PAGE}/edit`);
+      expect(mascotSays()).toBe(
+        'New draft v3 from v2, in your name. v2 stays online until this one is published.',
+      );
+    });
+
+    it('says which version stays online when the base is an older one', async () => {
+      await openClosedVersion([V1, V2], 2, V1);
+
+      draftNode().click();
+      expect(httpTesting.expectOne(VERSIONS).request.body).toEqual({ basedOn: 1 });
+    });
+
+    it('says an archived base stays in the history', async () => {
+      const archived = summary(1, 'ARCHIVED');
+      await openClosedVersion([archived], null, archived);
+
+      draftNode().click();
+      httpTesting.expectOne(VERSIONS).flush({
+        ...summary(2, 'DRAFT', CHOPPER),
+        rejectionReason: null,
+        body: body('Logia'),
+        allowedActions: ['EDIT', 'DELETE', 'SUBMIT'],
+      });
+      await afterInteraction();
+
+      expect(mascotSays()).toBe('New draft v2 from the archived v1, which stays in the history.');
+    });
+
+    it('stays on the content as it now is when another editor opened one first', async () => {
+      await openClosedVersion([V1, V2], 2, V2);
+
+      draftNode().click();
+      httpTesting
+        .expectOne(VERSIONS)
+        .flush(
+          { errorCode: 'CONTENT_VERSION_ACTION_CONFLICT' },
+          { status: 409, statusText: 'Conflict' },
+        );
+      await afterInteraction();
+      httpTesting
+        .expectOne(DETAIL)
+        .flush({ id: ID, onlineVersionNumber: 2, versions: [V1, V2, V3] });
+      await afterInteraction();
+      httpTesting
+        .expectOne(`${VERSIONS}/2`)
+        .flush({ ...V2, rejectionReason: null, body: body('Logia'), allowedActions: [] });
+      httpTesting.expectOne(`${VERSIONS}/2/events`).flush([]);
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+
+      expect(mascotSays()).toContain('changed in the meantime');
+      expect(TestBed.inject(Router).url).toBe(`${PAGE}?v=2&tab=workflow`);
+      expect(draftNode()).toBeNull();
+    });
+  });
 });

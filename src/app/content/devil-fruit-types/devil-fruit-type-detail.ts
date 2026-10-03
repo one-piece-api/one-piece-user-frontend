@@ -26,7 +26,9 @@ import { RejectDialog } from '../reject-dialog';
 import { VersionChain } from '../version-chain';
 import { REJECTED_ACTION } from '../version-event';
 import {
+  NEW_VERSION,
   VERSION_TRANSITIONS,
+  newVersionDoneKey,
   transitionRefusal,
   type TransitionRefusal,
   type VersionTransition,
@@ -277,12 +279,16 @@ export class DevilFruitTypeDetail {
   }
 
   /**
-   * Acts on the version on screen: reopens it in the editor, asks the reason of a rejection
-   * or a confirmation first, or runs a transition on it.
+   * Acts on the version on screen: reopens it in the editor, opens a new version from it,
+   * asks the reason of a rejection or a confirmation first, or runs a transition on it.
    */
   protected act(action: VersionAction): void {
     if (action === 'EDIT') {
-      void this.router.navigate(['edit'], { relativeTo: this.route });
+      this.openEditor();
+      return;
+    }
+    if (action === NEW_VERSION.action) {
+      void this.openNewVersion();
       return;
     }
     const transition = VERSION_TRANSITIONS[action];
@@ -348,6 +354,46 @@ export class DevilFruitTypeDetail {
       await this.refresh();
       this.acting.set(false);
     }
+  }
+
+  /**
+   * Opens the next version of the content from the one on screen, then the editor on it -
+   * no confirmation, as in the mockup: nothing online changes, and the new draft can be
+   * discarded. A refusal - someone opened one first - shows the content as it now is.
+   */
+  private async openNewVersion(): Promise<void> {
+    const base = this.shown();
+    if (!base) {
+      return;
+    }
+    const online = this.onlineVersionNumber();
+    this.acting.set(true);
+    try {
+      const opened = await firstValueFrom(
+        this.http.post<Version<DevilFruitType>>(`${ENDPOINT}/${this.id()}/versions`, {
+          basedOn: base.number,
+        }),
+      );
+      this.mascot.show(
+        this.transloco.translate(newVersionDoneKey(base.status, online), {
+          version: opened.number,
+          base: base.number,
+          online,
+        }),
+        'info',
+      );
+      this.openEditor();
+    } catch (error) {
+      this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
+      await this.refresh();
+    } finally {
+      this.acting.set(false);
+    }
+  }
+
+  /** The editor of the content's draft - the caller's own, the one they may edit. */
+  private openEditor(): void {
+    void this.router.navigate(['edit'], { relativeTo: this.route });
   }
 
   /**
