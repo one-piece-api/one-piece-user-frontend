@@ -1,5 +1,6 @@
 import {
   contentSerial,
+  editableVersion,
   localizedName,
   otherOnlineVersion,
   updatedMoment,
@@ -17,6 +18,7 @@ function row(versionNumber: number, onlineVersionNumber: number | null): Content
     updatedAt: '2026-10-01T08:45:00Z',
     onlineVersionNumber,
     body: null,
+    allowedActions: [],
   };
 }
 
@@ -96,5 +98,31 @@ describe('versionToShow', () => {
 describe('contentSerial', () => {
   it('is the first block of the id, in capitals', () => {
     expect(contentSerial('3f2a9c1b-0000-4000-8000-000000000001')).toBe('#3F2A9C1B');
+  });
+});
+
+describe('editableVersion', () => {
+  function link(number: number, allowedActions: VersionSummary['allowedActions']): VersionSummary {
+    return {
+      number,
+      status: number === 2 ? 'DRAFT' : 'PUBLISHED',
+      author: { id: 'u1', username: 'nami', email: 'nami@onepiece.local' },
+      basedOn: null,
+      claimant: null,
+      everPublished: number !== 2,
+      allowedActions,
+      createdAt: '2026-10-01T08:45:00Z',
+      updatedAt: '2026-10-01T08:45:00Z',
+    };
+  }
+
+  it('is the version the backend lets the caller edit', () => {
+    const chain = [link(1, ['OPEN_NEW_VERSION']), link(2, ['EDIT', 'DELETE', 'SUBMIT'])];
+
+    expect(editableVersion(chain)?.number).toBe(2);
+  });
+
+  it('is nothing when the caller may edit no version', () => {
+    expect(editableVersion([link(1, []), link(2, [])])).toBeNull();
   });
 });

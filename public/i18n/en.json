@@ -469,7 +469,8 @@
         "byActor": "by {{actor}}",
         "archived": "recoverable",
         "retired": "no longer online",
-        "superseded": "by another version"
+        "superseded": "by another version",
+        "editHere": "✎ click to edit"
       },
       "timelineTitle": "Workflow timeline",
       "timelineHint": "who · what · when",
@@ -498,7 +499,8 @@
         "needsPublish": "content:publish is needed",
         "noTransition": "no transition for your role",
         "openVersionExists": "the content already has a version in progress"
-      }
+      },
+      "editTitle": "Click to reopen the draft for editing"
     },
     "breadcrumb": {
       "contents": "Contents"
@@ -557,8 +559,7 @@
       },
       "loading": "Unrolling the encyclopedia…",
       "error": "Lost the encyclopedia. Could not load the contents.",
-      "loadError": "Arrr! Could not load the contents — try again in a moment.",
-      "newSoon": "Arrr! Creating a new fruit type is still in the shipyard."
+      "loadError": "Arrr! Could not load the contents — try again in a moment."
     },
     "detail": {
       "crumb": "Card",
@@ -587,6 +588,53 @@
       "noName": "— no name in this language —",
       "noDescription": "— no description in this language —",
       "incomplete": "incomplete translation"
+    },
+    "editor": {
+      "crumb": "Edit",
+      "newTitle": "New fruit type",
+      "sublineNew": "new draft · created by its first save",
+      "subline": "your draft v{{version}}",
+      "sublineOnline": "your draft v{{version}} · v{{online}} stays online",
+      "badge": "Editing · {{status}}",
+      "loading": "Opening the draft…",
+      "romaji": {
+        "label": "Romaji",
+        "hint": "unique · shared by every language",
+        "placeholder": "e.g. Chōjin-kei"
+      },
+      "name": {
+        "placeholder": "name in the selected language"
+      },
+      "description": {
+        "placeholder": "description in the selected language"
+      },
+      "incomplete": "incomplete",
+      "refused": "to fix",
+      "ready": {
+        "title": "Ready for review",
+        "romaji": "Romaji · unique key",
+        "name": "Name · {{language}}",
+        "description": "Description · {{language}}",
+        "done": "complete",
+        "required": "required",
+        "hintReady": "All set for review.",
+        "hintMissing": "Review takes a romaji, and a name and a description in every language. Meanwhile the draft can be saved incomplete."
+      },
+      "save": "Save draft",
+      "saving": "Saving…",
+      "created": "Arrr! New draft aboard: the other editors can see it, but only you can edit it.",
+      "saved": "Draft saved, matey. It stays yours until you submit it for review.",
+      "error": {
+        "taken": "already used by another content",
+        "tooLong": "text too long"
+      },
+      "takenMessage": "Arrr! Another content already has the same romaji or name: it must be unique.",
+      "tooLongMessage": "Arrr! Some text is too long to fit in the hold.",
+      "notDraftMessage": "Arrr! This version is no longer a draft: it cannot be edited.",
+      "saveFailed": "Arrr! Draft not saved. Try again in a moment.",
+      "lockedTitle": "Nothing to edit here",
+      "lockedText": "Only your own draft can be edited, and this entry has none of yours.",
+      "backToDetail": "Back to the entry"
     }
   }
 }

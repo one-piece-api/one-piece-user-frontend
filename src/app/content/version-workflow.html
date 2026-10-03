@@ -1,5 +1,5 @@
 <div class="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3.5">
-  <app-route-map [version]="version()" [events]="events()" />
+  <app-route-map [version]="version()" [events]="events()" (edit)="edit.emit()" />
 
   <div
     class="mt-2 flex flex-wrap items-start gap-x-9 gap-y-5.5 border-t border-parchment-200 pt-5.5"

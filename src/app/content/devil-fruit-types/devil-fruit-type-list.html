@@ -20,9 +20,9 @@
       </p>
     </div>
     @if (canWrite()) {
-      <button type="button" [class]="newButtonClasses" (click)="announceNew()">
-        {{ 'content.devilFruitTypes.new' | transloco }}
-      </button>
+      <a routerLink="new" [class]="newButtonClasses">{{
+        'content.devilFruitTypes.new' | transloco
+      }}</a>
     }
   </div>
 

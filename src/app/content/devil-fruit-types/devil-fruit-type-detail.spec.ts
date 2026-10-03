@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -8,6 +9,10 @@ import type { VersionStatus } from '../content.model';
 import { DevilFruitTypeDetail } from './devil-fruit-type-detail';
 
 const ID = '3f2a9c1b-0000-4000-8000-000000000001';
+
+/** Where the Draft status of the route leads: the editor, not under test here. */
+@Component({ template: '' })
+class EditorStandIn {}
 const DETAIL = `/api/content/devil-fruit-types/${ID}`;
 const PAGE = `/content/devil-fruit-types/${ID}`;
 
@@ -65,7 +70,10 @@ describe('DevilFruitTypeDetail', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter(
-          [{ path: 'content/devil-fruit-types/:id', component: DevilFruitTypeDetail }],
+          [
+            { path: 'content/devil-fruit-types/:id', component: DevilFruitTypeDetail },
+            { path: 'content/devil-fruit-types/:id/edit', component: EditorStandIn },
+          ],
           withComponentInputBinding(),
         ),
       ],
@@ -298,5 +306,28 @@ describe('DevilFruitTypeDetail', () => {
 
     expect(root.textContent).toContain('Lost the card');
     expect(root.textContent).not.toContain('Content not found');
+  });
+
+  it('opens the editor from the Draft status of the caller’s own draft', async () => {
+    const draft = summary(3, 'DRAFT');
+    await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
+    await answerContent([V1, V2, draft], 2);
+    const url = `${DETAIL}/versions/3`;
+    httpTesting.expectOne(url).flush({
+      ...draft,
+      rejectionReason: null,
+      body: body('Logia draft'),
+      allowedActions: ['EDIT', 'DELETE', 'SUBMIT'],
+    });
+    httpTesting.expectOne(`${url}/events`).flush([CREATED]);
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+
+    root
+      .querySelector<HTMLButtonElement>('button[data-testid="route-node"][data-status="DRAFT"]')!
+      .click();
+    await afterInteraction();
+
+    expect(TestBed.inject(Router).url).toBe(`${PAGE}/edit`);
   });
 });

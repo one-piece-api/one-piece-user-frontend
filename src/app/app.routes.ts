@@ -20,6 +20,25 @@ export const routes: Routes = [
     data: { permission: 'content:read' },
   },
   {
+    // Before ":id": "new" is a page, not the id of a content.
+    path: 'content/devil-fruit-types/new',
+    loadComponent: () =>
+      import('./content/devil-fruit-types/devil-fruit-type-editor').then(
+        (module) => module.DevilFruitTypeEditor,
+      ),
+    canActivate: [permissionGuard],
+    data: { permission: 'content:write' },
+  },
+  {
+    path: 'content/devil-fruit-types/:id/edit',
+    loadComponent: () =>
+      import('./content/devil-fruit-types/devil-fruit-type-editor').then(
+        (module) => module.DevilFruitTypeEditor,
+      ),
+    canActivate: [permissionGuard],
+    data: { permission: 'content:write' },
+  },
+  {
     path: 'content/devil-fruit-types/:id',
     loadComponent: () =>
       import('./content/devil-fruit-types/devil-fruit-type-detail').then(

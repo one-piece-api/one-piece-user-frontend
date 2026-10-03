@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CurrentUserService } from '../identity/current-user';
 import {
@@ -68,6 +68,9 @@ const STATUS_CLASSES: Record<VersionStatus, { current: string; soft: string; ink
 };
 
 const CURRENT_NODE_CLASSES = 'text-white ring-5';
+/** The current status when clicking it does something: it breathes, and says what. */
+const ACTIONABLE_NODE_CLASSES = 'anim-node-pulse cursor-pointer';
+const EDIT_GLYPH = '✎';
 /** A status of the main line the version has been through: a green check. */
 const VISITED_MAIN_CLASSES = 'border-success-600 bg-success-600 text-white';
 const VISITED_GLYPH = '✓';
@@ -123,6 +126,8 @@ interface NodeView {
   readonly labelClasses: string;
   readonly note: string;
   readonly noteClasses: string;
+  /** What clicking the status does - `null` for a status that only says where the version is. */
+  readonly action: 'EDIT' | null;
 }
 
 /** The stretch under a status of the main line: down to its branch, or - under Draft - back from Rejected. */
@@ -148,8 +153,8 @@ interface ColumnView {
 /**
  * "Rotta editoriale": where a version stands in the editorial workflow, drawn as a map.
  * The ship marks the current status, a green check the ones already gone through - read
- * from the version's own history - and dashed lines the ways it did not take. Read-only:
- * the nodes say where the version is, they do not move it.
+ * from the version's own history - and dashed lines the ways it did not take. The nodes
+ * say where the version is; the Draft one, on a draft the caller may edit, also reopens it.
  */
 @Component({
   selector: 'app-route-map',
@@ -163,6 +168,8 @@ export class RouteMap {
   readonly version = input.required<VersionSummary>();
   /** The history of the version, oldest first. */
   readonly events = input.required<readonly VersionEvent[]>();
+  /** The caller asked to edit the version, from its Draft status. */
+  readonly edit = output<void>();
 
   protected readonly legendOpen = signal(false);
 
@@ -224,16 +231,29 @@ export class RouteMap {
     const classes = STATUS_CLASSES[node.status];
     const label = this.transloco.translate(STATUS_LABEL_KEY[node.status]);
     const meaning = this.transloco.translate(STATUS_MEANING_KEY[node.status]);
-    const base = {
+    const base: Omit<NodeView, 'circleClasses' | 'labelClasses' | 'note' | 'noteClasses'> = {
       status: node.status,
       state: node.state,
       current: node.state === 'current',
       labelKey: STATUS_LABEL_KEY[node.status],
       title: `${label} (${node.status}) · ${meaning}`,
       glyph: STATUS_GLYPH[node.status],
+      action: null,
     };
     switch (node.state) {
       case 'current':
+        if (node.status === 'DRAFT' && this.version().allowedActions.includes('EDIT')) {
+          return {
+            ...base,
+            action: 'EDIT',
+            title: this.transloco.translate('content.workflow.editTitle'),
+            glyph: EDIT_GLYPH,
+            circleClasses: `${classes.current} ${CURRENT_NODE_CLASSES} ${ACTIONABLE_NODE_CLASSES}`,
+            labelClasses: classes.ink,
+            note: this.transloco.translate('content.workflow.note.editHere'),
+            noteClasses: classes.ink,
+          };
+        }
         return {
           ...base,
           circleClasses: `${classes.current} ${CURRENT_NODE_CLASSES}`,

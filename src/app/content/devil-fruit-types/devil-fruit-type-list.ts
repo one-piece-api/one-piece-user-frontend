@@ -224,11 +224,6 @@ export class DevilFruitTypeList {
     this.navigate({ [PARAM.page]: pageNumber || null });
   }
 
-  /** Creating a content arrives with a later step: until then the button says so. */
-  protected announceNew(): void {
-    this.mascot.show(this.transloco.translate('content.list.newSoon'), 'info');
-  }
-
   /** A changed filter always starts again from the first page. */
   private applyFilters(changes: Params): void {
     this.navigate({ ...changes, [PARAM.page]: null });

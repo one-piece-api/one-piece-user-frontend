@@ -469,7 +469,8 @@
         "byActor": "da {{actor}}",
         "archived": "recuperabile",
         "retired": "non più online",
-        "superseded": "da un'altra versione"
+        "superseded": "da un'altra versione",
+        "editHere": "✎ clicca per modificare"
       },
       "timelineTitle": "Cronologia del workflow",
       "timelineHint": "chi · cosa · quando",
@@ -498,7 +499,8 @@
         "needsPublish": "serve content:publish",
         "noTransition": "nessuna transizione per il tuo ruolo",
         "openVersionExists": "il contenuto ha già una versione in lavorazione"
-      }
+      },
+      "editTitle": "Clicca per riaprire la bozza in modifica"
     },
     "breadcrumb": {
       "contents": "Contenuti"
@@ -557,8 +559,7 @@
       },
       "loading": "Srotoliamo l'enciclopedia…",
       "error": "Enciclopedia dispersa. Impossibile caricare i contenuti.",
-      "loadError": "Arrr! Impossibile caricare i contenuti — riprova tra un momento.",
-      "newSoon": "Arrr! La creazione di un nuovo tipo di frutto è ancora in cantiere."
+      "loadError": "Arrr! Impossibile caricare i contenuti — riprova tra un momento."
     },
     "detail": {
       "crumb": "Scheda",
@@ -587,6 +588,53 @@
       "noName": "— nessun nome in questa lingua —",
       "noDescription": "— nessuna descrizione in questa lingua —",
       "incomplete": "traduzione incompleta"
+    },
+    "editor": {
+      "crumb": "Modifica",
+      "newTitle": "Nuovo tipo di frutto",
+      "sublineNew": "nuova bozza · nasce al primo salvataggio",
+      "subline": "tua bozza v{{version}}",
+      "sublineOnline": "tua bozza v{{version}} · la v{{online}} resta online",
+      "badge": "In modifica · {{status}}",
+      "loading": "Apriamo la bozza…",
+      "romaji": {
+        "label": "Romaji",
+        "hint": "unico · condiviso da tutte le lingue",
+        "placeholder": "es. Chōjin-kei"
+      },
+      "name": {
+        "placeholder": "nome nella lingua selezionata"
+      },
+      "description": {
+        "placeholder": "descrizione nella lingua selezionata"
+      },
+      "incomplete": "incompleta",
+      "refused": "da correggere",
+      "ready": {
+        "title": "Pronto per la revisione",
+        "romaji": "Romaji · chiave unica",
+        "name": "Nome · {{language}}",
+        "description": "Descrizione · {{language}}",
+        "done": "completo",
+        "required": "obbligatorio",
+        "hintReady": "Tutto pronto per la revisione.",
+        "hintMissing": "Per la revisione servono romaji, nome e descrizione in ogni lingua. Intanto la bozza si salva anche incompleta."
+      },
+      "save": "Salva bozza",
+      "saving": "Salvataggio…",
+      "created": "Arrr! Nuova bozza a bordo: gli altri editor la vedono, ma solo tu puoi modificarla.",
+      "saved": "Bozza salvata, matey. Resta tua finché non la invii in revisione.",
+      "error": {
+        "taken": "già usato da un altro contenuto",
+        "tooLong": "testo troppo lungo"
+      },
+      "takenMessage": "Arrr! Un altro contenuto ha già lo stesso romaji o lo stesso nome: dev'essere unico.",
+      "tooLongMessage": "Arrr! Qualche testo è troppo lungo per stare nella stiva.",
+      "notDraftMessage": "Arrr! Questa versione non è più una bozza: non si può modificare.",
+      "saveFailed": "Arrr! Bozza non salvata. Riprova tra poco.",
+      "lockedTitle": "Niente da modificare qui",
+      "lockedText": "Si modifica solo una propria bozza, e questa voce non ne ha una tua.",
+      "backToDetail": "Torna alla scheda"
     }
   }
 }

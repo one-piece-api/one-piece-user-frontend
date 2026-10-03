@@ -229,16 +229,14 @@ describe('DevilFruitTypeList', () => {
     expect(root.textContent).not.toContain('New fruit type');
   });
 
-  it('shows "+ New" to who can write, and for now it only announces the feature', async () => {
+  it('shows "+ New" to who can write, leading to the editor of a new content', async () => {
     await open('/content/devil-fruit-types', 'nami', EDITOR);
     await answerList('page=0', page([LOGIA]));
-    const button = Array.from(root.querySelectorAll('button')).find((candidate) =>
+    const link = Array.from(root.querySelectorAll('a')).find((candidate) =>
       candidate.textContent?.includes('New fruit type'),
     );
-    expect(button).toBeDefined();
-    button?.click();
-    await afterInteraction();
-    expect(currentUrl()).toBe('/content/devil-fruit-types');
+
+    expect(link?.getAttribute('href')).toBe('/content/devil-fruit-types/new');
   });
 
   it('tells an editor they see every draft but edit only their own', async () => {

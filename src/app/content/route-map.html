@@ -182,14 +182,31 @@
 </section>
 
 <ng-template #disc let-node>
-  <span
-    class="relative grid size-10.5 place-items-center rounded-full border-2 text-[15px] font-extrabold"
-    [class]="node.circleClasses"
-    [title]="node.title"
-    [attr.aria-current]="node.current ? 'step' : null"
-    [attr.data-status]="node.status"
-    [attr.data-state]="node.state"
-    data-testid="route-node"
-    >{{ node.glyph }}</span
-  >
+  @if (node.action) {
+    <button
+      type="button"
+      class="relative grid size-10.5 place-items-center rounded-full border-2 text-[15px] font-extrabold"
+      [class]="node.circleClasses"
+      [title]="node.title"
+      [attr.aria-label]="node.title"
+      [attr.aria-current]="node.current ? 'step' : null"
+      [attr.data-status]="node.status"
+      [attr.data-state]="node.state"
+      data-testid="route-node"
+      (click)="edit.emit()"
+    >
+      {{ node.glyph }}
+    </button>
+  } @else {
+    <span
+      class="relative grid size-10.5 place-items-center rounded-full border-2 text-[15px] font-extrabold"
+      [class]="node.circleClasses"
+      [title]="node.title"
+      [attr.aria-current]="node.current ? 'step' : null"
+      [attr.data-status]="node.status"
+      [attr.data-state]="node.state"
+      data-testid="route-node"
+      >{{ node.glyph }}</span
+    >
+  }
 </ng-template>

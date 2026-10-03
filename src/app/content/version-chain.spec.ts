@@ -13,6 +13,7 @@ function version(number: number, status: VersionStatus, everPublished: boolean):
     basedOn: number === 1 ? null : number - 1,
     claimant: null,
     everPublished,
+    allowedActions: [],
     createdAt: '2026-08-20T10:00:00Z',
     updatedAt: '2026-08-20T10:00:00Z',
   };

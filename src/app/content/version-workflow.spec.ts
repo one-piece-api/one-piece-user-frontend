@@ -254,4 +254,34 @@ describe('VersionWorkflow', () => {
       expect(access('workflow')).toBe('→ Workflow: new draft from v2');
     });
   });
+
+  describe('editing from the route', () => {
+    it('turns the Draft status of a draft the caller may edit into the way to edit it', async () => {
+      await render(
+        version('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']),
+        [event('VERSION_CREATED')],
+        'nami',
+        EDITOR,
+      );
+      let asked = 0;
+      fixture.componentInstance.edit.subscribe(() => asked++);
+
+      const node = mapNode('DRAFT');
+      expect(node.tagName).toBe('BUTTON');
+      expect(node.textContent?.trim()).toBe('✎');
+      expect(node.className).toContain('anim-node-pulse');
+      expect(mapText('DRAFT')).toContain('click to edit');
+      node.click();
+
+      expect(asked).toBe(1);
+    });
+
+    it('leaves the Draft status of someone else’s draft as a plain status', async () => {
+      await render(version('DRAFT'), [event('VERSION_CREATED')], 'chopper', EDITOR);
+
+      expect(mapNode('DRAFT').tagName).toBe('SPAN');
+      expect(mapText('DRAFT')).not.toContain('click to edit');
+      expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
+    });
+  });
 });

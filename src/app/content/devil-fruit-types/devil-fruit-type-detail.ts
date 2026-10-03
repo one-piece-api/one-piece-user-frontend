@@ -201,6 +201,11 @@ export class DevilFruitTypeDetail {
     this.navigate({ [PARAM.version]: number });
   }
 
+  /** Reopens the draft on screen in the editor. */
+  protected openEditor(): void {
+    void this.router.navigate(['edit'], { relativeTo: this.route });
+  }
+
   protected selectTab(tab: TabId): void {
     this.navigate({ [PARAM.tab]: tab === 'overview' ? null : tab });
   }

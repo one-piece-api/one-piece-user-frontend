@@ -25,7 +25,8 @@ export interface ContentUser {
 /**
  * One row of an entity list: a content, represented by one of its versions.
  * `onlineVersionNumber` is the version currently online - possibly another one, `null`
- * when nothing is. `body` is what the row shows of the version, specific to the entity.
+ * when nothing is. `body` is what the row shows of the version, specific to the entity;
+ * `allowedActions` what the caller may do with that version.
  */
 export interface ContentSummary<TBody> {
   id: string;
@@ -35,6 +36,7 @@ export interface ContentSummary<TBody> {
   updatedAt: string;
   onlineVersionNumber: number | null;
   body: TBody;
+  allowedActions: VersionAction[];
 }
 
 /** What surrounds a list whatever filter is on: its size, the caller's share, their statuses. */
@@ -47,7 +49,8 @@ export interface ContentListSummary {
 /**
  * One link of a content's version chain: its workflow, without what it says. `basedOn` is
  * the version it was opened from (`null` for the first), `everPublished` whether it has
- * been online at some point.
+ * been online at some point. `allowedActions` is what the caller may do with it, decided by
+ * the backend: the browser never works that out again from roles, ownership or claims.
  */
 export interface VersionSummary {
   number: number;
@@ -56,6 +59,7 @@ export interface VersionSummary {
   basedOn: number | null;
   claimant: ContentUser | null;
   everPublished: boolean;
+  allowedActions: VersionAction[];
   createdAt: string;
   updatedAt: string;
 }
@@ -78,15 +82,10 @@ export type VersionAction =
   | 'RESTORE'
   | 'OPEN_NEW_VERSION';
 
-/**
- * One version in full: its workflow and, in `body`, what it says - specific to the entity.
- * `allowedActions` is what the caller may do with it, decided by the backend: the browser
- * never works that out again from roles, ownership or claims.
- */
+/** One version in full: its workflow and, in `body`, what it says - specific to the entity. */
 export interface Version<TBody> extends VersionSummary {
   rejectionReason: string | null;
   body: TBody;
-  allowedActions: VersionAction[];
 }
 
 /**
@@ -176,6 +175,11 @@ export function versionToShow(
   requested: number | null,
 ): VersionSummary | null {
   return versions.find((version) => version.number === requested) ?? versions.at(-1) ?? null;
+}
+
+/** The version of a chain the caller may edit - its own draft - if there is one. */
+export function editableVersion(versions: readonly VersionSummary[]): VersionSummary | null {
+  return versions.find((version) => version.allowedActions.includes('EDIT')) ?? null;
 }
 
 /** The short serial a content is labelled with: the first block of its id, e.g. `#3F2A9C1B`. */
