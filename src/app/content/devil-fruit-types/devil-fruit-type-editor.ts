@@ -264,7 +264,7 @@ export class DevilFruitTypeEditor {
       { label: this.transloco.translate('content.breadcrumb.contents') },
       {
         label: this.transloco.translate('content.devilFruitTypes.title'),
-        icon: '◈',
+        icon: DEVIL_FRUIT_TYPE_ICON,
         route: LIST_ROUTE,
       },
     ];

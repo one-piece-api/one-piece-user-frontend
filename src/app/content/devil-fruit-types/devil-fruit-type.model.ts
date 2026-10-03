@@ -181,3 +181,6 @@ function languagesOf(
   const outside = [...present].filter((language) => !catalogOrder.includes(language)).sort();
   return [...inCatalog, ...outside];
 }
+
+/** The illustration that stands for a Devil Fruit Type wherever the app shows an icon. */
+export const DEVIL_FRUIT_TYPE_ICON = 'assets/devil-fruit-type.png';

@@ -807,6 +807,19 @@ describe('DevilFruitTypeDetail', () => {
         expect(mascotSays()).toContain('Released');
       });
 
+      it('pulls back someone else’s version, then says whose draft it is again', async () => {
+        await openAsAdmin('IN_REVIEW', ['PULL_BACK'], ['PULL_BACK']);
+
+        node('DRAFT').click();
+        harness.detectChanges();
+        confirmOverride();
+        httpTesting.expectOne(`${VERSION}/pull-back`).flush({});
+        await afterInteraction();
+        await answerReload('DRAFT', []);
+
+        expect(mascotSays()).toContain("it is nami's draft again");
+      });
+
       it('claims their own version at once, with no confirmation', async () => {
         await openAsAdmin('IN_REVIEW', ['PULL_BACK', 'CLAIM'], ['CLAIM'], { author: LUFFY });
 

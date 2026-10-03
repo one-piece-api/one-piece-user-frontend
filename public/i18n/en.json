@@ -549,11 +549,13 @@
       "done": {
         "submitted": "Submitted for review! The ball is now with whoever holds content:review.",
         "pulledBack": "Pulled back from review: it is your editable draft again.",
+        "pulledBackForOthers": "Pulled back from review: it is {{author}}'s draft again.",
         "claimed": "Claimed: you can now approve or reject it. Other reviewers see it as taken.",
         "released": "Released: it is available to other reviewers again.",
         "approved": "Approved! It is now in the queue of whoever holds content:publish.",
         "rejected": "Rejected: it goes back to {{author}} with your reason, to be returned to draft and fixed.",
         "returnedToDraft": "Back in draft: fix what is needed and send it to review again.",
+        "returnedToDraftForOthers": "Back in draft: {{author}} can fix it and send it to review again.",
         "published": "Published! v{{version}} is online.",
         "opened": "New draft v{{version}} from v{{base}}, in your name.",
         "openedKeepingOnline": "New draft v{{version}} from v{{base}}, in your name. v{{online}} stays online until this one is published.",

@@ -3,6 +3,7 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
+import { CurrentUserService } from '../identity/current-user';
 import { MascotService } from '../shared/mascot/mascot';
 import { ConfirmDialog } from '../shared/ui/confirm-dialog';
 import type { VersionAction, VersionSummary } from './content.model';
@@ -56,6 +57,7 @@ export class VersionActions {
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
   private readonly mascot = inject(MascotService);
+  private readonly currentUser = inject(CurrentUserService);
 
   /** Reads again what the host shows; awaited before the actions are offered again. */
   readonly reload = input.required<() => Promise<void>>();
@@ -207,7 +209,11 @@ export class VersionActions {
   ): Promise<void> {
     const { version } = target;
     const online = replacedVersion(transition, target);
-    const doneKey = (online !== null && transition.doneReplacingKey) || transition.doneKey;
+    const othersVersion = version.author.username !== this.currentUser.me.value()?.username;
+    const doneKey =
+      (online !== null && transition.doneReplacingKey) ||
+      (othersVersion && transition.doneForOthersKey) ||
+      transition.doneKey;
     this.acting.set(true);
     try {
       await firstValueFrom(

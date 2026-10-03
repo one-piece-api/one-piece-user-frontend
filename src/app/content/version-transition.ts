@@ -15,6 +15,8 @@ export interface VersionTransition {
   readonly doneTone?: MascotTone;
   /** What the mascot says instead when the version went online in place of another. */
   readonly doneReplacingKey?: string;
+  /** What the mascot says instead on someone else's version: an administrator acted in the author's place. */
+  readonly doneForOthersKey?: string;
   /** Posted with a reason the caller writes first, not with an empty body. */
   readonly asksReason?: boolean;
   /**
@@ -39,7 +41,12 @@ export const REJECTION_REASON_MAX_LENGTH = 2000;
  */
 export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransition>> = {
   SUBMIT: { target: 'IN_REVIEW', path: 'submit', doneKey: 'content.workflow.done.submitted' },
-  PULL_BACK: { target: 'DRAFT', path: 'pull-back', doneKey: 'content.workflow.done.pulledBack' },
+  PULL_BACK: {
+    target: 'DRAFT',
+    path: 'pull-back',
+    doneKey: 'content.workflow.done.pulledBack',
+    doneForOthersKey: 'content.workflow.done.pulledBackForOthers',
+  },
   CLAIM: { target: 'IN_REVIEW', path: 'claim', doneKey: 'content.workflow.done.claimed' },
   RELEASE: {
     target: 'IN_REVIEW',
@@ -63,6 +70,7 @@ export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransitio
     target: 'DRAFT',
     path: 'return-to-draft',
     doneKey: 'content.workflow.done.returnedToDraft',
+    doneForOthersKey: 'content.workflow.done.returnedToDraftForOthers',
     doneTone: 'info',
   },
   PUBLISH: {

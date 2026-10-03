@@ -549,11 +549,13 @@
       "done": {
         "submitted": "Inviato in revisione! Ora la palla passa a chi ha content:review.",
         "pulledBack": "Ritirato dalla revisione: è di nuovo una tua bozza modificabile.",
+        "pulledBackForOthers": "Ritirato dalla revisione: è di nuovo una bozza di {{author}}.",
         "claimed": "Preso in carico: ora puoi approvarlo o rifiutarlo. Gli altri reviewer lo vedono occupato.",
         "released": "Rilasciato: torna disponibile per gli altri reviewer.",
         "approved": "Approvato! Ora è nella coda di chi ha content:publish.",
         "rejected": "Rifiutato: torna a {{author}} con la tua motivazione, per riportarlo in bozza e correggerlo.",
         "returnedToDraft": "Riportato in bozza: correggi quello che serve e rimandalo in revisione.",
+        "returnedToDraftForOthers": "Riportato in bozza: {{author}} può correggerlo e rimandarlo in revisione.",
         "published": "Pubblicato! La v{{version}} è online.",
         "opened": "Nuova bozza v{{version}} a partire dalla v{{base}}, a tuo nome.",
         "openedKeepingOnline": "Nuova bozza v{{version}} a partire dalla v{{base}}, a tuo nome. La v{{online}} resta online finché questa non viene pubblicata.",
