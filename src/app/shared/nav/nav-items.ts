@@ -19,6 +19,20 @@ export interface NavGroup {
 
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
+    // The overview across entity types (docs/user-flows/content-editorial-workflow.md 6);
+    // one entry per status joins it with the status pages.
+    labelKey: 'shell.nav.dashboard',
+    items: [
+      {
+        id: 'dashboard',
+        label: 'shell.nav.overview',
+        icon: '◎',
+        route: '/dashboard',
+        permission: 'content:read',
+      },
+    ],
+  },
+  {
     // One entry per content entity (docs/user-flows/content-editorial-workflow.md 6): the
     // ones not built yet are announced, so the section shows where the encyclopedia is going.
     labelKey: 'shell.nav.contents',
@@ -50,7 +64,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     labelKey: 'shell.nav.account',
-    items: [{ id: 'profile', label: 'shell.nav.profile', icon: '◆', route: '/' }],
+    items: [{ id: 'profile', label: 'shell.nav.profile', icon: '◆', route: '/profile' }],
   },
   {
     labelKey: 'shell.nav.admin',

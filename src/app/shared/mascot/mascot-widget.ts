@@ -27,7 +27,7 @@ function topicForUrl(url: string): TipTopic | null {
   if (url.startsWith('/roles')) return 'roles';
   if (url.startsWith('/audit')) return 'audit';
   if (url.startsWith('/languages')) return 'languages';
-  if (url === '/' || url.startsWith('/?')) return 'profile';
+  if (url.startsWith('/profile')) return 'profile';
   return null;
 }
 

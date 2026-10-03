@@ -1,0 +1,132 @@
+<div class="flex w-full max-w-5xl flex-col gap-4.5">
+  <app-page-header [eyebrow]="eyebrow()">{{
+    'content.dashboard.greeting' | transloco: { name: currentUser.me.value()?.username ?? '' }
+  }}</app-page-header>
+
+  @if (dashboard.error()) {
+    <div class="rounded-2xl bg-parchment-100 p-8 text-center shadow-md">
+      <p class="font-heading text-flag-700">{{ 'content.dashboard.error' | transloco }}</p>
+    </div>
+  } @else if (!dashboard.hasValue()) {
+    <div class="rounded-2xl bg-parchment-100 p-8 shadow-md">
+      <app-loading-placeholder [label]="'content.dashboard.loading' | transloco" />
+    </div>
+  } @else {
+    <div
+      class="grid grid-cols-2 gap-4 pb-1.5 sm:grid-cols-[repeat(auto-fit,minmax(min(170px,100%),1fr))]"
+      data-testid="dashboard-tiles"
+    >
+      @for (tile of tiles(); track tile.status) {
+        <section
+          animate.enter="anim-pop-enter"
+          class="relative flex min-w-0 flex-col gap-2.5 overflow-hidden rounded-[20px] border-2 px-3.5 pt-3.5 pb-3.25"
+          [class]="tile.classes.tile"
+          [class.opacity-60]="tile.count === 0"
+          [attr.data-status]="tile.status"
+          data-testid="dashboard-tile"
+        >
+          <span
+            class="pointer-events-none absolute -top-4.5 -right-3.5 font-display text-[84px] leading-none font-bold opacity-15"
+            [class]="tile.classes.ink"
+            aria-hidden="true"
+            >{{ tile.glyph }}</span
+          >
+          <h2 class="flex min-w-0 items-center gap-2.25">
+            <span
+              class="grid size-8.5 flex-none place-items-center rounded-full bg-white text-base font-extrabold"
+              [class]="tile.classes.glyph"
+              aria-hidden="true"
+              >{{ tile.glyph }}</span
+            >
+            <span
+              class="min-w-0 flex-1 font-display text-[17px] leading-tight font-bold text-balance"
+              [class]="tile.classes.ink"
+              >{{ tile.labelKey | transloco }}</span
+            >
+          </h2>
+          <p class="flex items-end justify-between gap-2">
+            <span
+              class="font-display text-[40px] leading-[.9] font-extrabold text-ocean-950"
+              data-testid="tile-count"
+              >{{ tile.count }}</span
+            >
+            @if (tile.mineTagKey) {
+              <span
+                class="rotate-3 rounded-full bg-ocean-900 px-2.5 py-0.75 font-heading text-[11px] font-extrabold whitespace-nowrap text-treasure-500"
+                data-testid="tile-mine"
+                >{{ tile.mineTagKey | transloco: { count: tile.mine } }}</span
+              >
+            }
+          </p>
+          @if (tile.quipKey) {
+            <p
+              class="font-heading text-xs leading-snug font-extrabold text-pretty opacity-85"
+              [class]="tile.classes.ink"
+            >
+              {{ tile.quipKey | transloco }}
+            </p>
+          }
+        </section>
+      }
+    </div>
+  }
+
+  <section class="min-w-0 rounded-[20px] bg-parchment-100 p-5 shadow-lg">
+    <div class="mb-1.5 flex flex-wrap items-baseline justify-between gap-3">
+      <h2 class="font-display text-[19px] font-bold text-ocean-950">
+        {{ 'content.dashboard.activity.title' | transloco }}
+      </h2>
+      <p class="font-heading text-xs font-extrabold text-ocean-500/60">
+        {{ 'content.dashboard.activity.subtitle' | transloco }}
+      </p>
+    </div>
+    @switch (activityState()) {
+      @case ('loading') {
+        <app-loading-placeholder [label]="'content.dashboard.activity.loading' | transloco" />
+      }
+      @case ('error') {
+        <p class="font-heading text-sm text-flag-700">
+          {{ 'content.dashboard.activity.error' | transloco }}
+        </p>
+      }
+      @case ('ready') {
+        @for (row of activityRows(); track row.key) {
+          <div
+            class="grid items-baseline gap-x-3 gap-y-0.5 border-b border-parchment-200 py-2.5 last:border-b-0 sm:grid-cols-[96px_minmax(0,1fr)]"
+            data-testid="activity-row"
+          >
+            <span class="font-heading text-xs font-extrabold text-ocean-500/60">{{
+              row.when
+            }}</span>
+            <p class="min-w-0 font-heading text-sm leading-relaxed font-bold text-ocean-950">
+              <span class="mr-2 inline-block size-2 rounded-full" [class]="row.dotClass"></span>
+              {{ row.verbKey | transloco }}
+              @if (row.link) {
+                <a
+                  [routerLink]="row.link"
+                  class="font-extrabold text-ocean-800 underline decoration-ocean-100 underline-offset-3 hover:text-flag-600"
+                  data-testid="activity-link"
+                  >{{ row.name }}</a
+                >
+              } @else {
+                <span class="font-extrabold">{{ row.name }}</span>
+              }
+              @if (row.meta) {
+                <span class="ml-1 font-heading text-xs font-extrabold text-ocean-500/60">{{
+                  row.meta
+                }}</span>
+              }
+            </p>
+          </div>
+        } @empty {
+          <p
+            class="mt-1.5 rounded-xl bg-parchment-200/50 px-3.5 py-3 font-heading text-[13px] font-bold text-ocean-500"
+            data-testid="activity-empty"
+          >
+            {{ 'content.dashboard.activity.empty' | transloco }}
+          </p>
+        }
+      }
+    }
+  </section>
+</div>

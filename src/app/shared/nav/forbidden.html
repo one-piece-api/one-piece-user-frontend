@@ -14,7 +14,9 @@
       }}
     </p>
     <div class="mt-6 flex flex-wrap justify-center gap-3">
-      <a routerLink="/" [class]="primaryClasses">{{ 'forbidden.backToProfile' | transloco }}</a>
+      <a routerLink="/profile" [class]="primaryClasses">{{
+        'forbidden.backToProfile' | transloco
+      }}</a>
       <button type="button" [class]="navClasses" (click)="requestAccess()">
         {{ 'forbidden.requestAccess' | transloco }}
       </button>

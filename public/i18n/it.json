@@ -11,6 +11,8 @@
       "rolesPermissions": "Ruoli e Permessi",
       "shipsLog": "Diario di Bordo",
       "languages": "Lingue",
+      "dashboard": "Dashboard",
+      "overview": "Panoramica",
       "contents": "Contenuti",
       "characters": "Personaggi",
       "devilFruits": "Frutti del Diavolo",
@@ -793,6 +795,49 @@
         "failed": "Arrr! Bozza non scartata. Riprova tra poco."
       },
       "toFix": "Da correggere:"
+    },
+    "dashboard": {
+      "eyebrow": "Dashboard",
+      "greeting": "Ciao {{name}}, ecco la rotta di oggi",
+      "loading": "Calcoliamo la rotta…",
+      "error": "Arrr! Impossibile caricare la dashboard.",
+      "mineDrafts": "{{count}} mie",
+      "mineClaimed": "{{count}} in carico a te",
+      "quip": {
+        "draft": "Ancora in cantiere",
+        "inReview": "Sotto la lente",
+        "rejected": "Da rimettere in rotta",
+        "readyToPublish": "Pronti a salpare",
+        "published": "Online, vento in poppa",
+        "archived": "Al sicuro in stiva",
+        "retired": "Tornati in porto"
+      },
+      "activity": {
+        "title": "Le mie ultime attività",
+        "subtitle": "audit log · solo le tue azioni",
+        "loading": "Sfogliamo il diario di bordo…",
+        "error": "Impossibile caricare le tue ultime attività.",
+        "empty": "Nessuna attività registrata a tuo nome.",
+        "verb": {
+          "VERSION_CREATED": "Hai aperto una bozza di",
+          "VERSION_EDITED": "Hai modificato",
+          "VERSION_DELETED": "Hai scartato una bozza di",
+          "VERSION_SUBMITTED": "Hai inviato in revisione",
+          "VERSION_PULLED_BACK": "Hai ritirato dalla revisione",
+          "VERSION_CLAIMED": "Hai preso in carico",
+          "VERSION_RELEASED": "Hai rilasciato la revisione di",
+          "VERSION_APPROVED": "Hai approvato",
+          "VERSION_REJECTED": "Hai rifiutato",
+          "VERSION_RETURNED_TO_DRAFT": "Hai riportato in bozza",
+          "VERSION_PUBLISHED": "Hai pubblicato",
+          "VERSION_SUPERSEDED": "Hai sostituito la versione online di",
+          "VERSION_ARCHIVED": "Hai archiviato",
+          "VERSION_RECOVERED": "Hai recuperato dall'archivio",
+          "VERSION_RETIRED": "Hai ritirato dalla pubblicazione",
+          "VERSION_RESTORED": "Hai ripubblicato",
+          "other": "Hai lavorato su"
+        }
+      }
     }
   }
 }

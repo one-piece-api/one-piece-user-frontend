@@ -11,6 +11,8 @@
       "rolesPermissions": "Roles & Permissions",
       "shipsLog": "Ship's Log",
       "languages": "Languages",
+      "dashboard": "Dashboard",
+      "overview": "Overview",
       "contents": "Contents",
       "characters": "Characters",
       "devilFruits": "Devil Fruits",
@@ -793,6 +795,49 @@
         "failed": "Arrr! Draft not discarded. Try again in a moment."
       },
       "toFix": "To fix:"
+    },
+    "dashboard": {
+      "eyebrow": "Dashboard",
+      "greeting": "Ahoy {{name}}, here's today's course",
+      "loading": "Plotting the course…",
+      "error": "Arrr! The dashboard could not be loaded.",
+      "mineDrafts": "{{count}} yours",
+      "mineClaimed": "{{count}} claimed by you",
+      "quip": {
+        "draft": "Still in the shipyard",
+        "inReview": "Under the spyglass",
+        "rejected": "Back on course, please",
+        "readyToPublish": "Ready to set sail",
+        "published": "Online, wind astern",
+        "archived": "Safe in the hold",
+        "retired": "Back in port"
+      },
+      "activity": {
+        "title": "My latest activity",
+        "subtitle": "audit log · your actions only",
+        "loading": "Leafing through the ship's log…",
+        "error": "Your latest activity could not be loaded.",
+        "empty": "No activity recorded under your name.",
+        "verb": {
+          "VERSION_CREATED": "You opened a draft of",
+          "VERSION_EDITED": "You edited",
+          "VERSION_DELETED": "You discarded a draft of",
+          "VERSION_SUBMITTED": "You sent to review",
+          "VERSION_PULLED_BACK": "You pulled back from review",
+          "VERSION_CLAIMED": "You claimed",
+          "VERSION_RELEASED": "You released the review of",
+          "VERSION_APPROVED": "You approved",
+          "VERSION_REJECTED": "You rejected",
+          "VERSION_RETURNED_TO_DRAFT": "You returned to draft",
+          "VERSION_PUBLISHED": "You published",
+          "VERSION_SUPERSEDED": "You replaced the online version of",
+          "VERSION_ARCHIVED": "You archived",
+          "VERSION_RECOVERED": "You recovered from the archive",
+          "VERSION_RETIRED": "You retired",
+          "VERSION_RESTORED": "You put back online",
+          "other": "You worked on"
+        }
+      }
     }
   }
 }
