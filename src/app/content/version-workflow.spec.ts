@@ -344,11 +344,31 @@ describe('VersionWorkflow', () => {
       expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
     });
 
-    it('never offers a transition the screens cannot run yet', async () => {
+    it('offers a publisher to retire the online version, on Retired', async () => {
       const online = version('PUBLISHED', ['RETIRE']);
       await render(online, WAITING, 'vivi', ['content:read', 'content:publish', 'content:retire']);
+      const actions = asked();
 
-      expect(root.querySelectorAll('[data-state="next"]').length).toBe(0);
+      const node = mapNode('RETIRED');
+      expect(node.dataset['state']).toBe('next');
+      expect(mapText('RETIRED')).toContain('→ Retire');
+      node.click();
+
+      expect(actions).toEqual(['RETIRE']);
+    });
+
+    it('offers a publisher to republish a superseded version, back on Published', async () => {
+      const superseded = version('SUPERSEDED', ['RESTORE'], { everPublished: true });
+      await render(superseded, WAITING, 'vivi', ['content:read', 'content:publish']);
+      const actions = asked();
+
+      const node = mapNode('PUBLISHED');
+      expect(node.dataset['state']).toBe('next');
+      expect(mapText('PUBLISHED')).toContain('→ Republish');
+      expect(mapNode('SUPERSEDED').dataset['state']).toBe('current');
+      node.click();
+
+      expect(actions).toEqual(['RESTORE']);
     });
 
     it('offers a publisher to publish a version ready to publish, on Published', async () => {

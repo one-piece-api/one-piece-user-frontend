@@ -227,9 +227,8 @@ export class DevilFruitTypeDetail {
     if (!key || !version) {
       return null;
     }
-    const online = this.onlineVersionNumber();
-    const replacing =
-      transition.target === 'PUBLISHED' && online !== null && online !== version.number;
+    const online = this.replacedVersion(transition, version.number);
+    const replacing = online !== null;
     const params = { name: this.title(), version: version.number, online };
     return {
       title: this.transloco.translate(`${key}.title`, params),
@@ -329,6 +328,17 @@ export class DevilFruitTypeDetail {
   }
 
   /**
+   * The version online now that the transition takes offline by putting another one
+   * online in its place - published or restored - `null` when it does not.
+   */
+  private replacedVersion(transition: VersionTransition, moving: number): number | null {
+    const online = this.onlineVersionNumber();
+    return transition.target === 'PUBLISHED' && online !== null && online !== moving
+      ? online
+      : null;
+  }
+
+  /**
    * Posts the transition, says how it went, and reads the content again whatever the
    * outcome: a refusal often means the version moved meanwhile, and the screen should show
    * where.
@@ -339,15 +349,18 @@ export class DevilFruitTypeDetail {
     if (!url || !version) {
       return;
     }
+    const online = this.replacedVersion(transition, version.number);
+    const doneKey = (online !== null && transition.doneReplacingKey) || transition.doneKey;
     this.acting.set(true);
     try {
       await firstValueFrom(
         this.http.post<Version<DevilFruitType>>(`${url}/${transition.path}`, body),
       );
       this.mascot.show(
-        this.transloco.translate(transition.doneKey, {
+        this.transloco.translate(doneKey, {
           author: version.author.username,
           version: version.number,
+          online,
         }),
         transition.doneTone ?? 'success',
       );

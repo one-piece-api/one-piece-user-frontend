@@ -525,7 +525,10 @@
         "openedKeepingOnline": "Nuova bozza v{{version}} a partire dalla v{{base}}, a tuo nome. La v{{online}} resta online finché questa non viene pubblicata.",
         "reopened": "Nuova bozza v{{version}} a partire dalla v{{base}} archiviata, che resta nello storico.",
         "archived": "Archiviato. Lo recuperi dal Workflow quando serve.",
-        "recovered": "Recuperato: è di nuovo pronto per la pubblicazione."
+        "recovered": "Recuperato: è di nuovo pronto per la pubblicazione.",
+        "retired": "Ritirato dalla pubblicazione. Lo storico versioni resta intatto.",
+        "restored": "La v{{version}} è di nuovo online.",
+        "restoredReplacing": "La v{{version}} è di nuovo online. La v{{online}} ora è sostituita."
       },
       "refused": {
         "incomplete": "Arrr! Prima della revisione manca: {{fields}}.",
@@ -561,6 +564,19 @@
         "body": "La v{{version}} resta approvata ma non viene pubblicata: la ritrovi archiviata e puoi recuperarla quando vuoi.",
         "note": "Archiviare non è ritirare: questa versione non è mai andata online.",
         "confirm": "Sì, archivia"
+      },
+      "retire": {
+        "title": "Ritirare la v{{version}} dalla pubblicazione?",
+        "body": "Non sarà più consultabile dai lettori. Le versioni pubblicate restano nello storico e si possono ripubblicare.",
+        "note": "Ritirare non cancella nulla: il contenuto passa in stato Ritirato.",
+        "confirm": "Sì, ritira"
+      },
+      "restore": {
+        "title": "Ripubblicare la v{{version}}?",
+        "body": "La v{{version}} torna online così com'era.",
+        "bodyReplacing": "La v{{version}} torna online così com'era. La v{{online}}, oggi online, diventa \"sostituita\" e resta nello storico.",
+        "note": "Non si crea una nuova versione: si ripubblica una già esistente.",
+        "confirm": "Sì, ripubblica"
       }
     },
     "breadcrumb": {

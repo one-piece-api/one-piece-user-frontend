@@ -1,8 +1,11 @@
 import { Component, ElementRef, computed, effect, input, output, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-/** What the action being confirmed does: destroys something, moves it on, or sets it aside. */
-export type ConfirmTone = 'danger' | 'primary' | 'archive';
+/**
+ * What the action being confirmed does: destroys something, moves it on, sets it aside, or
+ * takes it offline.
+ */
+export type ConfirmTone = 'danger' | 'primary' | 'archive' | 'retire';
 
 /** The "!" disc and the confirm button per tone - literal class names, so Tailwind keeps them. */
 const TONE_CLASSES: Record<ConfirmTone, { icon: string; button: string }> = {
@@ -17,6 +20,10 @@ const TONE_CLASSES: Record<ConfirmTone, { icon: string; button: string }> = {
   archive: {
     icon: 'bg-status-archived-soft text-status-archived-ink',
     button: 'bg-status-archived-ink hover:bg-status-archived-accent',
+  },
+  retire: {
+    icon: 'bg-status-retired-soft text-status-retired-ink',
+    button: 'bg-status-retired-ink hover:bg-status-retired-accent',
   },
 };
 

@@ -775,6 +775,82 @@ describe('DevilFruitTypeDetail', () => {
       ).toBe('idle');
       expect(node('READY_TO_PUBLISH')).toBeNull();
     });
+
+    it('confirms a retirement in its own color, then shows the version offline', async () => {
+      await open(`${PAGE}?tab=workflow`, 'vivi', PUBLISHER);
+      await answerContent([V1, summary(2, 'SUPERSEDED'), summary(3, 'PUBLISHED')], 3);
+      await answerOwnVersion('PUBLISHED', ['RETIRE']);
+
+      expect(node('RETIRED').dataset['state']).toBe('next');
+      node('RETIRED').click();
+      harness.detectChanges();
+      expect(confirmDialog()?.textContent).toContain('Retire v3 from publication?');
+      expect(confirmDialog()?.textContent).toContain('Readers will no longer see it.');
+      const action = confirmDialog()!.querySelector<HTMLButtonElement>(
+        '[data-testid="confirm-action"]',
+      )!;
+      expect(action.className).toContain('bg-status-retired-ink');
+      httpTesting.expectNone(`${VERSION}/retire`);
+
+      action.click();
+      const retire = httpTesting.expectOne(`${VERSION}/retire`);
+      expect(retire.request.method).toBe('POST');
+      retire.flush({});
+      await afterInteraction();
+      await answerReload('RETIRED', ['RESTORE']);
+
+      expect(confirmDialog()).toBeNull();
+      expect(mascotSays()).toBe('Retired from publication. The version history stays intact.');
+      expect(TestBed.inject(MascotService).message().tone).toBe('info');
+      expect(node('PUBLISHED').dataset['state']).toBe('next');
+    });
+
+    it('confirms a republication naming the version it replaces, then says both', async () => {
+      await open(`${PAGE}?tab=workflow`, 'vivi', PUBLISHER);
+      await answerContent([summary(1, 'PUBLISHED'), V2, summary(3, 'SUPERSEDED')], 1);
+      await answerOwnVersion('SUPERSEDED', ['RESTORE']);
+
+      expect(node('PUBLISHED').dataset['state']).toBe('next');
+      node('PUBLISHED').click();
+      harness.detectChanges();
+      expect(confirmDialog()?.textContent).toContain('Republish v3?');
+      expect(confirmDialog()?.textContent).toContain(
+        'v3 goes back online exactly as it was. v1, online today, becomes "superseded" and stays in the history.',
+      );
+      expect(confirmDialog()?.textContent).toContain('No new version is created');
+
+      confirmDialog()!.querySelector<HTMLButtonElement>('[data-testid="confirm-action"]')!.click();
+      httpTesting.expectOne(`${VERSION}/restore`).flush({});
+      await afterInteraction();
+      httpTesting.expectOne(DETAIL).flush({
+        id: ID,
+        onlineVersionNumber: 3,
+        versions: [summary(1, 'SUPERSEDED'), V2, summary(3, 'PUBLISHED')],
+      });
+      await afterInteraction();
+      await answerOwnVersion('PUBLISHED', ['RETIRE']);
+
+      expect(mascotSays()).toBe('v3 is back online. v1 is now superseded.');
+      expect(TestBed.inject(MascotService).message().tone).toBe('success');
+    });
+
+    it('republishes a retired version replacing nothing when nothing is online', async () => {
+      await open(`${PAGE}?tab=workflow`, 'vivi', PUBLISHER);
+      await answerContent([V1, summary(2, 'SUPERSEDED'), summary(3, 'RETIRED')], null);
+      await answerOwnVersion('RETIRED', ['RESTORE']);
+
+      node('PUBLISHED').click();
+      harness.detectChanges();
+      expect(confirmDialog()?.textContent).toContain('v3 goes back online exactly as it was.');
+      expect(confirmDialog()?.textContent).not.toContain('superseded');
+
+      confirmDialog()!.querySelector<HTMLButtonElement>('[data-testid="confirm-action"]')!.click();
+      httpTesting.expectOne(`${VERSION}/restore`).flush({});
+      await afterInteraction();
+      await answerReload('PUBLISHED', ['RETIRE']);
+
+      expect(mascotSays()).toBe('v3 is back online.');
+    });
   });
 
   describe('opening a new version', () => {

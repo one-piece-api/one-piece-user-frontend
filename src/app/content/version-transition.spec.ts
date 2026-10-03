@@ -59,8 +59,14 @@ describe('routeTargetOf', () => {
     expect(routeTargetOf('RECOVER')).toBe('READY_TO_PUBLISH');
   });
 
-  it('offers nothing for an action the screens cannot run yet', () => {
-    expect(routeTargetOf('RETIRE')).toBeUndefined();
+  it('offers retiring on Retired and republishing on Published', () => {
+    expect(routeTargetOf('RETIRE')).toBe('RETIRED');
+    expect(routeTargetOf('RESTORE')).toBe('PUBLISHED');
+  });
+
+  it('offers nothing for an action that does not move the version', () => {
+    expect(routeTargetOf('EDIT')).toBeUndefined();
+    expect(routeTargetOf('DELETE')).toBeUndefined();
   });
 });
 

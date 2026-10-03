@@ -224,8 +224,8 @@ describe('editorialRoute', () => {
     expect(connectors(route).main).toEqual(['next', 'idle', 'idle', 'idle']);
   });
 
-  it('ignores an action the screens cannot run, one that leads nowhere and one that stays put', () => {
-    const allowed: VersionAction[] = ['RETIRE', 'EDIT', 'CLAIM', 'RELEASE'];
+  it('ignores an action that leads nowhere and one that stays put', () => {
+    const allowed: VersionAction[] = ['DELETE', 'EDIT', 'CLAIM', 'RELEASE'];
     const route = editorialRoute('IN_REVIEW', history(CREATED, SUBMITTED), allowed);
 
     expect(nodes(route).filter((candidate) => candidate.state === 'next')).toEqual([]);

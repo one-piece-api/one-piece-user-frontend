@@ -13,6 +13,8 @@ export interface VersionTransition {
   /** What the mascot says once it is done, and in which tone - success unless said. */
   readonly doneKey: string;
   readonly doneTone?: MascotTone;
+  /** What the mascot says instead when the version went online in place of another. */
+  readonly doneReplacingKey?: string;
   /** Posted with a reason the caller writes first, not with an empty body. */
   readonly asksReason?: boolean;
   /**
@@ -30,9 +32,10 @@ export const REJECTION_REASON_MAX_LENGTH = 2000;
 
 /**
  * The transitions the screens run, the same for every kind of content - the route map
- * offers them, the detail posts them. An action not listed here - nor `NEW_VERSION` - is
- * never offered, even when the backend allows it: its endpoint does not exist yet. Claiming and releasing
- * leave the version where it is: they are run from its current status, not towards another.
+ * offers them, the detail posts them. An action not listed here - nor `NEW_VERSION` - does
+ * not move the version, and the route map never offers it as a way out: a draft is edited
+ * from its own status and discarded from its own button. Claiming and releasing leave the
+ * version where it is: they are run from its current status, not towards another.
  */
 export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransition>> = {
   SUBMIT: { target: 'IN_REVIEW', path: 'submit', doneKey: 'content.workflow.done.submitted' },
@@ -80,6 +83,21 @@ export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransitio
     target: 'READY_TO_PUBLISH',
     path: 'recover',
     doneKey: 'content.workflow.done.recovered',
+  },
+  RETIRE: {
+    target: 'RETIRED',
+    path: 'retire',
+    doneKey: 'content.workflow.done.retired',
+    doneTone: 'info',
+    confirmKey: 'content.workflow.retire',
+    confirmTone: 'retire',
+  },
+  RESTORE: {
+    target: 'PUBLISHED',
+    path: 'restore',
+    doneKey: 'content.workflow.done.restored',
+    doneReplacingKey: 'content.workflow.done.restoredReplacing',
+    confirmKey: 'content.workflow.restore',
   },
 };
 

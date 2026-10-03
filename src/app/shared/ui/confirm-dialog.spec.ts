@@ -136,5 +136,8 @@ describe('ConfirmDialog', () => {
     host.tone.set('archive');
     fixture.detectChanges();
     expect(action().className).toContain('bg-status-archived-ink');
+    host.tone.set('retire');
+    fixture.detectChanges();
+    expect(action().className).toContain('bg-status-retired-ink');
   });
 });

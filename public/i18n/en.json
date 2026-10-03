@@ -525,7 +525,10 @@
         "openedKeepingOnline": "New draft v{{version}} from v{{base}}, in your name. v{{online}} stays online until this one is published.",
         "reopened": "New draft v{{version}} from the archived v{{base}}, which stays in the history.",
         "archived": "Archived. Recover it from the Workflow whenever you need it.",
-        "recovered": "Recovered: it is ready to publish again."
+        "recovered": "Recovered: it is ready to publish again.",
+        "retired": "Retired from publication. The version history stays intact.",
+        "restored": "v{{version}} is back online.",
+        "restoredReplacing": "v{{version}} is back online. v{{online}} is now superseded."
       },
       "refused": {
         "incomplete": "Arrr! Still missing before review: {{fields}}.",
@@ -561,6 +564,19 @@
         "body": "v{{version}} stays approved but is not published: you will find it archived and can recover it whenever you like.",
         "note": "Archiving is not retiring: this version has never been online.",
         "confirm": "Yes, archive"
+      },
+      "retire": {
+        "title": "Retire v{{version}} from publication?",
+        "body": "Readers will no longer see it. Published versions stay in the history and can be republished.",
+        "note": "Retiring deletes nothing: the content moves to Retired.",
+        "confirm": "Yes, retire"
+      },
+      "restore": {
+        "title": "Republish v{{version}}?",
+        "body": "v{{version}} goes back online exactly as it was.",
+        "bodyReplacing": "v{{version}} goes back online exactly as it was. v{{online}}, online today, becomes \"superseded\" and stays in the history.",
+        "note": "No new version is created: an existing one is republished.",
+        "confirm": "Yes, republish"
       }
     },
     "breadcrumb": {
