@@ -460,5 +460,53 @@ describe('DevilFruitTypeDetail', () => {
       expect(mascotSays()).toContain('changed in the meantime');
       expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
     });
+
+    it('claims a version in review from its own status, which then offers to release it', async () => {
+      await open(`${PAGE}?tab=workflow`, 'zoro', REVIEWER);
+      await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);
+      await answerOwnVersion('IN_REVIEW', ['CLAIM']);
+
+      node('IN_REVIEW').click();
+      const claim = httpTesting.expectOne(`${VERSION}/claim`);
+      expect(claim.request.method).toBe('POST');
+      claim.flush({});
+      await afterInteraction();
+      await answerReload('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT']);
+
+      expect(mascotSays()).toContain('Claimed: you can now approve or reject it.');
+      expect(TestBed.inject(MascotService).message().tone).toBe('success');
+      expect(node('IN_REVIEW').title).toBe('Click to release the review');
+    });
+
+    it('releases a claimed version and says so as information', async () => {
+      await open(`${PAGE}?tab=workflow`, 'zoro', REVIEWER);
+      await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);
+      await answerOwnVersion('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT']);
+
+      node('IN_REVIEW').click();
+      httpTesting.expectOne(`${VERSION}/release`).flush({});
+      await afterInteraction();
+      await answerReload('IN_REVIEW', ['CLAIM']);
+
+      expect(mascotSays()).toContain('Released:');
+      expect(TestBed.inject(MascotService).message().tone).toBe('info');
+      expect(node('IN_REVIEW').title).toBe('Click to claim the review');
+    });
+
+    it('shows who got there first when another reviewer claimed the version meanwhile', async () => {
+      await open(`${PAGE}?tab=workflow`, 'zoro', REVIEWER);
+      await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);
+      await answerOwnVersion('IN_REVIEW', ['CLAIM']);
+
+      node('IN_REVIEW').click();
+      httpTesting
+        .expectOne(`${VERSION}/claim`)
+        .flush({ errorCode: 'CONCURRENT_MODIFICATION' }, { status: 409, statusText: 'Conflict' });
+      await afterInteraction();
+      await answerReload('IN_REVIEW', []);
+
+      expect(mascotSays()).toContain('changed in the meantime');
+      expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
+    });
   });
 });

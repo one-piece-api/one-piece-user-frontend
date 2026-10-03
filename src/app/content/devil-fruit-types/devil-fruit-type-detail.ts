@@ -236,7 +236,10 @@ export class DevilFruitTypeDetail {
     this.acting.set(true);
     try {
       await firstValueFrom(this.http.post<Version<DevilFruitType>>(url, null));
-      this.mascot.show(this.transloco.translate(transition.doneKey), 'success');
+      this.mascot.show(
+        this.transloco.translate(transition.doneKey),
+        transition.doneTone ?? 'success',
+      );
     } catch (error) {
       this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
     } finally {

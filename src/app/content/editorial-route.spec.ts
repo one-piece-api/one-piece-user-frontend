@@ -1,4 +1,4 @@
-import type { VersionEvent, VersionStatus } from './content.model';
+import type { VersionAction, VersionEvent, VersionStatus } from './content.model';
 import { editorialRoute, type EditorialRoute, type RouteNode } from './editorial-route';
 
 const NAMI = { id: 'u1', username: 'nami', email: 'nami@onepiece.local' };
@@ -200,10 +200,12 @@ describe('editorialRoute', () => {
     expect(connectors(route).main).toEqual(['next', 'idle', 'idle', 'idle']);
   });
 
-  it('ignores an allowed action the screens cannot run, and one that leads nowhere on the map', () => {
-    const route = editorialRoute('IN_REVIEW', history(CREATED, SUBMITTED), ['CLAIM', 'EDIT']);
+  it('ignores an action the screens cannot run, one that leads nowhere and one that stays put', () => {
+    const allowed: VersionAction[] = ['APPROVE', 'EDIT', 'CLAIM', 'RELEASE'];
+    const route = editorialRoute('IN_REVIEW', history(CREATED, SUBMITTED), allowed);
 
     expect(nodes(route).filter((candidate) => candidate.state === 'next')).toEqual([]);
+    expect(node(route, 'IN_REVIEW')).toMatchObject({ state: 'current', transition: null });
     expect(connectors(route).main).toEqual(['followed', 'idle', 'idle', 'idle']);
   });
 

@@ -72,7 +72,46 @@ const STATUS_CLASSES: Record<VersionStatus, { current: string; soft: string; ink
 const CURRENT_NODE_CLASSES = 'text-white ring-5';
 /** The current status when clicking it does something: it breathes, and says what. */
 const ACTIONABLE_NODE_CLASSES = 'anim-node-pulse cursor-pointer';
-const EDIT_GLYPH = '✎';
+
+/**
+ * What clicking the current status does when it keeps the version there, by status: reopen
+ * the draft, take the review or let it go - first allowed wins. Letting go is offered
+ * without the pulse: nothing waits for it.
+ */
+interface InPlaceAction {
+  readonly action: VersionAction;
+  readonly glyph: string;
+  readonly titleKey: string;
+  readonly noteKey: string;
+  readonly pulse: boolean;
+}
+const IN_PLACE_ACTIONS: Partial<Record<VersionStatus, readonly InPlaceAction[]>> = {
+  DRAFT: [
+    {
+      action: 'EDIT',
+      glyph: '✎',
+      titleKey: 'content.workflow.editTitle',
+      noteKey: 'content.workflow.note.editHere',
+      pulse: true,
+    },
+  ],
+  IN_REVIEW: [
+    {
+      action: 'CLAIM',
+      glyph: '✋',
+      titleKey: 'content.workflow.claimTitle',
+      noteKey: 'content.workflow.note.claimHere',
+      pulse: true,
+    },
+    {
+      action: 'RELEASE',
+      glyph: '✋',
+      titleKey: 'content.workflow.releaseTitle',
+      noteKey: 'content.workflow.note.releaseHere',
+      pulse: false,
+    },
+  ],
+};
 /** A status of the main line the version has been through: a green check. */
 const VISITED_MAIN_CLASSES = 'border-success-600 bg-success-600 text-white';
 const VISITED_GLYPH = '✓';
@@ -164,7 +203,8 @@ interface ColumnView {
  * The ship marks the current status, a green check the ones already gone through - read
  * from the version's own history - and dashed lines the ways it did not take. A status
  * the caller may take the version to pulses in gold, and clicking it asks for that
- * transition; the Draft one, on a draft the caller may edit, reopens it.
+ * transition; the current one, when the caller may act on it there, does that - reopens a
+ * draft, takes or lets go a review.
  */
 @Component({
   selector: 'app-route-map',
@@ -259,16 +299,18 @@ export class RouteMap {
       action: null,
     };
     switch (node.state) {
-      case 'current':
-        if (node.status === 'DRAFT' && this.version().allowedActions.includes('EDIT')) {
+      case 'current': {
+        const inPlace = this.inPlaceAction(node.status);
+        if (inPlace) {
+          const clickable = inPlace.pulse ? ACTIONABLE_NODE_CLASSES : 'cursor-pointer';
           return {
             ...base,
-            action: 'EDIT',
-            title: this.transloco.translate('content.workflow.editTitle'),
-            glyph: EDIT_GLYPH,
-            circleClasses: `${classes.current} ${CURRENT_NODE_CLASSES} ${ACTIONABLE_NODE_CLASSES}`,
+            action: inPlace.action,
+            title: this.transloco.translate(inPlace.titleKey),
+            glyph: inPlace.glyph,
+            circleClasses: `${classes.current} ${CURRENT_NODE_CLASSES} ${clickable}`,
             labelClasses: classes.ink,
-            note: this.transloco.translate('content.workflow.note.editHere'),
+            note: this.transloco.translate(inPlace.noteKey),
             noteClasses: classes.ink,
           };
         }
@@ -279,6 +321,7 @@ export class RouteMap {
           note: this.currentNote(node),
           noteClasses: classes.ink,
         };
+      }
       case 'next': {
         const action = this.transloco.translate(ACTION_LABEL_KEY[node.transition]);
         return {
@@ -309,6 +352,12 @@ export class RouteMap {
           noteClasses: IDLE_LABEL_CLASSES,
         };
     }
+  }
+
+  /** The first action the caller may run on the current status without leaving it, if any. */
+  private inPlaceAction(status: VersionStatus): InPlaceAction | undefined {
+    const allowed = this.version().allowedActions;
+    return IN_PLACE_ACTIONS[status]?.find((entry) => allowed.includes(entry.action));
   }
 
   /** What the map says under the status the version is in: whose it is, who holds it, since when. */

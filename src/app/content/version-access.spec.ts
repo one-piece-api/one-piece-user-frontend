@@ -85,10 +85,17 @@ describe('versionAccess', () => {
     expect(editable).toMatchObject({ granted: false, note: 'onlyDraft' });
   });
 
-  it('offers a reviewer the claim on a version waiting in review', () => {
+  it('offers a reviewer the claim on a version waiting in review, and says where to click', () => {
     const { workflow } = lines(versionAccess(version('IN_REVIEW', ['CLAIM']), reviewer('zoro')));
 
-    expect(workflow).toMatchObject({ granted: true, note: null, actions: ['CLAIM'] });
+    expect(workflow).toMatchObject({ granted: true, note: 'claimHere', actions: ['CLAIM'] });
+  });
+
+  it('adds nothing to the actions of the reviewer holding a version', () => {
+    const held = version('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT'], true);
+    const { workflow } = lines(versionAccess(held, reviewer('zoro')));
+
+    expect(workflow).toMatchObject({ granted: true, note: null });
   });
 
   it('says who holds a version in review to whoever can do nothing about it', () => {

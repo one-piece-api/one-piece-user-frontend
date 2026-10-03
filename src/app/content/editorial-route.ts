@@ -74,10 +74,10 @@ export function editorialRoute(
   allowedActions: readonly VersionAction[] = [],
 ): EditorialRoute {
   const journey = journeyOf(status, events);
-  const transitions = transitionsFrom(allowedActions);
+  const transitions = transitionsFrom(status, allowedActions);
   const node = (of: VersionStatus): RouteNode => {
     const reachedBy = journey.arrivals.get(of) ?? null;
-    const transition = of === status ? undefined : transitions.get(of);
+    const transition = transitions.get(of);
     return transition
       ? { status: of, state: 'next', reachedBy, transition }
       : { status: of, state: stateOf(of, status, journey), reachedBy, transition: null };
@@ -131,15 +131,17 @@ function journeyOf(status: VersionStatus, events: readonly VersionEvent[]): Jour
 
 /**
  * The status each allowed transition leads to, and that transition - only the ones the
- * screens can run (`VERSION_TRANSITIONS`).
+ * screens can run (`VERSION_TRANSITIONS`), and only the ones leaving `status`: claiming and
+ * releasing keep the version where it is.
  */
 function transitionsFrom(
+  status: VersionStatus,
   allowedActions: readonly VersionAction[],
 ): ReadonlyMap<VersionStatus, VersionAction> {
   const transitions = new Map<VersionStatus, VersionAction>();
   for (const action of allowedActions) {
     const target = VERSION_TRANSITIONS[action]?.target;
-    if (target && !transitions.has(target)) {
+    if (target && target !== status && !transitions.has(target)) {
       transitions.set(target, action);
     }
   }

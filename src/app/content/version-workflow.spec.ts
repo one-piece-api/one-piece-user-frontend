@@ -243,7 +243,7 @@ describe('VersionWorkflow', () => {
 
       expect(access('visible')).toBe('✓ Visible to editors and reviewers');
       expect(access('editable')).toBe('✕ Not editable you lack content:write');
-      expect(access('workflow')).toBe('→ Workflow: claim');
+      expect(access('workflow')).toBe('→ Workflow: claim click In review to claim it');
     });
 
     it('names the version a new draft would start from', async () => {
@@ -334,7 +334,8 @@ describe('VersionWorkflow', () => {
     });
 
     it('never offers a transition the screens cannot run yet', async () => {
-      await render(version('IN_REVIEW', ['CLAIM']), WAITING, 'zoro', REVIEWER);
+      const held = version('IN_REVIEW', ['APPROVE', 'REJECT'], { claimant: ZORO });
+      await render(held, WAITING, 'zoro', REVIEWER);
 
       expect(root.querySelectorAll('[data-state="next"]').length).toBe(0);
     });
@@ -345,6 +346,45 @@ describe('VersionWorkflow', () => {
       fixture.detectChanges();
 
       expect((mapNode('DRAFT') as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('offers a reviewer to claim an unclaimed version on its In review status', async () => {
+      await render(version('IN_REVIEW', ['CLAIM']), WAITING, 'zoro', REVIEWER);
+      const actions = asked();
+
+      const node = mapNode('IN_REVIEW');
+      expect(node.tagName).toBe('BUTTON');
+      expect(node.dataset['state']).toBe('current');
+      expect(node.textContent?.trim()).toBe('✋');
+      expect(node.className).toContain('anim-node-pulse');
+      expect(node.title).toBe('Click to claim the review');
+      expect(mapText('IN_REVIEW')).toContain('✋ claim it');
+      node.click();
+
+      expect(actions).toEqual(['CLAIM']);
+    });
+
+    it('offers the reviewer holding a version to release it, without pulsing', async () => {
+      const held = version('IN_REVIEW', ['RELEASE', 'APPROVE', 'REJECT'], { claimant: ZORO });
+      await render(held, [...WAITING, event('VERSION_CLAIMED', ZORO, 10)], 'zoro', REVIEWER);
+      const actions = asked();
+
+      const node = mapNode('IN_REVIEW');
+      expect(node.tagName).toBe('BUTTON');
+      expect(node.textContent?.trim()).toBe('✋');
+      expect(node.className).not.toContain('anim-node-pulse');
+      expect(mapText('IN_REVIEW')).toContain('claimed by you · ↩ click to release');
+      node.click();
+
+      expect(actions).toEqual(['RELEASE']);
+    });
+
+    it('leaves a version someone else holds as a plain status naming them', async () => {
+      await render(HELD, [...WAITING, event('VERSION_CLAIMED', ZORO, 10)], 'law', REVIEWER);
+
+      expect(mapNode('IN_REVIEW').tagName).toBe('SPAN');
+      expect(mapText('IN_REVIEW')).toContain('claimed by zoro');
+      expect(access('workflow')).toBe('✕ No workflow action claimed by zoro');
     });
 
     it('explains the gold nodes in the inline legend', async () => {

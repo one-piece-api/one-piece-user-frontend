@@ -471,7 +471,9 @@
         "archived": "recoverable",
         "retired": "no longer online",
         "superseded": "by another version",
-        "editHere": "✎ click to edit"
+        "editHere": "✎ click to edit",
+        "claimHere": "✋ claim it",
+        "releaseHere": "claimed by you · ↩ click to release"
       },
       "timelineTitle": "Workflow timeline",
       "timelineHint": "who · what · when",
@@ -499,13 +501,18 @@
         "ownReview": "you do not review your own content",
         "needsPublish": "content:publish is needed",
         "noTransition": "no transition for your role",
-        "openVersionExists": "the content already has a version in progress"
+        "openVersionExists": "the content already has a version in progress",
+        "claimHere": "click In review to claim it"
       },
       "editTitle": "Click to reopen the draft for editing",
+      "claimTitle": "Click to claim the review",
+      "releaseTitle": "Click to release the review",
       "nextTitle": "Click to: {{action}} · {{meaning}}",
       "done": {
         "submitted": "Submitted for review! The ball is now with whoever holds content:review.",
-        "pulledBack": "Pulled back from review: it is your editable draft again."
+        "pulledBack": "Pulled back from review: it is your editable draft again.",
+        "claimed": "Claimed: you can now approve or reject it. Other reviewers see it as taken.",
+        "released": "Released: it is available to other reviewers again."
       },
       "refused": {
         "incomplete": "Arrr! Still missing before review: {{fields}}.",

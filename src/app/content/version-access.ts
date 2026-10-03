@@ -45,9 +45,14 @@ export function versionAccess(version: AccessVersion, caller: AccessCaller): Acc
       kind: 'workflow',
       granted: actions.length > 0,
       actions,
-      ...(actions.length > 0 ? NO_NOTE : idleNote(version, caller)),
+      ...(actions.length > 0 ? actionNote(actions) : idleNote(version, caller)),
     },
   ];
+}
+
+/** Where to go to do it, when that is not obvious: a review is taken on the map. */
+function actionNote(actions: readonly VersionAction[]): Note {
+  return actions.includes('CLAIM') ? note('claimHere') : NO_NOTE;
 }
 
 /** Who else sees a version in this status. */

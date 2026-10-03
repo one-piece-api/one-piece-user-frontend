@@ -471,7 +471,9 @@
         "archived": "recuperabile",
         "retired": "non più online",
         "superseded": "da un'altra versione",
-        "editHere": "✎ clicca per modificare"
+        "editHere": "✎ clicca per modificare",
+        "claimHere": "✋ prendi in carico",
+        "releaseHere": "in carico a te · ↩ clicca per rilasciare"
       },
       "timelineTitle": "Cronologia del workflow",
       "timelineHint": "chi · cosa · quando",
@@ -499,13 +501,18 @@
         "ownReview": "non revisioni i tuoi contenuti",
         "needsPublish": "serve content:publish",
         "noTransition": "nessuna transizione per il tuo ruolo",
-        "openVersionExists": "il contenuto ha già una versione in lavorazione"
+        "openVersionExists": "il contenuto ha già una versione in lavorazione",
+        "claimHere": "clicca su In revisione per prenderlo in carico"
       },
       "editTitle": "Clicca per riaprire la bozza in modifica",
+      "claimTitle": "Clicca per prendere in carico la revisione",
+      "releaseTitle": "Clicca per rilasciare la revisione",
       "nextTitle": "Clicca per: {{action}} · {{meaning}}",
       "done": {
         "submitted": "Inviato in revisione! Ora la palla passa a chi ha content:review.",
-        "pulledBack": "Ritirato dalla revisione: è di nuovo una tua bozza modificabile."
+        "pulledBack": "Ritirato dalla revisione: è di nuovo una tua bozza modificabile.",
+        "claimed": "Preso in carico: ora puoi approvarlo o rifiutarlo. Gli altri reviewer lo vedono occupato.",
+        "released": "Rilasciato: torna disponibile per gli altri reviewer."
       },
       "refused": {
         "incomplete": "Arrr! Prima della revisione manca: {{fields}}.",

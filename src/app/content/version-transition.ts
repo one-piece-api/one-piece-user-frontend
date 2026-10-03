@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { apiErrorOf } from '../shared/http/api-error';
+import type { MascotTone } from '../shared/mascot/mascot';
 import type { VersionAction, VersionStatus } from './content.model';
 
 /** What the screens know of a workflow transition they can run. */
@@ -8,18 +9,27 @@ export interface VersionTransition {
   readonly target: VersionStatus;
   /** The last segment of its endpoint, under `…/versions/{number}/`. */
   readonly path: string;
-  /** What the mascot says once it is done. */
+  /** What the mascot says once it is done, and in which tone - success unless said. */
   readonly doneKey: string;
+  readonly doneTone?: MascotTone;
 }
 
 /**
  * The transitions the screens run, the same for every kind of content - the route map
  * offers them, the detail posts them. An action not listed here is never offered, even
- * when the backend allows it: its endpoint does not exist yet.
+ * when the backend allows it: its endpoint does not exist yet. Claiming and releasing
+ * leave the version where it is: they are run from its current status, not towards another.
  */
 export const VERSION_TRANSITIONS: Partial<Record<VersionAction, VersionTransition>> = {
   SUBMIT: { target: 'IN_REVIEW', path: 'submit', doneKey: 'content.workflow.done.submitted' },
   PULL_BACK: { target: 'DRAFT', path: 'pull-back', doneKey: 'content.workflow.done.pulledBack' },
+  CLAIM: { target: 'IN_REVIEW', path: 'claim', doneKey: 'content.workflow.done.claimed' },
+  RELEASE: {
+    target: 'IN_REVIEW',
+    path: 'release',
+    doneKey: 'content.workflow.done.released',
+    doneTone: 'info',
+  },
 };
 
 /**
