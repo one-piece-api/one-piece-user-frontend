@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { LanguageEntry } from '../language-catalog';
@@ -32,7 +33,7 @@ interface LanguageTab {
 @Component({
   selector: 'app-devil-fruit-type-card',
   templateUrl: './devil-fruit-type-card.html',
-  imports: [TranslocoPipe],
+  imports: [NgTemplateOutlet, TranslocoPipe],
 })
 export class DevilFruitTypeCard {
   private readonly transloco = inject(TranslocoService);
@@ -64,11 +65,19 @@ export class DevilFruitTypeCard {
   );
   protected readonly name = computed(() => this.translation()?.name?.trim() || null);
   /** The long texts of the language shown, in reading order; `text` is null when not written. */
-  protected readonly longTexts = computed(() =>
+  private readonly longTexts = computed(() =>
     LONG_TEXT_FIELDS.map((field) => ({
       field,
       text: this.translation()?.[field]?.trim() || null,
       emptyKey: EMPTY_TEXT_KEY[field],
     })),
+  );
+  /** The description is read on its own, across the card. */
+  protected readonly description = computed(() =>
+    this.longTexts().find((longText) => longText.field === 'description'),
+  );
+  /** Advantages and disadvantages stand side by side, each growing downwards on its own. */
+  protected readonly contrasts = computed(() =>
+    this.longTexts().filter((longText) => longText.field !== 'description'),
   );
 }
