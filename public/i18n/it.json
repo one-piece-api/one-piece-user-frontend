@@ -19,7 +19,11 @@
       "devilFruitTypes": "Tipi di Frutto del Diavolo",
       "crews": "Ciurme",
       "soon": "in arrivo",
-      "soonMessage": "{{label}} non è ancora attiva: arriverà con lo stesso schema di lista e dettaglio."
+      "soonMessage": "{{label}} non è ancora attiva: arriverà con lo stesso schema di lista e dettaglio.",
+      "liveItems": {
+        "one": "{{count}} sezione attiva",
+        "other": "{{count}} sezioni attive"
+      }
     }
   },
   "langSwitcher": {

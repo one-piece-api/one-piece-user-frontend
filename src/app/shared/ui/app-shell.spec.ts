@@ -1,10 +1,35 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { MascotService } from '../mascot/mascot';
 import { AppShell } from './app-shell';
+
+@Component({ template: '' })
+class BlankPage {}
+
+/** The sidebar entry that opens a group of sections, found by its label. */
+function groupButton(root: HTMLElement, label: string): HTMLButtonElement {
+  const button = Array.from(root.querySelectorAll<HTMLButtonElement>('nav button')).find(
+    (candidate) => candidate.textContent?.includes(label),
+  );
+  if (!button) throw new Error(`No sidebar group "${label}"`);
+  return button;
+}
+
+function flyout(root: HTMLElement): HTMLElement | null {
+  return root.querySelector<HTMLElement>('[data-nav-flyout]');
+}
+
+function hrefsIn(element: Element | null): (string | null)[] {
+  return Array.from(element?.querySelectorAll('a') ?? []).map((link) => link.getAttribute('href'));
+}
+
+function hover(element: Element, pointerType: string): void {
+  element.dispatchEvent(new PointerEvent('pointerenter', { pointerType }));
+}
 
 describe('AppShell', () => {
   let httpTesting: HttpTestingController;
@@ -12,7 +37,15 @@ describe('AppShell', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppShell, provideTranslocoTesting()],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([
+          { path: 'profile', component: BlankPage },
+          { path: 'dashboard', component: BlankPage },
+          { path: 'users', component: BlankPage },
+        ]),
+      ],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);
   });
@@ -77,8 +110,9 @@ describe('AppShell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const links = Array.from(root.querySelectorAll('a'));
-    expect(links.some((link) => link.getAttribute('href') === '/roles')).toBe(true);
+    groupButton(root, 'Admin').click();
+    fixture.detectChanges();
+    expect(hrefsIn(flyout(root))).toEqual(['/users', '/roles']);
   });
 
   it("links to the ship's log only when the caller has audit:read", async () => {
@@ -95,8 +129,9 @@ describe('AppShell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const links = Array.from(root.querySelectorAll('a'));
-    expect(links.some((link) => link.getAttribute('href') === '/audit')).toBe(true);
+    groupButton(root, 'Admin').click();
+    fixture.detectChanges();
+    expect(hrefsIn(flyout(root))).toEqual(['/users', '/audit']);
   });
 
   it('lists the content section, with the entities not built yet only announced', async () => {
@@ -113,54 +148,23 @@ describe('AppShell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const hrefs = Array.from(root.querySelectorAll('a')).map((link) => link.getAttribute('href'));
-    expect(hrefs).toContain('/content/devil-fruit-types');
-    expect(root.textContent).toContain('Devil Fruit Types');
+    groupButton(root, 'Contents').click();
+    fixture.detectChanges();
+    const panel = flyout(root);
+    expect(hrefsIn(panel)).toEqual(['/content/devil-fruit-types']);
+    expect(panel?.textContent).toContain('Devil Fruit Types');
+    expect(panel?.textContent).toContain('1 section open');
 
-    const announced = Array.from(root.querySelectorAll('nav button:not([aria-expanded])')).map(
-      (button) =>
-        Array.from(button.querySelectorAll(':scope > :is(app-icon, span)'))
-          .map((part) => part.textContent?.trim())
-          .join(' ')
-          .trim(),
+    const announced = Array.from(panel?.querySelectorAll('button') ?? []).map((button) =>
+      Array.from(button.querySelectorAll(':scope > span'))
+        .map((part) => part.textContent?.trim())
+        .join(' '),
     );
     expect(announced).toEqual([
       'Characters coming soon',
       'Devil Fruits coming soon',
       'Crews coming soon',
     ]);
-  });
-
-  it('folds and unfolds a section from its heading', async () => {
-    const fixture = TestBed.createComponent(AppShell);
-    fixture.detectChanges();
-
-    httpTesting.expectOne('/api/me').flush({
-      username: 'zoro',
-      email: 'zoro@onepiece.local',
-      roles: ['REVIEWER'],
-      permissions: ['content:read'],
-    });
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    const heading = Array.from(root.querySelectorAll<HTMLButtonElement>('nav button')).find(
-      (button) => button.textContent?.includes('Contents'),
-    )!;
-    expect(heading.getAttribute('aria-expanded')).toBe('true');
-    expect(root.textContent).toContain('Devil Fruit Types');
-
-    heading.click();
-    fixture.detectChanges();
-
-    expect(heading.getAttribute('aria-expanded')).toBe('false');
-    expect(root.textContent).not.toContain('Devil Fruit Types');
-
-    heading.click();
-    fixture.detectChanges();
-
-    expect(root.textContent).toContain('Devil Fruit Types');
   });
 
   it('hides the content section from who lacks content:read', async () => {
@@ -178,7 +182,7 @@ describe('AppShell', () => {
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).not.toContain('Contents');
-    expect(root.querySelectorAll('nav button:not([aria-expanded])').length).toBe(0);
+    expect(root.querySelectorAll('nav button').length).toBe(0);
   });
 
   it('lets the mascot say an announced section is not open yet', async () => {
@@ -195,8 +199,12 @@ describe('AppShell', () => {
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    (root.querySelector('nav button:not([aria-expanded])') as HTMLButtonElement).click();
+    groupButton(root, 'Contents').click();
+    fixture.detectChanges();
+    (flyout(root)?.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
 
+    expect(flyout(root)).toBeNull();
     const mascot = TestBed.inject(MascotService);
     expect(mascot.open()).toBe(true);
     expect(mascot.message().text).toContain("Characters isn't open yet");
@@ -227,5 +235,131 @@ describe('AppShell', () => {
     (root.querySelector('[aria-label="Close menu"].fixed.inset-0') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(aside.className).toContain('-translate-x-full');
+  });
+  describe('sidebar groups', () => {
+    async function signIn(permissions: string[]) {
+      const fixture = TestBed.createComponent(AppShell);
+      fixture.detectChanges();
+      httpTesting.expectOne('/api/me').flush({
+        username: 'luffy',
+        email: 'luffy@onepiece.local',
+        roles: ['ADMIN'],
+        permissions,
+      });
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return { fixture, root: fixture.nativeElement as HTMLElement };
+    }
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('shows a group with a single visible section as that section, not as a group', async () => {
+      const { root } = await signIn(['users:read']);
+
+      expect(hrefsIn(root.querySelector('nav'))).toEqual(['/profile', '/users']);
+      expect(root.querySelector('nav')?.textContent).not.toContain('Admin');
+      expect(root.querySelectorAll('nav button').length).toBe(0);
+    });
+
+    it('opens the flyout on mouse hover and closes it shortly after the pointer leaves', async () => {
+      const { fixture, root } = await signIn(['users:read', 'audit:read']);
+      vi.useFakeTimers();
+      const admin = groupButton(root, 'Admin');
+
+      hover(admin, 'mouse');
+      fixture.detectChanges();
+      expect(flyout(root)).not.toBeNull();
+      expect(admin.getAttribute('aria-expanded')).toBe('true');
+
+      admin.dispatchEvent(new PointerEvent('pointerleave'));
+      hover(flyout(root) as HTMLElement, 'mouse');
+      vi.advanceTimersByTime(500);
+      fixture.detectChanges();
+      expect(flyout(root)).not.toBeNull();
+
+      (flyout(root) as HTMLElement).dispatchEvent(new PointerEvent('pointerleave'));
+      vi.advanceTimersByTime(500);
+      fixture.detectChanges();
+      expect(flyout(root)).toBeNull();
+    });
+
+    it('ignores touch hover, which is followed by a click anyway', async () => {
+      const { fixture, root } = await signIn(['users:read', 'audit:read']);
+
+      hover(groupButton(root, 'Admin'), 'touch');
+      fixture.detectChanges();
+
+      expect(flyout(root)).toBeNull();
+    });
+
+    it('keeps a clicked flyout open until clicked again or a click lands elsewhere', async () => {
+      const { fixture, root } = await signIn(['users:read', 'audit:read']);
+      vi.useFakeTimers();
+      const admin = groupButton(root, 'Admin');
+
+      admin.click();
+      admin.dispatchEvent(new PointerEvent('pointerleave'));
+      vi.advanceTimersByTime(500);
+      fixture.detectChanges();
+      expect(flyout(root)).not.toBeNull();
+
+      admin.click();
+      fixture.detectChanges();
+      expect(flyout(root)).toBeNull();
+
+      admin.click();
+      fixture.detectChanges();
+      (root.querySelector('main') as HTMLElement).click();
+      fixture.detectChanges();
+      expect(flyout(root)).toBeNull();
+    });
+
+    it('marks the current section and its group with the gold tab', async () => {
+      const { fixture, root } = await signIn(['users:read', 'audit:read']);
+      await TestBed.inject(Router).navigateByUrl('/users');
+      fixture.detectChanges();
+
+      const admin = groupButton(root, 'Admin');
+      expect(admin.className).toContain('border-treasure-500');
+      const profile = root.querySelector('nav a[href="/profile"]') as HTMLElement;
+      expect(profile.className).toContain('border-transparent');
+
+      admin.click();
+      fixture.detectChanges();
+      const current = flyout(root)?.querySelector('[aria-current="page"]');
+      expect(current?.getAttribute('href')).toBe('/users');
+      expect(current?.className).toContain('border-treasure-500');
+    });
+
+    it('leads to the dashboard from its group, its status pages one hover away', async () => {
+      const { fixture, root } = await signIn(['content:read']);
+      const dashboard = root.querySelector('nav a[href="/dashboard"]') as HTMLElement;
+      expect(dashboard.textContent).toContain('Dashboard');
+
+      hover(dashboard, 'mouse');
+      fixture.detectChanges();
+      const statusPages = hrefsIn(flyout(root));
+      expect(statusPages[0]).toBe('/dashboard');
+      expect(statusPages.length).toBeGreaterThan(1);
+
+      dashboard.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(flyout(root)).toBeNull();
+      expect(dashboard.getAttribute('aria-current')).toBe('page');
+      expect(dashboard.className).toContain('border-treasure-500');
+    });
+
+    it('expands the current group inline for the mobile drawer', async () => {
+      const { fixture, root } = await signIn(['users:read', 'audit:read']);
+      expect(hrefsIn(root.querySelector('nav'))).toEqual(['/profile']);
+
+      await TestBed.inject(Router).navigateByUrl('/users');
+      fixture.detectChanges();
+
+      expect(hrefsIn(root.querySelector('nav'))).toEqual(['/profile', '/users', '/audit']);
+    });
   });
 });

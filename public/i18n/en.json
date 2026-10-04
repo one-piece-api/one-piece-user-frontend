@@ -19,7 +19,11 @@
       "devilFruitTypes": "Devil Fruit Types",
       "crews": "Crews",
       "soon": "coming soon",
-      "soonMessage": "{{label}} isn't open yet: it will arrive with the same list and detail layout."
+      "soonMessage": "{{label}} isn't open yet: it will arrive with the same list and detail layout.",
+      "liveItems": {
+        "one": "{{count}} section open",
+        "other": "{{count}} sections open"
+      }
     }
   },
   "langSwitcher": {

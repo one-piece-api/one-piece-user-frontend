@@ -23,6 +23,11 @@ export interface NavItem {
 export interface NavGroup {
   /** A `transloco` translation key, not display text - the shell resolves it at render time. */
   readonly labelKey: string;
+  readonly icon: string;
+  /** Clicking the group leads here, its sections staying one hover away. */
+  readonly route?: string;
+  /** Its flyout tells how many of its sections are already open (not `soon`). */
+  readonly countsLiveItems?: boolean;
   readonly items: readonly NavItem[];
 }
 
@@ -31,6 +36,8 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     // The overview across entity types (docs/user-flows/content-editorial-workflow.md 6);
     // then one entry per status page, for whoever sees that status.
     labelKey: 'shell.nav.dashboard',
+    icon: '◎',
+    route: '/dashboard',
     items: [
       {
         id: 'dashboard',
@@ -53,6 +60,8 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     // One entry per content entity (docs/user-flows/content-editorial-workflow.md 6): the
     // ones not built yet are announced, so the section shows where the encyclopedia is going.
     labelKey: 'shell.nav.contents',
+    icon: '❖',
+    countsLiveItems: true,
     items: [
       {
         id: 'characters',
@@ -86,10 +95,12 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     labelKey: 'shell.nav.account',
+    icon: '☺',
     items: [{ id: 'profile', label: 'shell.nav.profile', icon: '◆', route: '/profile' }],
   },
   {
     labelKey: 'shell.nav.admin',
+    icon: '⚑',
     items: [
       {
         id: 'users',

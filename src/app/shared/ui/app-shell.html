@@ -1,3 +1,52 @@
+<ng-template #entry let-item>
+  @if (item.soon) {
+    <button
+      type="button"
+      (click)="announceSoon(item)"
+      class="flex w-full cursor-pointer items-center gap-3 rounded-xl border-l-4 px-3 py-3 text-left font-heading text-[15px] font-bold transition-colors hover:bg-white/10"
+      [class]="entryStateClasses(false, false, true)"
+    >
+      <app-icon
+        class="w-5 font-display"
+        [class]="entryIconClasses(false, true)"
+        [icon]="item.icon"
+      />
+      <span class="min-w-0 flex-1">{{ item.label | transloco }}</span>
+      <span
+        class="flex-none rounded-md bg-treasure-500/15 px-1.5 py-px text-[10px] font-extrabold text-treasure-500"
+        >{{ 'shell.nav.soon' | transloco }}</span
+      >
+    </button>
+  } @else {
+    <a
+      [routerLink]="item.route"
+      (click)="navigated()"
+      [attr.aria-current]="isItemActive(item) ? 'page' : null"
+      class="flex items-center gap-3 rounded-xl border-l-4 px-3 py-3 font-heading text-[15px] font-bold transition-colors hover:bg-white/10"
+      [class]="entryStateClasses(isItemActive(item))"
+    >
+      <app-icon
+        class="w-5 font-display"
+        [class]="entryIconClasses(isItemActive(item))"
+        [icon]="item.icon"
+      />
+      <span class="min-w-0 flex-1">{{ item.label | transloco }}</span>
+    </a>
+  }
+</ng-template>
+
+<ng-template #groupLabel let-group let-lit="lit" let-expanded="expanded">
+  <app-icon class="w-5 font-display" [class]="entryIconClasses(lit)" [icon]="group.icon" />
+  <span class="min-w-0 flex-1 truncate">{{ group.labelKey | transloco }}</span>
+  <span
+    class="w-3.5 flex-none text-center text-sm transition-transform lg:rotate-0"
+    [class]="entryIconClasses(lit)"
+    [class.rotate-90]="expanded"
+    aria-hidden="true"
+    >›</span
+  >
+</ng-template>
+
 <div class="flex h-screen overflow-hidden">
   @if (drawerOpen()) {
     <button
@@ -10,7 +59,7 @@
 
   <aside [class]="asideClasses()">
     <div class="flex items-center justify-between gap-3 px-1">
-      <a routerLink="/" (click)="closeDrawer()" class="shrink-0">
+      <a routerLink="/" (click)="navigated()" class="shrink-0">
         <img src="assets/logo.png" alt="One Piece API" class="h-11 w-auto object-contain" />
       </a>
       <button
@@ -23,52 +72,55 @@
       </button>
     </div>
 
-    <nav class="flex flex-1 flex-col gap-5">
+    <nav data-nav-flyout-area class="flex flex-1 flex-col gap-1.5">
       @for (group of navGroups; track group.labelKey) {
-        @if (visibleItems(group).length > 0) {
+        @let items = visibleItems(group);
+        @if (items.length === 1) {
+          <ng-container *ngTemplateOutlet="entry; context: { $implicit: items[0] }" />
+        } @else if (items.length > 1) {
+          @let lit = isGroupActive(group) || isFlyoutOpen(group);
           <div class="flex flex-col gap-1">
-            <button
-              type="button"
-              (click)="toggleGroup(group.labelKey)"
-              [attr.aria-expanded]="!isCollapsed(group.labelKey)"
-              class="flex w-full cursor-pointer items-center justify-between rounded-lg px-3 pb-1 text-left font-heading text-[11px] font-bold tracking-widest text-parchment-100/40 uppercase transition-colors hover:text-parchment-100/70"
-            >
-              {{ group.labelKey | transloco }}
-              <span
-                class="text-sm transition-transform duration-150"
-                [class.rotate-90]="!isCollapsed(group.labelKey)"
-                aria-hidden="true"
-                >›</span
+            @if (group.route) {
+              <a
+                [routerLink]="group.route"
+                [attr.aria-current]="isGroupActive(group) ? 'page' : null"
+                (click)="navigated()"
+                (pointerenter)="openFlyoutOnHover($event, group)"
+                (pointerleave)="scheduleFlyoutClose()"
+                class="flex cursor-pointer items-center gap-3 rounded-xl border-l-4 px-3 py-3 text-left font-heading text-[15px] font-bold transition-colors hover:bg-white/10"
+                [class]="entryStateClasses(isGroupActive(group), lit)"
               >
-            </button>
-            @if (!isCollapsed(group.labelKey)) {
-              @for (item of visibleItems(group); track item.id) {
-                @if (item.soon) {
-                  <button
-                    type="button"
-                    (click)="announceSoon(item)"
-                    class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left font-heading text-sm font-bold text-parchment-100/45 transition-colors hover:bg-white/5"
-                  >
-                    <app-icon class="w-5 text-parchment-100/40" [icon]="item.icon" />
-                    <span class="min-w-0 flex-1">{{ item.label | transloco }}</span>
-                    <span
-                      class="flex-none rounded-md bg-treasure-500/15 px-1.5 py-px text-[10px] font-extrabold text-treasure-500"
-                      >{{ 'shell.nav.soon' | transloco }}</span
-                    >
-                  </button>
-                } @else {
-                  <a
-                    [routerLink]="item.route"
-                    routerLinkActive="bg-white/10 text-parchment-100"
-                    [routerLinkActiveOptions]="{ exact: !!item.exact }"
-                    (click)="closeDrawer()"
-                    class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-parchment-100/70 transition-colors hover:bg-white/5 hover:text-parchment-100"
-                  >
-                    <app-icon class="w-5 text-treasure-500" [icon]="item.icon" />
-                    <span>{{ item.label | transloco }}</span>
-                  </a>
+                <ng-container
+                  *ngTemplateOutlet="
+                    groupLabel;
+                    context: { $implicit: group, lit, expanded: isExpandedInline(group) }
+                  "
+                />
+              </a>
+            } @else {
+              <button
+                type="button"
+                [attr.aria-expanded]="isFlyoutOpen(group) || isExpandedInline(group)"
+                (click)="toggleGroup($event, group)"
+                (pointerenter)="openFlyoutOnHover($event, group)"
+                (pointerleave)="scheduleFlyoutClose()"
+                class="flex cursor-pointer items-center gap-3 rounded-xl border-l-4 px-3 py-3 text-left font-heading text-[15px] font-bold transition-colors hover:bg-white/10"
+                [class]="entryStateClasses(isGroupActive(group), lit)"
+              >
+                <ng-container
+                  *ngTemplateOutlet="
+                    groupLabel;
+                    context: { $implicit: group, lit, expanded: isExpandedInline(group) }
+                  "
+                />
+              </button>
+            }
+            @if (isExpandedInline(group)) {
+              <div class="flex flex-col gap-0.5 pl-3.5 lg:hidden">
+                @for (item of items; track item.id) {
+                  <ng-container *ngTemplateOutlet="entry; context: { $implicit: item }" />
                 }
-              }
+              </div>
             }
           </div>
         }
@@ -104,6 +156,41 @@
       }
     </div>
   </aside>
+
+  @if (flyout(); as panel) {
+    <div
+      data-nav-flyout-area
+      data-nav-flyout
+      role="group"
+      [attr.aria-label]="panel.group.labelKey | transloco"
+      class="anim-fade-enter fixed left-70 z-50 hidden w-64 flex-col gap-0.5 rounded-2xl border border-nav-line bg-nav-flyout px-2 pt-2.5 pb-2 shadow-[0_18px_44px_rgba(10,20,60,0.45)] lg:flex"
+      [style.top.px]="panel.top"
+      (pointerenter)="keepFlyoutOpen()"
+      (pointerleave)="scheduleFlyoutClose()"
+    >
+      <div class="flex items-center justify-between gap-2 px-2.5 pt-0.5 pb-2">
+        <span
+          class="font-display text-[11px] font-bold tracking-[0.16em] text-treasure-500 uppercase"
+          >{{ panel.group.labelKey | transloco }}</span
+        >
+        @if (panel.group.countsLiveItems) {
+          @let live = liveItemCount(panel.group);
+          <span class="text-[10px] font-extrabold tracking-[0.08em] text-nav-hint">{{
+            (live === 1 ? 'shell.nav.liveItems.one' : 'shell.nav.liveItems.other')
+              | transloco: { count: live }
+          }}</span>
+        }
+      </div>
+      <div
+        class="flex flex-col gap-0.5 overflow-x-hidden overflow-y-auto"
+        [style.max-height]="flyoutListMaxHeight(panel)"
+      >
+        @for (item of visibleItems(panel.group); track item.id) {
+          <ng-container *ngTemplateOutlet="entry; context: { $implicit: item }" />
+        }
+      </div>
+    </div>
+  }
 
   <div class="flex min-w-0 flex-1 flex-col overflow-y-auto">
     <div

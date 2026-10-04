@@ -69,6 +69,16 @@
   --color-card-line: #f0e3bd;
   --color-card-ink: #9a8a5c;
 
+  /* The sidebar: its resting inks, the dimmer ones of an announced section, and the flyout
+     that lists a group's sections beside it. */
+  --color-nav-ink: #c3cdf0;
+  --color-nav-icon: #8f9fe0;
+  --color-nav-soon-ink: #7f8cc4;
+  --color-nav-soon-icon: #5f6db0;
+  --color-nav-flyout: #222d75;
+  --color-nav-line: #4a5bc0;
+  --color-nav-hint: #c9a94a;
+
   --font-display: 'Baloo 2', cursive, sans-serif;
   --font-heading: 'Nunito', 'Source Sans 3', sans-serif;
 }
@@ -162,6 +172,21 @@ body {
 
 .anim-pop-enter {
   animation: pop-in 0.2s ease-out both;
+}
+
+/* A short fade, for a panel that opens under the pointer (the sidebar flyout): a pop-in's
+   slide would make it drift away from the item being hovered. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.anim-fade-enter {
+  animation: fade-in 0.12s ease-out both;
 }
 
 .anim-pop-leave {
