@@ -1,6 +1,10 @@
 import { DEVIL_FRUIT_TYPE_ICON } from '../../content/devil-fruit-types/devil-fruit-type.model';
 import { STATUS_LABEL_KEY } from '../../content/content.model';
-import { STATUS_PAGES, statusPageRoute } from '../../content/dashboard/dashboard.model';
+import {
+  DASHBOARD_ICON,
+  STATUS_PAGES,
+  statusPageRoute,
+} from '../../content/dashboard/dashboard.model';
 import { STATUS_GLYPH } from '../../content/status-badge';
 
 export interface NavItem {
@@ -36,13 +40,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     // The overview across entity types (docs/user-flows/content-editorial-workflow.md 6);
     // then one entry per status page, for whoever sees that status.
     labelKey: 'shell.nav.dashboard',
-    icon: '◎',
+    icon: DASHBOARD_ICON,
     route: '/dashboard',
     items: [
       {
         id: 'dashboard',
         label: 'shell.nav.overview',
-        icon: '◎',
+        icon: DASHBOARD_ICON,
         route: '/dashboard',
         permission: 'content:read',
         exact: true,
@@ -60,7 +64,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     // One entry per content entity (docs/user-flows/content-editorial-workflow.md 6): the
     // ones not built yet are announced, so the section shows where the encyclopedia is going.
     labelKey: 'shell.nav.contents',
-    icon: '❖',
+    icon: 'assets/contents.webp',
     countsLiveItems: true,
     items: [
       {
@@ -95,8 +99,10 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     labelKey: 'shell.nav.account',
-    icon: '☺',
-    items: [{ id: 'profile', label: 'shell.nav.profile', icon: '◆', route: '/profile' }],
+    icon: 'assets/profile.webp',
+    items: [
+      { id: 'profile', label: 'shell.nav.profile', icon: 'assets/profile.webp', route: '/profile' },
+    ],
   },
   {
     labelKey: 'shell.nav.admin',
