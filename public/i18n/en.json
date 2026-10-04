@@ -693,6 +693,11 @@
     },
     "detail": {
       "crumb": "Card",
+      "serial": {
+        "tooltip": "Identification code of this content - click to copy it",
+        "copied": "Code {{serial}} copied to the clipboard, matey. Share it with the crew!",
+        "copyFailed": "Arrr! The code would not go in the clipboard. Try selecting it by hand."
+      },
       "versions": "Versions",
       "versionCountOne": "{{count}} version",
       "versionCountMany": "{{count}} versions",

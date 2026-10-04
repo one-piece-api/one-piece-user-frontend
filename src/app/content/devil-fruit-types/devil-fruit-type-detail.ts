@@ -10,7 +10,6 @@ import { Icon } from '../../shared/ui/icon';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import {
   STATUS_LABEL_KEY,
-  contentSerial,
   localizedName,
   versionToShow,
   type Content,
@@ -18,6 +17,7 @@ import {
   type VersionAction,
   type VersionEvent,
 } from '../content.model';
+import { ContentSerial } from '../content-serial';
 import { LanguageCatalogService } from '../language-catalog';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
@@ -62,6 +62,7 @@ const NOT_FOUND_STATUSES = [400, 404];
   templateUrl: './devil-fruit-type-detail.html',
   imports: [
     Breadcrumb,
+    ContentSerial,
     Icon,
     DevilFruitTypeCard,
     DevilFruitTypeComparison,
@@ -148,7 +149,6 @@ export class DevilFruitTypeDetail {
     );
   });
 
-  protected readonly serial = computed(() => contentSerial(this.id()));
   protected readonly borderClass = computed(() => {
     const version = this.shown();
     return version ? STATUS_BORDER_CLASS[version.status] : '';

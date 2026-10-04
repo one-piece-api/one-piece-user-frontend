@@ -40,7 +40,7 @@
             >
               <app-icon class="text-[15px] text-ocean-800" [icon]="typeIcon" />
               <span>{{ 'content.devilFruitTypes.one' | transloco }}</span>
-              <span class="tracking-wider text-ocean-500/60">{{ serial() }}</span>
+              <app-content-serial [contentId]="id()" />
             </p>
             <h1 class="mt-px font-display text-[26px] leading-tight font-bold text-ocean-950">
               {{ title() }}

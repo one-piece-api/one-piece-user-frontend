@@ -693,6 +693,11 @@
     },
     "detail": {
       "crumb": "Scheda",
+      "serial": {
+        "tooltip": "Codice identificativo di questo contenuto - clicca per copiarlo",
+        "copied": "Codice {{serial}} copiato negli appunti, compagno. Passalo pure alla ciurma!",
+        "copyFailed": "Arrr! Non sono riuscito a copiare il codice negli appunti. Prova a selezionarlo a mano."
+      },
       "versions": "Versioni",
       "versionCountOne": "{{count}} versione",
       "versionCountMany": "{{count}} versioni",
