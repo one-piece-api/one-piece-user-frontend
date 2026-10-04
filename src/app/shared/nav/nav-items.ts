@@ -2,6 +2,8 @@ import { DEVIL_FRUIT_TYPE_ICON } from '../../content/devil-fruit-types/devil-fru
 import { STATUS_LABEL_KEY } from '../../content/content.model';
 import {
   DASHBOARD_ICON,
+  DASHBOARD_ROUTE,
+  OVERVIEW_ICON,
   STATUS_PAGES,
   statusPageRoute,
 } from '../../content/dashboard/dashboard.model';
@@ -43,8 +45,8 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       {
         id: 'dashboard',
         label: 'shell.nav.overview',
-        icon: '◎',
-        route: '/dashboard',
+        icon: OVERVIEW_ICON,
+        route: DASHBOARD_ROUTE,
         permission: 'content:read',
         exact: true,
       },

@@ -15,6 +15,9 @@ import { eventKind } from '../version-event';
 /** The illustration that stands for the dashboard wherever the app shows an icon. */
 export const DASHBOARD_ICON = 'assets/dashboard.webp';
 
+/** The glyph of the overview page itself: its menu entry and the first step of a trail. */
+export const OVERVIEW_ICON = '◎';
+
 /** The kinds of content, as the API names them. */
 export type EntityType = 'DEVIL_FRUIT_TYPE';
 

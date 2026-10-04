@@ -145,7 +145,9 @@ describe('DevilFruitTypeList', () => {
     await answerList('page=0', page([PARAMECIA, LOGIA]));
 
     expect(root.querySelector('h1')?.textContent).toContain('Devil Fruit Types');
-    expect(root.querySelector('nav[aria-label="breadcrumb"]')?.textContent).toContain('Contents');
+    const breadcrumb = root.querySelector('nav[aria-label="breadcrumb"]') as HTMLElement;
+    expect(breadcrumb.textContent).toContain('Contents');
+    expect(breadcrumb.querySelector('a')?.getAttribute('href')).toBe('/dashboard');
     expect(rows().length).toBe(2);
     expect(rows()[0].textContent).toContain('Paramecia');
     expect(rows()[0].textContent).toContain('Chōjin-kei');

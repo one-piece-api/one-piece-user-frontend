@@ -172,13 +172,14 @@ describe('DevilFruitTypeDetail', () => {
     expect(root.querySelector('[data-testid="card-name"]')?.textContent).toContain('Logia draft');
   });
 
-  it('leads back to the section from the breadcrumb, ending on the content', async () => {
+  it('leads back to the dashboard and the section from the breadcrumb, ending on the content', async () => {
     await open(PAGE, 'nami', EDITOR);
     await answerContent([V1, V2, V3], 2);
     await answerVersion(V3, body('Logia draft'));
 
     const breadcrumb = root.querySelector('nav[aria-label="breadcrumb"]') as HTMLElement;
-    expect(breadcrumb.querySelector('a')?.getAttribute('href')).toBe('/content/devil-fruit-types');
+    const links = [...breadcrumb.querySelectorAll('a')].map((link) => link.getAttribute('href'));
+    expect(links).toEqual(['/dashboard', '/content/devil-fruit-types']);
     expect(breadcrumb.querySelector('[aria-current="page"]')?.textContent).toContain('Logia draft');
   });
 

@@ -17,6 +17,7 @@ import {
   type VersionAction,
   type VersionEvent,
 } from '../content.model';
+import { dashboardCrumb } from '../content-crumbs';
 import { ContentSerial } from '../content-serial';
 import { LanguageCatalogService } from '../language-catalog';
 import { momentLabel } from '../moment-label';
@@ -157,7 +158,7 @@ export class DevilFruitTypeDetail {
   protected readonly crumbs = computed<Crumb[]>(() => {
     this.transloco.activeLang();
     const crumbs: Crumb[] = [
-      { label: this.transloco.translate('content.breadcrumb.contents') },
+      dashboardCrumb(this.transloco),
       {
         label: this.transloco.translate('content.devilFruitTypes.title'),
         icon: DEVIL_FRUIT_TYPE_ICON,

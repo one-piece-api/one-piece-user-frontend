@@ -14,6 +14,7 @@ import { initialsOf } from '../../shared/ui/initials';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import { Pagination } from '../../shared/ui/pagination';
 import { SortHeader, type SortDirection } from '../../shared/ui/sort-header';
+import { dashboardCrumb } from '../content-crumbs';
 import { ContentListToolbar } from '../content-list-toolbar';
 import {
   localizedName,
@@ -142,6 +143,7 @@ export class DevilFruitTypeList {
   protected readonly crumbs = computed<Crumb[]>(() => {
     this.transloco.activeLang();
     return [
+      dashboardCrumb(this.transloco),
       { label: this.transloco.translate('content.breadcrumb.contents') },
       {
         label: this.transloco.translate('content.devilFruitTypes.title'),
