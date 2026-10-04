@@ -297,10 +297,6 @@ export class DashboardStatus {
     this.actions()?.run(this.targetOf(view), action);
   }
 
-  protected open(view: RowView): void {
-    void this.router.navigate([view.link], { queryParams: { v: view.versionParam } });
-  }
-
   /**
    * Reads the current page again: the row acted on has usually left the status. A last
    * page left empty gives way to the one before it.
