@@ -28,8 +28,6 @@ export interface NavGroup {
   /** A `transloco` translation key, not display text - the shell resolves it at render time. */
   readonly labelKey: string;
   readonly icon: string;
-  /** Clicking the group leads here, its sections staying one hover away. */
-  readonly route?: string;
   /** Its flyout tells how many of its sections are already open (not `soon`). */
   readonly countsLiveItems?: boolean;
   readonly items: readonly NavItem[];
@@ -41,7 +39,6 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     // then one entry per status page, for whoever sees that status.
     labelKey: 'shell.nav.dashboard',
     icon: DASHBOARD_ICON,
-    route: '/dashboard',
     items: [
       {
         id: 'dashboard',

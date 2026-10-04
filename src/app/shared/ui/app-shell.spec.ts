@@ -353,23 +353,15 @@ describe('AppShell', () => {
       expect(current?.className).toContain('border-treasure-500');
     });
 
-    it('leads to the dashboard from its group, its status pages one hover away', async () => {
+    it('opens the dashboard sections from its group, which leads nowhere by itself', async () => {
       const { fixture, root } = await signIn(['content:read']);
-      const dashboard = root.querySelector('nav a[href="/dashboard"]') as HTMLElement;
-      expect(dashboard.textContent).toContain('Dashboard');
+      expect(root.querySelector('nav a[href="/dashboard"]')).toBeNull();
 
-      hover(dashboard, 'mouse');
+      groupButton(root, 'Dashboard').click();
       fixture.detectChanges();
       const statusPages = hrefsIn(flyout(root));
       expect(statusPages[0]).toBe('/dashboard');
       expect(statusPages.length).toBeGreaterThan(1);
-
-      dashboard.click();
-      await fixture.whenStable();
-      fixture.detectChanges();
-      expect(flyout(root)).toBeNull();
-      expect(dashboard.getAttribute('aria-current')).toBe('page');
-      expect(dashboard.className).toContain('border-treasure-500');
     });
 
     it('expands the current group inline for the mobile drawer', async () => {
