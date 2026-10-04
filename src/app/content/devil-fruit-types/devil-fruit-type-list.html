@@ -66,10 +66,26 @@
         <div
           class="hidden grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem] gap-3.5 border-b border-parchment-200 bg-parchment-200/50 py-2.5 pr-4.5 pl-5.5 font-heading text-[11px] font-extrabold tracking-widest text-ocean-500 uppercase sm:grid"
         >
-          <span>{{ 'content.list.column.name' | transloco }}</span>
-          <span>{{ 'content.list.column.status' | transloco }}</span>
-          <span>{{ 'content.list.column.author' | transloco }}</span>
-          <span>{{ 'content.list.column.updated' | transloco }}</span>
+          <app-sort-header
+            [label]="'content.list.column.name' | transloco"
+            [direction]="sortDirectionOf('name')"
+            (toggled)="sortBy('name')"
+          />
+          <app-sort-header
+            [label]="'content.list.column.status' | transloco"
+            [direction]="sortDirectionOf('status')"
+            (toggled)="sortBy('status')"
+          />
+          <app-sort-header
+            [label]="'content.list.column.author' | transloco"
+            [direction]="sortDirectionOf('author')"
+            (toggled)="sortBy('author')"
+          />
+          <app-sort-header
+            [label]="'content.list.column.updated' | transloco"
+            [direction]="sortDirectionOf('updatedAt')"
+            (toggled)="sortBy('updatedAt')"
+          />
         </div>
       }
 

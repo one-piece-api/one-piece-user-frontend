@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { TranslocoService } from '@jsverse/transloco';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { DevilFruitTypeList } from './devil-fruit-type-list';
 
@@ -362,6 +363,92 @@ describe('DevilFruitTypeList', () => {
 
     expect(currentUrl()).toBe('/content/devil-fruit-types');
     expect(rows().length).toBe(2);
+  });
+
+  describe('sorting by column', () => {
+    function header(label: string): HTMLButtonElement {
+      const buttons = Array.from(
+        root.querySelectorAll<HTMLButtonElement>('app-sort-header button'),
+      );
+      return buttons.find((button) => button.textContent?.includes(label)) as HTMLButtonElement;
+    }
+
+    async function click(label: string): Promise<void> {
+      header(label).click();
+      await afterInteraction();
+    }
+
+    it('shows the default sort, newest update first, on the "Updated" column', async () => {
+      await open('/content/devil-fruit-types', 'nami', EDITOR);
+      await answerList('page=0', page([PARAMECIA, LOGIA]));
+
+      expect(header('Updated').getAttribute('aria-label')).toBe('Updated: descending');
+      expect(header('Name').getAttribute('aria-label')).toBe('Sort: Name');
+    });
+
+    it('sorts by a column ascending, then descending, then back to the default', async () => {
+      await open('/content/devil-fruit-types?page=1', 'nami', EDITOR);
+      await answerList('page=1', page([LOGIA], { page: 1, totalElements: 21, totalPages: 2 }));
+
+      await click('Name');
+      await answerList('page=0&sort=name%2Casc', page([LOGIA, PARAMECIA]));
+      expect(currentUrl()).toBe('/content/devil-fruit-types?sort=name,asc');
+      expect(header('Name').getAttribute('aria-label')).toBe('Name: ascending');
+      expect(header('Updated').getAttribute('aria-label')).toBe('Sort: Updated');
+
+      await click('Name');
+      await answerList('page=0&sort=name%2Cdesc', page([PARAMECIA, LOGIA]));
+      expect(currentUrl()).toBe('/content/devil-fruit-types?sort=name,desc');
+
+      await click('Name');
+      await answerList('page=0', page([PARAMECIA, LOGIA]));
+      expect(currentUrl()).toBe('/content/devil-fruit-types');
+    });
+
+    it('flips the "Updated" column between newest and oldest first', async () => {
+      await open('/content/devil-fruit-types', 'nami', EDITOR);
+      await answerList('page=0', page([PARAMECIA, LOGIA]));
+
+      await click('Updated');
+      await answerList('page=0&sort=updatedAt%2Casc', page([LOGIA, PARAMECIA]));
+      expect(header('Updated').getAttribute('aria-label')).toBe('Updated: ascending');
+
+      await click('Updated');
+      await answerList('page=0', page([PARAMECIA, LOGIA]));
+      expect(currentUrl()).toBe('/content/devil-fruit-types');
+    });
+
+    it('sends status and author sorts as the backend names them, keeping the filters', async () => {
+      await open('/content/devil-fruit-types?status=PUBLISHED', 'nami', EDITOR);
+      await answerList('page=0&status=PUBLISHED', page([LOGIA]));
+
+      await click('Status');
+      await answerList('page=0&status=PUBLISHED&sort=status%2Casc', page([LOGIA]));
+      await click('Author');
+      await answerList('page=0&status=PUBLISHED&sort=author%2Casc', page([LOGIA]));
+
+      expect(currentUrl()).toBe('/content/devil-fruit-types?status=PUBLISHED&sort=author,asc');
+    });
+
+    it('restores the sort from the URL and ignores one it does not know', async () => {
+      await open('/content/devil-fruit-types?sort=author,desc', 'nami', EDITOR);
+      await answerList('page=0&sort=author%2Cdesc', page([PARAMECIA, LOGIA]));
+      expect(header('Author').getAttribute('aria-label')).toBe('Author: descending');
+
+      await harness.navigateByUrl('/content/devil-fruit-types?sort=romaji,sideways');
+      await answerList('page=0', page([PARAMECIA, LOGIA]));
+      expect(header('Updated').getAttribute('aria-label')).toBe('Updated: descending');
+    });
+
+    it('reloads a list sorted by name when the language changes, since the names do', async () => {
+      await open('/content/devil-fruit-types?sort=name,asc', 'nami', EDITOR);
+      await answerList('page=0&sort=name%2Casc', page([LOGIA, PARAMECIA]));
+
+      TestBed.inject(TranslocoService).setActiveLang('it');
+      harness.detectChanges();
+
+      await answerList('page=0&sort=name%2Casc', page([PARAMECIA, LOGIA]));
+    });
   });
 
   it('tells an editor an empty section is theirs to start', async () => {

@@ -13,6 +13,7 @@ import { Icon } from '../../shared/ui/icon';
 import { initialsOf } from '../../shared/ui/initials';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import { Pagination } from '../../shared/ui/pagination';
+import { SortHeader, type SortDirection } from '../../shared/ui/sort-header';
 import { ContentListToolbar } from '../content-list-toolbar';
 import {
   localizedName,
@@ -22,6 +23,7 @@ import {
   type ContentUser,
   type VersionStatus,
 } from '../content.model';
+import { formatSort, nextSort, parseSort, type ListSort } from '../list-sort';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { DEVIL_FRUIT_TYPE_ICON } from './devil-fruit-type.model';
@@ -38,7 +40,15 @@ const PARAM = {
   status: 'status',
   author: 'author',
   updated: 'updated',
+  sort: 'sort',
 } as const;
+
+/** The columns the list can be sorted by, named as the backend names them. */
+const SORT_FIELDS = ['name', 'status', 'author', 'updatedAt'] as const;
+type SortField = (typeof SORT_FIELDS)[number];
+
+/** Last update, newest first: what the backend does when no sort is asked for. */
+const DEFAULT_SORT: ListSort<SortField> = { field: 'updatedAt', direction: 'desc' };
 
 /** What a list row shows of a Devil Fruit Type version: its romaji and its names. */
 interface DevilFruitTypeNames {
@@ -78,6 +88,7 @@ interface RowView {
     LoadingPlaceholder,
     Pagination,
     RouterLink,
+    SortHeader,
     StatusBadge,
     TranslocoPipe,
   ],
@@ -102,14 +113,22 @@ export class DevilFruitTypeList {
     const days = this.params().get(PARAM.updated);
     return days === null ? null : Number(days);
   });
+  /** The sort asked for in the URL; `null` leaves the backend's default. */
+  private readonly sort = computed(() => parseSort(this.params().get(PARAM.sort), SORT_FIELDS));
+  /** Which column the rows are actually sorted by, and how - the default included. */
+  protected readonly shownSort = computed(() => this.sort() ?? DEFAULT_SORT);
 
   /** What the search box shows: follows the URL, and runs ahead of it while typing. */
   protected readonly searchText = linkedSignal(() => this.query());
   private readonly typedSearches = new Subject<string>();
 
-  protected readonly rows = httpResource<PageResponse<ContentSummary<DevilFruitTypeNames>>>(
-    () => `${ENDPOINT}?${this.listQuery()}`,
-  );
+  protected readonly rows = httpResource<PageResponse<ContentSummary<DevilFruitTypeNames>>>(() => {
+    if (this.sort()?.field === 'name') {
+      // Sorted by the name in the reading language (sent as Accept-Language): reload on a switch.
+      this.transloco.activeLang();
+    }
+    return `${ENDPOINT}?${this.listQuery()}`;
+  });
   protected readonly summary = httpResource<ContentListSummary>(() => `${ENDPOINT}/summary`);
   protected readonly authors = httpResource<ContentUser[]>(() => `${ENDPOINT}/authors`);
 
@@ -218,6 +237,18 @@ export class DevilFruitTypeList {
     this.applyFilters({ [PARAM.updated]: days });
   }
 
+  /** Ascending, then descending, then back to the default; like a filter, back to page one. */
+  protected sortBy(field: SortField): void {
+    const next = nextSort(this.sort(), field, DEFAULT_SORT);
+    this.applyFilters({ [PARAM.sort]: next && formatSort(next) });
+  }
+
+  /** The direction to show on a column header, or `null` when the rows follow another one. */
+  protected sortDirectionOf(field: SortField): SortDirection | null {
+    const shown = this.shownSort();
+    return shown.field === field ? shown.direction : null;
+  }
+
   protected clearFilters(): void {
     this.applyFilters({
       [PARAM.query]: null,
@@ -262,6 +293,10 @@ export class DevilFruitTypeList {
     const days = this.updatedWithinDays();
     if (days !== null) {
       search.set('updatedWithinDays', String(days));
+    }
+    const sort = this.sort();
+    if (sort) {
+      search.set('sort', formatSort(sort));
     }
     return search.toString();
   }

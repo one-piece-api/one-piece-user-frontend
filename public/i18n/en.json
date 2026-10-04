@@ -156,7 +156,12 @@
     "confirm": "Confirm",
     "working": "Working…",
     "pageOf": "Page {{page}} of {{totalPages}}",
-    "range": "{{start}}–{{end}} of {{total}}"
+    "range": "{{start}}–{{end}} of {{total}}",
+    "sort": {
+      "none": "Sort: {{column}}",
+      "asc": "{{column}}: ascending",
+      "desc": "{{column}}: descending"
+    }
   },
   "whoAmI": {
     "eyebrow": "My Profile",

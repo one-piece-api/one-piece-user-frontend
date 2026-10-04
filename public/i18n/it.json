@@ -156,7 +156,12 @@
     "confirm": "Conferma",
     "working": "Un momento…",
     "pageOf": "Pagina {{page}} di {{totalPages}}",
-    "range": "{{start}}–{{end}} di {{total}}"
+    "range": "{{start}}–{{end}} di {{total}}",
+    "sort": {
+      "none": "Ordina: {{column}}",
+      "asc": "{{column}}: crescente",
+      "desc": "{{column}}: decrescente"
+    }
   },
   "whoAmI": {
     "eyebrow": "Il Mio Profilo",
