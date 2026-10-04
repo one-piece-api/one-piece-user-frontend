@@ -76,6 +76,26 @@ describe('AppShell', () => {
     expect(logoutLink).toBeDefined();
   });
 
+  it('keeps a top bar in sight on small screens, with who is signed in', async () => {
+    const fixture = TestBed.createComponent(AppShell);
+    fixture.detectChanges();
+
+    httpTesting.expectOne('/api/me').flush({
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      roles: ['EDITOR', 'REVIEWER'],
+      permissions: [],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const topBar = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.sticky')!;
+    expect(topBar.classList).toContain('top-0');
+    expect(topBar.textContent).toContain('nami');
+    expect(topBar.textContent).toContain('EDITOR · REVIEWER');
+    expect(topBar.textContent).toContain('NA');
+  });
+
   it('links to the crew manifest only when the caller has users:read', async () => {
     const fixture = TestBed.createComponent(AppShell);
     fixture.detectChanges();

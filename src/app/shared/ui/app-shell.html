@@ -194,7 +194,7 @@
 
   <div class="flex min-w-0 flex-1 flex-col overflow-y-auto">
     <div
-      class="flex items-center gap-3 border-b border-ocean-900/10 bg-ocean-900 px-4 py-3 lg:hidden"
+      class="sticky top-0 z-20 flex items-center gap-3 border-b border-ocean-900/10 bg-ocean-900 px-4 py-3 lg:hidden"
     >
       <button
         type="button"
@@ -205,6 +205,23 @@
         ☰
       </button>
       <img src="assets/logo.png" alt="One Piece API" class="h-7 w-auto object-contain" />
+      @if (currentUser.me.value(); as identity) {
+        <div class="ml-auto flex min-w-0 items-center gap-2.5">
+          <div class="min-w-0 text-right">
+            <div class="truncate font-display text-sm font-semibold text-parchment-100">
+              {{ identity.username }}
+            </div>
+            <div class="truncate font-heading text-[11px] font-extrabold text-treasure-500">
+              {{ identity.roles.join(' · ') }}
+            </div>
+          </div>
+          <div
+            class="grid size-9 shrink-0 place-items-center rounded-full bg-treasure-500 font-display text-sm font-semibold text-ocean-950"
+          >
+            {{ initials(identity.username) }}
+          </div>
+        </div>
+      }
     </div>
 
     <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
