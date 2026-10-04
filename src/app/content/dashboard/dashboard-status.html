@@ -242,7 +242,7 @@
         @for (view of rows(); track view.row.contentId) {
           <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -- the row's name is the keyboard-reachable link; a click anywhere else on the row is a pointer shortcut to it -->
           <div
-            class="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border-2 border-transparent bg-parchment-200/40 px-3 py-2.5 hover:border-ocean-100 hover:bg-ocean-100/50 lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,.9fr)_auto]"
+            class="group grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border-2 border-transparent bg-parchment-200/40 px-3 py-2.5 transition-[transform,box-shadow,background-color,border-color] duration-150 hover:-translate-y-px hover:border-ocean-100 hover:bg-ocean-100/50 hover:shadow-[0_4px_12px_rgba(18,35,90,0.10)] lg:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.1fr)_minmax(0,.9fr)_auto]"
             data-testid="status-row"
             (click)="open(view)"
           >
@@ -251,10 +251,15 @@
                 <a
                   [routerLink]="view.link"
                   [queryParams]="{ v: view.versionParam }"
-                  class="min-w-0 truncate font-display text-[15px] font-bold text-ocean-950 hover:text-flag-600"
+                  class="min-w-0 truncate bg-linear-to-r from-treasure-500 to-treasure-500 bg-size-[0%_2px] bg-bottom-left bg-no-repeat pb-0.5 font-display text-[15px] font-bold text-ocean-950 transition-[background-size] duration-200 group-hover:bg-size-[100%_2px] focus-visible:bg-size-[100%_2px] focus-visible:outline-none"
                   data-testid="status-row-link"
                   (click)="$event.stopPropagation()"
                   >{{ view.name }}</a
+                >
+                <span
+                  class="-ml-1 -translate-x-1 font-display text-[15px] font-bold text-treasure-600 opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-x-0 group-hover:opacity-100"
+                  aria-hidden="true"
+                  >›</span
                 >
                 <span class="font-heading text-[11px] font-extrabold text-ocean-500/60"
                   >v{{ view.versionParam }}</span
