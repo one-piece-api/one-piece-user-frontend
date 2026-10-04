@@ -9,20 +9,27 @@ import {
   type VersionAction,
   type VersionStatus,
 } from '../content.model';
+import { DEVIL_FRUIT_TYPE_ICON } from '../devil-fruit-types/devil-fruit-type.model';
 import { eventKind } from '../version-event';
+
+/** The illustration that stands for the dashboard wherever the app shows an icon. */
+export const DASHBOARD_ICON = 'assets/dashboard.webp';
 
 /** The kinds of content, as the API names them. */
 export type EntityType = 'DEVIL_FRUIT_TYPE';
 
 /** Where each kind of content lives in the app and in the API, and how one of it is called. */
-export const ENTITY_SECTION: Record<EntityType, { route: string; api: string; labelKey: string }> =
-  {
-    DEVIL_FRUIT_TYPE: {
-      route: '/content/devil-fruit-types',
-      api: '/api/content/devil-fruit-types',
-      labelKey: 'content.devilFruitTypes.one',
-    },
-  };
+export const ENTITY_SECTION: Record<
+  EntityType,
+  { route: string; api: string; labelKey: string; icon: string }
+> = {
+  DEVIL_FRUIT_TYPE: {
+    route: '/content/devil-fruit-types',
+    api: '/api/content/devil-fruit-types',
+    labelKey: 'content.devilFruitTypes.one',
+    icon: DEVIL_FRUIT_TYPE_ICON,
+  },
+};
 
 /**
  * One tile: how many contents have a version the caller sees in this status. `mine` is the

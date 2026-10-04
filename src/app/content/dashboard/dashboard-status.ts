@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink, type Params } from '@angular/router
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { CurrentUserService } from '../../identity/current-user';
+import { Icon } from '../../shared/ui/icon';
 import { initialsOf } from '../../shared/ui/initials';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import { Pagination } from '../../shared/ui/pagination';
@@ -74,6 +75,7 @@ interface RowView {
   readonly api: string;
   readonly versionParam: number;
   readonly entityLabel: string;
+  readonly entityIcon: string;
   readonly author: string;
   readonly authorInitials: string;
   readonly authoredByMe: boolean;
@@ -95,7 +97,7 @@ interface RowView {
 @Component({
   selector: 'app-dashboard-status',
   templateUrl: './dashboard-status.html',
-  imports: [LoadingPlaceholder, Pagination, RouterLink, TranslocoPipe, VersionActions],
+  imports: [Icon, LoadingPlaceholder, Pagination, RouterLink, TranslocoPipe, VersionActions],
 })
 export class DashboardStatus {
   private readonly http = inject(HttpClient);
@@ -384,6 +386,7 @@ export class DashboardStatus {
       api: `${section.api}/${row.contentId}`,
       versionParam: row.versionNumber,
       entityLabel: this.transloco.translate(section.labelKey),
+      entityIcon: section.icon,
       author: authoredByMe ? you : row.author.username,
       authorInitials: authoredByMe ? you : initialsOf(row.author.username),
       authoredByMe,

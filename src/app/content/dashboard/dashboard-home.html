@@ -1,7 +1,10 @@
 <div class="flex w-full max-w-5xl flex-col gap-4.5">
-  <app-page-header [eyebrow]="eyebrow()">{{
-    'content.dashboard.greeting' | transloco: { name: currentUser.me.value()?.username ?? '' }
-  }}</app-page-header>
+  <div class="flex items-center justify-between gap-4">
+    <app-page-header [eyebrow]="eyebrow()">{{
+      'content.dashboard.greeting' | transloco: { name: currentUser.me.value()?.username ?? '' }
+    }}</app-page-header>
+    <img src="assets/logpose.webp" alt="" class="anim-bob h-20 w-auto flex-none sm:h-24" />
+  </div>
 
   @if (dashboard.error()) {
     <div class="rounded-2xl bg-parchment-100 p-8 text-center shadow-md">

@@ -275,14 +275,17 @@
               <p
                 class="mt-0.5 flex flex-wrap items-center gap-x-2 font-heading text-xs font-bold text-ocean-500 lg:hidden"
               >
-                <span>{{ view.entityLabel }}</span>
+                <span class="inline-flex items-center gap-1"
+                  ><app-icon [icon]="view.entityIcon" />{{ view.entityLabel }}</span
+                >
                 <span>· {{ view.author }}</span>
                 <span>· {{ view.updated }}</span>
               </p>
             </div>
-            <span class="hidden font-heading text-[13px] font-bold text-ocean-500 lg:block">{{
-              view.entityLabel
-            }}</span>
+            <span
+              class="hidden items-center gap-1.5 font-heading text-[13px] font-bold text-ocean-500 lg:flex"
+              ><app-icon class="text-[13px]" [icon]="view.entityIcon" />{{ view.entityLabel }}</span
+            >
             <span class="hidden min-w-0 items-center gap-2 lg:flex">
               <span
                 class="grid size-6.5 flex-none place-items-center rounded-full font-heading text-[10px] font-extrabold"

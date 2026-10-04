@@ -151,6 +151,16 @@ describe('DashboardStatus', () => {
     expect(root.querySelector('h1')?.textContent).toContain('In review');
   });
 
+  it('shows the icon of the entity next to its name', async () => {
+    await open('/dashboard/in-review', page([row('c1')]));
+
+    const icons = Array.from(rows()[0].querySelectorAll('img')).map((image) =>
+      image.getAttribute('src'),
+    );
+    expect(icons.length).toBeGreaterThan(0);
+    expect(new Set(icons)).toEqual(new Set(['assets/devil-fruit-type.webp']));
+  });
+
   it('says why a row offers nothing', async () => {
     await open('/dashboard/in-review', page([row('c1', { claimant: LAW, allowedActions: [] })]));
 

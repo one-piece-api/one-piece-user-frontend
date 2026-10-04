@@ -91,6 +91,7 @@ describe('DashboardHome', () => {
 
     expect(root.textContent).toContain('Dashboard · EDITOR · REVIEWER');
     expect(root.querySelector('h1')?.textContent).toContain('nami');
+    expect(root.querySelector('img[src="assets/logpose.webp"]')).not.toBeNull();
   });
 
   it('shows one tile per status it receives, in that order, with its count', async () => {
