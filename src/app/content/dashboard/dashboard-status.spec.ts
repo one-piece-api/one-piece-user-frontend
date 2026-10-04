@@ -139,7 +139,10 @@ describe('DashboardStatus', () => {
 
     expect(rows()).toHaveLength(2);
     const link = rows()[0].querySelector<HTMLAnchorElement>('[data-testid="status-row-link"]')!;
-    expect(link.textContent?.trim()).toBe('Logia c1');
+    expect(link.querySelector('[data-testid="status-row-name"]')?.textContent?.trim()).toBe(
+      'Logia c1',
+    );
+    expect(link.textContent).toContain('v3');
     expect(link.getAttribute('href')).toBe('/content/devil-fruit-types/c1?v=3');
     expect(rows()[0].querySelector('[data-testid="status-row-claim"]')?.textContent).toContain(
       'claimed by you',

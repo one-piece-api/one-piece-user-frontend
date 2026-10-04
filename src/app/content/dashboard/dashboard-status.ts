@@ -19,7 +19,7 @@ import {
   type VersionStatus,
 } from '../content.model';
 import { momentLabel } from '../moment-label';
-import { STATUS_GLYPH, STATUS_SOFT_CLASS } from '../status-badge';
+import { STATUS_BORDER_CLASS, STATUS_GLYPH, STATUS_SOFT_CLASS } from '../status-badge';
 import { VersionActions, type ActionTarget } from '../version-actions';
 import {
   ACTION_LOOK,
@@ -121,6 +121,9 @@ export class DashboardStatus {
   protected readonly entity = computed(() => this.params().get(PARAM.entity) as EntityType | null);
   protected readonly author = computed(() => this.params().get(PARAM.author));
   protected readonly ascending = computed(() => this.params().get(PARAM.sort) === 'asc');
+
+  /** Every row carries the accent of the page's status on its left edge, as in an entity's list. */
+  protected readonly rowBorderClass = computed(() => STATUS_BORDER_CLASS[this.versionStatus()]);
 
   private readonly statusUrl = computed(() => `${ENDPOINT}/${this.versionStatus()}`);
   protected readonly result = httpResource<StatusPage>(
