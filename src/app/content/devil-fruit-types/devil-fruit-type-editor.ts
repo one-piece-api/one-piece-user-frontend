@@ -17,6 +17,7 @@ import {
   type Content,
   type Version,
 } from '../content.model';
+import { discardConfirmation, discardDoneMessage, versionLeftAfterDiscard } from '../discard-draft';
 import { LanguageCatalogService } from '../language-catalog';
 import {
   ADVANTAGES_MAX_LENGTH,
@@ -324,38 +325,16 @@ export class DevilFruitTypeEditor {
   protected readonly confirmingDiscard = signal(false);
   protected readonly discarding = signal(false);
 
-  /**
-   * What discarding leaves behind: nothing, for a first version - the content goes with
-   * it - or the version before it, which a draft, always the latest, has right below.
-   */
-  private readonly versionLeft = computed(() => {
-    const number = this.editable()?.number ?? 1;
-    return number > 1 ? number - 1 : null;
-  });
-
-  /**
-   * The confirmation, worded for what is left: the previous version, or nothing at all - and,
-   * for an administrator discarding someone else's draft, naming whose it is.
-   */
+  /** The confirmation, worded for what is left - the same as on a dashboard row. */
   protected readonly discardDialog = computed(() => {
     this.transloco.activeLang();
-    const left = this.versionLeft();
-    const name = this.title();
-    const key = (part: string) =>
-      `content.editor.discard.${part}${left === null ? 'Whole' : 'Back'}`;
     const draft = this.editable();
-    const override = draft?.overrideActions.includes('DELETE') ?? false;
-    const note = override
-      ? this.transloco.translate('content.editor.discard.noteOverride', {
-          author: draft?.author.username,
-        })
-      : this.transloco.translate('content.editor.discard.note');
-    return {
-      title: this.transloco.translate(key('title'), { name }),
-      body: this.transloco.translate(key('body'), { version: left }),
-      note,
-      confirmLabel: this.transloco.translate('content.editor.discard.confirm'),
-    };
+    return discardConfirmation(this.transloco, {
+      name: this.title(),
+      number: draft?.number ?? 1,
+      author: draft?.author.username ?? '',
+      override: draft?.overrideActions.includes('DELETE') ?? false,
+    });
   });
 
   protected readonly backButtonClasses = buttonClasses('secondary');
@@ -419,20 +398,14 @@ export class DevilFruitTypeEditor {
     if (!url || this.discarding()) {
       return;
     }
-    const left = this.versionLeft();
+    const number = this.editable()?.number ?? 1;
     this.discarding.set(true);
     try {
       await firstValueFrom(this.http.delete<void>(url));
-      if (left === null) {
-        this.mascot.show(this.transloco.translate('content.editor.discard.goneWhole'), 'success');
-        await this.router.navigate([LIST_ROUTE]);
-      } else {
-        const message = this.transloco.translate('content.editor.discard.goneBack', {
-          version: left,
-        });
-        this.mascot.show(message, 'success');
-        await this.router.navigate([this.backRoute()]);
-      }
+      this.mascot.show(discardDoneMessage(this.transloco, number), 'success');
+      // With nothing left, the content went too: back to the list.
+      const leftRoute = versionLeftAfterDiscard(number) === null ? LIST_ROUTE : this.backRoute();
+      await this.router.navigate([leftRoute]);
     } catch (error) {
       this.onDiscardRefused(error);
     } finally {

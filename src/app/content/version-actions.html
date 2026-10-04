@@ -33,3 +33,18 @@
     (cancelled)="confirming.set(null)"
   />
 }
+
+@if (discardDialog(); as dialog) {
+  <app-confirm-dialog
+    [open]="true"
+    [busy]="acting()"
+    [title]="dialog.title"
+    [body]="dialog.body"
+    [note]="dialog.note"
+    [confirmLabel]="dialog.confirmLabel"
+    tone="danger"
+    data-testid="discard-dialog"
+    (confirmed)="discard()"
+    (cancelled)="confirmingDiscard.set(false)"
+  />
+}

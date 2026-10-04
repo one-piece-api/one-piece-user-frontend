@@ -232,6 +232,82 @@ describe('DashboardStatus', () => {
     expect(rows()[1].querySelector('[data-testid="status-row-claim"]')).not.toBeNull();
   });
 
+  describe('discarding a draft from its row', () => {
+    const DRAFTS = '/api/content/dashboard/statuses/DRAFT';
+    const EDITOR = ['content:read', 'content:write'];
+
+    function draft(contentId: string, versionNumber: number): StatusRow {
+      return row(contentId, {
+        status: 'DRAFT',
+        versionNumber,
+        author: ZORO,
+        allowedActions: ['EDIT', 'SUBMIT', 'DELETE'],
+      });
+    }
+
+    async function openDrafts(answer: StatusPage): Promise<void> {
+      harness = await RouterTestingHarness.create('/dashboard/draft');
+      harness.detectChanges();
+      httpTesting
+        .expectOne('/api/me')
+        .flush({ username: 'zoro', email: 'zoro@onepiece.local', roles: [], permissions: EDITOR });
+      answerDrafts(answer);
+      await settle();
+      root = harness.routeNativeElement as HTMLElement;
+    }
+
+    function answerDrafts(answer: StatusPage): void {
+      httpTesting
+        .expectOne((request) => request.url.startsWith(DRAFTS) && !request.url.endsWith('/authors'))
+        .flush(answer);
+    }
+
+    function discardDialog(): HTMLDialogElement | null {
+      return root.querySelector('[data-testid="discard-dialog"] dialog');
+    }
+
+    it('asks first, worded for what is left, then removes it and reads the page again', async () => {
+      await openDrafts(page([draft('c1', 3)]));
+      httpTesting.expectOne(`${DRAFTS}/authors`).flush([ZORO]);
+      await settle();
+
+      rows()[0].querySelector<HTMLButtonElement>('[data-action="DELETE"]')!.click();
+      await settle();
+      expect(discardDialog()?.textContent).toContain('back to how it was in v2');
+
+      discardDialog()!.querySelector<HTMLButtonElement>('[data-testid="confirm-action"]')!.click();
+      const removal = httpTesting.expectOne('/api/content/devil-fruit-types/c1/versions/3');
+      expect(removal.request.method).toBe('DELETE');
+      removal.flush(null);
+      await settle();
+      answerDrafts(page([]));
+      await settle();
+      httpTesting.expectOne(`${DRAFTS}/authors`).flush([]);
+      await settle();
+
+      expect(rows().length).toBe(0);
+      expect(discardDialog()).toBeNull();
+    });
+
+    it('sends nothing when the discard is cancelled', async () => {
+      await openDrafts(page([draft('c1', 1)]));
+      httpTesting.expectOne(`${DRAFTS}/authors`).flush([ZORO]);
+      await settle();
+
+      rows()[0].querySelector<HTMLButtonElement>('[data-action="DELETE"]')!.click();
+      await settle();
+      expect(discardDialog()?.textContent).toContain('removed entirely');
+
+      const cancel = Array.from(discardDialog()!.querySelectorAll('button')).find(
+        (button) => button.textContent?.trim() === 'Cancel',
+      );
+      cancel!.click();
+      await settle();
+
+      expect(discardDialog()).toBeNull();
+    });
+  });
+
   it('falls back to the previous page when an action empties the last one', async () => {
     await open(
       '/dashboard/in-review?page=1',

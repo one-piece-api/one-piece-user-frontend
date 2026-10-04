@@ -8,6 +8,7 @@ import { MascotService } from '../shared/mascot/mascot';
 import { ConfirmDialog } from '../shared/ui/confirm-dialog';
 import type { VersionAction, VersionSummary } from './content.model';
 import { draftFieldKey } from './devil-fruit-types/devil-fruit-type.model';
+import { discardConfirmation, discardDoneMessage } from './discard-draft';
 import { RejectDialog } from './reject-dialog';
 import {
   NEW_VERSION,
@@ -42,7 +43,7 @@ export interface ActionTarget {
  * Runs the workflow actions on a version, wherever it is shown - its detail screen, a
  * dashboard status page - so both behave the same: a confirmation naming whose work it
  * is when an administrator acts on someone else's, the reason of a rejection, the
- * confirmation of a publication or an archiving, the editor for an edit or a new
+ * confirmation of a publication, an archiving or a discard, the editor for an edit or a new
  * version, then the mascot's word on how it went. Its host gives `reload` to read what
  * it shows again once an action is answered, whatever the outcome: a refusal often means
  * the version moved meanwhile.
@@ -122,6 +123,24 @@ export class VersionActions {
     };
   });
 
+  /** A draft waiting for the caller to confirm it is to be discarded. */
+  protected readonly confirmingDiscard = signal(false);
+
+  /** "Discard the draft of "Logia"?" - worded as in the editor, naming whose it is if not the caller's. */
+  protected readonly discardDialog = computed(() => {
+    this.transloco.activeLang();
+    const target = this.target();
+    if (!this.confirmingDiscard() || !target) {
+      return null;
+    }
+    return discardConfirmation(this.transloco, {
+      name: target.name,
+      number: target.version.number,
+      author: target.version.author.username,
+      override: target.version.overrideActions.includes('DELETE'),
+    });
+  });
+
   /** "Logia · Devil Fruit Type by nami": what the reject dialog is about. */
   protected readonly rejectTarget = computed(() => {
     this.transloco.activeLang();
@@ -141,7 +160,10 @@ export class VersionActions {
    */
   run(target: ActionTarget, action: VersionAction): void {
     this.target.set(target);
-    if (confirmsOverride(action, target.version.overrideActions)) {
+    if (action === 'DELETE') {
+      // Its own confirmation already names whose draft it is: no override dialog before it.
+      this.confirmingDiscard.set(true);
+    } else if (confirmsOverride(action, target.version.overrideActions)) {
       this.overriding.set(action);
     } else {
       this.proceed(target, action);
@@ -164,6 +186,30 @@ export class VersionActions {
     const target = this.target();
     if (transition && target) {
       void this.runTransition(target, transition, null).then(() => this.confirming.set(null));
+    }
+  }
+
+  /**
+   * Confirmed: the draft is removed for good - a DELETE, not a transition - then the host
+   * reads again what it shows, where the row is gone.
+   */
+  protected async discard(): Promise<void> {
+    const target = this.target();
+    if (!target || this.acting()) {
+      return;
+    }
+    const { number } = target.version;
+    this.acting.set(true);
+    try {
+      await firstValueFrom(this.http.delete<void>(`${target.contentUrl}/versions/${number}`));
+      this.mascot.show(discardDoneMessage(this.transloco, number), 'success');
+    } catch (error) {
+      this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
+    } finally {
+      // Closed on every outcome: the dialog's top layer would otherwise hide the mascot.
+      this.confirmingDiscard.set(false);
+      await this.reload()();
+      this.acting.set(false);
     }
   }
 
