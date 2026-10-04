@@ -43,7 +43,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       {
         id: 'dashboard',
         label: 'shell.nav.overview',
-        icon: DASHBOARD_ICON,
+        icon: '◎',
         route: '/dashboard',
         permission: 'content:read',
         exact: true,
