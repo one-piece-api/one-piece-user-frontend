@@ -93,6 +93,43 @@ body {
   background-size: cover;
 }
 
+/* A gold scrollbar for the dark sidebar: a rounded treasure-gold thumb on a faint track.
+   Chromium and Safari draw it from the ::-webkit-scrollbar parts; Firefox, which has no such
+   parts, falls back to the standard scrollbar-color (Chromium ignores those parts once it is set,
+   hence the @supports guard). */
+@utility scrollbar-treasure {
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    margin-block: 6px;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, var(--color-treasure-400), var(--color-treasure-600))
+      padding-box;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--color-treasure-500) padding-box;
+  }
+
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-treasure-500) rgb(255 255 255 / 0.06);
+  }
+}
+
 @keyframes card-enter {
   0% {
     opacity: 0;

@@ -82,7 +82,7 @@ export class AppShell {
   /** One computed string so the open/closed translate utilities are never both present at once. */
   protected readonly asideClasses = computed(
     () =>
-      `fixed inset-y-0 left-0 z-40 flex w-72 flex-col gap-6 overflow-y-auto bg-ocean-900 p-5 shadow-2xl transition-transform duration-200 lg:static lg:translate-x-0 lg:shadow-none ${
+      `fixed inset-y-0 left-0 z-40 flex w-72 flex-col gap-6 overflow-y-auto scrollbar-treasure bg-ocean-900 p-5 shadow-2xl transition-transform duration-200 lg:static lg:translate-x-0 lg:shadow-none ${
         this.drawerOpen() ? 'translate-x-0' : '-translate-x-full'
       }`,
   );
