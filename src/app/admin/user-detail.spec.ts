@@ -87,6 +87,29 @@ describe('AdminUserDetail', () => {
     expect(root.textContent).toContain('EDITOR');
   });
 
+  it('leads back to the Crew Manifest from the breadcrumb, ending on the crewmate', async () => {
+    const fixture = createWithUserId('1');
+    const breadcrumb = () =>
+      (fixture.nativeElement as HTMLElement).querySelector(
+        'nav[aria-label="breadcrumb"]',
+      ) as HTMLElement;
+    expect(breadcrumb().querySelector('[aria-current="page"]')?.textContent).toContain('Crewmate');
+
+    httpTesting.expectOne('/api/users/1').flush({
+      userId: '1',
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      status: 'ACTIVE',
+      roles: ['EDITOR'],
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(breadcrumb().textContent).toContain('Admin');
+    expect(breadcrumb().querySelector('a')?.getAttribute('href')).toBe('/users');
+    expect(breadcrumb().querySelector('[aria-current="page"]')?.textContent).toContain('nami');
+  });
+
   it('shows the union of every held roles permissions, with duplicates removed', async () => {
     const fixture = createWithUserId('1', [
       { role: 'REVIEWER', permissions: ['docs:read', 'docs:review'] },

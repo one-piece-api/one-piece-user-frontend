@@ -241,7 +241,7 @@
     "detail": {
       "loading": "Charting the crew…",
       "error": "Lost the manifest. Could not load this crewmate.",
-      "backToList": "← Back to Crew Manifest",
+      "crumb": "Crewmate",
       "assignedRoles": "Assigned Roles",
       "revokeRole": "Revoke role",
       "revokeRoleAria": "Revoke role {{role}}",

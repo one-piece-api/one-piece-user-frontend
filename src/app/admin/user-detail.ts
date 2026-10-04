@@ -1,11 +1,11 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { hasErrorCode } from '../shared/http/api-error';
 import { MascotService } from '../shared/mascot/mascot';
 import { Badge } from '../shared/ui/badge';
+import { Breadcrumb, type Crumb } from '../shared/ui/breadcrumb';
 import { buttonClasses } from '../shared/ui/button-variants';
 import { Card } from '../shared/ui/card';
 import { initialsOf } from '../shared/ui/initials';
@@ -23,6 +23,7 @@ import type { AuditEvent } from './audit.model';
 import { ResendInvitationService } from './resend-invitation.service';
 
 const USERS_ENDPOINT = '/api/users';
+const USERS_ROUTE = '/users';
 const ROLES_ENDPOINT = '/api/roles';
 const AUDIT_ENDPOINT = '/api/audit';
 const LAST_ADMINISTRATOR_ERROR_CODE = 'USER_LAST_ADMINISTRATOR';
@@ -47,7 +48,7 @@ interface PageResponse<T> {
 @Component({
   selector: 'app-admin-user-detail',
   templateUrl: './user-detail.html',
-  imports: [Card, Badge, RouterLink, Modal, AuditList, TranslocoPipe, LoadingPlaceholder],
+  imports: [Breadcrumb, Card, Badge, Modal, AuditList, TranslocoPipe, LoadingPlaceholder],
 })
 export class AdminUserDetail {
   private readonly http = inject(HttpClient);
@@ -70,6 +71,16 @@ export class AdminUserDetail {
   protected readonly auditEvents = httpResource<PageResponse<AuditEvent>>(
     () => `${AUDIT_ENDPOINT}?userId=${this.userId()}`,
   );
+
+  /** "Administration › Crew Manifest › nami": the way back to the list, ending on the crewmate. */
+  protected readonly crumbs = computed<Crumb[]>(() => {
+    this.transloco.activeLang();
+    return [
+      { label: this.transloco.translate('shell.nav.admin') },
+      { label: this.transloco.translate('shell.nav.crewManifest'), icon: '⚑', route: USERS_ROUTE },
+      { label: this.user.value()?.username ?? this.transloco.translate('users.detail.crumb') },
+    ];
+  });
 
   /** Same registry the Crew Manifest reads (ADR-0007) - unioned below into this user's permissions. */
   protected readonly roleRegistry = httpResource<RolePermissions[]>(() => ROLES_ENDPOINT);

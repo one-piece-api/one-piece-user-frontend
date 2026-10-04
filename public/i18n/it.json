@@ -241,7 +241,7 @@
     "detail": {
       "loading": "Tracciamo l'equipaggio…",
       "error": "Registro perso. Impossibile caricare questo membro dell'equipaggio.",
-      "backToList": "← Torna al Registro Equipaggio",
+      "crumb": "Membro dell'equipaggio",
       "assignedRoles": "Ruoli Assegnati",
       "revokeRole": "Revoca ruolo",
       "revokeRoleAria": "Revoca ruolo {{role}}",

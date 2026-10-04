@@ -1,4 +1,6 @@
 <div class="flex w-full flex-col gap-6">
+  <app-breadcrumb [crumbs]="crumbs()" />
+
   @if (!user.hasValue() && user.isLoading()) {
     <app-card [wide]="true">
       <app-loading-placeholder [label]="'users.detail.loading' | transloco" />
@@ -8,13 +10,6 @@
       <p class="font-heading text-flag-700">{{ 'users.detail.error' | transloco }}</p>
     </app-card>
   } @else if (user.value(); as u) {
-    <a
-      routerLink="/users"
-      class="inline-flex w-fit items-center gap-1.5 rounded-full bg-parchment-100 px-4 py-2 font-heading text-sm font-bold text-ocean-700 shadow-sm transition-colors hover:text-ocean-900"
-    >
-      {{ 'users.detail.backToList' | transloco }}
-    </a>
-
     <div
       [class]="
         'rounded-3xl border-l-[6px] bg-parchment-100 p-6 shadow-md sm:p-8 ' +
