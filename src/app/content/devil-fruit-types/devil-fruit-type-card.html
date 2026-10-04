@@ -46,16 +46,20 @@
     </p>
   </div>
 
-  <div class="rounded-[14px] bg-white px-3.5 py-3 ring-2 ring-card-line">
-    <p class="mb-1 font-heading text-[10px] font-extrabold tracking-widest text-card-ink uppercase">
-      {{ 'content.card.description' | transloco: { language: languageLabel() } }}
-    </p>
-    <p
-      class="font-heading text-[15px] leading-relaxed font-semibold text-pretty whitespace-pre-line"
-      [class]="description() ? 'text-ocean-500' : 'text-treasure-700'"
-      data-testid="card-description"
-    >
-      {{ description() ?? ('content.card.noDescription' | transloco) }}
-    </p>
-  </div>
+  @for (longText of longTexts(); track longText.field) {
+    <div class="rounded-[14px] bg-white px-3.5 py-3 ring-2 ring-card-line">
+      <p
+        class="mb-1 font-heading text-[10px] font-extrabold tracking-widest text-card-ink uppercase"
+      >
+        {{ 'content.card.' + longText.field | transloco: { language: languageLabel() } }}
+      </p>
+      <p
+        class="font-heading text-[15px] leading-relaxed font-semibold text-pretty whitespace-pre-line"
+        [class]="longText.text ? 'text-ocean-500' : 'text-treasure-700'"
+        [attr.data-testid]="'card-' + longText.field"
+      >
+        {{ longText.text ?? (longText.emptyKey | transloco) }}
+      </p>
+    </div>
+  }
 </section>

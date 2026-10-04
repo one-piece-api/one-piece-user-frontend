@@ -6,12 +6,17 @@ import type { DevilFruitType } from './devil-fruit-type.model';
 const ITALIAN = { code: 'it', name: 'Italiano' };
 const ENGLISH = { code: 'en', name: 'English' };
 
-/** Complete in English, still without a description in Italian. */
+/** Complete in English; in Italian, still without a description and disadvantages. */
 const LOGIA: DevilFruitType = {
   romaji: 'Shizen-kei',
   translations: {
-    en: { name: 'Logia', description: 'Turns the body into an element.' },
-    it: { name: 'Rogia', description: null },
+    en: {
+      name: 'Logia',
+      description: 'Turns the body into an element.',
+      advantages: 'Attacks pass through.',
+      disadvantages: 'Haki and sea water.',
+    },
+    it: { name: 'Rogia', description: null, advantages: 'Intangibile.', disadvantages: null },
   },
 };
 
@@ -51,7 +56,11 @@ describe('DevilFruitTypeCard', () => {
     expect(tabs()[1].getAttribute('aria-selected')).toBe('true');
     expect(text('card-name')).toBe('Logia');
     expect(text('card-description')).toBe('Turns the body into an element.');
+    expect(text('card-advantages')).toBe('Attacks pass through.');
+    expect(text('card-disadvantages')).toBe('Haki and sea water.');
     expect(root.textContent).toContain('Description · EN');
+    expect(root.textContent).toContain('Advantages · EN');
+    expect(root.textContent).toContain('Disadvantages · EN');
   });
 
   it('opens on the first language when the catalog does not have the UI one', () => {
@@ -70,6 +79,8 @@ describe('DevilFruitTypeCard', () => {
     expect(tabs()[0].getAttribute('aria-selected')).toBe('true');
     expect(text('card-name')).toBe('Rogia');
     expect(text('card-description')).toBe('— no description in this language —');
+    expect(text('card-advantages')).toBe('Intangibile.');
+    expect(text('card-disadvantages')).toBe('— no disadvantages in this language —');
   });
 
   it('marks the languages whose translation is incomplete', () => {
@@ -93,7 +104,9 @@ describe('DevilFruitTypeCard', () => {
 
     fixture.componentRef.setInput('devilFruitType', {
       romaji: 'Shizen-kei',
-      translations: { it: { name: 'Rogia v2', description: 'Elementale.' } },
+      translations: {
+        it: { name: 'Rogia v2', description: 'Elementale.', advantages: null, disadvantages: null },
+      },
     });
     fixture.detectChanges();
 

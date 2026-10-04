@@ -4,7 +4,17 @@ import { diffField, type FieldDiff } from '../version-comparison';
 export interface DevilFruitTypeTranslation {
   name: string | null;
   description: string | null;
+  advantages: string | null;
+  disadvantages: string | null;
 }
+
+/** The texts written per language besides the name, in the order they are read. */
+export const LONG_TEXT_FIELDS = ['description', 'advantages', 'disadvantages'] as const;
+export type LongTextField = (typeof LONG_TEXT_FIELDS)[number];
+
+/** Every field written per language: the name, then the long texts. */
+const TRANSLATION_FIELDS = ['name', ...LONG_TEXT_FIELDS] as const;
+type TranslationField = (typeof TRANSLATION_FIELDS)[number];
 
 /** What a version of a Devil Fruit Type says: one romaji, and a translation per language code. */
 export interface DevilFruitType {
@@ -12,9 +22,9 @@ export interface DevilFruitType {
   translations: Record<string, DevilFruitTypeTranslation>;
 }
 
-/** A language is complete when both its name and its description are filled in. */
+/** A language is complete when every one of its fields is filled in. */
 export function isTranslationComplete(translation: DevilFruitTypeTranslation | undefined): boolean {
-  return !!translation?.name?.trim() && !!translation.description?.trim();
+  return TRANSLATION_FIELDS.every((field) => !!translation?.[field]?.trim());
 }
 
 /** The names of a Devil Fruit Type per language code, for the languages that have one. */
@@ -32,12 +42,11 @@ export function namesOf(devilFruitType: DevilFruitType): Record<string, string> 
 export const ROMAJI_MAX_LENGTH = 100;
 export const NAME_MAX_LENGTH = 100;
 export const DESCRIPTION_MAX_LENGTH = 2000;
+export const ADVANTAGES_MAX_LENGTH = 2000;
+export const DISADVANTAGES_MAX_LENGTH = 2000;
 
 /** What the editor holds for one language while a draft is being written: never `null`. */
-export interface TranslationDraft {
-  name: string;
-  description: string;
-}
+export type TranslationDraft = Record<TranslationField, string>;
 
 /** A Devil Fruit Type while it is being written: every text a string, one translation per language. */
 export interface DevilFruitTypeDraft {
@@ -59,6 +68,8 @@ export function draftOf(
     translations[language] = {
       name: translation?.name ?? '',
       description: translation?.description ?? '',
+      advantages: translation?.advantages ?? '',
+      disadvantages: translation?.disadvantages ?? '',
     };
   }
   return { romaji: devilFruitType?.romaji ?? '', translations };
@@ -71,6 +82,8 @@ export function toDevilFruitType(draft: DevilFruitTypeDraft): DevilFruitType {
     translations[language] = {
       name: translation.name.trim() || null,
       description: translation.description.trim() || null,
+      advantages: translation.advantages.trim() || null,
+      disadvantages: translation.disadvantages.trim() || null,
     };
   }
   return { romaji: draft.romaji.trim() || null, translations };
@@ -79,17 +92,17 @@ export function toDevilFruitType(draft: DevilFruitTypeDraft): DevilFruitType {
 /** One thing a version needs before it can go to review, and whether the draft has it. */
 export interface ReadinessCheck {
   readonly field: DraftField;
-  /** The language of a name or a description; `null` for the romaji, shared by all. */
+  /** The language of a translated field; `null` for the romaji, shared by all. */
   readonly language: string | null;
   readonly done: boolean;
 }
 
-export type DraftField = 'romaji' | 'name' | 'description';
+export type DraftField = 'romaji' | TranslationField;
 
 /**
- * What a draft still needs to be ready for review: the romaji, then a name and a
- * description in every language of the catalog (flows document 3.2). A draft is saved
- * without any of them - this only says how far it is.
+ * What a draft still needs to be ready for review: the romaji, then a name, a description,
+ * advantages and disadvantages in every language of the catalog (flows document 3.2). A
+ * draft is saved without any of them - this only says how far it is.
  */
 export function readinessChecks(
   draft: DevilFruitTypeDraft,
@@ -101,8 +114,11 @@ export function readinessChecks(
   for (const language of languages) {
     const translation = draft.translations[language];
     checks.push(
-      { field: 'name', language, done: !!translation?.name.trim() },
-      { field: 'description', language, done: !!translation?.description.trim() },
+      ...TRANSLATION_FIELDS.map((field) => ({
+        field,
+        language,
+        done: !!translation?.[field].trim(),
+      })),
     );
   }
   return checks;
@@ -117,22 +133,27 @@ export function draftFieldKey(field: string): string | null {
   if (field === 'romaji') {
     return field;
   }
-  const translation = /^translations\[([^\]]+)\]\.(name|description)$/.exec(field);
+  const translation = TRANSLATION_FIELD_PATH.exec(field);
   return translation ? `${translation[1]}.${translation[2]}` : null;
 }
 
-/** One field of a Devil Fruit Type: the romaji, or a name or a description in one language. */
+/** `translations[it].name`: a translated field as the backend names it. */
+const TRANSLATION_FIELD_PATH = new RegExp(
+  String.raw`^translations\[([^\]]+)\]\.(${TRANSLATION_FIELDS.join('|')})$`,
+);
+
+/** One field of a Devil Fruit Type: the romaji, or a translated field in one language. */
 export interface DevilFruitTypeField {
   readonly field: DraftField;
-  /** The language of a name or a description; `null` for the romaji, shared by all. */
+  /** The language of a translated field; `null` for the romaji, shared by all. */
   readonly language: string | null;
 }
 
 /**
  * Compares a version of a Devil Fruit Type with its base - `null`, an empty content, for the
- * first version (UF-CNT-21): the romaji, then the names, then the descriptions, one per
- * language present on either side - a language on one side only shows as added or removed.
- * Languages follow the catalog's order, any outside it last. A field empty on both sides is
+ * first version (UF-CNT-21): the romaji, then the names, the descriptions, the advantages and
+ * the disadvantages, one per language present on either side - a language on one side only
+ * shows as added or removed. Languages follow the catalog's order, any outside it last. A field empty on both sides is
  * left out.
  */
 export function diffDevilFruitTypes(
@@ -149,18 +170,13 @@ export function diffDevilFruitTypes(
       base?.romaji,
       target.romaji,
     ),
-    ...languages.map((language) =>
-      diffField<DevilFruitTypeField>(
-        { field: 'name', language },
-        translation(base, language)?.name,
-        translation(target, language)?.name,
-      ),
-    ),
-    ...languages.map((language) =>
-      diffField<DevilFruitTypeField>(
-        { field: 'description', language },
-        translation(base, language)?.description,
-        translation(target, language)?.description,
+    ...TRANSLATION_FIELDS.flatMap((field) =>
+      languages.map((language) =>
+        diffField<DevilFruitTypeField>(
+          { field, language },
+          translation(base, language)?.[field],
+          translation(target, language)?.[field],
+        ),
       ),
     ),
   ];

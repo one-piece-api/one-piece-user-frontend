@@ -578,7 +578,9 @@
         "field": {
           "romaji": "romaji",
           "name": "name {{language}}",
-          "description": "description {{language}}"
+          "description": "description {{language}}",
+          "advantages": "advantages {{language}}",
+          "disadvantages": "disadvantages {{language}}"
         }
       },
       "reject": {
@@ -714,8 +716,12 @@
       "title": "Card",
       "name": "Name · {{language}}",
       "description": "Description · {{language}}",
+      "advantages": "Advantages · {{language}}",
+      "disadvantages": "Disadvantages · {{language}}",
       "noName": "— no name in this language —",
       "noDescription": "— no description in this language —",
+      "noAdvantages": "— no advantages in this language —",
+      "noDisadvantages": "— no disadvantages in this language —",
       "incomplete": "incomplete translation"
     },
     "comparison": {
@@ -745,7 +751,9 @@
       "field": {
         "romaji": "Romaji",
         "name": "Name · {{language}}",
-        "description": "Description · {{language}}"
+        "description": "Description · {{language}}",
+        "advantages": "Advantages · {{language}}",
+        "disadvantages": "Disadvantages · {{language}}"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -783,6 +791,12 @@
       "description": {
         "placeholder": "description in the selected language"
       },
+      "advantages": {
+        "placeholder": "what this type gives its user, in the selected language"
+      },
+      "disadvantages": {
+        "placeholder": "what it costs its user, in the selected language"
+      },
       "incomplete": "incomplete",
       "refused": "to fix",
       "ready": {
@@ -790,10 +804,12 @@
         "romaji": "Romaji · unique key",
         "name": "Name · {{language}}",
         "description": "Description · {{language}}",
+        "advantages": "Advantages · {{language}}",
+        "disadvantages": "Disadvantages · {{language}}",
         "done": "complete",
         "required": "required",
         "hintReady": "All set for review.",
-        "hintMissing": "Review takes a romaji, and a name and a description in every language. Meanwhile the draft can be saved incomplete."
+        "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete."
       },
       "save": "Save draft",
       "saving": "Saving…",

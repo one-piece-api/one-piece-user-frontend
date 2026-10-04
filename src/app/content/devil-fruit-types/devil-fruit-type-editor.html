@@ -180,33 +180,37 @@
               }
             </div>
 
-            <div>
-              <label
-                for="draft-description"
-                class="mb-1.5 block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                >{{ 'content.card.description' | transloco: { language: languageLabel() } }}</label
-              >
-              <textarea
-                #descriptionInput
-                id="draft-description"
-                rows="8"
-                class="w-full resize-y rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                [class]="descriptionError() ? 'border-flag-600' : 'border-ocean-800/20'"
-                [value]="translation().description"
-                [maxLength]="maxLength.description"
-                [placeholder]="'content.editor.description.placeholder' | transloco"
-                [attr.aria-invalid]="descriptionError() ? true : null"
-                (input)="setDescription(descriptionInput.value)"
-              ></textarea>
-              @if (descriptionError(); as error) {
-                <p
-                  class="mt-1 font-heading text-sm font-bold text-flag-700"
-                  data-testid="field-error"
+            @for (text of longTexts(); track text.field) {
+              <div>
+                <label
+                  [for]="'draft-' + text.field"
+                  class="mb-1.5 block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                  >{{
+                    'content.card.' + text.field | transloco: { language: languageLabel() }
+                  }}</label
                 >
-                  {{ error }}
-                </p>
-              }
-            </div>
+                <textarea
+                  #longTextInput
+                  [id]="'draft-' + text.field"
+                  [rows]="text.rows"
+                  class="w-full resize-y rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                  [class]="text.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                  [value]="translation()[text.field]"
+                  [maxLength]="maxLength[text.field]"
+                  [placeholder]="'content.editor.' + text.field + '.placeholder' | transloco"
+                  [attr.aria-invalid]="text.error ? true : null"
+                  (input)="setLongText(text.field, longTextInput.value)"
+                ></textarea>
+                @if (text.error; as error) {
+                  <p
+                    class="mt-1 font-heading text-sm font-bold text-flag-700"
+                    data-testid="field-error"
+                  >
+                    {{ error }}
+                  </p>
+                }
+              </div>
+            }
           </div>
 
           <aside class="grid min-w-0 gap-2 rounded-2xl bg-parchment-200 p-4">

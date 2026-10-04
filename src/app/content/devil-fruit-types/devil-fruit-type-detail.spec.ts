@@ -56,8 +56,18 @@ function body(name: string, italianDescription: string | null = 'Elementale.') {
   return {
     romaji: 'Shizen-kei',
     translations: {
-      en: { name, description: 'Elemental.' },
-      it: { name: 'Rogia', description: italianDescription },
+      en: {
+        name,
+        description: 'Elemental.',
+        advantages: 'Attacks pass through.',
+        disadvantages: 'Haki and sea water.',
+      },
+      it: {
+        name: 'Rogia',
+        description: italianDescription,
+        advantages: 'Intangibile.',
+        disadvantages: 'Haki e acqua di mare.',
+      },
     },
   };
 }
@@ -419,6 +429,7 @@ describe('DevilFruitTypeDetail', () => {
           errors: [
             { field: 'romaji', message: 'is required for review' },
             { field: 'translations[en].description', message: 'is required for review' },
+            { field: 'translations[it].disadvantages', message: 'is required for review' },
           ],
         },
         { status: 422, statusText: 'Unprocessable Entity' },
@@ -426,7 +437,9 @@ describe('DevilFruitTypeDetail', () => {
       await afterInteraction();
       await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
 
-      expect(mascotSays()).toBe('Arrr! Still missing before review: romaji, description EN.');
+      expect(mascotSays()).toBe(
+        'Arrr! Still missing before review: romaji, description EN, disadvantages IT.',
+      );
     });
 
     it('names the version a submission would repeat', async () => {

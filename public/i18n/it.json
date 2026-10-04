@@ -578,7 +578,9 @@
         "field": {
           "romaji": "romaji",
           "name": "nome {{language}}",
-          "description": "descrizione {{language}}"
+          "description": "descrizione {{language}}",
+          "advantages": "vantaggi {{language}}",
+          "disadvantages": "svantaggi {{language}}"
         }
       },
       "reject": {
@@ -714,8 +716,12 @@
       "title": "Scheda",
       "name": "Nome · {{language}}",
       "description": "Descrizione · {{language}}",
+      "advantages": "Vantaggi · {{language}}",
+      "disadvantages": "Svantaggi · {{language}}",
       "noName": "— nessun nome in questa lingua —",
       "noDescription": "— nessuna descrizione in questa lingua —",
+      "noAdvantages": "— nessun vantaggio in questa lingua —",
+      "noDisadvantages": "— nessuno svantaggio in questa lingua —",
       "incomplete": "traduzione incompleta"
     },
     "comparison": {
@@ -745,7 +751,9 @@
       "field": {
         "romaji": "Romaji",
         "name": "Nome · {{language}}",
-        "description": "Descrizione · {{language}}"
+        "description": "Descrizione · {{language}}",
+        "advantages": "Vantaggi · {{language}}",
+        "disadvantages": "Svantaggi · {{language}}"
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -783,6 +791,12 @@
       "description": {
         "placeholder": "descrizione nella lingua selezionata"
       },
+      "advantages": {
+        "placeholder": "cosa dà questo tipo a chi lo possiede, nella lingua selezionata"
+      },
+      "disadvantages": {
+        "placeholder": "cosa costa a chi lo possiede, nella lingua selezionata"
+      },
       "incomplete": "incompleta",
       "refused": "da correggere",
       "ready": {
@@ -790,10 +804,12 @@
         "romaji": "Romaji · chiave unica",
         "name": "Nome · {{language}}",
         "description": "Descrizione · {{language}}",
+        "advantages": "Vantaggi · {{language}}",
+        "disadvantages": "Svantaggi · {{language}}",
         "done": "completo",
         "required": "obbligatorio",
         "hintReady": "Tutto pronto per la revisione.",
-        "hintMissing": "Per la revisione servono romaji, nome e descrizione in ogni lingua. Intanto la bozza si salva anche incompleta."
+        "hintMissing": "Per la revisione servono il romaji e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta."
       },
       "save": "Salva bozza",
       "saving": "Salvataggio…",

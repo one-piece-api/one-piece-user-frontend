@@ -19,7 +19,10 @@ import {
 } from '../content.model';
 import { LanguageCatalogService } from '../language-catalog';
 import {
+  ADVANTAGES_MAX_LENGTH,
   DESCRIPTION_MAX_LENGTH,
+  DISADVANTAGES_MAX_LENGTH,
+  LONG_TEXT_FIELDS,
   NAME_MAX_LENGTH,
   ROMAJI_MAX_LENGTH,
   draftFieldKey,
@@ -32,6 +35,7 @@ import {
   type DevilFruitType,
   type DevilFruitTypeDraft,
   type DraftField,
+  type LongTextField,
   type TranslationDraft,
 } from './devil-fruit-type.model';
 
@@ -67,6 +71,15 @@ const READY_LABEL_KEY: Record<DraftField, string> = {
   romaji: 'content.editor.ready.romaji',
   name: 'content.editor.ready.name',
   description: 'content.editor.ready.description',
+  advantages: 'content.editor.ready.advantages',
+  disadvantages: 'content.editor.ready.disadvantages',
+};
+
+/** The height of each long text box: the description is the longest read. */
+const LONG_TEXT_ROWS: Record<LongTextField, number> = {
+  description: 8,
+  advantages: 5,
+  disadvantages: 5,
 };
 
 /** One language tab of the editor. */
@@ -88,8 +101,8 @@ interface CheckView {
 }
 
 /**
- * The editor of a Devil Fruit Type draft (UF-CNT-01, UF-CNT-02): the romaji, a name and a
- * description per language of the catalog, and how far the draft is from being ready for
+ * The editor of a Devil Fruit Type draft (UF-CNT-01, UF-CNT-02): the romaji, then a name, a
+ * description, advantages and disadvantages per language of the catalog, and how far the draft is from being ready for
  * review. Without an id it writes a new content, which is created by its first save; with
  * one it edits the draft the caller may edit - told by the backend, never worked out here.
  * A draft is saved incomplete: the checklist informs, it does not block. The draft can also
@@ -170,7 +183,13 @@ export class DevilFruitTypeEditor {
 
   /** The translation on screen. */
   protected readonly translation = computed<TranslationDraft>(
-    () => this.draft()?.translations[this.language() ?? ''] ?? { name: '', description: '' },
+    () =>
+      this.draft()?.translations[this.language() ?? ''] ?? {
+        name: '',
+        description: '',
+        advantages: '',
+        disadvantages: '',
+      },
   );
 
   /** The fields the backend refused at the last save, by key (`romaji`, `it.name`), with why. */
@@ -179,8 +198,13 @@ export class DevilFruitTypeEditor {
   protected readonly nameError = computed(
     () => this.refusedFields()[`${this.language()}.name`] ?? null,
   );
-  protected readonly descriptionError = computed(
-    () => this.refusedFields()[`${this.language()}.description`] ?? null,
+  /** The long texts of the language on screen, each with why the backend refused it, if it did. */
+  protected readonly longTexts = computed(() =>
+    LONG_TEXT_FIELDS.map((field) => ({
+      field,
+      rows: LONG_TEXT_ROWS[field],
+      error: this.refusedFields()[`${this.language()}.${field}`] ?? null,
+    })),
   );
 
   protected readonly tabs = computed<LanguageTab[]>(() => {
@@ -196,7 +220,7 @@ export class DevilFruitTypeEditor {
     }));
   });
 
-  /** "Ready for review": the romaji, then a name and a description per language. */
+  /** "Ready for review": the romaji, then every translated field per language. */
   private readonly readiness = computed(() => {
     const draft = this.draft();
     return draft ? readinessChecks(draft, this.languageCodes()) : [];
@@ -340,6 +364,8 @@ export class DevilFruitTypeEditor {
     romaji: ROMAJI_MAX_LENGTH,
     name: NAME_MAX_LENGTH,
     description: DESCRIPTION_MAX_LENGTH,
+    advantages: ADVANTAGES_MAX_LENGTH,
+    disadvantages: DISADVANTAGES_MAX_LENGTH,
   };
 
   protected setRomaji(romaji: string): void {
@@ -352,9 +378,9 @@ export class DevilFruitTypeEditor {
     this.forgetRefusal(`${this.language()}.name`);
   }
 
-  protected setDescription(description: string): void {
-    this.writeTranslation({ description });
-    this.forgetRefusal(`${this.language()}.description`);
+  protected setLongText(field: LongTextField, text: string): void {
+    this.writeTranslation({ [field]: text });
+    this.forgetRefusal(`${this.language()}.${field}`);
   }
 
   /** Saves the draft as it is, complete or not, then goes to the content it belongs to. */
