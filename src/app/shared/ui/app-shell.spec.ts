@@ -364,6 +364,23 @@ describe('AppShell', () => {
       expect(statusPages.length).toBeGreaterThan(1);
     });
 
+    it('leads to the profile from the user block too, without marking that block as current', async () => {
+      const { fixture, root } = await signIn(['users:read']);
+      await TestBed.inject(Router).navigateByUrl('/profile');
+      fixture.detectChanges();
+
+      const menuEntry = root.querySelector('nav a[href="/profile"]') as HTMLElement;
+      expect(menuEntry.getAttribute('aria-current')).toBe('page');
+      expect(menuEntry.className).toContain('border-treasure-500');
+      for (const testId of ['sidebar-profile-link', 'topbar-profile-link']) {
+        const userBlock = root.querySelector(`[data-testid="${testId}"]`) as HTMLElement;
+        expect(userBlock.getAttribute('href')).toBe('/profile');
+        expect(userBlock.textContent).toContain('luffy');
+        expect(userBlock.hasAttribute('aria-current')).toBe(false);
+        expect(userBlock.className).not.toContain('treasure');
+      }
+    });
+
     it('expands the current group inline for the mobile drawer', async () => {
       const { fixture, root } = await signIn(['users:read', 'audit:read']);
       expect(hrefsIn(root.querySelector('nav'))).toEqual(['/profile']);

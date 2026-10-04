@@ -6,6 +6,7 @@ import { logoutUrl } from '../../identity/auth-urls';
 import { CurrentUserService } from '../../identity/current-user';
 import { LanguageSwitcher } from '../i18n/language-switcher';
 import { MascotService } from '../mascot/mascot';
+import { PROFILE_ROUTE } from '../nav/home.guard';
 import { NAV_GROUPS, type NavGroup, type NavItem } from '../nav/nav-items';
 import { Icon } from './icon';
 import { initialsOf } from './initials';
@@ -53,6 +54,7 @@ export class AppShell {
   private readonly mascot = inject(MascotService);
   private readonly router = inject(Router);
   protected readonly logoutUrl = logoutUrl();
+  protected readonly profileRoute = PROFILE_ROUTE;
   protected readonly navGroups = NAV_GROUPS;
   protected readonly drawerOpen = signal(false);
   protected readonly flyout = signal<Flyout | null>(null);

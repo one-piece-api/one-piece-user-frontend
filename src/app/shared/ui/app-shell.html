@@ -113,7 +113,14 @@
 
       @if (currentUser.me.value(); as identity) {
         <div>
-          <div class="mb-3 flex items-center gap-3">
+          <!-- Another way to the profile: never marked as current, the menu entry already is. -->
+          <a
+            [routerLink]="profileRoute"
+            (click)="navigated()"
+            [attr.aria-label]="'shell.nav.profile' | transloco"
+            class="-mx-2 mb-2 flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-white/10"
+            data-testid="sidebar-profile-link"
+          >
             <div
               class="grid size-9 shrink-0 place-items-center rounded-full bg-treasure-500 font-display text-sm font-semibold text-ocean-950"
             >
@@ -127,7 +134,7 @@
                 {{ identity.roles.join(' · ') }}
               </div>
             </div>
-          </div>
+          </a>
           <a
             [href]="logoutUrl"
             class="block rounded-xl bg-white/10 px-3 py-2 text-center font-display text-sm font-semibold text-parchment-100 transition-colors hover:bg-white/15"
@@ -187,7 +194,12 @@
       </button>
       <img src="assets/logo.png" alt="One Piece API" class="h-7 w-auto object-contain" />
       @if (currentUser.me.value(); as identity) {
-        <div class="ml-auto flex min-w-0 items-center gap-2.5">
+        <a
+          [routerLink]="profileRoute"
+          [attr.aria-label]="'shell.nav.profile' | transloco"
+          class="-my-1 ml-auto flex min-w-0 items-center gap-2.5 rounded-xl py-1 pr-1 pl-2 transition-colors hover:bg-white/10"
+          data-testid="topbar-profile-link"
+        >
           <div class="min-w-0 text-right">
             <div class="truncate font-display text-sm font-semibold text-parchment-100">
               {{ identity.username }}
@@ -201,7 +213,7 @@
           >
             {{ initials(identity.username) }}
           </div>
-        </div>
+        </a>
       }
     </div>
 
