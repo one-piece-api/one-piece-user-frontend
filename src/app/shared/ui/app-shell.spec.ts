@@ -230,6 +230,21 @@ describe('AppShell', () => {
     expect(mascot.message().text).toContain("Characters isn't open yet");
   });
 
+  it('fits the visible mobile viewport and keeps drawer scrolling from chaining to the page', () => {
+    const fixture = TestBed.createComponent(AppShell);
+    fixture.detectChanges();
+    httpTesting.expectOne('/api/me').flush({
+      username: 'luffy',
+      email: 'luffy@onepiece.local',
+      roles: ['ADMIN'],
+      permissions: ['users:read'],
+    });
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.firstElementChild?.className).toContain('h-dvh');
+    expect(root.querySelector('aside')!.className).toContain('overscroll-contain');
+  });
+
   it('opens and closes the mobile drawer', async () => {
     const fixture = TestBed.createComponent(AppShell);
     fixture.detectChanges();
