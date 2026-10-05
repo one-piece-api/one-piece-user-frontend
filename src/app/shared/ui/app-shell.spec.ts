@@ -390,5 +390,20 @@ describe('AppShell', () => {
 
       expect(hrefsIn(root.querySelector('nav'))).toEqual(['/profile', '/users', '/audit']);
     });
+
+    it('collapses the current group inline when the user asks, and expands it again', async () => {
+      const { fixture, root } = await signIn(['users:read', 'audit:read']);
+      await TestBed.inject(Router).navigateByUrl('/users');
+      fixture.detectChanges();
+      const admin = groupButton(root, 'Admin');
+
+      admin.click();
+      fixture.detectChanges();
+      expect(hrefsIn(root.querySelector('nav'))).toEqual(['/profile']);
+
+      admin.click();
+      fixture.detectChanges();
+      expect(hrefsIn(root.querySelector('nav'))).toEqual(['/profile', '/users', '/audit']);
+    });
   });
 });

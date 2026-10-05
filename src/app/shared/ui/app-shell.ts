@@ -58,8 +58,8 @@ export class AppShell {
   protected readonly navGroups = NAV_GROUPS;
   protected readonly drawerOpen = signal(false);
   protected readonly flyout = signal<Flyout | null>(null);
-  /** Groups expanded inline in the mobile drawer (by label key). */
-  private readonly expandedGroups = signal<ReadonlySet<string>>(new Set());
+  /** Groups the user expanded (true) or collapsed (false) inline in the mobile drawer, by label key. */
+  private readonly toggledGroups = signal<ReadonlyMap<string, boolean>>(new Map());
   private flyoutCloseTimer?: ReturnType<typeof setTimeout>;
 
   /** One router-backed signal per routed item, so the active entry follows navigation. */
@@ -114,9 +114,12 @@ export class AppShell {
     return this.flyout()?.group === group;
   }
 
-  /** Mobile only (the template hides it on desktop): the active group is always expanded. */
+  /**
+   * Mobile only (the template hides it on desktop): the active group starts expanded, but the
+   * user's own toggle wins - the current page's group can be collapsed too.
+   */
   protected isExpandedInline(group: NavGroup): boolean {
-    return this.expandedGroups().has(group.labelKey) || this.isGroupActive(group);
+    return this.toggledGroups().get(group.labelKey) ?? this.isGroupActive(group);
   }
 
   /**
@@ -156,11 +159,8 @@ export class AppShell {
     const current = this.flyout();
     if (current?.group === group && current.pinned) this.closeFlyout();
     else this.openFlyout(event, group, true);
-    this.expandedGroups.update((expanded) => {
-      const next = new Set(expanded);
-      if (!next.delete(group.labelKey)) next.add(group.labelKey);
-      return next;
-    });
+    const expanded = this.isExpandedInline(group);
+    this.toggledGroups.update((toggled) => new Map(toggled).set(group.labelKey, !expanded));
   }
 
   protected keepFlyoutOpen(): void {
