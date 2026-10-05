@@ -83,6 +83,13 @@
   --font-heading: 'Nunito', 'Source Sans 3', sans-serif;
 }
 
+/* The shell scrolls inside its own panes, never the page: without this, iOS WebKit (every
+   browser on an iPhone) still drags the whole page past its end onto a blank canvas, both
+   when nothing in a pane can scroll and when a pane's scroll runs out. */
+html {
+  overscroll-behavior: none;
+}
+
 body {
   background-color: var(--color-parchment-50);
   background-image:
