@@ -64,6 +64,33 @@ describe('MascotService', () => {
     expect(service.open()).toBe(false);
   });
 
+  it('never lets a tip push aside an outcome still open', () => {
+    service.show('Saved!', 'success');
+    service.showTip('A hint');
+    expect(service.message().text).toBe('Saved!');
+
+    service.show('Blocked', 'error');
+    service.showTip('A hint');
+    expect(service.message().text).toBe('Blocked');
+  });
+
+  it('shows a tip once the outcome is closed, and lets a tip replace the previous one', () => {
+    service.show('Blocked', 'error');
+    service.close();
+
+    service.showTip('First hint', 'code');
+    expect(service.open()).toBe(true);
+    expect(service.message()).toEqual({
+      tone: 'tip',
+      title: 'Puru puru puru',
+      text: 'First hint',
+      code: 'code',
+    });
+
+    service.showTip('Second hint');
+    expect(service.message().text).toBe('Second hint');
+  });
+
   it('toggle reopens showing the last message', () => {
     service.show('Ahoy!', 'success');
     service.close();

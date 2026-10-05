@@ -144,6 +144,18 @@ describe('MascotWidget', () => {
     expect(mascotService.message().code).toBe('content:review → content:publish');
   });
 
+  it('keeps an error on screen when the next tip is due', async () => {
+    vi.useFakeTimers();
+    const fixture = await createAt('/users');
+    const mascotService = TestBed.inject(MascotService);
+    mascotService.show('Could not save', 'error');
+
+    vi.advanceTimersByTime(24_000);
+    fixture.detectChanges();
+
+    expect(mascotService.message().text).toBe('Could not save');
+  });
+
   it('stays quiet on routes with no tip topic', async () => {
     vi.useFakeTimers();
     await createAt('/forbidden');

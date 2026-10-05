@@ -1,7 +1,8 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 
-export type MascotTone = 'info' | 'success' | 'error';
+/** `tip` is the mascot's own contextual hint; the others answer something the user did. */
+export type MascotTone = 'tip' | 'info' | 'success' | 'error';
 
 export interface MascotMessage {
   readonly tone: MascotTone;
@@ -11,6 +12,7 @@ export interface MascotMessage {
 }
 
 const TITLE_KEY: Record<MascotTone, string> = {
+  tip: 'mascot.title.info',
   info: 'mascot.title.info',
   success: 'mascot.title.success',
   error: 'mascot.title.error',
@@ -41,6 +43,17 @@ export class MascotService {
     this.shown.set({ tone, title: this.transloco.translate(TITLE_KEY[tone]), text, code });
     this.open.set(true);
     this.scheduleAutoClose(tone);
+  }
+
+  /**
+   * A tip never pushes aside a message the user is still reading: it waits for the next turn
+   * while anything but another tip is open (an error stays until closed by hand).
+   */
+  showTip(text: string, code?: string): void {
+    if (this.open() && this.message().tone !== 'tip') {
+      return;
+    }
+    this.show(text, 'tip', code);
   }
 
   private idleGreeting(): MascotMessage {

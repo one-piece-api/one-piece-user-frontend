@@ -36,24 +36,28 @@ function topicForUrl(url: string): TipTopic | null {
 }
 
 const TONE_BORDER_CLASSES: Record<MascotTone, string> = {
+  tip: 'border-ocean-700',
   info: 'border-ocean-700',
   success: 'border-success-500',
   error: 'border-flag-600',
 };
 
 const TONE_DOT_CLASSES: Record<MascotTone, string> = {
+  tip: 'bg-ocean-700',
   info: 'bg-ocean-700',
   success: 'bg-success-500',
   error: 'bg-flag-600',
 };
 
 const TONE_TITLE_CLASSES: Record<MascotTone, string> = {
+  tip: 'text-ocean-900',
   info: 'text-ocean-900',
   success: 'text-success-700',
   error: 'text-flag-700',
 };
 
 const TONE_MINIMIZE_CLASSES: Record<MascotTone, string> = {
+  tip: 'bg-ocean-100 text-ocean-900',
   info: 'bg-ocean-100 text-ocean-900',
   success: 'bg-success-100 text-success-700',
   error: 'bg-flag-100 text-flag-700',
@@ -106,7 +110,7 @@ export class MascotWidget {
     const key = pool[index % pool.length];
     this.tipIndexByTopic.set(topic, index + 1);
     const tip = this.transloco.translateObject<Tip>(key);
-    this.mascotService.show(tip.text, 'info', tip.code);
+    this.mascotService.showTip(tip.text, tip.code);
   }
 }
 
