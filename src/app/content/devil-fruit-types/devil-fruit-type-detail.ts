@@ -17,7 +17,7 @@ import {
   type VersionAction,
   type VersionEvent,
 } from '../content.model';
-import { dashboardCrumb } from '../content-crumbs';
+import { contentsCrumb } from '../content-crumbs';
 import { ContentSerial } from '../content-serial';
 import { LanguageCatalogService } from '../language-catalog';
 import { momentLabel } from '../moment-label';
@@ -158,7 +158,7 @@ export class DevilFruitTypeDetail {
   protected readonly crumbs = computed<Crumb[]>(() => {
     this.transloco.activeLang();
     const crumbs: Crumb[] = [
-      dashboardCrumb(this.transloco),
+      contentsCrumb(this.transloco),
       { label: this.transloco.translate('content.devilFruitTypes.title'), route: LIST_ROUTE },
     ];
     // The last crumb is never a link: without the content's own, the section's would be it.

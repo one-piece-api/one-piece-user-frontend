@@ -146,8 +146,10 @@ describe('DevilFruitTypeList', () => {
 
     expect(root.querySelector('h1')?.textContent).toContain('Devil Fruit Types');
     const breadcrumb = root.querySelector('nav[aria-label="breadcrumb"]') as HTMLElement;
-    expect(breadcrumb.textContent).toContain('Contents');
-    expect(breadcrumb.querySelector('a')?.getAttribute('href')).toBe('/dashboard');
+    expect(breadcrumb.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+      'Contents › Devil Fruit Types',
+    );
+    expect(breadcrumb.querySelector('a')).toBeNull();
     expect(rows().length).toBe(2);
     expect(rows()[0].textContent).toContain('Paramecia');
     expect(rows()[0].textContent).toContain('Chōjin-kei');

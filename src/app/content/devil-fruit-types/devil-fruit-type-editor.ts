@@ -10,7 +10,7 @@ import { buttonClasses } from '../../shared/ui/button-variants';
 import { Icon } from '../../shared/ui/icon';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
-import { dashboardCrumb } from '../content-crumbs';
+import { contentsCrumb } from '../content-crumbs';
 import {
   STATUS_LABEL_KEY,
   editableVersion,
@@ -290,7 +290,7 @@ export class DevilFruitTypeEditor {
   protected readonly crumbs = computed<Crumb[]>(() => {
     this.transloco.activeLang();
     const crumbs: Crumb[] = [
-      dashboardCrumb(this.transloco),
+      contentsCrumb(this.transloco),
       { label: this.transloco.translate('content.devilFruitTypes.title'), route: LIST_ROUTE },
     ];
     if (this.isNew()) {

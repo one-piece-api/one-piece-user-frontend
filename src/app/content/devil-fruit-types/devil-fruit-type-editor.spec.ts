@@ -346,12 +346,13 @@ describe('DevilFruitTypeEditor', () => {
       expect(root.querySelector('[data-testid="to-fix"]')).toBeNull();
     });
 
-    it('leads back to the dashboard, the section and the content from the breadcrumb', async () => {
+    it('leads back to the section and the content from the breadcrumb, under Contents', async () => {
       await openDraft();
 
       const breadcrumb = root.querySelector('nav[aria-label="breadcrumb"]') as HTMLElement;
       const links = [...breadcrumb.querySelectorAll('a')].map((link) => link.getAttribute('href'));
-      expect(links).toEqual(['/dashboard', SECTION, `${SECTION}/${ID}`]);
+      expect(breadcrumb.textContent?.trim()).toMatch(/^Contents/);
+      expect(links).toEqual([SECTION, `${SECTION}/${ID}`]);
       expect(breadcrumb.querySelector('[aria-current="page"]')?.textContent).toContain('Edit');
     });
 
