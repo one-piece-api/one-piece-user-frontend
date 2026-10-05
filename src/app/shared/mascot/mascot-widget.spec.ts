@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { MascotService } from './mascot';
-import { MascotWidget } from './mascot-widget';
+import { MascotWidget, TIP_INTERVAL_MS } from './mascot-widget';
 
 describe('MascotWidget', () => {
   async function createAt(url: string) {
@@ -84,12 +84,56 @@ describe('MascotWidget', () => {
     expect(root.querySelector('[aria-label="Open the Den Den Mushi"]')).not.toBeNull();
   });
 
+  describe('tells an outcome apart from a tip', () => {
+    async function showing(tone: 'tip' | 'success' | 'error') {
+      const fixture = await createAt('/');
+      const mascotService = TestBed.inject(MascotService);
+      if (tone === 'tip') mascotService.showTip('A hint');
+      else mascotService.show('Done', tone);
+      fixture.detectChanges();
+      const root = fixture.nativeElement as HTMLElement;
+      return {
+        bubble: root.querySelector('[data-tone]') as HTMLElement,
+        snail: root.querySelector('img[alt="Den Den Mushi"]') as HTMLElement,
+      };
+    }
+
+    it('announces an error as an alert, with a filled header and a glyph, and buzzes', async () => {
+      const { bubble, snail } = await showing('error');
+
+      expect(bubble.getAttribute('role')).toBe('alert');
+      expect(bubble.hasAttribute('aria-live')).toBe(false);
+      expect(bubble.querySelector('.bg-flag-600')?.textContent).toContain('!');
+      expect(snail.className).toContain('anim-buzz');
+    });
+
+    it('marks a success with a filled header and a check, and buzzes', async () => {
+      const { bubble, snail } = await showing('success');
+
+      expect(bubble.getAttribute('role')).toBe('status');
+      expect(bubble.querySelector('.bg-success-500')?.textContent).toContain('✓');
+      expect(snail.className).toContain('anim-buzz');
+    });
+
+    it('keeps a tip quiet: navy border and dot, the snail’s own title, no buzz', async () => {
+      const { bubble, snail } = await showing('tip');
+
+      expect(bubble.getAttribute('role')).toBe('status');
+      expect(bubble.className).toContain('border-ocean-700');
+      expect(bubble.querySelector('.bg-ocean-700')).not.toBeNull();
+      expect(bubble.textContent).toContain('Puru puru puru');
+      expect(bubble.querySelector('.bg-success-500, .bg-flag-600')).toBeNull();
+      expect(snail.className).toContain('anim-bob');
+      expect(snail.className).not.toContain('anim-buzz');
+    });
+  });
+
   it('pipes up on its own with a contextual tip for a known route', async () => {
     vi.useFakeTimers();
     const fixture = await createAt('/users');
     const mascotService = TestBed.inject(MascotService);
 
-    vi.advanceTimersByTime(24_000);
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
     fixture.detectChanges();
 
     expect(mascotService.open()).toBe(true);
@@ -101,7 +145,7 @@ describe('MascotWidget', () => {
     const fixture = await createAt('/roles');
     const mascotService = TestBed.inject(MascotService);
 
-    vi.advanceTimersByTime(24_000);
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
     fixture.detectChanges();
 
     expect(mascotService.open()).toBe(true);
@@ -113,7 +157,7 @@ describe('MascotWidget', () => {
     const fixture = await createAt('/languages');
     const mascotService = TestBed.inject(MascotService);
 
-    vi.advanceTimersByTime(24_000);
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
     fixture.detectChanges();
 
     expect(mascotService.open()).toBe(true);
@@ -125,7 +169,7 @@ describe('MascotWidget', () => {
     const fixture = await createAt('/dashboard/in-review');
     const mascotService = TestBed.inject(MascotService);
 
-    vi.advanceTimersByTime(24_000);
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
     fixture.detectChanges();
 
     expect(mascotService.open()).toBe(true);
@@ -137,7 +181,7 @@ describe('MascotWidget', () => {
     const fixture = await createAt('/content/devil-fruit-types');
     const mascotService = TestBed.inject(MascotService);
 
-    vi.advanceTimersByTime(24_000);
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
     fixture.detectChanges();
 
     expect(mascotService.open()).toBe(true);
@@ -148,12 +192,30 @@ describe('MascotWidget', () => {
     vi.useFakeTimers();
     const fixture = await createAt('/users');
     const mascotService = TestBed.inject(MascotService);
+    vi.advanceTimersByTime(TIP_INTERVAL_MS - 1000);
     mascotService.show('Could not save', 'error');
 
-    vi.advanceTimersByTime(24_000);
+    vi.advanceTimersByTime(1000);
     fixture.detectChanges();
 
     expect(mascotService.message().text).toBe('Could not save');
+  });
+
+  it('does not close a message while the pointer is on it', async () => {
+    vi.useFakeTimers();
+    const fixture = await createAt('/');
+    const mascotService = TestBed.inject(MascotService);
+    mascotService.show('Could not save', 'error');
+    fixture.detectChanges();
+    const bubble = (fixture.nativeElement as HTMLElement).querySelector('[data-tone]')!;
+
+    bubble.dispatchEvent(new Event('pointerenter'));
+    vi.advanceTimersByTime(30_000);
+    expect(mascotService.open()).toBe(true);
+
+    bubble.dispatchEvent(new Event('pointerleave'));
+    vi.advanceTimersByTime(15_000);
+    expect(mascotService.open()).toBe(false);
   });
 
   it('stays quiet on routes with no tip topic', async () => {
@@ -161,7 +223,7 @@ describe('MascotWidget', () => {
     await createAt('/forbidden');
     const mascotService = TestBed.inject(MascotService);
 
-    vi.advanceTimersByTime(24_000);
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
 
     expect(mascotService.open()).toBe(false);
   });
@@ -172,7 +234,7 @@ describe('MascotWidget', () => {
     const mascotService = TestBed.inject(MascotService);
     fixture.destroy();
 
-    vi.advanceTimersByTime(24_000);
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
 
     expect(mascotService.open()).toBe(false);
   });

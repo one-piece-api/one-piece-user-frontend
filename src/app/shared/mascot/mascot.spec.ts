@@ -53,14 +53,38 @@ describe('MascotService', () => {
     expect(service.open()).toBe(false);
   });
 
-  it('keeps an error message open until dismissed by hand', () => {
+  it('auto-closes an error too, given a little longer to read', () => {
     vi.useFakeTimers();
     service.show('Uh oh', 'error');
 
     vi.advanceTimersByTime(9000);
     expect(service.open()).toBe(true);
 
+    vi.advanceTimersByTime(6000);
+    expect(service.open()).toBe(false);
+  });
+
+  it('never closes while held, and gives the full time again once released', () => {
+    vi.useFakeTimers();
+    service.show('Uh oh', 'error');
+
+    service.hold();
+    vi.advanceTimersByTime(60_000);
+    expect(service.open()).toBe(true);
+
+    service.release();
+    vi.advanceTimersByTime(14_000);
+    expect(service.open()).toBe(true);
+    vi.advanceTimersByTime(1000);
+    expect(service.open()).toBe(false);
+  });
+
+  it('a release after closing does not reopen or reschedule anything', () => {
+    service.show('Ahoy!');
     service.close();
+
+    service.release();
+
     expect(service.open()).toBe(false);
   });
 

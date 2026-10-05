@@ -5,20 +5,28 @@
 >
   @if (mascotService.open()) {
     @let msg = mascotService.message();
+    @let style = toneStyles[msg.tone];
     <div
-      role="status"
-      aria-live="polite"
+      [attr.role]="msg.tone === 'error' ? 'alert' : 'status'"
+      [attr.aria-live]="msg.tone === 'error' ? null : 'polite'"
+      [attr.data-tone]="msg.tone"
       animate.enter="anim-pop-enter"
       animate.leave="anim-pop-leave"
-      class="pointer-events-auto w-72 max-w-[calc(100vw-2rem)] rounded-[22px] border-[3px] bg-white p-4 shadow-2xl"
-      [class]="toneBorderClasses[msg.tone]"
+      (pointerenter)="mascotService.hold()"
+      (pointerleave)="mascotService.release()"
+      (focusin)="mascotService.hold()"
+      (focusout)="mascotService.release()"
+      class="pointer-events-auto w-72 max-w-[calc(100vw-2rem)] overflow-hidden rounded-[22px] bg-white"
+      [class]="style.bubble"
     >
-      <div class="mb-1.5 flex items-center justify-between gap-3">
-        <span
-          class="inline-flex items-center gap-2 font-display text-sm font-bold"
-          [class]="toneTitleClasses[msg.tone]"
-        >
-          <span class="size-2 rounded-full" [class]="toneDotClasses[msg.tone]"></span>
+      <div class="flex items-center justify-between gap-3" [class]="style.header">
+        <span class="inline-flex items-center gap-2 font-display font-bold" [class]="style.title">
+          <span
+            class="grid flex-none place-items-center rounded-full font-extrabold"
+            [class]="style.mark.classes"
+            aria-hidden="true"
+            >{{ style.mark.glyph }}</span
+          >
           {{ msg.title }}
         </span>
         <button
@@ -26,23 +34,29 @@
           (click)="mascotService.close()"
           [attr.aria-label]="'mascot.minimize' | transloco"
           class="grid size-6 shrink-0 cursor-pointer place-items-center rounded-full text-sm leading-none font-bold"
-          [class]="toneMinimizeClasses[msg.tone]"
+          [class]="style.minimize"
         >
           −
         </button>
       </div>
-      <p class="font-heading text-sm font-bold text-ocean-950">{{ msg.text }}</p>
-      @if (msg.code) {
-        <p class="mt-1.5 font-heading text-[11px] font-extrabold text-ocean-500/60">
-          {{ msg.code }}
-        </p>
-      }
+      <div class="px-4 pb-4" [class]="isOutcome(msg.tone) ? 'pt-3' : 'pt-1.5'">
+        <p class="font-heading text-sm font-bold text-ocean-950">{{ msg.text }}</p>
+        @if (msg.code) {
+          <p class="mt-1.5 font-heading text-[11px] font-extrabold text-ocean-500/60">
+            {{ msg.code }}
+          </p>
+        }
+      </div>
     </div>
-    <img
-      src="assets/denden.png"
-      alt="Den Den Mushi"
-      class="anim-bob mt-1 mr-2.5 w-16 drop-shadow-lg"
-    />
+    <!-- Keyed by the message: the snail is drawn anew for each one, so it buzzes for every outcome. -->
+    @for (shown of [msg]; track shown) {
+      <img
+        src="assets/denden.png"
+        alt="Den Den Mushi"
+        class="mt-1 mr-2.5 w-16 drop-shadow-lg"
+        [class]="isOutcome(shown.tone) ? 'anim-buzz' : 'anim-bob'"
+      />
+    }
   } @else {
     <button
       type="button"

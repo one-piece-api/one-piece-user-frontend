@@ -234,6 +234,40 @@ body {
   animation: bob 2.4s ease-in-out infinite;
 }
 
+/* The Den Den Mushi taking a call: a light, quick vibration when an outcome arrives, on
+   `translate` so it runs alongside the bob's `transform`. Illustration only, never on a control. */
+@keyframes buzz {
+  0%,
+  100% {
+    translate: 0;
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    translate: -2px 0;
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    translate: 2px 0;
+  }
+}
+
+.anim-buzz {
+  animation:
+    buzz 0.5s linear,
+    bob 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-buzz {
+    animation: none;
+  }
+}
+
 /* The selected link of a version chain: a slow breath around its resting scale-110, and two
    rings of its own border color spreading out of it in turn, like ripples around a pebble. */
 @keyframes selected-pulse {

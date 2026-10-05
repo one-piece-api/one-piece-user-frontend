@@ -22,7 +22,8 @@ const TIPS: Record<TipTopic, readonly string[]> = {
   content: ['mascot.tips.content.tip1', 'mascot.tips.content.tip2', 'mascot.tips.content.tip3'],
 };
 
-const TIP_INTERVAL_MS = 24_000;
+/** Sparse enough that a tip stays a nudge, not the thing the eye learns to skip. */
+export const TIP_INTERVAL_MS = 50_000;
 
 function topicForUrl(url: string): TipTopic | null {
   if (url.startsWith('/users')) return 'users';
@@ -35,33 +36,50 @@ function topicForUrl(url: string): TipTopic | null {
   return null;
 }
 
-const TONE_BORDER_CLASSES: Record<MascotTone, string> = {
-  tip: 'border-ocean-700',
-  info: 'border-ocean-700',
-  success: 'border-success-500',
-  error: 'border-flag-600',
+/** How a tone looks - literal class names, so Tailwind keeps them. */
+interface ToneStyle {
+  readonly bubble: string;
+  readonly header: string;
+  readonly title: string;
+  /** The mark before the title: a dot, or a glyph badge for an outcome. */
+  readonly mark: { readonly classes: string; readonly glyph: string };
+  readonly minimize: string;
+}
+
+/** A tip and a system message: the navy border and the snail's own "Puru puru puru". */
+const NAVY_STYLE: ToneStyle = {
+  bubble: 'border-[3px] border-ocean-700 shadow-2xl',
+  header: 'px-4 pt-4',
+  title: 'text-sm text-ocean-900',
+  mark: { classes: 'size-2 bg-ocean-700', glyph: '' },
+  minimize: 'bg-ocean-100 text-ocean-900',
 };
 
-const TONE_DOT_CLASSES: Record<MascotTone, string> = {
-  tip: 'bg-ocean-700',
-  info: 'bg-ocean-700',
-  success: 'bg-success-500',
-  error: 'bg-flag-600',
+/**
+ * A visual hierarchy, so an outcome is never mistaken for one more tip: tips and system
+ * messages share the navy look; an outcome of the user's action gets a filled colored header
+ * with a glyph, and makes the snail buzz.
+ */
+const TONE_STYLES: Record<MascotTone, ToneStyle> = {
+  tip: NAVY_STYLE,
+  info: NAVY_STYLE,
+  success: {
+    bubble: 'border-[3px] border-success-500 shadow-2xl',
+    header: 'bg-success-500 px-4 py-2.5 text-white',
+    title: 'text-[15px] text-white',
+    mark: { classes: 'size-5.5 bg-white text-xs text-success-700', glyph: '✓' },
+    minimize: 'bg-white/25 text-white',
+  },
+  error: {
+    bubble: 'border-[3px] border-flag-600 shadow-2xl',
+    header: 'bg-flag-600 px-4 py-2.5 text-white',
+    title: 'text-[15px] text-white',
+    mark: { classes: 'size-5.5 bg-white text-xs text-flag-700', glyph: '!' },
+    minimize: 'bg-white/25 text-white',
+  },
 };
 
-const TONE_TITLE_CLASSES: Record<MascotTone, string> = {
-  tip: 'text-ocean-900',
-  info: 'text-ocean-900',
-  success: 'text-success-700',
-  error: 'text-flag-700',
-};
-
-const TONE_MINIMIZE_CLASSES: Record<MascotTone, string> = {
-  tip: 'bg-ocean-100 text-ocean-900',
-  info: 'bg-ocean-100 text-ocean-900',
-  success: 'bg-success-100 text-success-700',
-  error: 'bg-flag-100 text-flag-700',
-};
+const OUTCOME_TONES: ReadonlySet<MascotTone> = new Set(['success', 'error']);
 
 /**
  * The floating Den Den Mushi: an always-visible launcher when collapsed, a single-message
@@ -80,10 +98,7 @@ const TONE_MINIMIZE_CLASSES: Record<MascotTone, string> = {
 })
 export class MascotWidget {
   protected readonly mascotService = inject(MascotService);
-  protected readonly toneBorderClasses = TONE_BORDER_CLASSES;
-  protected readonly toneDotClasses = TONE_DOT_CLASSES;
-  protected readonly toneTitleClasses = TONE_TITLE_CLASSES;
-  protected readonly toneMinimizeClasses = TONE_MINIMIZE_CLASSES;
+  protected readonly toneStyles = TONE_STYLES;
 
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -98,6 +113,10 @@ export class MascotWidget {
     });
     const intervalId = setInterval(() => this.showNextTip(), TIP_INTERVAL_MS);
     inject(DestroyRef).onDestroy(() => clearInterval(intervalId));
+  }
+
+  protected isOutcome(tone: MascotTone): boolean {
+    return OUTCOME_TONES.has(tone);
   }
 
   private showNextTip(): void {

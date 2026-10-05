@@ -18,13 +18,19 @@ const TITLE_KEY: Record<MascotTone, string> = {
   error: 'mascot.title.error',
 };
 
-const AUTO_DISMISS_MS = 9000;
+/** How long a message stays open on its own: an error, usually longer to read, a bit more. */
+const AUTO_DISMISS_MS: Record<MascotTone, number> = {
+  tip: 9000,
+  info: 9000,
+  success: 9000,
+  error: 15000,
+};
 
 /**
  * The Den Den Mushi: a single-message assistant bubble, not a stack - the latest message
- * always replaces whatever came before it, same as the reference mockup's mascot. Errors
- * stay open until dismissed by hand; everything else closes itself after a while, same
- * timing the old stacked toasts used.
+ * always replaces whatever came before it, same as the reference mockup's mascot. Every
+ * message closes itself after a while, but never while the user holds it (pointer or focus
+ * on the bubble); the launcher brings back the last one.
  */
 @Injectable({ providedIn: 'root' })
 export class MascotService {
@@ -47,7 +53,7 @@ export class MascotService {
 
   /**
    * A tip never pushes aside a message the user is still reading: it waits for the next turn
-   * while anything but another tip is open (an error stays until closed by hand).
+   * while anything but another tip is open.
    */
   showTip(text: string, code?: string): void {
     if (this.open() && this.message().tone !== 'tip') {
@@ -81,10 +87,20 @@ export class MascotService {
     this.open.set(false);
   }
 
+  /** The user is reading (pointer or focus on the bubble): it does not close under them. */
+  hold(): void {
+    clearTimeout(this.dismissTimer);
+  }
+
+  /** Once let go, the message gets its full time again. */
+  release(): void {
+    if (this.open()) {
+      this.scheduleAutoClose(this.message().tone);
+    }
+  }
+
   private scheduleAutoClose(tone: MascotTone): void {
     clearTimeout(this.dismissTimer);
-    if (tone !== 'error') {
-      this.dismissTimer = setTimeout(() => this.open.set(false), AUTO_DISMISS_MS);
-    }
+    this.dismissTimer = setTimeout(() => this.open.set(false), AUTO_DISMISS_MS[tone]);
   }
 }
