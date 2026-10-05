@@ -7,22 +7,16 @@
       @if (crumb.route && !last) {
         <a
           [routerLink]="crumb.route"
-          class="inline-flex items-center gap-1 truncate font-heading text-[13px] font-extrabold text-ocean-700"
+          class="truncate font-heading text-[13px] font-extrabold text-ocean-700"
         >
-          @if (crumb.icon) {
-            <app-icon class="font-display text-ocean-700" [icon]="crumb.icon" />
-          }
           {{ crumb.label }}
         </a>
       } @else {
         <span
-          class="inline-flex items-center gap-1 truncate font-heading text-[13px] font-extrabold"
+          class="truncate font-heading text-[13px] font-extrabold"
           [class]="last ? 'text-ocean-950' : 'text-ocean-500'"
           [attr.aria-current]="last ? 'page' : null"
         >
-          @if (crumb.icon) {
-            <app-icon class="font-display text-ocean-700" [icon]="crumb.icon" />
-          }
           {{ crumb.label }}
         </span>
       }

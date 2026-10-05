@@ -291,11 +291,7 @@ export class DevilFruitTypeEditor {
     this.transloco.activeLang();
     const crumbs: Crumb[] = [
       dashboardCrumb(this.transloco),
-      {
-        label: this.transloco.translate('content.devilFruitTypes.title'),
-        icon: DEVIL_FRUIT_TYPE_ICON,
-        route: LIST_ROUTE,
-      },
+      { label: this.transloco.translate('content.devilFruitTypes.title'), route: LIST_ROUTE },
     ];
     if (this.isNew()) {
       crumbs.push({ label: this.transloco.translate('content.editor.newTitle') });
@@ -305,7 +301,7 @@ export class DevilFruitTypeEditor {
           label: this.title() || this.transloco.translate('content.detail.crumb'),
           route: this.backRoute(),
         },
-        { label: this.transloco.translate('content.editor.crumb'), icon: '✎' },
+        { label: this.transloco.translate('content.editor.crumb') },
       );
     }
     return crumbs;

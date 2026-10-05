@@ -77,7 +77,7 @@ export class AdminUserDetail {
     this.transloco.activeLang();
     return [
       { label: this.transloco.translate('shell.nav.admin') },
-      { label: this.transloco.translate('shell.nav.crewManifest'), icon: '⚑', route: USERS_ROUTE },
+      { label: this.transloco.translate('shell.nav.crewManifest'), route: USERS_ROUTE },
       { label: this.user.value()?.username ?? this.transloco.translate('users.detail.crumb') },
     ];
   });

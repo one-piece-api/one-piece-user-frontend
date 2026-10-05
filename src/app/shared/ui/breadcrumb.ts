@@ -1,11 +1,9 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Icon } from './icon';
 
-/** One step of the trail: `label` is display text, `route` makes the step a link. */
+/** One step of the trail: `label` is display text, `route` makes the step a link. Text only, no icons. */
 export interface Crumb {
   readonly label: string;
-  readonly icon?: string;
   readonly route?: string;
 }
 
@@ -16,7 +14,7 @@ export interface Crumb {
 @Component({
   selector: 'app-breadcrumb',
   templateUrl: './breadcrumb.html',
-  imports: [RouterLink, Icon],
+  imports: [RouterLink],
 })
 export class Breadcrumb {
   readonly crumbs = input.required<readonly Crumb[]>();

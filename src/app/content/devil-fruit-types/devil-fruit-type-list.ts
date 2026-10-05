@@ -145,10 +145,7 @@ export class DevilFruitTypeList {
     return [
       dashboardCrumb(this.transloco),
       { label: this.transloco.translate('content.breadcrumb.contents') },
-      {
-        label: this.transloco.translate('content.devilFruitTypes.title'),
-        icon: DEVIL_FRUIT_TYPE_ICON,
-      },
+      { label: this.transloco.translate('content.devilFruitTypes.title') },
     ];
   });
 

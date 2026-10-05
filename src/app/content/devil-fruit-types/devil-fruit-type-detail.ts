@@ -159,11 +159,7 @@ export class DevilFruitTypeDetail {
     this.transloco.activeLang();
     const crumbs: Crumb[] = [
       dashboardCrumb(this.transloco),
-      {
-        label: this.transloco.translate('content.devilFruitTypes.title'),
-        icon: DEVIL_FRUIT_TYPE_ICON,
-        route: LIST_ROUTE,
-      },
+      { label: this.transloco.translate('content.devilFruitTypes.title'), route: LIST_ROUTE },
     ];
     // The last crumb is never a link: without the content's own, the section's would be it.
     crumbs.push({
