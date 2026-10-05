@@ -8,14 +8,7 @@
   <div>
     <div class="flex items-center justify-between border-b border-ocean-900/10 px-6 py-4">
       <h2 class="font-display text-xl font-semibold text-ocean-900">{{ heading() }}</h2>
-      <button
-        type="button"
-        class="cursor-pointer rounded-md p-1 text-ocean-700 transition-colors hover:bg-ocean-900/5 hover:text-ocean-900"
-        (click)="dialog.close()"
-        [attr.aria-label]="'ui.modal.close' | transloco"
-      >
-        ✕
-      </button>
+      <app-close-button [label]="'ui.modal.close' | transloco" (click)="dialog.close()" />
     </div>
     <div class="max-h-[70vh] overflow-y-auto p-6">
       <ng-content />

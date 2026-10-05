@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CurrentUserService } from '../../identity/current-user';
+import { CloseButton } from '../../shared/ui/close-button';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import {
   STATUS_LABEL_KEY,
@@ -106,7 +107,7 @@ interface DiffRow {
 @Component({
   selector: 'app-devil-fruit-type-comparison',
   templateUrl: './devil-fruit-type-comparison.html',
-  imports: [DevilFruitTypeCard, LoadingPlaceholder, TranslocoPipe, VersionChain],
+  imports: [CloseButton, DevilFruitTypeCard, LoadingPlaceholder, TranslocoPipe, VersionChain],
 })
 export class DevilFruitTypeComparison {
   private readonly transloco = inject(TranslocoService);

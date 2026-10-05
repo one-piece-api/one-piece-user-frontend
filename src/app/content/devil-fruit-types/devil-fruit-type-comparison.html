@@ -29,14 +29,7 @@
             </h2>
           }
         </div>
-        <button
-          type="button"
-          class="grid size-9 flex-none cursor-pointer place-items-center rounded-full bg-parchment-200 text-lg text-ocean-800"
-          [attr.aria-label]="'ui.modal.close' | transloco"
-          (click)="dialog.close()"
-        >
-          ×
-        </button>
+        <app-close-button [label]="'ui.modal.close' | transloco" (click)="dialog.close()" />
       </div>
 
       <app-version-chain

@@ -1,5 +1,6 @@
 import { Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { CloseButton } from './close-button';
 
 /**
  * A native `<dialog>` (`showModal()`) rather than a hand-rolled overlay: focus trapping,
@@ -9,7 +10,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 @Component({
   selector: 'app-modal',
   templateUrl: './modal.html',
-  imports: [TranslocoPipe],
+  imports: [CloseButton, TranslocoPipe],
 })
 export class Modal {
   readonly open = input(false);
