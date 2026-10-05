@@ -105,7 +105,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     labelKey: 'shell.nav.admin',
-    icon: '⚑',
+    icon: 'assets/admin.webp',
     items: [
       {
         id: 'users',

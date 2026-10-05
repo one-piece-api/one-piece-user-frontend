@@ -353,6 +353,13 @@ describe('AppShell', () => {
       expect(current?.className).toContain('border-treasure-500');
     });
 
+    it('illustrates the Administration group with the helm', async () => {
+      const { root } = await signIn(['users:read', 'audit:read']);
+
+      const icon = groupButton(root, 'Admin').querySelector('img');
+      expect(icon?.getAttribute('src')).toBe('assets/admin.webp');
+    });
+
     it('opens the dashboard sections from its group, which leads nowhere by itself', async () => {
       const { fixture, root } = await signIn(['content:read']);
       expect(root.querySelector('nav a[href="/dashboard"]')).toBeNull();
