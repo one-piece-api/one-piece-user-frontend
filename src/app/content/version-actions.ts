@@ -326,8 +326,11 @@ export class VersionActions {
         return this.transloco.translate(key(refusal.kind), {
           fields: refusal.fields.map((field) => this.fieldLabel(field)).join(', '),
         });
+      case 'slugTaken':
+        return this.transloco.translate(key('slugTaken'), { slug: refusal.slug });
       case 'identical':
         return this.transloco.translate(key('identical'), { version: refusal.version });
+      case 'noSlug':
       case 'stale':
       case 'failed':
         return this.transloco.translate(key(refusal.kind));

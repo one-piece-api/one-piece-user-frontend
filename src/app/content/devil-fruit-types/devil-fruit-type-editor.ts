@@ -20,6 +20,7 @@ import {
 } from '../content.model';
 import { discardConfirmation, discardDoneMessage, versionLeftAfterDiscard } from '../discard-draft';
 import { LanguageCatalogService } from '../language-catalog';
+import { refusedSlug } from '../version-transition';
 import {
   ADVANTAGES_MAX_LENGTH,
   DESCRIPTION_MAX_LENGTH,
@@ -49,18 +50,24 @@ const NOT_FOUND_STATUSES = [400, 404];
 
 /** The error codes the editor has something specific to say about. */
 const VALUE_ALREADY_USED = 'CONTENT_VALUE_ALREADY_USED';
+const SLUG_ALREADY_USED = 'CONTENT_SLUG_ALREADY_USED';
+const VALUE_INVALID = 'CONTENT_VALUE_INVALID';
 const VALIDATION_FAILED = 'VALIDATION_FAILED';
 const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
 
 /** What is said under a field the backend refused, by error code. */
 const FIELD_ERROR_KEY: Record<string, string> = {
   [VALUE_ALREADY_USED]: 'content.editor.error.taken',
+  [SLUG_ALREADY_USED]: 'content.editor.error.slugTaken',
+  [VALUE_INVALID]: 'content.editor.error.noSlug',
   [VALIDATION_FAILED]: 'content.editor.error.tooLong',
 };
 
 /** What the Lumacofono says when a save is refused, by error code. */
 const SAVE_ERROR_KEY: Record<string, string> = {
   [VALUE_ALREADY_USED]: 'content.editor.takenMessage',
+  [SLUG_ALREADY_USED]: 'content.editor.slugTakenMessage',
+  [VALUE_INVALID]: 'content.editor.noSlugMessage',
   [VALIDATION_FAILED]: 'content.editor.tooLongMessage',
   [NOT_A_DRAFT]: 'content.editor.notDraftMessage',
 };
@@ -447,7 +454,7 @@ export class DevilFruitTypeEditor {
       this.refusedFields.set(refused);
     }
     const messageKey = SAVE_ERROR_KEY[errorCode] ?? 'content.editor.saveFailed';
-    this.mascot.show(this.transloco.translate(messageKey), 'error');
+    this.mascot.show(this.transloco.translate(messageKey, { slug: refusedSlug(error) }), 'error');
   }
 
   private writeTranslation(change: Partial<TranslationDraft>): void {

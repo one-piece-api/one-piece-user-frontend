@@ -176,13 +176,16 @@ export function routeTargetOf(action: VersionAction): VersionStatus | undefined 
 
 /**
  * Why a transition did not happen, as the screen tells it: what the version still lacks,
- * which values another content holds, which version it repeats - or that it moved in the
- * meantime, or a failure with nothing more to say. `fields` are named as the backend names
+ * which values another content holds, a romaji giving another content's public address
+ * (`slug`) or none at all, which version it repeats - or that it moved in the meantime, or
+ * a failure with nothing more to say. `fields` are named as the backend names
  * them (`romaji`, `translations[it].name`).
  */
 export type TransitionRefusal =
   | { readonly kind: 'incomplete'; readonly fields: readonly string[] }
   | { readonly kind: 'taken'; readonly fields: readonly string[] }
+  | { readonly kind: 'slugTaken'; readonly slug: string }
+  | { readonly kind: 'noSlug' }
   | { readonly kind: 'identical'; readonly version: number }
   | { readonly kind: 'stale' }
   | { readonly kind: 'failed' };
@@ -204,10 +207,20 @@ export function transitionRefusal(error: unknown): TransitionRefusal {
       return { kind: 'incomplete', fields };
     case 'CONTENT_VALUE_ALREADY_USED':
       return { kind: 'taken', fields };
+    case 'CONTENT_SLUG_ALREADY_USED':
+      return { kind: 'slugTaken', slug: refusedSlug(error) };
+    case 'CONTENT_VALUE_INVALID':
+      return { kind: 'noSlug' };
     case 'CONTENT_VERSION_IDENTICAL':
       return { kind: 'identical', version: identicalTo(error) };
   }
   return STALE_STATUSES.includes(error.status) ? { kind: 'stale' } : { kind: 'failed' };
+}
+
+/** The public address another content already has, carried next to the error code. */
+export function refusedSlug(error: HttpErrorResponse): string {
+  const body = error.error as { slug?: unknown };
+  return typeof body.slug === 'string' ? body.slug : '';
 }
 
 /** The version a refused submission repeats, carried next to the error code. */

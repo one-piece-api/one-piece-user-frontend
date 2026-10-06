@@ -577,6 +577,8 @@
       "refused": {
         "incomplete": "Arrr! Prima della revisione manca: {{fields}}.",
         "taken": "Arrr! Un altro contenuto usa già {{fields}}: dev'essere unico. Correggi la bozza e riprova.",
+        "slugTaken": "Arrr! Il romaji darebbe a questo contenuto lo stesso indirizzo pubblico di un altro (\"{{slug}}\"): accenti, maiuscole e punteggiatura non contano. Correggi la bozza e riprova.",
+        "noSlug": "Arrr! Il romaji deve contenere almeno una lettera o una cifra: da lì nasce l'indirizzo pubblico del contenuto. Correggi la bozza e riprova.",
         "identical": "Arrr! Questa versione è identica alla v{{version}}. Per riportare online un contenuto di prima si usa Ripubblica, non una nuova revisione.",
         "stale": "Arrr! Nel frattempo la versione è cambiata: ecco com'è adesso.",
         "failed": "Arrr! Azione non riuscita. Riprova tra poco.",
@@ -827,9 +829,13 @@
       "saved": "Bozza salvata, matey. Resta tua finché non la invii in revisione.",
       "error": {
         "taken": "già usato da un altro contenuto",
-        "tooLong": "testo troppo lungo"
+        "tooLong": "testo troppo lungo",
+        "slugTaken": "dà lo stesso indirizzo pubblico di un altro contenuto",
+        "noSlug": "serve almeno una lettera o una cifra"
       },
       "takenMessage": "Arrr! Un altro contenuto ha già lo stesso romaji o lo stesso nome: dev'essere unico.",
+      "slugTakenMessage": "Arrr! Questo romaji darebbe lo stesso indirizzo pubblico di un altro contenuto (\"{{slug}}\"): accenti, maiuscole e punteggiatura non contano.",
+      "noSlugMessage": "Arrr! Il romaji deve contenere almeno una lettera o una cifra: da lì nasce l'indirizzo pubblico del contenuto.",
       "tooLongMessage": "Arrr! Qualche testo è troppo lungo per stare nella stiva.",
       "notDraftMessage": "Arrr! Questa versione non è più una bozza: non si può modificare.",
       "saveFailed": "Arrr! Bozza non salvata. Riprova tra poco.",

@@ -460,6 +460,41 @@ describe('DevilFruitTypeDetail', () => {
       expect(mascotSays()).toContain('identical to v1');
     });
 
+    it('names the public address another content has since taken', async () => {
+      await openOwnDraft();
+
+      node('IN_REVIEW').click();
+      httpTesting.expectOne(`${VERSION}/submit`).flush(
+        {
+          errorCode: 'CONTENT_SLUG_ALREADY_USED',
+          slug: 'kumo-kumo',
+          errors: [{ field: 'romaji', message: 'gives the public address of another content' }],
+        },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await afterInteraction();
+      await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
+
+      expect(mascotSays()).toContain('same public address as another one ("kumo-kumo")');
+    });
+
+    it('says a romaji with no letter or digit gives no public address', async () => {
+      await openOwnDraft();
+
+      node('IN_REVIEW').click();
+      httpTesting.expectOne(`${VERSION}/submit`).flush(
+        {
+          errorCode: 'CONTENT_VALUE_INVALID',
+          errors: [{ field: 'romaji', message: 'must contain a letter or a digit' }],
+        },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await afterInteraction();
+      await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
+
+      expect(mascotSays()).toContain('must contain at least one letter or digit');
+    });
+
     it('pulls an unclaimed version back from the Draft status', async () => {
       await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
       await answerContent([V1, V2, summary(3, 'IN_REVIEW')], 2);

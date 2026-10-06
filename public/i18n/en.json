@@ -577,6 +577,8 @@
       "refused": {
         "incomplete": "Arrr! Still missing before review: {{fields}}.",
         "taken": "Arrr! Another content already uses {{fields}}: it must be unique. Fix the draft and try again.",
+        "slugTaken": "Arrr! The romaji would give this content the same public address as another one (\"{{slug}}\"): accents, case and punctuation don't count. Fix the draft and try again.",
+        "noSlug": "Arrr! The romaji must contain at least one letter or digit: the content's public address is built from it. Fix the draft and try again.",
         "identical": "Arrr! This version is identical to v{{version}}. To bring earlier content back online, use Republish, not a new review.",
         "stale": "Arrr! The version changed in the meantime: here it is as it stands now.",
         "failed": "Arrr! That did not work. Try again in a moment.",
@@ -827,9 +829,13 @@
       "saved": "Draft saved, matey. It stays yours until you submit it for review.",
       "error": {
         "taken": "already used by another content",
-        "tooLong": "text too long"
+        "tooLong": "text too long",
+        "slugTaken": "gives the same public address as another content",
+        "noSlug": "needs at least one letter or digit"
       },
       "takenMessage": "Arrr! Another content already has the same romaji or name: it must be unique.",
+      "slugTakenMessage": "Arrr! This romaji would give the same public address as another content (\"{{slug}}\"): accents, case and punctuation don't count.",
+      "noSlugMessage": "Arrr! The romaji must contain at least one letter or digit: the content's public address is built from it.",
       "tooLongMessage": "Arrr! Some text is too long to fit in the hold.",
       "notDraftMessage": "Arrr! This version is no longer a draft: it cannot be edited.",
       "saveFailed": "Arrr! Draft not saved. Try again in a moment.",

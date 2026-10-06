@@ -302,6 +302,44 @@ describe('DevilFruitTypeEditor', () => {
       ]);
     });
 
+    it('marks a romaji giving the public address of another content, naming it', async () => {
+      await open(`${SECTION}/new`);
+      await type('draft-romaji', 'Kumō-Kumo!');
+
+      await save();
+      httpTesting.expectOne(ENDPOINT).flush(
+        {
+          errorCode: 'CONTENT_SLUG_ALREADY_USED',
+          slug: 'kumo-kumo',
+          errors: [{ field: 'romaji', message: 'gives the public address of another content' }],
+        },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await settle();
+
+      expect(TestBed.inject(Router).url).toBe(`${SECTION}/new`);
+      expect(fieldErrors()).toEqual(['gives the same public address as another content']);
+      expect(mascotSays()).toContain('same public address as another content ("kumo-kumo")');
+    });
+
+    it('marks a romaji with no letter or digit', async () => {
+      await open(`${SECTION}/new`);
+      await type('draft-romaji', '!!');
+
+      await save();
+      httpTesting.expectOne(ENDPOINT).flush(
+        {
+          errorCode: 'CONTENT_VALUE_INVALID',
+          errors: [{ field: 'romaji', message: 'must contain a letter or a digit' }],
+        },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await settle();
+
+      expect(fieldErrors()).toEqual(['needs at least one letter or digit']);
+      expect(mascotSays()).toContain('must contain at least one letter or digit');
+    });
+
     it('forgets a refusal once its field is written again', async () => {
       await open(`${SECTION}/new`);
       await save();

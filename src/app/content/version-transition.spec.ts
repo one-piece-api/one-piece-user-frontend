@@ -36,6 +36,25 @@ describe('transitionRefusal', () => {
     expect(transitionRefusal(error)).toEqual({ kind: 'taken', fields: ['translations[it].name'] });
   });
 
+  it('names the public address another content already has', () => {
+    const error = refused(422, {
+      errorCode: 'CONTENT_SLUG_ALREADY_USED',
+      slug: 'kumo-kumo',
+      errors: [{ field: 'romaji', message: 'gives the public address of another content' }],
+    });
+
+    expect(transitionRefusal(error)).toEqual({ kind: 'slugTaken', slug: 'kumo-kumo' });
+  });
+
+  it('tells a romaji that gives no public address', () => {
+    const error = refused(422, {
+      errorCode: 'CONTENT_VALUE_INVALID',
+      errors: [{ field: 'romaji', message: 'must contain a letter or a digit' }],
+    });
+
+    expect(transitionRefusal(error)).toEqual({ kind: 'noSlug' });
+  });
+
   it('names the version a submission repeats', () => {
     const error = refused(422, { errorCode: 'CONTENT_VERSION_IDENTICAL', identicalTo: 1 });
 
