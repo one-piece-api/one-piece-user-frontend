@@ -21,7 +21,7 @@ import {
 import { discardConfirmation, discardDoneMessage, versionLeftAfterDiscard } from '../discard-draft';
 import { LanguageCatalogService } from '../language-catalog';
 import { refusedSlug } from '../version-transition';
-import { ENTITY } from './entities';
+import { ENTITY, entityOf } from './entities';
 import {
   draftFieldKey,
   draftOf,
@@ -35,7 +35,9 @@ import {
   type EntityDraft,
   type TranslationDraft,
 } from './entity-body';
+import { isReference, type EntityReference } from './entity-reference';
 import { textOf } from './field-kinds';
+import { RelationPicker } from './relation-picker';
 
 /** What the backend answers for a content that is not there - or not for this caller. */
 const NOT_FOUND_STATUSES = [400, 404];
@@ -46,6 +48,10 @@ const SLUG_ALREADY_USED = 'CONTENT_SLUG_ALREADY_USED';
 const VALUE_INVALID = 'CONTENT_VALUE_INVALID';
 const VALIDATION_FAILED = 'VALIDATION_FAILED';
 const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
+
+/** What is said under a relation the backend refused: the content chosen cannot be linked. */
+const RELATION_REFUSED_KEY = 'content.editor.error.notLinkable';
+const RELATION_REFUSED_MESSAGE_KEY = 'content.editor.notLinkableMessage';
 
 /** What is said under a field the backend refused, by error code. */
 const FIELD_ERROR_KEY: Record<string, string> = {
@@ -97,7 +103,15 @@ interface CheckView {
 @Component({
   selector: 'app-entity-editor',
   templateUrl: './entity-editor.html',
-  imports: [Breadcrumb, ConfirmDialog, Icon, LoadingPlaceholder, RouterLink, TranslocoPipe],
+  imports: [
+    Breadcrumb,
+    ConfirmDialog,
+    Icon,
+    LoadingPlaceholder,
+    RelationPicker,
+    RouterLink,
+    TranslocoPipe,
+  ],
 })
 export class EntityEditor {
   protected readonly entity = inject(ENTITY);
@@ -170,14 +184,23 @@ export class EntityEditor {
   /** The fields the backend refused at the last save, by key (`romaji`, `it.name`), with why. */
   private readonly refusedFields = signal<Record<string, string>>({});
 
-  /** The fields shared by every language, each with its value and why the backend refused it. */
+  /**
+   * The fields shared by every language, each with its value and why the backend refused it.
+   * A relation's value is the reference chosen, and `source` the section its choices are
+   * asked of - `null` where the app has no such section.
+   */
   protected readonly sharedViews = computed(() => {
     const draft = this.draft();
-    return sharedFields(this.entity).map((field) => ({
-      field,
-      value: textOf(draft?.[field.key]),
-      error: this.refusedFields()[field.key] ?? null,
-    }));
+    return sharedFields(this.entity).map((field) => {
+      const chosen = draft?.[field.key];
+      return {
+        field,
+        value: textOf(chosen),
+        reference: isReference(chosen) ? chosen : null,
+        source: field.kind === 'relation' ? (entityOf(field.target)?.api ?? null) : null,
+        error: this.refusedFields()[field.key] ?? null,
+      };
+    });
   });
   /** The translated fields in the language on screen, likewise. */
   protected readonly localizedViews = computed(() => {
@@ -222,7 +245,7 @@ export class EntityEditor {
   protected readonly readyHintKey = computed(() =>
     this.readiness().every((check) => check.done)
       ? 'content.editor.ready.hintReady'
-      : 'content.editor.ready.hintMissing',
+      : `${this.entity.i18n}.hintMissing`,
   );
 
   /** What the draft is called while it is written: its name, else its romaji, else "new". */
@@ -323,6 +346,12 @@ export class EntityEditor {
     this.forgetRefusal(key);
   }
 
+  /** Chooses the content a relation points to - or none. */
+  protected setRelation(key: string, reference: EntityReference | null): void {
+    this.draft.update((draft) => draft && { ...draft, [key]: reference });
+    this.forgetRefusal(key);
+  }
+
   /** Writes a translated field, in the language on screen. */
   protected setLocalized(key: string, value: string): void {
     this.writeTranslation({ [key]: value });
@@ -406,18 +435,28 @@ export class EntityEditor {
     const apiError = apiErrorOf(error);
     const errorCode = apiError?.errorCode ?? '';
     const fieldErrorKey = FIELD_ERROR_KEY[errorCode];
+    const relationKeys = new Set(
+      this.entity.fields.filter((field) => field.kind === 'relation').map(({ key }) => key),
+    );
+    let relationRefused = false;
     if (fieldErrorKey) {
-      const message = this.transloco.translate(fieldErrorKey);
       const refused: Record<string, string> = {};
       for (const violation of apiError?.errors ?? []) {
         const key = draftFieldKey(this.entity, violation.field);
         if (key) {
-          refused[key] = message;
+          // A relation is refused for being invalid: not for a slug, which says the same code.
+          const aboutRelation = errorCode === VALUE_INVALID && relationKeys.has(key);
+          relationRefused ||= aboutRelation;
+          refused[key] = this.transloco.translate(
+            aboutRelation ? RELATION_REFUSED_KEY : fieldErrorKey,
+          );
         }
       }
       this.refusedFields.set(refused);
     }
-    const messageKey = SAVE_ERROR_KEY[errorCode] ?? 'content.editor.saveFailed';
+    const messageKey = relationRefused
+      ? RELATION_REFUSED_MESSAGE_KEY
+      : (SAVE_ERROR_KEY[errorCode] ?? 'content.editor.saveFailed');
     this.mascot.show(this.transloco.translate(messageKey, { slug: refusedSlug(error) }), 'error');
   }
 

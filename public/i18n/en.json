@@ -658,7 +658,8 @@
         "description": "description in the selected language",
         "advantages": "what this type gives its user, in the selected language",
         "disadvantages": "what it costs its user, in the selected language"
-      }
+      },
+      "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete."
     },
     "entity": {
       "unknown": "Other content"
@@ -821,7 +822,6 @@
         "done": "complete",
         "required": "required",
         "hintReady": "All set for review.",
-        "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete.",
         "type": "Fruit type"
       },
       "save": "Save draft",
@@ -832,7 +832,8 @@
         "taken": "already used by another content",
         "tooLong": "text too long",
         "slugTaken": "gives the same public address as another content",
-        "noSlug": "needs at least one letter or digit"
+        "noSlug": "needs at least one letter or digit",
+        "notLinkable": "this type can no longer be chosen"
       },
       "takenMessage": "Arrr! Another content already has the same romaji or name: it must be unique.",
       "slugTakenMessage": "Arrr! This romaji would give the same public address as another content (\"{{slug}}\"): accents, case and punctuation don't count.",
@@ -856,7 +857,18 @@
         "goneBack": "Draft discarded: v{{version}} remains.",
         "failed": "Arrr! Draft not discarded. Try again in a moment."
       },
-      "toFix": "To fix:"
+      "toFix": "To fix:",
+      "type": {
+        "label": "Type",
+        "hint": "the type it belongs to"
+      },
+      "relation": {
+        "clear": "Clear the choice",
+        "searching": "Searching…",
+        "error": "Search failed, try again",
+        "empty": "No results"
+      },
+      "notLinkableMessage": "Arrr! The chosen type cannot be linked: it must be a type that has passed review."
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1001,11 +1013,13 @@
       "newTitle": "New Devil Fruit",
       "placeholder": {
         "romaji": "e.g. Gomu Gomu no Mi",
+        "type": "search and pick a type",
         "name": "name in the selected language",
         "description": "description in the selected language",
         "advantages": "what this fruit gives whoever eats it, in the selected language",
         "disadvantages": "what it costs whoever eats it, in the selected language"
-      }
+      },
+      "hintMissing": "Review takes a romaji, a type and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete."
     }
   }
 }

@@ -87,6 +87,40 @@
             }
             @for (view of sharedViews(); track view.field.key) {
               @switch (view.field.kind) {
+                @case ('relation') {
+                  @if (view.source; as source) {
+                    <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                      <div class="flex items-center justify-between gap-2.5">
+                        <label
+                          [for]="'draft-' + view.field.key"
+                          class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                          >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
+                        >
+                        <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                          'content.editor.' + view.field.key + '.hint' | transloco
+                        }}</span>
+                      </div>
+                      <div class="mt-2">
+                        <app-relation-picker
+                          [inputId]="'draft-' + view.field.key"
+                          [source]="source"
+                          [value]="view.reference"
+                          [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
+                          [invalid]="!!view.error"
+                          (picked)="setRelation(view.field.key, $event)"
+                        />
+                      </div>
+                      @if (view.error; as error) {
+                        <p
+                          class="mt-1 font-heading text-sm font-bold text-flag-700"
+                          data-testid="field-error"
+                        >
+                          {{ error }}
+                        </p>
+                      }
+                    </div>
+                  }
+                }
                 @case ('text') {
                   <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
                     <div class="flex items-center justify-between gap-2.5">

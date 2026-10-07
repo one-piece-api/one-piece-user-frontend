@@ -658,7 +658,8 @@
         "description": "descrizione nella lingua selezionata",
         "advantages": "cosa dà questo tipo a chi lo possiede, nella lingua selezionata",
         "disadvantages": "cosa costa a chi lo possiede, nella lingua selezionata"
-      }
+      },
+      "hintMissing": "Per la revisione servono il romaji e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta."
     },
     "entity": {
       "unknown": "Altro contenuto"
@@ -821,7 +822,6 @@
         "done": "completo",
         "required": "obbligatorio",
         "hintReady": "Tutto pronto per la revisione.",
-        "hintMissing": "Per la revisione servono il romaji e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta.",
         "type": "Tipo di Frutto"
       },
       "save": "Salva bozza",
@@ -832,7 +832,8 @@
         "taken": "già usato da un altro contenuto",
         "tooLong": "testo troppo lungo",
         "slugTaken": "dà lo stesso indirizzo pubblico di un altro contenuto",
-        "noSlug": "serve almeno una lettera o una cifra"
+        "noSlug": "serve almeno una lettera o una cifra",
+        "notLinkable": "questo Tipo non si può più scegliere"
       },
       "takenMessage": "Arrr! Un altro contenuto ha già lo stesso romaji o lo stesso nome: dev'essere unico.",
       "slugTakenMessage": "Arrr! Questo romaji darebbe lo stesso indirizzo pubblico di un altro contenuto (\"{{slug}}\"): accenti, maiuscole e punteggiatura non contano.",
@@ -856,7 +857,18 @@
         "goneBack": "Bozza scartata: resta la v{{version}}.",
         "failed": "Arrr! Bozza non scartata. Riprova tra poco."
       },
-      "toFix": "Da correggere:"
+      "toFix": "Da correggere:",
+      "type": {
+        "label": "Tipo",
+        "hint": "il Tipo a cui appartiene"
+      },
+      "relation": {
+        "clear": "Togli la scelta",
+        "searching": "Cerco…",
+        "error": "Ricerca non riuscita, riprova",
+        "empty": "Nessun risultato"
+      },
+      "notLinkableMessage": "Arrr! Il Tipo scelto non si può collegare: serve un Tipo già approvato in revisione."
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1001,11 +1013,13 @@
       "newTitle": "Nuovo Frutto del Diavolo",
       "placeholder": {
         "romaji": "es. Gomu Gomu no Mi",
+        "type": "cerca e scegli un Tipo",
         "name": "nome nella lingua selezionata",
         "description": "descrizione nella lingua selezionata",
         "advantages": "cosa dà questo frutto a chi lo mangia, nella lingua selezionata",
         "disadvantages": "cosa costa a chi lo mangia, nella lingua selezionata"
-      }
+      },
+      "hintMissing": "Per la revisione servono il romaji, il Tipo e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta."
     }
   }
 }
