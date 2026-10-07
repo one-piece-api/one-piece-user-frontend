@@ -36,7 +36,7 @@ prefisso delle traduzioni (`i18n`), icona e campi.
   l'app non ancora (tra il rilascio di DF4 e quello di DF5) per nome, come "Altro contenuto",
   senza link né azioni.
 - I tipi di campo si costruiscono con la prima entità che li usa: `relation` con il Frutto
-  (DF5), `image` con le immagini (DF7).
+  (DF5, vedi ADR-0004), `image` con le immagini (DF7).
 
 ## Alternative considerate
 
