@@ -1,4 +1,5 @@
 import { DEVIL_FRUIT_TYPE } from '../../content/devil-fruit-types/devil-fruit-type.model';
+import { DEVIL_FRUIT } from '../../content/devil-fruits/devil-fruit.model';
 import type { EntityDefinition } from '../../content/entity/entity-definition';
 import { STATUS_LABEL_KEY } from '../../content/content.model';
 import {
@@ -85,13 +86,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         permission: 'content:read',
         soon: true,
       },
-      {
-        id: 'devil-fruits',
-        label: 'shell.nav.devilFruits',
-        icon: 'assets/devil-fruit.webp',
-        permission: 'content:read',
-        soon: true,
-      },
+      entityNavItem(DEVIL_FRUIT),
       entityNavItem(DEVIL_FRUIT_TYPE),
       {
         id: 'crews',

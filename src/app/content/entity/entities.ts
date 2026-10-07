@@ -1,12 +1,13 @@
 import { InjectionToken } from '@angular/core';
 import { DEVIL_FRUIT_TYPE } from '../devil-fruit-types/devil-fruit-type.model';
+import { DEVIL_FRUIT } from '../devil-fruits/devil-fruit.model';
 import type { EntityDefinition } from './entity-definition';
 
 /**
  * The entities the app has pages for - the one place an entity is switched on: its routes,
  * its menu entry and its rows on the dashboard follow from here.
  */
-export const ENTITIES: readonly EntityDefinition[] = [DEVIL_FRUIT_TYPE];
+export const ENTITIES: readonly EntityDefinition[] = [DEVIL_FRUIT, DEVIL_FRUIT_TYPE];
 
 /** The definition of the entity a page belongs to, given by its route. */
 export const ENTITY = new InjectionToken<EntityDefinition>('ENTITY');

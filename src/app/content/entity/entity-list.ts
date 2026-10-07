@@ -17,6 +17,7 @@ import { SortHeader, type SortDirection } from '../../shared/ui/sort-header';
 import { contentsCrumb } from '../content-crumbs';
 import { ContentListToolbar } from '../content-list-toolbar';
 import {
+  contentSerial,
   localizedName,
   otherOnlineVersion,
   type ContentListSummary,
@@ -27,7 +28,9 @@ import {
 import { formatSort, nextSort, parseSort, type ListSort } from '../list-sort';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
-import { ENTITY } from './entities';
+import { ENTITY, entityOf } from './entities';
+import type { RelationField } from './entity-definition';
+import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 
 /** How long the search box waits after the last keystroke before filtering. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -42,6 +45,11 @@ const PARAM = {
   sort: 'sort',
 } as const;
 
+/** The columns of a list row from the small breakpoint up - literal, so Tailwind keeps them. */
+const COLUMNS = 'sm:grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]';
+const COLUMNS_WITH_RELATION =
+  'sm:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_13rem_minmax(0,1fr)_7rem]';
+
 /** The columns the list can be sorted by, named as the backend names them. */
 const SORT_FIELDS = ['name', 'status', 'author', 'updatedAt'] as const;
 type SortField = (typeof SORT_FIELDS)[number];
@@ -49,10 +57,26 @@ type SortField = (typeof SORT_FIELDS)[number];
 /** Last update, newest first: what the backend does when no sort is asked for. */
 const DEFAULT_SORT: ListSort<SortField> = { field: 'updatedAt', direction: 'desc' };
 
-/** What a list row shows of a version, whatever the entity: its romaji and its names. */
+/**
+ * What a list row shows of a version, whatever the entity: its romaji and its names - and,
+ * under the key of a relation field, the content it points to.
+ */
 interface RowNames {
+  readonly [field: string]: unknown;
   romaji: string | null;
   names: Record<string, string>;
+}
+
+/** The content a row points to, named for the column and leading to its page. */
+interface RelationCell {
+  readonly label: string;
+  readonly link: readonly string[];
+}
+
+/** The filter "only the contents that point to this one", shown as a chip that removes it. */
+interface RelationChip {
+  readonly labelKey: string;
+  readonly name: string;
 }
 
 /** One row, ready to render: every decision already taken, the template only lays it out. */
@@ -68,6 +92,8 @@ interface RowView {
   readonly authorInitials: string;
   readonly authoredByMe: boolean;
   readonly updated: string;
+  /** The content the row points to - `null` for an entity with no relation, or none chosen. */
+  readonly relation: RelationCell | null;
 }
 
 /**
@@ -114,6 +140,17 @@ export class EntityList {
   });
   /** The sort asked for in the URL; `null` leaves the backend's default. */
   private readonly sort = computed(() => parseSort(this.params().get(PARAM.sort), SORT_FIELDS));
+  /**
+   * The relation the list shows a column for and can be narrowed by: the first one the entity
+   * has. Its key is the query parameter of the filter, here and in the backend alike.
+   */
+  protected readonly relationField: RelationField | undefined = this.entity.fields.find(
+    (field) => field.kind === 'relation',
+  );
+  protected readonly columns = this.relationField ? COLUMNS_WITH_RELATION : COLUMNS;
+  protected readonly relationFilter = computed(() =>
+    this.relationField ? this.params().get(this.relationField.key) : null,
+  );
   /** Which column the rows are actually sorted by, and how - the default included. */
   protected readonly shownSort = computed(() => this.sort() ?? DEFAULT_SORT);
 
@@ -150,6 +187,29 @@ export class EntityList {
     const language = this.transloco.activeLang();
     const rows = this.rows.hasValue() ? this.rows.value().content : [];
     return rows.map((row) => this.toRowView(row, language));
+  });
+
+  /**
+   * The filter chip: the name of the content filtered by, taken from a row that points to it
+   * - none does when nothing matches - else its short serial.
+   */
+  protected readonly relationChip = computed<RelationChip | null>(() => {
+    const field = this.relationField;
+    const id = this.relationFilter();
+    if (!field || !id) {
+      return null;
+    }
+    const language = this.transloco.activeLang();
+    const references = (this.rows.hasValue() ? this.rows.value().content : []).map(
+      (row) => row.body[field.key],
+    );
+    const reference = references.find(
+      (candidate): candidate is EntityReference => isReference(candidate) && candidate.id === id,
+    );
+    return {
+      labelKey: `content.list.column.${field.key}`,
+      name: reference ? referenceLabel(reference, language) : contentSerial(id),
+    };
   });
 
   /** "20 of 24 entries · 5 yours", or the note about drafts for who cannot write. */
@@ -251,11 +311,21 @@ export class EntityList {
       [PARAM.status]: null,
       [PARAM.author]: null,
       [PARAM.updated]: null,
+      ...this.relationReset(),
     });
+  }
+
+  /** Lifts the narrowing to the contents that point to one. */
+  protected clearRelationFilter(): void {
+    this.applyFilters(this.relationReset());
   }
 
   protected goToPage(pageNumber: number): void {
     this.navigate({ [PARAM.page]: pageNumber || null });
+  }
+
+  private relationReset(): Params {
+    return this.relationField ? { [this.relationField.key]: null } : {};
   }
 
   /** A changed filter always starts again from the first page. */
@@ -285,6 +355,10 @@ export class EntityList {
     const author = this.author();
     if (author) {
       search.set('author', author);
+    }
+    const related = this.relationFilter();
+    if (this.relationField && related) {
+      search.set(this.relationField.key, related);
     }
     const days = this.updatedWithinDays();
     if (days !== null) {
@@ -316,6 +390,19 @@ export class EntityList {
       authorInitials: authoredByMe ? you : initialsOf(row.author.username),
       authoredByMe,
       updated: momentLabel(this.transloco, row.updatedAt),
+      relation: this.relationCell(row, language),
+    };
+  }
+
+  private relationCell(row: ContentSummary<RowNames>, language: string): RelationCell | null {
+    const reference = this.relationField && row.body[this.relationField.key];
+    const target = entityOf(this.relationField?.target);
+    if (!isReference(reference)) {
+      return null;
+    }
+    return {
+      label: referenceLabel(reference, language),
+      link: target ? [target.route, reference.id] : [],
     };
   }
 }

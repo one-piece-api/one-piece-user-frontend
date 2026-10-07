@@ -96,7 +96,7 @@ describe('activityLink', () => {
   });
 
   it('leads nowhere for an entity the app has no pages for yet', () => {
-    expect(activityLink(activity({ entityType: 'DEVIL_FRUIT' }))).toBeNull();
+    expect(activityLink(activity({ entityType: 'CHARACTER' }))).toBeNull();
   });
 });
 

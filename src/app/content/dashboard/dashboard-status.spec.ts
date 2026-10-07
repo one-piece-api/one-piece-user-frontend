@@ -165,7 +165,7 @@ describe('DashboardStatus', () => {
   });
 
   it('shows a content of an entity the app has no pages for yet, without link or actions', async () => {
-    await open('/dashboard/in-review', page([row('c1', { entityType: 'DEVIL_FRUIT' })]));
+    await open('/dashboard/in-review', page([row('c1', { entityType: 'CHARACTER' })]));
 
     const link = rows()[0].querySelector<HTMLAnchorElement>('[data-testid="status-row-link"]')!;
     expect(link.querySelector('[data-testid="status-row-name"]')?.textContent?.trim()).toBe(

@@ -1,9 +1,16 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { LanguageEntry } from '../language-catalog';
-import { ENTITY } from './entities';
-import { isTranslationComplete, localizedFields, type EntityBody } from './entity-body';
+import { ENTITY, entityOf } from './entities';
+import {
+  isTranslationComplete,
+  localizedFields,
+  sharedFields,
+  type EntityBody,
+} from './entity-body';
+import { isReference, referenceLabel } from './entity-reference';
 import { textOf } from './field-kinds';
 
 /** One language tab of the card. */
@@ -23,6 +30,18 @@ interface LongText {
   readonly emptyKey: string;
 }
 
+/** A content this one points to, as the card shows it: a chip leading to its page. */
+interface RelationChip {
+  readonly field: string;
+  /** `content.card.type`, `content.card.noType`: the heading, and what stands in for none. */
+  readonly headingKey: string;
+  readonly emptyKey: string;
+  /** `null` when none is chosen. */
+  readonly label: string | null;
+  /** Where the chip leads - empty for a content whose section this app does not have. */
+  readonly link: readonly string[];
+}
+
 /** A row of the card: a long text across it, or two side by side. */
 type Block =
   | { readonly layout: 'wide'; readonly text: LongText }
@@ -36,7 +55,7 @@ type Block =
 @Component({
   selector: 'app-entity-card',
   templateUrl: './entity-card.html',
-  imports: [NgTemplateOutlet, TranslocoPipe],
+  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe],
 })
 export class EntityCard {
   private readonly transloco = inject(TranslocoService);
@@ -66,6 +85,28 @@ export class EntityCard {
 
   private readonly translation = computed(() => this.body().translations[this.language() ?? '']);
   protected readonly name = computed(() => textOf(this.translation()?.['name']).trim() || null);
+
+  /** The contents this one points to, named in the language shown. */
+  protected readonly relations = computed<RelationChip[]>(() => {
+    const language = this.language() ?? this.transloco.activeLang();
+    return sharedFields(this.entity).flatMap((field) => {
+      if (field.kind !== 'relation') {
+        return [];
+      }
+      const reference = this.body()[field.key];
+      const target = entityOf(field.target);
+      const name = `${field.key[0].toUpperCase()}${field.key.slice(1)}`;
+      return [
+        {
+          field: field.key,
+          headingKey: `content.card.${field.key}`,
+          emptyKey: `content.card.no${name}`,
+          label: isReference(reference) ? referenceLabel(reference, language) : null,
+          link: isReference(reference) && target ? [target.route, reference.id] : [],
+        },
+      ];
+    });
+  });
 
   /** The long texts in reading order: each wide one alone, side by side those in a pair. */
   protected readonly blocks = computed<Block[]>(() => {

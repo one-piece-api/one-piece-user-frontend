@@ -15,7 +15,6 @@
       "overview": "Panoramica",
       "contents": "Contenuti",
       "characters": "Personaggi",
-      "devilFruits": "Frutti del Diavolo",
       "crews": "Ciurme",
       "soon": "in arrivo",
       "soonMessage": "{{label}} non è ancora attiva: arriverà con lo stesso schema di lista e dettaglio.",
@@ -688,7 +687,8 @@
         "name": "Nome",
         "status": "Stato",
         "author": "Autore",
-        "updated": "Aggiornato"
+        "updated": "Aggiornato",
+        "type": "Tipo"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
@@ -706,7 +706,8 @@
       },
       "loading": "Srotoliamo l'enciclopedia…",
       "error": "Enciclopedia dispersa. Impossibile caricare i contenuti.",
-      "loadError": "Arrr! Impossibile caricare i contenuti — riprova tra un momento."
+      "loadError": "Arrr! Impossibile caricare i contenuti — riprova tra un momento.",
+      "removeFilter": "Togli il filtro"
     },
     "detail": {
       "crumb": "Scheda",
@@ -744,7 +745,9 @@
       "noDescription": "— nessuna descrizione in questa lingua —",
       "noAdvantages": "— nessun vantaggio in questa lingua —",
       "noDisadvantages": "— nessuno svantaggio in questa lingua —",
-      "incomplete": "traduzione incompleta"
+      "incomplete": "traduzione incompleta",
+      "type": "Tipo",
+      "noType": "— nessun Tipo scelto —"
     },
     "comparison": {
       "title": "Confronto versioni",
@@ -775,7 +778,8 @@
         "name": "Nome · {{language}}",
         "description": "Descrizione · {{language}}",
         "advantages": "Vantaggi · {{language}}",
-        "disadvantages": "Svantaggi · {{language}}"
+        "disadvantages": "Svantaggi · {{language}}",
+        "type": "Tipo"
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -817,7 +821,8 @@
         "done": "completo",
         "required": "obbligatorio",
         "hintReady": "Tutto pronto per la revisione.",
-        "hintMissing": "Per la revisione servono il romaji e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta."
+        "hintMissing": "Per la revisione servono il romaji e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta.",
+        "type": "Tipo di Frutto"
       },
       "save": "Salva bozza",
       "saving": "Salvataggio…",
@@ -985,6 +990,21 @@
         "busy": "occupato",
         "draftOf": "bozza di {{author}}",
         "readOnly": "sola lettura"
+      }
+    },
+    "devilFruits": {
+      "kicker": "Contenuti · /devil-fruits",
+      "title": "Frutti del Diavolo",
+      "lead": "I frutti che donano poteri straordinari, ciascuno di un Tipo.",
+      "new": "+ Nuovo frutto",
+      "one": "Frutto del Diavolo",
+      "newTitle": "Nuovo Frutto del Diavolo",
+      "placeholder": {
+        "romaji": "es. Gomu Gomu no Mi",
+        "name": "nome nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata",
+        "advantages": "cosa dà questo frutto a chi lo mangia, nella lingua selezionata",
+        "disadvantages": "cosa costa a chi lo mangia, nella lingua selezionata"
       }
     }
   }

@@ -41,6 +41,24 @@
     (cleared)="clearFilters()"
   />
 
+  @if (relationChip(); as chip) {
+    <div class="flex" data-testid="relation-filter">
+      <span
+        class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 font-heading text-xs font-extrabold text-ocean-800 shadow-sm"
+      >
+        {{ chip.labelKey | transloco }}: {{ chip.name }}
+        <button
+          type="button"
+          class="cursor-pointer rounded-full px-1 text-ocean-500 hover:text-flag-700"
+          [attr.aria-label]="'content.list.removeFilter' | transloco"
+          (click)="clearRelationFilter()"
+        >
+          <span aria-hidden="true">✕</span>
+        </button>
+      </span>
+    </div>
+  }
+
   @if (!rows.hasValue() && rows.isLoading()) {
     <div class="rounded-2xl bg-parchment-100 p-8 shadow-md">
       <app-loading-placeholder [label]="'content.list.loading' | transloco" />
@@ -62,13 +80,17 @@
     <div class="overflow-hidden rounded-2xl bg-parchment-100 shadow-md">
       @if (rowViews().length > 0) {
         <div
-          class="hidden grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem] gap-3.5 border-b border-parchment-200 bg-parchment-200/50 py-2.5 pr-4.5 pl-5.5 font-heading text-[11px] font-extrabold tracking-widest text-ocean-500 uppercase sm:grid"
+          class="hidden gap-3.5 border-b border-parchment-200 bg-parchment-200/50 py-2.5 pr-4.5 pl-5.5 font-heading text-[11px] font-extrabold tracking-widest text-ocean-500 uppercase sm:grid"
+          [class]="columns"
         >
           <app-sort-header
             [label]="'content.list.column.name' | transloco"
             [direction]="sortDirectionOf('name')"
             (toggled)="sortBy('name')"
           />
+          @if (relationField; as relation) {
+            <span>{{ 'content.list.column.' + relation.key | transloco }}</span>
+          }
           <app-sort-header
             [label]="'content.list.column.status' | transloco"
             [direction]="sortDirectionOf('status')"
@@ -89,8 +111,8 @@
 
       @for (row of rowViews(); track row.id) {
         <div
-          class="grid grid-cols-1 items-center gap-3.5 border-b border-l-4 border-b-parchment-200 px-4.5 py-2.5 hover:bg-parchment-200/50 sm:grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]"
-          [class]="row.borderClass"
+          class="grid grid-cols-1 items-center gap-3.5 border-b border-l-4 border-b-parchment-200 px-4.5 py-2.5 hover:bg-parchment-200/50"
+          [class]="row.borderClass + ' ' + columns"
           data-testid="content-row"
         >
           <a [routerLink]="[row.id]" class="block min-w-0">
@@ -111,10 +133,33 @@
             </span>
             <span class="mt-px block truncate font-heading text-xs font-bold text-ocean-500">
               {{ row.romaji }}
+              @if (row.relation; as cell) {
+                <span class="sm:hidden"> · {{ cell.label }}</span>
+              }
               <span class="sm:hidden"> · {{ row.author }} · {{ row.updated }}</span>
             </span>
             <span class="mt-1.5 block sm:hidden"><app-status-badge [status]="row.status" /></span>
           </a>
+
+          @if (relationField) {
+            <div class="hidden min-w-0 sm:block" data-testid="relation-cell">
+              @if (row.relation; as cell) {
+                @if (cell.link.length) {
+                  <a
+                    [routerLink]="cell.link"
+                    class="block truncate font-heading text-[13px] font-bold text-ocean-950 underline decoration-ocean-500/30 hover:decoration-ocean-500"
+                    >{{ cell.label }}</a
+                  >
+                } @else {
+                  <span class="block truncate font-heading text-[13px] font-bold">{{
+                    cell.label
+                  }}</span>
+                }
+              } @else {
+                <span class="font-heading text-[13px] font-bold text-ocean-500/60">—</span>
+              }
+            </div>
+          }
 
           <div class="hidden sm:block"><app-status-badge [status]="row.status" /></div>
 

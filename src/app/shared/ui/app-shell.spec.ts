@@ -171,20 +171,16 @@ describe('AppShell', () => {
     groupButton(root, 'Contents').click();
     fixture.detectChanges();
     const panel = flyout(root);
-    expect(hrefsIn(panel)).toEqual(['/content/devil-fruit-types']);
+    expect(hrefsIn(panel)).toEqual(['/content/devil-fruits', '/content/devil-fruit-types']);
     expect(panel?.textContent).toContain('Devil Fruit Types');
-    expect(panel?.textContent).toContain('1 section open');
+    expect(panel?.textContent).toContain('2 sections open');
 
     const announced = Array.from(panel?.querySelectorAll('button') ?? []).map((button) =>
       Array.from(button.querySelectorAll(':scope > span'))
         .map((part) => part.textContent?.trim())
         .join(' '),
     );
-    expect(announced).toEqual([
-      'Characters coming soon',
-      'Devil Fruits coming soon',
-      'Crews coming soon',
-    ]);
+    expect(announced).toEqual(['Characters coming soon', 'Crews coming soon']);
   });
 
   it('hides the content section from who lacks content:read', async () => {

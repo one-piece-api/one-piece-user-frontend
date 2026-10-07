@@ -15,7 +15,6 @@
       "overview": "Overview",
       "contents": "Contents",
       "characters": "Characters",
-      "devilFruits": "Devil Fruits",
       "crews": "Crews",
       "soon": "coming soon",
       "soonMessage": "{{label}} isn't open yet: it will arrive with the same list and detail layout.",
@@ -688,7 +687,8 @@
         "name": "Name",
         "status": "Status",
         "author": "Author",
-        "updated": "Updated"
+        "updated": "Updated",
+        "type": "Type"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji to be defined",
@@ -706,7 +706,8 @@
       },
       "loading": "Unrolling the encyclopedia…",
       "error": "Lost the encyclopedia. Could not load the contents.",
-      "loadError": "Arrr! Could not load the contents — try again in a moment."
+      "loadError": "Arrr! Could not load the contents — try again in a moment.",
+      "removeFilter": "Remove the filter"
     },
     "detail": {
       "crumb": "Card",
@@ -744,7 +745,9 @@
       "noDescription": "— no description in this language —",
       "noAdvantages": "— no advantages in this language —",
       "noDisadvantages": "— no disadvantages in this language —",
-      "incomplete": "incomplete translation"
+      "incomplete": "incomplete translation",
+      "type": "Type",
+      "noType": "— no type chosen —"
     },
     "comparison": {
       "title": "Compare versions",
@@ -775,7 +778,8 @@
         "name": "Name · {{language}}",
         "description": "Description · {{language}}",
         "advantages": "Advantages · {{language}}",
-        "disadvantages": "Disadvantages · {{language}}"
+        "disadvantages": "Disadvantages · {{language}}",
+        "type": "Type"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -817,7 +821,8 @@
         "done": "complete",
         "required": "required",
         "hintReady": "All set for review.",
-        "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete."
+        "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete.",
+        "type": "Fruit type"
       },
       "save": "Save draft",
       "saving": "Saving…",
@@ -985,6 +990,21 @@
         "busy": "taken",
         "draftOf": "{{author}}'s draft",
         "readOnly": "read only"
+      }
+    },
+    "devilFruits": {
+      "kicker": "Contents · /devil-fruits",
+      "title": "Devil Fruits",
+      "lead": "The fruits that grant extraordinary powers, each of one Type.",
+      "new": "+ New fruit",
+      "one": "Devil Fruit",
+      "newTitle": "New Devil Fruit",
+      "placeholder": {
+        "romaji": "e.g. Gomu Gomu no Mi",
+        "name": "name in the selected language",
+        "description": "description in the selected language",
+        "advantages": "what this fruit gives whoever eats it, in the selected language",
+        "disadvantages": "what it costs whoever eats it, in the selected language"
       }
     }
   }
