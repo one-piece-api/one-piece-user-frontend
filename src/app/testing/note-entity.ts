@@ -1,5 +1,6 @@
 import {
   localizedTextField,
+  relationField,
   textField,
   type EntityDefinition,
 } from '../content/entity/entity-definition';
@@ -21,4 +22,10 @@ export const NOTE: EntityDefinition = {
     localizedTextField('body', { maxLength: 500, rows: 4, layout: 'wide' }),
     textField('code', { maxLength: 8 }),
   ],
+};
+
+/** The same note, filed in a folder: one field that points to another content. */
+export const NOTE_IN_FOLDER: EntityDefinition = {
+  ...NOTE,
+  fields: [...NOTE.fields, relationField('folder', { target: 'FOLDER' })],
 };

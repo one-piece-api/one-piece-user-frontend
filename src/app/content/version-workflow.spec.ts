@@ -39,6 +39,7 @@ function version(
     body: null,
     allowedActions,
     overrideActions: [],
+    blockedActions: [],
     ...overrides,
   };
 }

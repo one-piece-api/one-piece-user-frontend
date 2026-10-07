@@ -25,8 +25,20 @@ export interface LocalizedTextField {
   readonly layout?: 'wide' | 'pair';
 }
 
+/**
+ * A pointer to another content - the type of a fruit. `target` is the `entityType` of the
+ * content pointed to, looked up in the registry only when a screen needs its section: a
+ * definition never imports another, which would make two entities that point to each other
+ * (a fruit to its type, a type to its fruits) import in a circle.
+ */
+export interface RelationField {
+  readonly kind: 'relation';
+  readonly key: string;
+  readonly target: string;
+}
+
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
-export type EntityField = TextField | LocalizedTextField;
+export type EntityField = TextField | LocalizedTextField | RelationField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -53,4 +65,11 @@ export function localizedTextField(
   options: Omit<LocalizedTextField, 'kind' | 'key'>,
 ): LocalizedTextField {
   return { kind: 'localizedText', key, ...options };
+}
+
+export function relationField(
+  key: string,
+  options: Omit<RelationField, 'kind' | 'key'>,
+): RelationField {
+  return { kind: 'relation', key, ...options };
 }

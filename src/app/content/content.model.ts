@@ -87,8 +87,34 @@ export type VersionAction =
   | 'RESTORE'
   | 'OPEN_NEW_VERSION';
 
-/** One version in full: its workflow and, in `body`, what it says - specific to the entity. */
+/**
+ * An action of `allowedActions` that the backend answers with `409
+ * CONTENT_VERSION_ACTION_BLOCKED`: the caller has the right, the content does not allow it
+ * now - a closed `reason` and, in `detail`, the values that explain it. Not even
+ * `content:admin` lifts it.
+ */
+export type BlockedAction = {
+  action: VersionAction;
+} & (
+  | {
+      /** A fruit cannot go online while its type is not. */
+      reason: 'TYPE_NOT_ONLINE';
+      detail: { typeId: string; typeRomaji?: string };
+    }
+  | {
+      /** A type cannot be retired while fruits are online with it: the count, and the first few. */
+      reason: 'ONLINE_FRUITS_LINKED';
+      detail: { count: number; fruits: { id: string; romaji: string | null }[] };
+    }
+);
+
+/**
+ * One version in full: its workflow and, in `body`, what it says - specific to the entity.
+ * `blockedActions` are those of `allowedActions` the content refuses all the same; only a
+ * version in full carries them, not a row of a list or a link of the chain.
+ */
 export interface Version<TBody> extends VersionSummary {
+  blockedActions: BlockedAction[];
   rejectionReason: string | null;
   body: TBody;
 }
@@ -199,6 +225,18 @@ export function versionToShow(
 /** The version of a chain the caller may edit - its own draft - if there is one. */
 export function editableVersion(versions: readonly VersionSummary[]): VersionSummary | null {
   return versions.find((version) => version.allowedActions.includes('EDIT')) ?? null;
+}
+
+/**
+ * Why `action` is refused on a version although the caller may take it, or `undefined` when
+ * nothing blocks it. The one place every screen asks before it offers an action: the rule
+ * stays in the backend, this only reads its answer.
+ */
+export function blockOf(
+  version: { readonly blockedActions: readonly BlockedAction[] },
+  action: VersionAction,
+): BlockedAction | undefined {
+  return version.blockedActions.find((blocked) => blocked.action === action);
 }
 
 /** The short serial a content is labelled with: the first block of its id, e.g. `#3F2A9C1B`. */

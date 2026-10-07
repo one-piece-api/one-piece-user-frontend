@@ -1,4 +1,4 @@
-import { NOTE } from '../../testing/note-entity';
+import { NOTE, NOTE_IN_FOLDER } from '../../testing/note-entity';
 import {
   diffBodies,
   draftFieldKey,
@@ -81,5 +81,46 @@ describe('the body of any entity', () => {
       'body.it:MODIFIED',
       'code.null:MODIFIED',
     ]);
+  });
+
+  describe('with a field that points to another content', () => {
+    const folder = { id: 'f1', romaji: 'Cartella', names: { it: 'Cartella' } };
+    const filed = { ...note, folder };
+
+    it('starts the draft with the whole reference, or none', () => {
+      expect(draftOf(NOTE_IN_FOLDER, filed, ['it'])['folder']).toBe(folder);
+      expect(draftOf(NOTE_IN_FOLDER, null, ['it'])['folder']).toBeNull();
+    });
+
+    it('saves the id of the reference, not the reference', () => {
+      const body = toBody(NOTE_IN_FOLDER, draftOf(NOTE_IN_FOLDER, filed, ['it', 'en']));
+
+      expect(body['folder']).toBe('f1');
+      expect(toBody(NOTE_IN_FOLDER, draftOf(NOTE_IN_FOLDER, note, ['it']))['folder']).toBeNull();
+    });
+
+    it('asks for the reference with the shared fields, and sees a missing one', () => {
+      const done = (body: object) =>
+        readinessChecks(NOTE_IN_FOLDER, draftOf(NOTE_IN_FOLDER, body as never, ['it']), ['it'])
+          .filter(({ field }) => field === 'folder')
+          .map(({ language, done }) => `${language}:${done}`);
+
+      expect(done(filed)).toEqual(['null:true']);
+      expect(done(note)).toEqual(['null:false']);
+    });
+
+    it('addresses a refusal of the backend on the relation by its key', () => {
+      expect(draftFieldKey(NOTE_IN_FOLDER, 'folder')).toBe('folder');
+    });
+
+    it('compares the relation after the other shared fields, once added', () => {
+      const diffs = diffBodies(NOTE_IN_FOLDER, note, filed as never, ['it', 'en']);
+
+      expect(diffs.at(-1)).toMatchObject({
+        field: { field: 'folder', language: null },
+        change: 'ADDED',
+        after: 'Cartella',
+      });
+    });
   });
 });

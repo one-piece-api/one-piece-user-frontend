@@ -1,11 +1,13 @@
 import {
   actionLabelKey,
+  blockOf,
   contentSerial,
   editableVersion,
   localizedName,
   otherOnlineVersion,
   updatedMoment,
   versionToShow,
+  type BlockedAction,
   type ContentSummary,
   type VersionSummary,
 } from './content.model';
@@ -138,5 +140,22 @@ describe('editableVersion', () => {
 
   it('is nothing when the caller may edit no version', () => {
     expect(editableVersion([link(1, []), link(2, [])])).toBeNull();
+  });
+});
+
+describe('blockOf', () => {
+  const blocked: BlockedAction = {
+    action: 'RETIRE',
+    reason: 'ONLINE_FRUITS_LINKED',
+    detail: { count: 1, fruits: [{ id: 'f1', romaji: 'Gomu Gomu' }] },
+  };
+
+  it('gives the refusal of an action the content does not allow', () => {
+    expect(blockOf({ blockedActions: [blocked] }, 'RETIRE')).toBe(blocked);
+  });
+
+  it('gives nothing for an action nothing blocks', () => {
+    expect(blockOf({ blockedActions: [blocked] }, 'PUBLISH')).toBeUndefined();
+    expect(blockOf({ blockedActions: [] }, 'RETIRE')).toBeUndefined();
   });
 });
