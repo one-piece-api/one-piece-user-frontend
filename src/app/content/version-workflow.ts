@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { AccessPanel } from './access-panel';
+import { BlockedNotice } from './blocked-notice';
 import type { Version, VersionAction, VersionEvent } from './content.model';
 import { RouteMap } from './route-map';
 import { WorkflowTimeline } from './workflow-timeline';
@@ -13,7 +14,7 @@ import { WorkflowTimeline } from './workflow-timeline';
 @Component({
   selector: 'app-version-workflow',
   templateUrl: './version-workflow.html',
-  imports: [AccessPanel, RouteMap, WorkflowTimeline],
+  imports: [AccessPanel, BlockedNotice, RouteMap, WorkflowTimeline],
 })
 export class VersionWorkflow {
   readonly version = input.required<Version<unknown>>();

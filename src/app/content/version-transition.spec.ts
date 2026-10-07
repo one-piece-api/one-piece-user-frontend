@@ -61,6 +61,32 @@ describe('transitionRefusal', () => {
     expect(transitionRefusal(error)).toEqual({ kind: 'identical', version: 1 });
   });
 
+  it('reads a 409 the content gives for a reason as that reason, not as a version that moved', () => {
+    const error = refused(409, {
+      errorCode: 'CONTENT_VERSION_ACTION_BLOCKED',
+      reason: 'ONLINE_FRUITS_LINKED',
+      detail: { count: 1, fruits: [{ id: 'f1', romaji: 'Mera Mera no Mi' }] },
+    });
+
+    expect(transitionRefusal(error)).toEqual({
+      kind: 'blocked',
+      cause: {
+        reason: 'ONLINE_FRUITS_LINKED',
+        detail: { count: 1, fruits: [{ id: 'f1', romaji: 'Mera Mera no Mi' }] },
+      },
+    });
+  });
+
+  it('keeps a refusal for a reason it does not know, without its words', () => {
+    const error = refused(409, {
+      errorCode: 'CONTENT_VERSION_ACTION_BLOCKED',
+      reason: 'SOMETHING_NEW',
+      detail: {},
+    });
+
+    expect(transitionRefusal(error)).toEqual({ kind: 'blocked', cause: null });
+  });
+
   it.each([403, 404, 409])('reads a %i as a version that moved in the meantime', (status) => {
     const error = refused(status, { errorCode: 'CONTENT_VERSION_ACTION_CONFLICT' });
 

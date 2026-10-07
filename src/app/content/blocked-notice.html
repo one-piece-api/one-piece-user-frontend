@@ -1,0 +1,30 @@
+@if (items().length) {
+  <ul class="grid gap-2" data-testid="blocked-actions">
+    @for (item of items(); track item.action) {
+      <li
+        class="rounded-[14px] border-2 border-treasure-600/40 bg-treasure-100 px-3.5 py-2.5 font-heading text-sm leading-normal font-bold text-pretty text-ocean-950"
+        data-testid="blocked-action"
+      >
+        <strong class="text-treasure-700">{{ item.actionLabel }}</strong>
+        · {{ item.sentence }}
+        @for (link of item.links; track link.label) {
+          @if (link.route) {
+            <a
+              [routerLink]="link.route"
+              class="underline decoration-ocean-500/40 hover:decoration-ocean-500"
+              >{{ link.label }}</a
+            >
+          } @else {
+            {{ link.label }}
+          }
+          @if (!$last) {
+            ,
+          }
+        }
+        @if (item.andMore) {
+          {{ item.andMore }}
+        }
+      </li>
+    }
+  </ul>
+}

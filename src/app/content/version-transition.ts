@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { apiErrorOf } from '../shared/http/api-error';
 import type { MascotTone } from '../shared/mascot/mascot';
 import type { ConfirmTone } from '../shared/ui/confirm-dialog';
-import type { VersionAction, VersionStatus, VersionSummary } from './content.model';
+import type { BlockCause, VersionAction, VersionStatus, VersionSummary } from './content.model';
 
 /** What the screens know of a workflow transition they can run. */
 export interface VersionTransition {
@@ -187,6 +187,7 @@ export type TransitionRefusal =
   | { readonly kind: 'slugTaken'; readonly slug: string }
   | { readonly kind: 'noSlug' }
   | { readonly kind: 'identical'; readonly version: number }
+  | { readonly kind: 'blocked'; readonly cause: BlockCause | null }
   | { readonly kind: 'stale' }
   | { readonly kind: 'failed' };
 
@@ -213,8 +214,25 @@ export function transitionRefusal(error: unknown): TransitionRefusal {
       return { kind: 'noSlug' };
     case 'CONTENT_VERSION_IDENTICAL':
       return { kind: 'identical', version: identicalTo(error) };
+    case 'CONTENT_VERSION_ACTION_BLOCKED':
+      return { kind: 'blocked', cause: blockCauseOf(error) };
   }
   return STALE_STATUSES.includes(error.status) ? { kind: 'stale' } : { kind: 'failed' };
+}
+
+/** The reason the content refuses an action and its detail, carried next to the error code. */
+function blockCauseOf(error: HttpErrorResponse): BlockCause | null {
+  const { reason, detail } = (error.error ?? {}) as { reason?: unknown; detail?: unknown };
+  if (typeof detail !== 'object' || detail === null) {
+    return null;
+  }
+  switch (reason) {
+    case 'TYPE_NOT_ONLINE':
+    case 'ONLINE_FRUITS_LINKED':
+      return { reason, detail } as BlockCause;
+    default:
+      return null;
+  }
 }
 
 /** The public address another content already has, carried next to the error code. */

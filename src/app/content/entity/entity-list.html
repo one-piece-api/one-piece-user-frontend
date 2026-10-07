@@ -90,6 +90,8 @@
           />
           @if (relationField; as relation) {
             <span>{{ 'content.list.column.' + relation.key | transloco }}</span>
+          } @else if (countColumn; as counted) {
+            <span>{{ 'content.list.column.' + counted.field | transloco }}</span>
           }
           <app-sort-header
             [label]="'content.list.column.status' | transloco"
@@ -136,6 +138,12 @@
               @if (row.relation; as cell) {
                 <span class="sm:hidden"> · {{ cell.label }}</span>
               }
+              @if (countColumn && row.count; as cell) {
+                <span class="sm:hidden">
+                  · {{ 'content.list.column.' + countColumn.field | transloco }}:
+                  {{ cell.count }}</span
+                >
+              }
               <span class="sm:hidden"> · {{ row.author }} · {{ row.updated }}</span>
             </span>
             <span class="mt-1.5 block sm:hidden"><app-status-badge [status]="row.status" /></span>
@@ -157,6 +165,25 @@
                 }
               } @else {
                 <span class="font-heading text-[13px] font-bold text-ocean-500/60">—</span>
+              }
+            </div>
+          }
+
+          @if (countColumn && !relationField) {
+            <div class="hidden sm:block" data-testid="count-cell">
+              @if (row.count; as cell) {
+                @if (cell.link; as link) {
+                  <a
+                    [routerLink]="link.route"
+                    [queryParams]="link.query"
+                    class="font-heading text-[13px] font-extrabold text-ocean-950 underline decoration-ocean-500/30 hover:decoration-ocean-500"
+                    >{{ cell.count }}</a
+                  >
+                } @else {
+                  <span class="font-heading text-[13px] font-bold text-ocean-500/60">{{
+                    cell.count
+                  }}</span>
+                }
               }
             </div>
           }

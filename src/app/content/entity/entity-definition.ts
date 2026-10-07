@@ -42,6 +42,33 @@ export type EntityField = TextField | LocalizedTextField | RelationField;
 
 export type FieldKindName = EntityField['kind'];
 
+/**
+ * A column of the list that counts the contents of another entity pointing to each row - how
+ * many fruits a type has. `field` is where the row carries the number, `of` the entity
+ * counted (its `entityType`) and `by` the key of its relation to this one, which is also the
+ * filter that narrows its list to those contents.
+ */
+export interface CountColumn {
+  readonly field: string;
+  readonly of: string;
+  readonly by: string;
+}
+
+/**
+ * A section of the card of the current version, under its fields: the contents of another
+ * entity that point to this one, a few of them and a way to see all. Not part of the version
+ * - they change on their own - so an older version does not show it.
+ */
+export interface RelatedListSection {
+  readonly kind: 'relatedList';
+  /** The entity listed (its `entityType`). */
+  readonly of: string;
+  /** The key of its relation to this entity, also the filter that narrows its list. */
+  readonly by: string;
+}
+
+export type EntitySection = RelatedListSection;
+
 export interface EntityDefinition {
   /** The kind of content, as the API names it. */
   readonly entityType: string;
@@ -54,6 +81,10 @@ export interface EntityDefinition {
   readonly icon: string;
   /** Its fields, in the order they are read. */
   readonly fields: readonly EntityField[];
+  /** Counts of other contents that point to it, as columns of its list. */
+  readonly counts?: readonly CountColumn[];
+  /** What its card shows besides its fields. */
+  readonly sections?: readonly EntitySection[];
 }
 
 export function textField(key: string, options: Omit<TextField, 'kind' | 'key'>): TextField {
@@ -72,4 +103,12 @@ export function relationField(
   options: Omit<RelationField, 'kind' | 'key'>,
 ): RelationField {
   return { kind: 'relation', key, ...options };
+}
+
+export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {
+  return { field, ...options };
+}
+
+export function relatedList(options: Omit<RelatedListSection, 'kind'>): RelatedListSection {
+  return { kind: 'relatedList', ...options };
 }

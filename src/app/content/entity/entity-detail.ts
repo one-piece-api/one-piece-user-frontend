@@ -31,6 +31,7 @@ import { namesOf, type EntityBody } from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityCard } from './entity-card';
 import { EntityComparison } from './entity-comparison';
+import { RelatedList } from './related-list';
 
 /** The query parameters this page keeps its view in, so a link reopens the same version. */
 const PARAM = { version: 'v', tab: 'tab' } as const;
@@ -67,6 +68,7 @@ const NOT_FOUND_STATUSES = [400, 404];
     EntityCard,
     EntityComparison,
     LoadingPlaceholder,
+    RelatedList,
     RouterLink,
     StatusBadge,
     TranslocoPipe,
@@ -112,6 +114,15 @@ export class EntityDetail {
   private readonly versionEvents = httpResource<VersionEvent[]>(() => {
     const url = this.versionUrl();
     return url ? `${url}/events` : undefined;
+  });
+
+  /**
+   * Whether the version on screen is the most recent: the sections under the card (the
+   * contents that point to this one) belong to the content as it is now, not to a version.
+   */
+  protected readonly isCurrent = computed(() => {
+    const number = this.shown()?.number;
+    return number !== undefined && this.isMostRecent(number);
   });
 
   /** The version on screen: the last one loaded stays up while the next one is on its way. */

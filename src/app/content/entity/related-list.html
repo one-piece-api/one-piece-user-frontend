@@ -1,0 +1,51 @@
+@if (listed(); as listed) {
+  <section
+    class="min-w-0 rounded-[14px] bg-white px-4 py-3 ring-2 ring-card-line"
+    data-testid="related-list"
+  >
+    <h2
+      class="mb-2 font-heading text-[10px] font-extrabold tracking-widest text-card-ink uppercase"
+    >
+      {{ i18n + '.related.' + section().of + '.title' | transloco }}
+    </h2>
+
+    @switch (state()) {
+      @case ('loading') {
+        <p class="font-heading text-sm font-bold text-ocean-500">
+          {{ 'content.list.loading' | transloco }}
+        </p>
+      }
+      @case ('error') {
+        <p class="font-heading text-sm font-bold text-flag-700" data-testid="related-error">
+          {{ 'content.list.error' | transloco }}
+        </p>
+      }
+      @case ('empty') {
+        <p class="font-heading text-sm font-bold text-treasure-700" data-testid="related-empty">
+          {{ i18n + '.related.' + section().of + '.empty' | transloco }}
+        </p>
+      }
+      @case ('ready') {
+        <ul class="grid gap-1.5">
+          @for (item of items(); track item.id) {
+            <li class="flex items-center justify-between gap-2.5" data-testid="related-item">
+              <a
+                [routerLink]="item.link"
+                class="min-w-0 truncate font-heading text-[15px] font-extrabold text-ocean-950 underline decoration-ocean-500/30 hover:decoration-ocean-500"
+                >{{ item.name }}</a
+              >
+              <app-status-badge [status]="item.status" />
+            </li>
+          }
+        </ul>
+        <a
+          [routerLink]="listed.route"
+          [queryParams]="allQuery()"
+          class="mt-2.5 inline-block font-heading text-[13px] font-extrabold text-ocean-800 underline decoration-ocean-500/40 hover:decoration-ocean-500"
+          data-testid="related-all"
+          >{{ i18n + '.related.' + section().of + '.viewAll' | transloco: { count: total() } }}</a
+        >
+      }
+    }
+  </section>
+}

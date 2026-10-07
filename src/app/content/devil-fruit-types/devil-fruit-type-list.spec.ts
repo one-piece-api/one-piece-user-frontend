@@ -171,6 +171,25 @@ describe('DevilFruitTypeList', () => {
     );
   });
 
+  it('counts the fruits of each type, as a link to the fruits of that type', async () => {
+    await open('/content/devil-fruit-types', 'nami', EDITOR);
+    await answerList(
+      'page=0',
+      page([
+        { ...PARAMECIA, body: { ...PARAMECIA.body, devilFruitCount: 4 } },
+        { ...LOGIA, body: { ...LOGIA.body, devilFruitCount: 0 } },
+      ]),
+    );
+
+    expect(root.textContent).toContain('Fruits');
+    const counts = Array.from(root.querySelectorAll('[data-testid="count-cell"]'));
+    expect(counts.map((cell) => cell.textContent?.trim())).toEqual(['4', '0']);
+    expect(counts[0].querySelector('a')?.getAttribute('href')).toBe(
+      '/content/devil-fruits?type=c1',
+    );
+    expect(counts[1].querySelector('a')).toBeNull();
+  });
+
   it('flags the online version only when it is not the one the row shows', async () => {
     await open('/content/devil-fruit-types', 'nami', EDITOR);
     await answerList('page=0', page([PARAMECIA, LOGIA]));

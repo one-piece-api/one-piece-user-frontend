@@ -66,8 +66,14 @@ export class AccessPanel {
       case 'editable':
         return this.transloco.translate(key(row.granted ? 'editable' : 'notEditable'));
       case 'workflow':
-        return row.granted
-          ? this.transloco.translate(key('workflow'), { actions: this.actionsOf(row) })
+        if (row.granted) {
+          return this.transloco.translate(key('workflow'), { actions: this.actionsOf(row) });
+        }
+        // Nothing is left to do, but not for want of the right: the content refuses.
+        return row.blocked.length > 0
+          ? this.transloco.translate(key('workflowBlocked'), {
+              actions: this.actionsOf({ ...row, actions: row.blocked }),
+            })
           : this.transloco.translate(key('noWorkflow'));
     }
   }

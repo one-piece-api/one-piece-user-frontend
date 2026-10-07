@@ -544,7 +544,9 @@
         "noTransition": "no transition for your role",
         "openVersionExists": "the content already has a version in progress",
         "claimHere": "click In review to claim it",
-        "asAdmin": "partly as an administrator, in someone else's place"
+        "asAdmin": "partly as an administrator, in someone else's place",
+        "workflowBlocked": "You could {{actions}}, but the content does not allow it now",
+        "contentBlocks": "The reasons are in the box above the route."
       },
       "editTitle": "Click to reopen the draft for editing",
       "claimTitle": "Click to claim the review",
@@ -586,7 +588,9 @@
           "description": "description {{language}}",
           "advantages": "advantages {{language}}",
           "disadvantages": "disadvantages {{language}}"
-        }
+        },
+        "blocked": "Arrr! It cannot be done: {{reason}}",
+        "blockedUnknown": "the content does not allow it right now."
       },
       "reject": {
         "title": "Reject this review?",
@@ -635,6 +639,18 @@
         },
         "note": "The history will record that you did it, as an administrator.",
         "confirm": "Yes, go ahead"
+      },
+      "blockedTitle": "{{action}} · unavailable: {{reason}}",
+      "blocked": {
+        "note": {
+          "TYPE_NOT_ONLINE": "Type not online",
+          "ONLINE_FRUITS_LINKED": "Fruits online: {{count}}"
+        },
+        "sentence": {
+          "TYPE_NOT_ONLINE": "This fruit's type is not online. Republish the type first.",
+          "ONLINE_FRUITS_LINKED": "Fruits are online with this type, retire them first:"
+        },
+        "andMore": "and {{count}} more"
       }
     },
     "breadcrumb": {
@@ -659,7 +675,14 @@
         "advantages": "what this type gives its user, in the selected language",
         "disadvantages": "what it costs its user, in the selected language"
       },
-      "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete."
+      "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete.",
+      "related": {
+        "DEVIL_FRUIT": {
+          "title": "Fruits of this type",
+          "empty": "No fruit linked to this type.",
+          "viewAll": "See all ({{count}})"
+        }
+      }
     },
     "entity": {
       "unknown": "Other content"
@@ -689,7 +712,8 @@
         "status": "Status",
         "author": "Author",
         "updated": "Updated",
-        "type": "Type"
+        "type": "Type",
+        "devilFruitCount": "Fruits"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji to be defined",

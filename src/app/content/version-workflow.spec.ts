@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { provideTranslocoTesting } from '../testing/i18n-testing';
 import type { Version, VersionAction, VersionEvent, VersionStatus } from './content.model';
@@ -55,7 +56,7 @@ describe('VersionWorkflow', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [provideTranslocoTesting()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
   });
 
@@ -522,6 +523,87 @@ describe('VersionWorkflow', () => {
       expect(steps()[0]).toContain('Claim taken from zoro');
       expect(steps()[0]).toContain('luffy admin override');
       expect(root.querySelectorAll('[data-testid="timeline-override"]').length).toBe(1);
+    });
+  });
+
+  describe('an action the content refuses', () => {
+    const FRUITS_LINKED = {
+      action: 'RETIRE',
+      reason: 'ONLINE_FRUITS_LINKED',
+      detail: { count: 3, fruits: [{ id: 'f1', romaji: 'Mera Mera no Mi' }] },
+    } as const;
+    const PUBLISHER_RIGHTS = ['content:read', 'content:publish', 'content:retire'];
+
+    function asked(): VersionAction[] {
+      const actions: VersionAction[] = [];
+      fixture.componentInstance.act.subscribe((action) => actions.push(action));
+      return actions;
+    }
+
+    async function renderBlocked(): Promise<void> {
+      const online = version('PUBLISHED', ['RETIRE'], {
+        blockedActions: [
+          {
+            ...FRUITS_LINKED,
+            detail: { ...FRUITS_LINKED.detail, fruits: [...FRUITS_LINKED.detail.fruits] },
+          },
+        ],
+      });
+      await render(online, WAITING, 'vivi', PUBLISHER_RIGHTS);
+    }
+
+    it('shows the status the caller may not go to as blocked, not as a way forward', async () => {
+      await renderBlocked();
+
+      const node = mapNode('RETIRED');
+      expect(node.dataset['state']).toBe('blocked');
+      expect(node.tagName).toBe('SPAN');
+      expect(node.textContent?.trim()).toBe('⊘');
+      expect(mapText('RETIRED')).toContain('Fruits online: 3');
+      expect(root.querySelectorAll('button[data-testid="route-node"]').length).toBe(0);
+    });
+
+    it('says why in the status itself, naming the contents in the way', async () => {
+      await renderBlocked();
+
+      expect(mapNode('RETIRED').getAttribute('aria-label')).toBe(
+        'Retire · unavailable: Fruits are online with this type, retire them first: Mera Mera no Mi and 2 more',
+      );
+    });
+
+    it('asks nothing when the blocked status is clicked', async () => {
+      await renderBlocked();
+      const actions = asked();
+
+      mapNode('RETIRED').click();
+
+      expect(actions).toEqual([]);
+    });
+
+    it('writes the reason above the route, with a link to each content in the way', async () => {
+      await renderBlocked();
+
+      const notice = root.querySelector('[data-testid="blocked-action"]');
+      expect(wordsOf(notice)).toBe(
+        'Retire · Fruits are online with this type, retire them first: Mera Mera no Mi and 2 more',
+      );
+      expect(notice?.querySelector('a')?.getAttribute('href')).toBe('/content/devil-fruits/f1');
+    });
+
+    it('tells the permissions panel that the caller could, were the content to allow it', async () => {
+      await renderBlocked();
+
+      expect(access('workflow')).toContain(
+        'You could retire, but the content does not allow it now',
+      );
+      expect(access('workflow')).toContain('The reasons are in the box above the route.');
+    });
+
+    it('writes nothing above the route when the content refuses nothing', async () => {
+      await render(version('PUBLISHED', ['RETIRE']), WAITING, 'vivi', PUBLISHER_RIGHTS);
+
+      expect(root.querySelector('[data-testid="blocked-actions"]')).toBeNull();
+      expect(mapNode('RETIRED').dataset['state']).toBe('next');
     });
   });
 });

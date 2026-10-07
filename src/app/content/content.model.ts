@@ -88,14 +88,11 @@ export type VersionAction =
   | 'OPEN_NEW_VERSION';
 
 /**
- * An action of `allowedActions` that the backend answers with `409
- * CONTENT_VERSION_ACTION_BLOCKED`: the caller has the right, the content does not allow it
- * now - a closed `reason` and, in `detail`, the values that explain it. Not even
- * `content:admin` lifts it.
+ * Why the content refuses an action: a closed `reason` and, in `detail`, the values that
+ * explain it. The same shape in `blockedActions` and in the `409` that answers an action
+ * run all the same.
  */
-export type BlockedAction = {
-  action: VersionAction;
-} & (
+export type BlockCause =
   | {
       /** A fruit cannot go online while its type is not. */
       reason: 'TYPE_NOT_ONLINE';
@@ -105,8 +102,14 @@ export type BlockedAction = {
       /** A type cannot be retired while fruits are online with it: the count, and the first few. */
       reason: 'ONLINE_FRUITS_LINKED';
       detail: { count: number; fruits: { id: string; romaji: string | null }[] };
-    }
-);
+    };
+
+/**
+ * An action of `allowedActions` that the backend answers with `409
+ * CONTENT_VERSION_ACTION_BLOCKED`: the caller has the right, the content does not allow it
+ * now. Not even `content:admin` lifts it.
+ */
+export type BlockedAction = { action: VersionAction } & BlockCause;
 
 /**
  * One version in full: its workflow and, in `body`, what it says - specific to the entity.
@@ -233,10 +236,10 @@ export function editableVersion(versions: readonly VersionSummary[]): VersionSum
  * stays in the backend, this only reads its answer.
  */
 export function blockOf(
-  version: { readonly blockedActions: readonly BlockedAction[] },
+  version: { readonly blockedActions?: readonly BlockedAction[] },
   action: VersionAction,
 ): BlockedAction | undefined {
-  return version.blockedActions.find((blocked) => blocked.action === action);
+  return version.blockedActions?.find((blocked) => blocked.action === action);
 }
 
 /** The short serial a content is labelled with: the first block of its id, e.g. `#3F2A9C1B`. */

@@ -16,6 +16,8 @@ export interface AccessRow {
   readonly granted: boolean;
   /** The workflow actions the caller may perform - empty on the other two lines. */
   readonly actions: readonly VersionAction[];
+  /** The workflow actions the caller has the right to but the content refuses - empty elsewhere. */
+  readonly blocked: readonly VersionAction[];
   readonly noteKey: string | null;
   readonly noteParams: Record<string, string>;
 }
@@ -23,7 +25,7 @@ export interface AccessRow {
 type AccessVersion = Pick<
   Version<unknown>,
   'status' | 'author' | 'claimant' | 'allowedActions' | 'overrideActions'
->;
+> & { readonly blockedActions?: Version<unknown>['blockedActions'] };
 
 type Note = Pick<AccessRow, 'noteKey' | 'noteParams'>;
 
@@ -40,17 +42,40 @@ function note(key: string, noteParams: Record<string, string> = {}): Note {
  */
 export function versionAccess(version: AccessVersion, caller: AccessCaller): AccessRow[] {
   const editable = version.allowedActions.includes('EDIT');
-  const actions = version.allowedActions.filter((action) => action !== 'EDIT');
+  const blocked = (version.blockedActions ?? []).map(({ action }) => action);
+  const actions = version.allowedActions.filter(
+    (action) => action !== 'EDIT' && !blocked.includes(action),
+  );
   return [
-    { kind: 'visible', granted: true, actions: [], ...visibleNote(version) },
-    { kind: 'editable', granted: editable, actions: [], ...editableNote(version, caller) },
+    { kind: 'visible', granted: true, actions: [], blocked: [], ...visibleNote(version) },
+    {
+      kind: 'editable',
+      granted: editable,
+      actions: [],
+      blocked: [],
+      ...editableNote(version, caller),
+    },
     {
       kind: 'workflow',
       granted: actions.length > 0,
       actions,
-      ...(actions.length > 0 ? actionNote(actions, version) : idleNote(version, caller)),
+      blocked,
+      ...workflowNote(actions, blocked, version, caller),
     },
   ];
+}
+
+/** The reason of the workflow line: what is blocked comes first, being what the caller can do nothing about. */
+function workflowNote(
+  actions: readonly VersionAction[],
+  blocked: readonly VersionAction[],
+  version: AccessVersion,
+  caller: AccessCaller,
+): Note {
+  if (blocked.length > 0) {
+    return note('contentBlocks');
+  }
+  return actions.length > 0 ? actionNote(actions, version) : idleNote(version, caller);
 }
 
 /**

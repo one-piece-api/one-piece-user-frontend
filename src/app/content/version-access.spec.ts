@@ -157,4 +157,50 @@ describe('versionAccess', () => {
       note: 'noTransition',
     });
   });
+
+  describe('versionAccess when the content refuses an action', () => {
+    const blocked = (action: VersionAction) => ({
+      action,
+      reason: 'TYPE_NOT_ONLINE' as const,
+      detail: { typeId: 't1' },
+    });
+
+    it('keeps the refused action out of what the caller may do, and says why nothing is left', () => {
+      const row = lines(
+        versionAccess(
+          { ...version('RETIRED', ['RESTORE']), blockedActions: [blocked('RESTORE')] },
+          PUBLISHER,
+        ),
+      ).workflow;
+
+      expect(row.granted).toBe(false);
+      expect(row.actions).toEqual([]);
+      expect(row.note).toBe('contentBlocks');
+    });
+
+    it('keeps the others, and still says that the content refuses one', () => {
+      const rows = versionAccess(
+        {
+          ...version('READY_TO_PUBLISH', ['PUBLISH', 'ARCHIVE']),
+          blockedActions: [blocked('PUBLISH')],
+        },
+        PUBLISHER,
+      );
+
+      expect(rows[2].granted).toBe(true);
+      expect(rows[2].actions).toEqual(['ARCHIVE']);
+      expect(rows[2].blocked).toEqual(['PUBLISH']);
+      expect(rows[2].noteKey).toBe('content.workflow.access.contentBlocks');
+    });
+
+    it('changes nothing for a version the content has no quarrel with', () => {
+      const rows = versionAccess(
+        { ...version('READY_TO_PUBLISH', ['PUBLISH']), blockedActions: [] },
+        PUBLISHER,
+      );
+
+      expect(rows[2].actions).toEqual(['PUBLISH']);
+      expect(rows[2].blocked).toEqual([]);
+    });
+  });
 });

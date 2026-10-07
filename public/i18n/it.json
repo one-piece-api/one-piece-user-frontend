@@ -544,7 +544,9 @@
         "noTransition": "nessuna transizione per il tuo ruolo",
         "openVersionExists": "il contenuto ha già una versione in lavorazione",
         "claimHere": "clicca su In revisione per prenderlo in carico",
-        "asAdmin": "in parte come amministratore, al posto di altri"
+        "asAdmin": "in parte come amministratore, al posto di altri",
+        "workflowBlocked": "Potresti {{actions}}, ma il contenuto non lo consente ora",
+        "contentBlocks": "I motivi sono nel riquadro sopra la rotta."
       },
       "editTitle": "Clicca per riaprire la bozza in modifica",
       "claimTitle": "Clicca per prendere in carico la revisione",
@@ -586,7 +588,9 @@
           "description": "descrizione {{language}}",
           "advantages": "vantaggi {{language}}",
           "disadvantages": "svantaggi {{language}}"
-        }
+        },
+        "blocked": "Arrr! Non si può: {{reason}}",
+        "blockedUnknown": "il contenuto non lo consente in questo momento."
       },
       "reject": {
         "title": "Rifiutare la revisione?",
@@ -635,6 +639,18 @@
         },
         "note": "Nella cronologia resterà scritto che l'hai fatto tu, come amministratore.",
         "confirm": "Sì, procedi"
+      },
+      "blockedTitle": "{{action}} · non disponibile: {{reason}}",
+      "blocked": {
+        "note": {
+          "TYPE_NOT_ONLINE": "Tipo non online",
+          "ONLINE_FRUITS_LINKED": "Frutti online: {{count}}"
+        },
+        "sentence": {
+          "TYPE_NOT_ONLINE": "Il Tipo di questo Frutto non è online. Ripubblica prima il Tipo.",
+          "ONLINE_FRUITS_LINKED": "Ci sono Frutti online con questo Tipo, ritirali prima:"
+        },
+        "andMore": "e altri {{count}}"
       }
     },
     "breadcrumb": {
@@ -659,7 +675,14 @@
         "advantages": "cosa dà questo tipo a chi lo possiede, nella lingua selezionata",
         "disadvantages": "cosa costa a chi lo possiede, nella lingua selezionata"
       },
-      "hintMissing": "Per la revisione servono il romaji e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta."
+      "hintMissing": "Per la revisione servono il romaji e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta.",
+      "related": {
+        "DEVIL_FRUIT": {
+          "title": "Frutti di questo Tipo",
+          "empty": "Nessun Frutto collegato a questo Tipo.",
+          "viewAll": "Vedi tutti ({{count}})"
+        }
+      }
     },
     "entity": {
       "unknown": "Altro contenuto"
@@ -689,7 +712,8 @@
         "status": "Stato",
         "author": "Autore",
         "updated": "Aggiornato",
-        "type": "Tipo"
+        "type": "Tipo",
+        "devilFruitCount": "Frutti"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",

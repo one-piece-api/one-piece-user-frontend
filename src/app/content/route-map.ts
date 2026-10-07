@@ -2,10 +2,13 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CurrentUserService } from '../identity/current-user';
+import { blockWords } from './block-words';
 import {
   STATUS_LABEL_KEY,
   actionLabelKey,
+  blockOf,
   STATUS_MEANING_KEY,
+  type BlockedAction,
   type VersionAction,
   type VersionEvent,
   type VersionStatus,
@@ -128,6 +131,11 @@ const IDLE_NODE_CLASSES = 'border-parchment-50 bg-white text-ocean-500/40';
 /** A status the caller may take the version to: dashed gold, breathing, and a click away. */
 const NEXT_NODE_CLASSES = `border-dashed border-treasure-600 bg-treasure-100 text-treasure-700 ${ACTIONABLE_NODE_CLASSES}`;
 const NEXT_INK_CLASSES = 'text-treasure-700';
+/** A status the caller may take the version to but the content refuses: dashed grey, still, with a mark. */
+const BLOCKED_NODE_CLASSES =
+  'border-dashed border-ocean-500/40 bg-parchment-200/60 text-ocean-500/70 cursor-not-allowed';
+const BLOCKED_INK_CLASSES = 'text-ocean-500/70';
+const BLOCKED_GLYPH = '⊘';
 
 const VISITED_LABEL_CLASSES = 'text-ocean-950';
 const IDLE_LABEL_CLASSES = 'text-ocean-500/60';
@@ -185,6 +193,8 @@ interface NodeView {
   readonly noteClasses: string;
   /** What clicking the status does - `null` for a status that only says where the version is. */
   readonly action: VersionAction | null;
+  /** The caller may take the version here, but the content refuses: not clickable, and says why. */
+  readonly blocked: boolean;
 }
 
 /** The stretch under a status of the main line: down to its branch, or - under Draft - back from Rejected. */
@@ -224,7 +234,10 @@ export class RouteMap {
   private readonly transloco = inject(TranslocoService);
   private readonly currentUser = inject(CurrentUserService);
 
-  readonly version = input.required<VersionSummary>();
+  /** The version; one in full also says which of its allowed actions the content refuses. */
+  readonly version = input.required<
+    VersionSummary & { blockedActions?: readonly BlockedAction[] }
+  >();
   /** The history of the version, oldest first. */
   readonly events = input.required<readonly VersionEvent[]>();
   /** A transition is on its way: the nodes wait for it instead of asking for another. */
@@ -306,6 +319,7 @@ export class RouteMap {
       title: `${label} (${node.status}) · ${meaning}`,
       glyph: STATUS_GLYPH[node.status],
       action: null,
+      blocked: false,
     };
     switch (node.state) {
       case 'current': {
@@ -337,6 +351,23 @@ export class RouteMap {
         const action = this.transloco.translate(actionLabelKey(node.transition, version.status), {
           version: version.number,
         });
+        const blocked = blockOf(version, node.transition);
+        if (blocked) {
+          const words = blockWords(this.transloco, blocked);
+          return {
+            ...base,
+            blocked: true,
+            title: this.transloco.translate('content.workflow.blockedTitle', {
+              action,
+              reason: words.titled,
+            }),
+            glyph: BLOCKED_GLYPH,
+            circleClasses: BLOCKED_NODE_CLASSES,
+            labelClasses: BLOCKED_INK_CLASSES,
+            note: words.note,
+            noteClasses: BLOCKED_INK_CLASSES,
+          };
+        }
         return {
           ...base,
           action: node.transition,

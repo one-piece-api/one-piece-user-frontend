@@ -7,6 +7,7 @@ import { CurrentUserService } from '../identity/current-user';
 import { MascotService } from '../shared/mascot/mascot';
 import { ConfirmDialog } from '../shared/ui/confirm-dialog';
 import type { VersionAction, VersionSummary } from './content.model';
+import { blockWords } from './block-words';
 import { draftFieldKey } from './entity/entity-body';
 import { entityLabelKey } from './entity/entities';
 import type { EntityDefinition } from './entity/entity-definition';
@@ -332,6 +333,12 @@ export class VersionActions {
         return this.transloco.translate(key('slugTaken'), { slug: refusal.slug });
       case 'identical':
         return this.transloco.translate(key('identical'), { version: refusal.version });
+      case 'blocked':
+        return this.transloco.translate(key('blocked'), {
+          reason: refusal.cause
+            ? blockWords(this.transloco, refusal.cause).titled
+            : this.transloco.translate(key('blockedUnknown')),
+        });
       case 'noSlug':
       case 'stale':
       case 'failed':

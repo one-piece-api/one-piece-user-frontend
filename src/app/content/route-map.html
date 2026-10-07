@@ -186,7 +186,19 @@
 </section>
 
 <ng-template #disc let-node>
-  @if (node.action) {
+  @if (node.blocked) {
+    <span
+      class="relative grid size-10.5 place-items-center rounded-full border-2 text-[15px] font-extrabold"
+      [class]="node.circleClasses"
+      [title]="node.title"
+      role="img"
+      [attr.aria-label]="node.title"
+      [attr.data-status]="node.status"
+      [attr.data-state]="'blocked'"
+      data-testid="route-node"
+      >{{ node.glyph }}</span
+    >
+  } @else if (node.action) {
     <button
       type="button"
       class="relative grid size-10.5 place-items-center rounded-full border-2 text-[15px] font-extrabold disabled:cursor-wait disabled:opacity-60"

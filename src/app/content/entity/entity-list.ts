@@ -49,6 +49,7 @@ const PARAM = {
 const COLUMNS = 'sm:grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]';
 const COLUMNS_WITH_RELATION =
   'sm:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_13rem_minmax(0,1fr)_7rem]';
+const COLUMNS_WITH_COUNT = 'sm:grid-cols-[minmax(0,2.4fr)_5.5rem_13rem_minmax(0,1fr)_7rem]';
 
 /** The columns the list can be sorted by, named as the backend names them. */
 const SORT_FIELDS = ['name', 'status', 'author', 'updatedAt'] as const;
@@ -73,6 +74,13 @@ interface RelationCell {
   readonly link: readonly string[];
 }
 
+/** How many contents point to a row, and where to see them: their list, narrowed to this one. */
+interface CountCell {
+  readonly count: number;
+  /** `null` when there are none: nothing to see. */
+  readonly link: { readonly route: string; readonly query: Params } | null;
+}
+
 /** The filter "only the contents that point to this one", shown as a chip that removes it. */
 interface RelationChip {
   readonly labelKey: string;
@@ -94,6 +102,8 @@ interface RowView {
   readonly updated: string;
   /** The content the row points to - `null` for an entity with no relation, or none chosen. */
   readonly relation: RelationCell | null;
+  /** How many contents point to the row - `null` for an entity with no such column. */
+  readonly count: CountCell | null;
 }
 
 /**
@@ -147,7 +157,13 @@ export class EntityList {
   protected readonly relationField: RelationField | undefined = this.entity.fields.find(
     (field) => field.kind === 'relation',
   );
-  protected readonly columns = this.relationField ? COLUMNS_WITH_RELATION : COLUMNS;
+  /** The count of other contents pointing to each row, when the entity has one. */
+  protected readonly countColumn = this.entity.counts?.[0];
+  protected readonly columns = this.relationField
+    ? COLUMNS_WITH_RELATION
+    : this.countColumn
+      ? COLUMNS_WITH_COUNT
+      : COLUMNS;
   protected readonly relationFilter = computed(() =>
     this.relationField ? this.params().get(this.relationField.key) : null,
   );
@@ -391,6 +407,20 @@ export class EntityList {
       authoredByMe,
       updated: momentLabel(this.transloco, row.updatedAt),
       relation: this.relationCell(row, language),
+      count: this.countCell(row),
+    };
+  }
+
+  private countCell(row: ContentSummary<RowNames>): CountCell | null {
+    const column = this.countColumn;
+    const count = column && row.body[column.field];
+    const counted = entityOf(column?.of);
+    if (!column || typeof count !== 'number') {
+      return null;
+    }
+    return {
+      count,
+      link: count > 0 && counted ? { route: counted.route, query: { [column.by]: row.id } } : null,
     };
   }
 

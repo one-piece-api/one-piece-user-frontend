@@ -74,6 +74,8 @@ function body(name: string, italianDescription: string | null = 'Elementale.') {
   };
 }
 
+const FRUITS = '/api/content/devil-fruits';
+
 polyfillDialog();
 
 describe('DevilFruitTypeDetail', () => {
@@ -132,12 +134,28 @@ describe('DevilFruitTypeDetail', () => {
     events: object[] = [],
   ) {
     const url = `${DETAIL}/versions/${version.number}`;
-    httpTesting
-      .expectOne(url)
-      .flush({ ...version, rejectionReason: null, body: versionBody, allowedActions: [] });
+    httpTesting.expectOne(url).flush({
+      ...version,
+      rejectionReason: null,
+      body: versionBody,
+      allowedActions: [],
+      blockedActions: [],
+    });
     httpTesting.expectOne(`${url}/events`).flush(events);
+    await afterInteraction();
+    // The most recent version also lists the fruits of the type: nothing here is about them.
+    answerFruits();
     await harness.fixture.whenStable();
     harness.detectChanges();
+  }
+
+  /** Answers the list of fruits the card of the most recent version asks for: none, here. */
+  function answerFruits(): void {
+    httpTesting
+      .match((request) => request.url.startsWith(FRUITS))
+      .forEach((request) =>
+        request.flush({ content: [], page: 0, size: 12, totalElements: 0, totalPages: 0 }),
+      );
   }
 
   /** Lets a navigation or a signal change settle, leaving the next request pending. */
@@ -173,6 +191,101 @@ describe('DevilFruitTypeDetail', () => {
     expect(root.textContent).toContain('3 versions');
     expect(circles().length).toBe(3);
     expect(root.querySelector('[data-testid="card-name"]')?.textContent).toContain('Logia draft');
+  });
+
+  describe('the fruits of the type', () => {
+    const fruitRow = (id: string, name: string, status: string) => ({
+      id,
+      versionNumber: 1,
+      status,
+      author: NAMI,
+      updatedAt: '2026-10-01T08:00:00Z',
+      onlineVersionNumber: 1,
+      body: { romaji: name, names: { en: name } },
+    });
+
+    /** Opens the most recent version and answers the fruits it asks for with `answer`. */
+    async function openWithFruits(answer: object | number): Promise<void> {
+      await open(PAGE, 'nami', EDITOR);
+      await answerContent([V1, V2, V3], 2);
+      const url = `${DETAIL}/versions/3`;
+      httpTesting.expectOne(url).flush({
+        ...V3,
+        rejectionReason: null,
+        body: body('Logia draft'),
+        allowedActions: [],
+        blockedActions: [],
+      });
+      httpTesting.expectOne(`${url}/events`).flush([]);
+      await afterInteraction();
+      const request = httpTesting.expectOne(`${FRUITS}?type=${ID}&size=12`);
+      if (typeof answer === 'number') {
+        request.flush(null, { status: answer, statusText: 'Server Error' });
+      } else {
+        request.flush(answer);
+      }
+      await harness.fixture.whenStable();
+      harness.detectChanges();
+    }
+
+    function fruitsPage(content: object[], totalElements: number) {
+      return { content, page: 0, size: 12, totalElements, totalPages: 2 };
+    }
+
+    it('lists a few under the card, each leading to the fruit, with a way to see all', async () => {
+      await openWithFruits(
+        fruitsPage(
+          [
+            fruitRow('f1', 'Mera Mera no Mi', 'PUBLISHED'),
+            fruitRow('f2', 'Hie Hie no Mi', 'DRAFT'),
+          ],
+          14,
+        ),
+      );
+
+      const items = Array.from(root.querySelectorAll('[data-testid="related-item"]'));
+      expect(items.map((item) => item.querySelector('a')?.textContent?.trim())).toEqual([
+        'Mera Mera no Mi',
+        'Hie Hie no Mi',
+      ]);
+      expect(items[0].querySelector('a')?.getAttribute('href')).toBe('/content/devil-fruits/f1');
+      expect(items[1].textContent).toContain('Draft');
+      const all = root.querySelector('[data-testid="related-all"]');
+      expect(all?.textContent?.trim()).toBe('See all (14)');
+      expect(all?.getAttribute('href')).toBe(`/content/devil-fruits?type=${ID}`);
+    });
+
+    it('says so when no fruit is linked to the type', async () => {
+      await openWithFruits(fruitsPage([], 0));
+
+      expect(root.querySelector('[data-testid="related-empty"]')?.textContent?.trim()).toBe(
+        'No fruit linked to this type.',
+      );
+      expect(root.querySelector('[data-testid="related-all"]')).toBeNull();
+    });
+
+    it('says so when the fruits cannot be read, and leaves the card alone', async () => {
+      await openWithFruits(500);
+
+      expect(root.querySelector('[data-testid="related-error"]')).not.toBeNull();
+      expect(root.querySelector('[data-testid="card-name"]')?.textContent).toContain('Logia draft');
+    });
+
+    it('is not shown with an older version, which the fruits do not belong to', async () => {
+      await open(`${PAGE}?v=2`, 'nami', EDITOR);
+      await answerContent([V1, V2, V3], 2);
+      await answerVersion(V2, body('Logia'));
+
+      expect(root.querySelector('[data-testid="related-list"]')).toBeNull();
+    });
+
+    it('is not shown on the Workflow tab', async () => {
+      await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
+      await answerContent([V1, V2, V3], 2);
+      await answerVersion(V3, body('Logia draft'));
+
+      expect(root.querySelector('[data-testid="related-list"]')).toBeNull();
+    });
   });
 
   it('leads back to the section from the breadcrumb, under Contents, ending on the content', async () => {
@@ -276,6 +389,7 @@ describe('DevilFruitTypeDetail', () => {
 
     tab('Overview')?.click();
     await afterInteraction();
+    answerFruits();
 
     expect(TestBed.inject(Router).url).toBe(PAGE);
     expect(root.querySelector('app-entity-card')).not.toBeNull();
@@ -297,9 +411,13 @@ describe('DevilFruitTypeDetail', () => {
   it('shows an error when the history of the version cannot be loaded', async () => {
     await open(PAGE, 'nami', EDITOR);
     await answerContent([V1, V2, V3], 2);
-    httpTesting
-      .expectOne(`${DETAIL}/versions/3`)
-      .flush({ ...V3, rejectionReason: null, body: body('Logia draft'), allowedActions: [] });
+    httpTesting.expectOne(`${DETAIL}/versions/3`).flush({
+      ...V3,
+      rejectionReason: null,
+      body: body('Logia draft'),
+      allowedActions: [],
+      blockedActions: [],
+    });
     httpTesting
       .expectOne(`${DETAIL}/versions/3/events`)
       .flush('nope', { status: 500, statusText: 'Error' });
@@ -338,6 +456,7 @@ describe('DevilFruitTypeDetail', () => {
     httpTesting.expectOne(url).flush({
       ...draft,
       rejectionReason: null,
+      blockedActions: [],
       body: body('Logia draft'),
       allowedActions: ['EDIT', 'DELETE', 'SUBMIT'],
     });
@@ -373,10 +492,13 @@ describe('DevilFruitTypeDetail', () => {
       httpTesting.expectOne(VERSION).flush({
         ...summary(3, status),
         rejectionReason,
+        blockedActions: [],
         body: body('Logia draft'),
         allowedActions,
       });
       httpTesting.expectOne(`${VERSION}/events`).flush(events);
+      await afterInteraction();
+      answerFruits();
       await harness.fixture.whenStable();
       harness.detectChanges();
     }
@@ -798,6 +920,7 @@ describe('DevilFruitTypeDetail', () => {
           ...summary(3, status, author),
           claimant,
           rejectionReason: null,
+          blockedActions: [],
           body: body('Logia draft'),
           allowedActions,
           overrideActions,
@@ -972,6 +1095,31 @@ describe('DevilFruitTypeDetail', () => {
       expect(node('PUBLISHED').dataset['state']).toBe('next');
     });
 
+    it('tells why a retirement the content refuses was refused, and shows the version as it is', async () => {
+      await open(`${PAGE}?tab=workflow`, 'vivi', PUBLISHER);
+      await answerContent([V1, summary(2, 'SUPERSEDED'), summary(3, 'PUBLISHED')], 3);
+      await answerOwnVersion('PUBLISHED', ['RETIRE']);
+
+      node('RETIRED').click();
+      harness.detectChanges();
+      confirmDialog()!.querySelector<HTMLButtonElement>('[data-testid="confirm-action"]')!.click();
+      httpTesting.expectOne(`${VERSION}/retire`).flush(
+        {
+          errorCode: 'CONTENT_VERSION_ACTION_BLOCKED',
+          reason: 'ONLINE_FRUITS_LINKED',
+          detail: { count: 1, fruits: [{ id: 'f1', romaji: 'Mera Mera no Mi' }] },
+        },
+        { status: 409, statusText: 'Conflict' },
+      );
+      await afterInteraction();
+      await answerReload('PUBLISHED', ['RETIRE']);
+
+      expect(mascotSays()).toBe(
+        'Arrr! It cannot be done: Fruits are online with this type, retire them first: Mera Mera no Mi',
+      );
+      expect(mascotSays()).not.toContain('changed in the meantime');
+    });
+
     it('confirms a republication naming the version it replaces, then says both', async () => {
       await open(`${PAGE}?tab=workflow`, 'vivi', PUBLISHER);
       await answerContent([summary(1, 'PUBLISHED'), V2, summary(3, 'SUPERSEDED')], 1);
@@ -1035,6 +1183,7 @@ describe('DevilFruitTypeDetail', () => {
       httpTesting.expectOne(url).flush({
         ...shown,
         rejectionReason: null,
+        blockedActions: [],
         body: body('Logia'),
         allowedActions: ['OPEN_NEW_VERSION'],
       });
@@ -1063,6 +1212,7 @@ describe('DevilFruitTypeDetail', () => {
       opening.flush({
         ...summary(3, 'DRAFT', CHOPPER),
         rejectionReason: null,
+        blockedActions: [],
         body: body('Logia'),
         allowedActions: ['EDIT', 'DELETE', 'SUBMIT'],
       });
@@ -1089,6 +1239,7 @@ describe('DevilFruitTypeDetail', () => {
       httpTesting.expectOne(VERSIONS).flush({
         ...summary(2, 'DRAFT', CHOPPER),
         rejectionReason: null,
+        blockedActions: [],
         body: body('Logia'),
         allowedActions: ['EDIT', 'DELETE', 'SUBMIT'],
       });
@@ -1112,9 +1263,13 @@ describe('DevilFruitTypeDetail', () => {
         .expectOne(DETAIL)
         .flush({ id: ID, onlineVersionNumber: 2, versions: [V1, V2, V3] });
       await afterInteraction();
-      httpTesting
-        .expectOne(`${VERSIONS}/2`)
-        .flush({ ...V2, rejectionReason: null, body: body('Logia'), allowedActions: [] });
+      httpTesting.expectOne(`${VERSIONS}/2`).flush({
+        ...V2,
+        rejectionReason: null,
+        body: body('Logia'),
+        allowedActions: [],
+        blockedActions: [],
+      });
       httpTesting.expectOne(`${VERSIONS}/2/events`).flush([]);
       await harness.fixture.whenStable();
       harness.detectChanges();
@@ -1189,9 +1344,13 @@ describe('DevilFruitTypeDetail', () => {
 
     /** Answers what the panel reads of a version - nothing else of it is asked. */
     async function answerPanel(version: ReturnType<typeof summary>, versionBody: object) {
-      httpTesting
-        .expectOne(`${DETAIL}/versions/${version.number}`)
-        .flush({ ...version, rejectionReason: null, body: versionBody, allowedActions: [] });
+      httpTesting.expectOne(`${DETAIL}/versions/${version.number}`).flush({
+        ...version,
+        rejectionReason: null,
+        body: versionBody,
+        allowedActions: [],
+        blockedActions: [],
+      });
       await afterInteraction();
     }
 
