@@ -8,7 +8,9 @@ import { MascotService } from '../../shared/mascot/mascot';
 import { polyfillDialog } from '../../testing/dialog-polyfill';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import type { VersionStatus } from '../content.model';
-import { DevilFruitTypeDetail } from './devil-fruit-type-detail';
+import { ENTITY } from '../entity/entities';
+import { EntityDetail } from '../entity/entity-detail';
+import { DEVIL_FRUIT_TYPE } from './devil-fruit-type.model';
 
 const ID = '3f2a9c1b-0000-4000-8000-000000000001';
 
@@ -85,9 +87,10 @@ describe('DevilFruitTypeDetail', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: ENTITY, useValue: DEVIL_FRUIT_TYPE },
         provideRouter(
           [
-            { path: 'content/devil-fruit-types/:id', component: DevilFruitTypeDetail },
+            { path: 'content/devil-fruit-types/:id', component: EntityDetail },
             { path: 'content/devil-fruit-types/:id/edit', component: EditorStandIn },
             { path: 'content/devil-fruit-types', component: EditorStandIn },
           ],
@@ -245,7 +248,7 @@ describe('DevilFruitTypeDetail', () => {
     await answerVersion(V3, body('Logia draft', null));
 
     const [italian, english] = Array.from(
-      root.querySelectorAll<HTMLButtonElement>('app-devil-fruit-type-card [role="tab"]'),
+      root.querySelectorAll<HTMLButtonElement>('app-entity-card [role="tab"]'),
     );
     expect(italian.querySelector('[data-testid="incomplete-marker"]')).not.toBeNull();
     expect(english.querySelector('[data-testid="incomplete-marker"]')).toBeNull();
@@ -265,7 +268,7 @@ describe('DevilFruitTypeDetail', () => {
     await answerVersion(V3, body('Logia draft'), [CREATED]);
 
     expect(tab('Workflow')?.getAttribute('aria-selected')).toBe('true');
-    expect(root.querySelector('app-devil-fruit-type-card')).toBeNull();
+    expect(root.querySelector('app-entity-card')).toBeNull();
     expect(root.textContent).toContain('Editorial route');
     expect(root.textContent).toContain('Workflow timeline');
     expect(root.textContent).toContain('Your permissions here');
@@ -275,7 +278,7 @@ describe('DevilFruitTypeDetail', () => {
     await afterInteraction();
 
     expect(TestBed.inject(Router).url).toBe(PAGE);
-    expect(root.querySelector('app-devil-fruit-type-card')).not.toBeNull();
+    expect(root.querySelector('app-entity-card')).not.toBeNull();
   });
 
   it('counts the events of the selected version on the Workflow tab', async () => {
@@ -1149,7 +1152,7 @@ describe('DevilFruitTypeDetail', () => {
     };
 
     function panel(): HTMLElement {
-      return root.querySelector('app-devil-fruit-type-comparison') as HTMLElement;
+      return root.querySelector('app-entity-comparison') as HTMLElement;
     }
 
     function panelOpen(): boolean {
@@ -1306,7 +1309,7 @@ describe('DevilFruitTypeDetail', () => {
 
       panelTab('Full card').click();
       harness.detectChanges();
-      expect(panel().querySelector('app-devil-fruit-type-card')).not.toBeNull();
+      expect(panel().querySelector('app-entity-card')).not.toBeNull();
       expect(rows()).toEqual([]);
 
       panel().querySelector<HTMLButtonElement>('button[aria-label="Close"]')!.click();
@@ -1320,7 +1323,7 @@ describe('DevilFruitTypeDetail', () => {
 
       expect(panelOpen()).toBe(true);
       expect(panelTab('Changes').getAttribute('aria-selected')).toBe('true');
-      expect(panel().querySelector('app-devil-fruit-type-card')).toBeNull();
+      expect(panel().querySelector('app-entity-card')).toBeNull();
     });
 
     it('says when a version cannot be loaded', async () => {

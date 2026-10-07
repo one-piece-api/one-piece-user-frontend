@@ -16,7 +16,6 @@
       "contents": "Contents",
       "characters": "Characters",
       "devilFruits": "Devil Fruits",
-      "devilFruitTypes": "Devil Fruit Types",
       "crews": "Crews",
       "soon": "coming soon",
       "soonMessage": "{{label}} isn't open yet: it will arrive with the same list and detail layout.",
@@ -652,7 +651,18 @@
       "title": "Devil Fruit Types",
       "lead": "The categories Devil Fruits fall into.",
       "new": "+ New fruit type",
-      "one": "Fruit Type"
+      "one": "Fruit Type",
+      "newTitle": "New fruit type",
+      "placeholder": {
+        "romaji": "e.g. Chōjin-kei",
+        "name": "name in the selected language",
+        "description": "description in the selected language",
+        "advantages": "what this type gives its user, in the selected language",
+        "disadvantages": "what it costs its user, in the selected language"
+      }
+    },
+    "entity": {
+      "unknown": "Other content"
     },
     "list": {
       "search": "Search",
@@ -786,7 +796,6 @@
     },
     "editor": {
       "crumb": "Edit",
-      "newTitle": "New fruit type",
       "sublineNew": "new draft · created by its first save",
       "subline": "your draft v{{version}}",
       "sublineOnline": "your draft v{{version}} · v{{online}} stays online",
@@ -794,20 +803,7 @@
       "loading": "Opening the draft…",
       "romaji": {
         "label": "Romaji",
-        "hint": "unique · shared by every language",
-        "placeholder": "e.g. Chōjin-kei"
-      },
-      "name": {
-        "placeholder": "name in the selected language"
-      },
-      "description": {
-        "placeholder": "description in the selected language"
-      },
-      "advantages": {
-        "placeholder": "what this type gives its user, in the selected language"
-      },
-      "disadvantages": {
-        "placeholder": "what it costs its user, in the selected language"
+        "hint": "unique · shared by every language"
       },
       "incomplete": "incomplete",
       "refused": "to fix",

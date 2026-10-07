@@ -41,7 +41,6 @@
       </div>
     }
     @case ('ready') {
-      @let written = draft()!;
       <form
         animate.enter="anim-pop-enter"
         class="rounded-[22px] border-l-6 border-l-ocean-700 bg-parchment-100 p-5.5 shadow-lg"
@@ -53,8 +52,8 @@
             <p
               class="inline-flex items-center gap-1.5 font-display text-xs font-bold tracking-[0.12em] text-flag-600 uppercase"
             >
-              <app-icon class="text-[15px] text-ocean-800" [icon]="typeIcon" />
-              <span>{{ 'content.devilFruitTypes.one' | transloco }}</span>
+              <app-icon class="text-[15px] text-ocean-800" [icon]="entity.icon" />
+              <span>{{ entity.i18n + '.one' | transloco }}</span>
             </p>
             <h1 class="font-display text-[25px] leading-tight font-bold text-ocean-950">
               {{ title() }}
@@ -86,38 +85,44 @@
                 {{ toFix }}
               </p>
             }
-            <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-              <div class="flex items-center justify-between gap-2.5">
-                <label
-                  for="draft-romaji"
-                  class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                  >{{ 'content.editor.romaji.label' | transloco }}</label
-                >
-                <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                  'content.editor.romaji.hint' | transloco
-                }}</span>
-              </div>
-              <input
-                #romajiInput
-                id="draft-romaji"
-                type="text"
-                class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                [class]="romajiError() ? 'border-flag-600' : 'border-ocean-800/20'"
-                [value]="written.romaji"
-                [maxLength]="maxLength.romaji"
-                [placeholder]="'content.editor.romaji.placeholder' | transloco"
-                [attr.aria-invalid]="romajiError() ? true : null"
-                (input)="setRomaji(romajiInput.value)"
-              />
-              @if (romajiError(); as error) {
-                <p
-                  class="mt-1 font-heading text-sm font-bold text-flag-700"
-                  data-testid="field-error"
-                >
-                  {{ error }}
-                </p>
+            @for (view of sharedViews(); track view.field.key) {
+              @switch (view.field.kind) {
+                @case ('text') {
+                  <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                    <div class="flex items-center justify-between gap-2.5">
+                      <label
+                        [for]="'draft-' + view.field.key"
+                        class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                        >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
+                      >
+                      <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                        'content.editor.' + view.field.key + '.hint' | transloco
+                      }}</span>
+                    </div>
+                    <input
+                      #sharedInput
+                      [id]="'draft-' + view.field.key"
+                      type="text"
+                      class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                      [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                      [value]="view.value"
+                      [maxLength]="view.field.maxLength"
+                      [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
+                      [attr.aria-invalid]="view.error ? true : null"
+                      (input)="setShared(view.field.key, sharedInput.value)"
+                    />
+                    @if (view.error; as error) {
+                      <p
+                        class="mt-1 font-heading text-sm font-bold text-flag-700"
+                        data-testid="field-error"
+                      >
+                        {{ error }}
+                      </p>
+                    }
+                  </div>
+                }
               }
-            </div>
+            }
 
             <div class="flex flex-wrap gap-2" role="tablist">
               @for (tab of tabs(); track tab.code) {
@@ -152,64 +157,55 @@
               }
             </div>
 
-            <div>
-              <label
-                for="draft-name"
-                class="mb-1.5 block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                >{{ 'content.card.name' | transloco: { language: languageLabel() } }}</label
-              >
-              <input
-                #nameInput
-                id="draft-name"
-                type="text"
-                class="w-full rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                [class]="nameError() ? 'border-flag-600' : 'border-ocean-800/20'"
-                [value]="translation().name"
-                [maxLength]="maxLength.name"
-                [placeholder]="'content.editor.name.placeholder' | transloco"
-                [attr.aria-invalid]="nameError() ? true : null"
-                (input)="setName(nameInput.value)"
-              />
-              @if (nameError(); as error) {
-                <p
-                  class="mt-1 font-heading text-sm font-bold text-flag-700"
-                  data-testid="field-error"
-                >
-                  {{ error }}
-                </p>
-              }
-            </div>
-
-            @for (text of longTexts(); track text.field) {
-              <div>
-                <label
-                  [for]="'draft-' + text.field"
-                  class="mb-1.5 block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                  >{{
-                    'content.card.' + text.field | transloco: { language: languageLabel() }
-                  }}</label
-                >
-                <textarea
-                  #longTextInput
-                  [id]="'draft-' + text.field"
-                  [rows]="text.rows"
-                  class="w-full resize-y rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                  [class]="text.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                  [value]="translation()[text.field]"
-                  [maxLength]="maxLength[text.field]"
-                  [placeholder]="'content.editor.' + text.field + '.placeholder' | transloco"
-                  [attr.aria-invalid]="text.error ? true : null"
-                  (input)="setLongText(text.field, longTextInput.value)"
-                ></textarea>
-                @if (text.error; as error) {
-                  <p
-                    class="mt-1 font-heading text-sm font-bold text-flag-700"
-                    data-testid="field-error"
-                  >
-                    {{ error }}
-                  </p>
+            @for (view of localizedViews(); track view.field.key) {
+              @switch (view.field.kind) {
+                @case ('localizedText') {
+                  <div>
+                    <label
+                      [for]="'draft-' + view.field.key"
+                      class="mb-1.5 block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                      >{{
+                        'content.card.' + view.field.key | transloco: { language: languageLabel() }
+                      }}</label
+                    >
+                    @if (view.field.rows) {
+                      <textarea
+                        #longTextInput
+                        [id]="'draft-' + view.field.key"
+                        [rows]="view.field.rows"
+                        class="w-full resize-y rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                        [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                        [value]="view.value"
+                        [maxLength]="view.field.maxLength"
+                        [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
+                        [attr.aria-invalid]="view.error ? true : null"
+                        (input)="setLocalized(view.field.key, longTextInput.value)"
+                      ></textarea>
+                    } @else {
+                      <input
+                        #lineInput
+                        [id]="'draft-' + view.field.key"
+                        type="text"
+                        class="w-full rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                        [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                        [value]="view.value"
+                        [maxLength]="view.field.maxLength"
+                        [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
+                        [attr.aria-invalid]="view.error ? true : null"
+                        (input)="setLocalized(view.field.key, lineInput.value)"
+                      />
+                    }
+                    @if (view.error; as error) {
+                      <p
+                        class="mt-1 font-heading text-sm font-bold text-flag-700"
+                        data-testid="field-error"
+                      >
+                        {{ error }}
+                      </p>
+                    }
+                  </div>
                 }
-              </div>
+              }
             }
           </div>
 

@@ -31,13 +31,9 @@ import {
   type FieldChange,
   type FieldDiff,
 } from '../version-comparison';
-import { DevilFruitTypeCard } from './devil-fruit-type-card';
-import {
-  diffDevilFruitTypes,
-  namesOf,
-  type DevilFruitType,
-  type DevilFruitTypeField,
-} from './devil-fruit-type.model';
+import { EntityCard } from './entity-card';
+import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
+import { ENTITY } from './entities';
 
 type Mode = 'changes' | 'card';
 const MODES: readonly Mode[] = ['changes', 'card'];
@@ -98,22 +94,23 @@ interface DiffRow {
 }
 
 /**
- * The comparison of a version of a Devil Fruit Type with an earlier one (UF-CNT-21), in a
+ * The comparison of a version of any entity with an earlier one (UF-CNT-21), in a
  * native `<dialog>` like the other modals. By default the base is the version it was opened
  * from, the first version is compared with an empty content; the reader may pick another
  * earlier version, move along the chain, or see the version's whole card. Read-only: it
  * changes nothing, and its state does not go in the URL.
  */
 @Component({
-  selector: 'app-devil-fruit-type-comparison',
-  templateUrl: './devil-fruit-type-comparison.html',
-  imports: [CloseButton, DevilFruitTypeCard, LoadingPlaceholder, TranslocoPipe, VersionChain],
+  selector: 'app-entity-comparison',
+  templateUrl: './entity-comparison.html',
+  imports: [CloseButton, EntityCard, LoadingPlaceholder, TranslocoPipe, VersionChain],
 })
-export class DevilFruitTypeComparison {
+export class EntityComparison {
+  private readonly entity = inject(ENTITY);
   private readonly transloco = inject(TranslocoService);
   private readonly currentUser = inject(CurrentUserService);
 
-  /** Where the versions of the content are read from: `…/devil-fruit-types/{id}/versions`. */
+  /** Where the versions of the content are read from: `…/{section}/{id}/versions`. */
   readonly versionsUrl = input.required<string>();
   /** The chain the caller may see, oldest first. */
   readonly versions = input.required<readonly VersionSummary[]>();
@@ -143,11 +140,11 @@ export class DevilFruitTypeComparison {
     computation: () => false,
   });
 
-  private readonly shownVersion = httpResource<Version<DevilFruitType>>(() => {
+  private readonly shownVersion = httpResource<Version<EntityBody>>(() => {
     const shown = this.shownNumber();
     return shown === null ? undefined : `${this.versionsUrl()}/${shown}`;
   });
-  private readonly baseVersion = httpResource<Version<DevilFruitType>>(() => {
+  private readonly baseVersion = httpResource<Version<EntityBody>>(() => {
     const base = this.baseNumber();
     return base === null ? undefined : `${this.versionsUrl()}/${base}`;
   });
@@ -173,10 +170,10 @@ export class DevilFruitTypeComparison {
     return this.pair() ? 'ready' : 'loading';
   });
 
-  private readonly diffs = computed<FieldDiff<DevilFruitTypeField>[]>(() => {
+  private readonly diffs = computed<FieldDiff<EntityFieldRef>[]>(() => {
     const pair = this.pair();
     const order = this.languages().map((language) => language.code);
-    return pair ? diffDevilFruitTypes(pair.base?.body ?? null, pair.shown.body, order) : [];
+    return pair ? diffBodies(this.entity, pair.base?.body ?? null, pair.shown.body, order) : [];
   });
 
   protected readonly changedRows = computed(() => {
@@ -302,7 +299,7 @@ export class DevilFruitTypeComparison {
     }
   }
 
-  private toRow(diff: FieldDiff<DevilFruitTypeField>): DiffRow {
+  private toRow(diff: FieldDiff<EntityFieldRef>): DiffRow {
     const { field, language } = diff.field;
     return {
       key: `${field}.${language ?? ''}`,

@@ -38,8 +38,8 @@
             <p
               class="inline-flex items-center gap-1.5 font-display text-xs font-bold tracking-[0.12em] text-flag-600 uppercase"
             >
-              <app-icon class="text-[15px] text-ocean-800" [icon]="typeIcon" />
-              <span>{{ 'content.devilFruitTypes.one' | transloco }}</span>
+              <app-icon class="text-[15px] text-ocean-800" [icon]="entity.icon" />
+              <span>{{ entity.i18n + '.one' | transloco }}</span>
               <app-content-serial [contentId]="id()" />
             </p>
             <h1 class="mt-px font-display text-[26px] leading-tight font-bold text-ocean-950">
@@ -157,7 +157,7 @@
 
         <div class="min-w-0 px-5.5 pt-5 pb-5.5" role="tabpanel">
           @if (openTab() === 'overview') {
-            <app-devil-fruit-type-card [devilFruitType]="version.body" [languages]="languages()" />
+            <app-entity-card [body]="version.body" [languages]="languages()" />
           } @else {
             <app-version-workflow
               [version]="version"
@@ -173,7 +173,7 @@
 
   <app-version-actions [reload]="reload" />
 
-  <app-devil-fruit-type-comparison
+  <app-entity-comparison
     [versionsUrl]="versionsUrl()"
     [versions]="versions()"
     [onlineVersionNumber]="onlineVersionNumber()"

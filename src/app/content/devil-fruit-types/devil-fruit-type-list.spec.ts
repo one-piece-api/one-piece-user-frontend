@@ -5,7 +5,9 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
-import { DevilFruitTypeList } from './devil-fruit-type-list';
+import { ENTITY } from '../entity/entities';
+import { EntityList } from '../entity/entity-list';
+import { DEVIL_FRUIT_TYPE } from './devil-fruit-type.model';
 
 const LIST = '/api/content/devil-fruit-types';
 
@@ -71,7 +73,8 @@ describe('DevilFruitTypeList', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([{ path: 'content/devil-fruit-types', component: DevilFruitTypeList }]),
+        { provide: ENTITY, useValue: DEVIL_FRUIT_TYPE },
+        provideRouter([{ path: 'content/devil-fruit-types', component: EntityList }]),
       ],
     }).compileComponents();
     httpTesting = TestBed.inject(HttpTestingController);

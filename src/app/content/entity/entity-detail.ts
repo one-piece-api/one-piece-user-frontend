@@ -27,25 +27,24 @@ import { defaultBase } from '../version-comparison';
 import { REJECTED_ACTION } from '../version-event';
 import { VersionActions } from '../version-actions';
 import { VersionWorkflow } from '../version-workflow';
-import { DevilFruitTypeCard } from './devil-fruit-type-card';
-import { DevilFruitTypeComparison } from './devil-fruit-type-comparison';
-import { DEVIL_FRUIT_TYPE_ICON, namesOf, type DevilFruitType } from './devil-fruit-type.model';
-
-const ENDPOINT = '/api/content/devil-fruit-types';
-const LIST_ROUTE = '/content/devil-fruit-types';
+import { namesOf, type EntityBody } from '../entity/entity-body';
+import { ENTITY } from './entities';
+import { EntityCard } from './entity-card';
+import { EntityComparison } from './entity-comparison';
 
 /** The query parameters this page keeps its view in, so a link reopens the same version. */
 const PARAM = { version: 'v', tab: 'tab' } as const;
 
 const TABS = [
-  { id: 'overview', labelKey: 'content.detail.tab.overview', icon: DEVIL_FRUIT_TYPE_ICON },
+  // The overview is drawn with the entity's own icon.
+  { id: 'overview', labelKey: 'content.detail.tab.overview', icon: null },
   { id: 'workflow', labelKey: 'content.detail.tab.workflow', icon: '⚓' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
 /** A version and its history, loaded together so the screen never shows one without the other. */
 interface VersionView {
-  readonly version: Version<DevilFruitType>;
+  readonly version: Version<EntityBody>;
   readonly events: VersionEvent[];
 }
 
@@ -53,20 +52,20 @@ interface VersionView {
 const NOT_FOUND_STATUSES = [400, 404];
 
 /**
- * The detail of a Devil Fruit Type (UF-CNT-12): its header, the chain of the versions the
+ * The detail of a content of any entity (UF-CNT-12): its header, the chain of the versions the
  * caller may see, and the selected version's card and workflow. The selected version and the
  * open tab live in the URL's query parameters; without them the most recent visible version
  * is shown.
  */
 @Component({
-  selector: 'app-devil-fruit-type-detail',
-  templateUrl: './devil-fruit-type-detail.html',
+  selector: 'app-entity-detail',
+  templateUrl: './entity-detail.html',
   imports: [
     Breadcrumb,
     ContentSerial,
     Icon,
-    DevilFruitTypeCard,
-    DevilFruitTypeComparison,
+    EntityCard,
+    EntityComparison,
     LoadingPlaceholder,
     RouterLink,
     StatusBadge,
@@ -76,8 +75,8 @@ const NOT_FOUND_STATUSES = [400, 404];
     VersionWorkflow,
   ],
 })
-export class DevilFruitTypeDetail {
-  protected readonly typeIcon = DEVIL_FRUIT_TYPE_ICON;
+export class EntityDetail {
+  protected readonly entity = inject(ENTITY);
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -90,7 +89,7 @@ export class DevilFruitTypeDetail {
   readonly v = input<string>();
   readonly tab = input<string>();
 
-  private readonly content = httpResource<Content>(() => `${ENDPOINT}/${this.id()}`);
+  private readonly content = httpResource<Content>(() => `${this.entity.api}/${this.id()}`);
 
   /** The chain: the versions the caller may see, oldest first, and which one is online. */
   protected readonly versions = computed(() =>
@@ -107,9 +106,9 @@ export class DevilFruitTypeDetail {
 
   private readonly versionUrl = computed(() => {
     const selected = this.selected();
-    return selected ? `${ENDPOINT}/${this.id()}/versions/${selected.number}` : undefined;
+    return selected ? `${this.entity.api}/${this.id()}/versions/${selected.number}` : undefined;
   });
-  private readonly version = httpResource<Version<DevilFruitType>>(() => this.versionUrl());
+  private readonly version = httpResource<Version<EntityBody>>(() => this.versionUrl());
   private readonly versionEvents = httpResource<VersionEvent[]>(() => {
     const url = this.versionUrl();
     return url ? `${url}/events` : undefined;
@@ -159,7 +158,7 @@ export class DevilFruitTypeDetail {
     this.transloco.activeLang();
     const crumbs: Crumb[] = [
       contentsCrumb(this.transloco),
-      { label: this.transloco.translate('content.devilFruitTypes.title'), route: LIST_ROUTE },
+      { label: this.transloco.translate(`${this.entity.i18n}.title`), route: this.entity.route },
     ];
     // The last crumb is never a link: without the content's own, the section's would be it.
     crumbs.push({
@@ -199,14 +198,14 @@ export class DevilFruitTypeDetail {
     return { title: `v${version.number} · ${status}`, line: parts.join(' · '), compareLabel };
   });
 
-  protected readonly tabs = TABS;
+  protected readonly tabs = TABS.map((tab) => ({ ...tab, icon: tab.icon ?? this.entity.icon }));
   protected readonly openTab = computed<TabId>(() =>
     this.tab() === 'workflow' ? 'workflow' : 'overview',
   );
 
   /** The version being compared with an earlier one, `null` while the panel is closed. */
   protected readonly comparing = signal<number | null>(null);
-  protected readonly versionsUrl = computed(() => `${ENDPOINT}/${this.id()}/versions`);
+  protected readonly versionsUrl = computed(() => `${this.entity.api}/${this.id()}/versions`);
 
   /** Runs the workflow actions, with their dialogs - shared with the dashboard. */
   private readonly actions = viewChild(VersionActions);
@@ -238,7 +237,7 @@ export class DevilFruitTypeDetail {
   });
 
   protected readonly backButtonClasses = buttonClasses('secondary');
-  protected readonly listRoute = LIST_ROUTE;
+  protected readonly listRoute = this.entity.route;
 
   protected compare(): void {
     this.comparing.set(this.shown()?.number ?? null);
@@ -256,10 +255,10 @@ export class DevilFruitTypeDetail {
     }
     this.actions()?.run(
       {
-        contentUrl: `${ENDPOINT}/${this.id()}`,
-        contentRoute: `${LIST_ROUTE}/${this.id()}`,
+        contentUrl: `${this.entity.api}/${this.id()}`,
+        contentRoute: `${this.entity.route}/${this.id()}`,
         name: this.title(),
-        entityLabel: this.transloco.translate('content.devilFruitTypes.one'),
+        entity: this.entity,
         version,
         onlineVersionNumber: this.onlineVersionNumber(),
       },
@@ -276,10 +275,12 @@ export class DevilFruitTypeDetail {
   private async refresh(): Promise<void> {
     const versionUrlBefore = this.versionUrl();
     try {
-      this.content.set(await firstValueFrom(this.http.get<Content>(`${ENDPOINT}/${this.id()}`)));
+      this.content.set(
+        await firstValueFrom(this.http.get<Content>(`${this.entity.api}/${this.id()}`)),
+      );
     } catch (error) {
       if (isNotFound(error)) {
-        void this.router.navigate([LIST_ROUTE]);
+        void this.router.navigate([this.entity.route]);
         return;
       }
       this.content.reload();

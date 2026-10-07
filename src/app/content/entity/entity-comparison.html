@@ -238,7 +238,7 @@
               }
             </div>
           } @else if (shownBody(); as body) {
-            <app-devil-fruit-type-card [devilFruitType]="body" [languages]="languages()" />
+            <app-entity-card [body]="body" [languages]="languages()" />
             <p class="mt-2.5 font-heading text-xs font-bold text-ocean-500">
               {{ 'content.comparison.frozen' | transloco }}
             </p>

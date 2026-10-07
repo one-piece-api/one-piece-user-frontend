@@ -1,13 +1,15 @@
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
-import { DevilFruitTypeCard } from './devil-fruit-type-card';
-import type { DevilFruitType } from './devil-fruit-type.model';
+import { ENTITY } from '../entity/entities';
+import { EntityCard } from '../entity/entity-card';
+import type { EntityBody } from '../entity/entity-body';
+import { DEVIL_FRUIT_TYPE } from './devil-fruit-type.model';
 
 const ITALIAN = { code: 'it', name: 'Italiano' };
 const ENGLISH = { code: 'en', name: 'English' };
 
 /** Complete in English; in Italian, still without a description and disadvantages. */
-const LOGIA: DevilFruitType = {
+const LOGIA: EntityBody = {
   romaji: 'Shizen-kei',
   translations: {
     en: {
@@ -21,16 +23,19 @@ const LOGIA: DevilFruitType = {
 };
 
 describe('DevilFruitTypeCard', () => {
-  let fixture: ComponentFixture<DevilFruitTypeCard>;
+  let fixture: ComponentFixture<EntityCard>;
   let root: HTMLElement;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+    TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [{ provide: ENTITY, useValue: DEVIL_FRUIT_TYPE }],
+    });
   });
 
-  function render(devilFruitType: DevilFruitType, languages = [ITALIAN, ENGLISH]): void {
-    fixture = TestBed.createComponent(DevilFruitTypeCard);
-    fixture.componentRef.setInput('devilFruitType', devilFruitType);
+  function render(devilFruitType: EntityBody, languages = [ITALIAN, ENGLISH]): void {
+    fixture = TestBed.createComponent(EntityCard);
+    fixture.componentRef.setInput('body', devilFruitType);
     fixture.componentRef.setInput('languages', languages);
     fixture.detectChanges();
     root = fixture.nativeElement as HTMLElement;
@@ -102,7 +107,7 @@ describe('DevilFruitTypeCard', () => {
     render(LOGIA);
     tabs()[0].click();
 
-    fixture.componentRef.setInput('devilFruitType', {
+    fixture.componentRef.setInput('body', {
       romaji: 'Shizen-kei',
       translations: {
         it: { name: 'Rogia v2', description: 'Elementale.', advantages: null, disadvantages: null },

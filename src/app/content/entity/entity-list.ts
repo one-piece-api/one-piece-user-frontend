@@ -27,9 +27,7 @@ import {
 import { formatSort, nextSort, parseSort, type ListSort } from '../list-sort';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
-import { DEVIL_FRUIT_TYPE_ICON } from './devil-fruit-type.model';
-
-const ENDPOINT = '/api/content/devil-fruit-types';
+import { ENTITY } from './entities';
 
 /** How long the search box waits after the last keystroke before filtering. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -51,8 +49,8 @@ type SortField = (typeof SORT_FIELDS)[number];
 /** Last update, newest first: what the backend does when no sort is asked for. */
 const DEFAULT_SORT: ListSort<SortField> = { field: 'updatedAt', direction: 'desc' };
 
-/** What a list row shows of a Devil Fruit Type version: its romaji and its names. */
-interface DevilFruitTypeNames {
+/** What a list row shows of a version, whatever the entity: its romaji and its names. */
+interface RowNames {
   romaji: string | null;
   names: Record<string, string>;
 }
@@ -73,15 +71,15 @@ interface RowView {
 }
 
 /**
- * The Devil Fruit Type section (UF-CNT-18): one row per content, by the most recent version
+ * The section of an entity (UF-CNT-18): one row per content, by the most recent version
  * the caller may see, with search, filters and pagination done by the backend. Page and
  * filters live in the URL's query parameters, so leaving and coming back - or sharing the
  * link - shows the same view. What the caller sees and may do comes from their
  * permissions, never from a role name.
  */
 @Component({
-  selector: 'app-devil-fruit-type-list',
-  templateUrl: './devil-fruit-type-list.html',
+  selector: 'app-entity-list',
+  templateUrl: './entity-list.html',
   imports: [
     Breadcrumb,
     Icon,
@@ -94,8 +92,8 @@ interface RowView {
     TranslocoPipe,
   ],
 })
-export class DevilFruitTypeList {
-  protected readonly typeIcon = DEVIL_FRUIT_TYPE_ICON;
+export class EntityList {
+  protected readonly entity = inject(ENTITY);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -123,15 +121,15 @@ export class DevilFruitTypeList {
   protected readonly searchText = linkedSignal(() => this.query());
   private readonly typedSearches = new Subject<string>();
 
-  protected readonly rows = httpResource<PageResponse<ContentSummary<DevilFruitTypeNames>>>(() => {
+  protected readonly rows = httpResource<PageResponse<ContentSummary<RowNames>>>(() => {
     if (this.sort()?.field === 'name') {
       // Sorted by the name in the reading language (sent as Accept-Language): reload on a switch.
       this.transloco.activeLang();
     }
-    return `${ENDPOINT}?${this.listQuery()}`;
+    return `${this.entity.api}?${this.listQuery()}`;
   });
-  protected readonly summary = httpResource<ContentListSummary>(() => `${ENDPOINT}/summary`);
-  protected readonly authors = httpResource<ContentUser[]>(() => `${ENDPOINT}/authors`);
+  protected readonly summary = httpResource<ContentListSummary>(() => `${this.entity.api}/summary`);
+  protected readonly authors = httpResource<ContentUser[]>(() => `${this.entity.api}/authors`);
 
   protected readonly myUsername = computed(() => this.currentUser.me.value()?.username ?? '');
   protected readonly canWrite = computed(() => this.currentUser.hasPermission('content:write'));
@@ -144,7 +142,7 @@ export class DevilFruitTypeList {
     this.transloco.activeLang();
     return [
       contentsCrumb(this.transloco),
-      { label: this.transloco.translate('content.devilFruitTypes.title') },
+      { label: this.transloco.translate(`${this.entity.i18n}.title`) },
     ];
   });
 
@@ -299,7 +297,7 @@ export class DevilFruitTypeList {
     return search.toString();
   }
 
-  private toRowView(row: ContentSummary<DevilFruitTypeNames>, language: string): RowView {
+  private toRowView(row: ContentSummary<RowNames>, language: string): RowView {
     const { romaji, names } = row.body;
     const authoredByMe = row.author.username === this.myUsername();
     const you = this.transloco.translate('content.list.you');

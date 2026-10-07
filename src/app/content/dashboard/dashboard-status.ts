@@ -18,13 +18,14 @@ import {
   type VersionAction,
   type VersionStatus,
 } from '../content.model';
+import { ENTITIES, entityIcon, entityLabelKey, entityOf } from '../entity/entities';
+import type { EntityDefinition } from '../entity/entity-definition';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, STATUS_GLYPH, STATUS_SOFT_CLASS } from '../status-badge';
 import { VersionActions, type ActionTarget } from '../version-actions';
 import {
   ACTION_LOOK,
   DASHBOARD_ROUTE,
-  ENTITY_SECTION,
   hasMineScope,
   legendFor,
   rowActions,
@@ -71,8 +72,9 @@ interface ActionIcon {
 interface RowView {
   readonly row: StatusRow;
   readonly name: string;
-  readonly link: string;
-  readonly api: string;
+  /** Its entity - `null` for one this app has no pages for yet: no link, no actions. */
+  readonly entity: EntityDefinition | null;
+  readonly link: string | null;
   readonly versionParam: number;
   readonly entityLabel: string;
   readonly entityIcon: string;
@@ -189,9 +191,9 @@ export class DashboardStatus {
     );
   });
 
-  protected readonly entityOptions = Object.entries(ENTITY_SECTION).map(([type, section]) => ({
-    type,
-    labelKey: section.labelKey,
+  protected readonly entityOptions = ENTITIES.map((entity) => ({
+    type: entity.entityType,
+    labelKey: entityLabelKey(entity),
   }));
 
   /** The authors to filter by: the caller first, as "you", when they wrote one of the rows. */
@@ -297,7 +299,10 @@ export class DashboardStatus {
   /** Runs an action from a row, without opening it. */
   protected act(event: Event, view: RowView, action: VersionAction): void {
     event.stopPropagation();
-    this.actions()?.run(this.targetOf(view), action);
+    const target = this.targetOf(view);
+    if (target) {
+      this.actions()?.run(target, action);
+    }
   }
 
   /**
@@ -319,13 +324,16 @@ export class DashboardStatus {
     this.authors.reload();
   }
 
-  private targetOf(view: RowView): ActionTarget {
-    const { row } = view;
+  private targetOf(view: RowView): ActionTarget | null {
+    const { row, entity } = view;
+    if (!entity) {
+      return null;
+    }
     return {
-      contentUrl: view.api,
-      contentRoute: view.link,
+      contentUrl: `${entity.api}/${row.contentId}`,
+      contentRoute: `${entity.route}/${row.contentId}`,
       name: view.name,
-      entityLabel: view.entityLabel,
+      entity,
       version: {
         number: row.versionNumber,
         status: row.status,
@@ -374,18 +382,18 @@ export class DashboardStatus {
     const you = this.transloco.translate('content.list.you');
     const authoredByMe = row.author.username === me;
     const claimedByMe = row.claimant?.username === me;
-    const section = ENTITY_SECTION[row.entityType];
+    const entity = entityOf(row.entityType);
     const noteKey = rowNoteKey(row, me);
     return {
       row,
       name:
         (row.title && (localizedName(row.title.names, language) ?? row.title.fallback)) ||
         this.transloco.translate('content.list.unnamed'),
-      link: `${section.route}/${row.contentId}`,
-      api: `${section.api}/${row.contentId}`,
+      entity,
+      link: entity && `${entity.route}/${row.contentId}`,
       versionParam: row.versionNumber,
-      entityLabel: this.transloco.translate(section.labelKey),
-      entityIcon: section.icon,
+      entityLabel: this.transloco.translate(entityLabelKey(entity)),
+      entityIcon: entityIcon(entity),
       author: authoredByMe ? you : row.author.username,
       authorInitials: authoredByMe ? you : initialsOf(row.author.username),
       authoredByMe,
@@ -398,7 +406,7 @@ export class DashboardStatus {
             })
         : null,
       claimedByMe,
-      actions: rowActions(row).map((action) => ({
+      actions: (entity ? rowActions(row) : []).map((action) => ({
         action,
         glyph: ACTION_LOOK[action].glyph,
         label: this.transloco.translate(actionLabelKey(action, row.status), {

@@ -7,23 +7,21 @@
       class="min-w-0 rounded-xl bg-white/80 px-4 py-2 shadow-md backdrop-blur-sm"
     >
       <p class="font-display text-[11px] font-bold tracking-widest text-flag-600 uppercase">
-        {{ 'content.devilFruitTypes.kicker' | transloco }}
+        {{ entity.i18n + '.kicker' | transloco }}
       </p>
       <h1
         class="flex items-center gap-2.5 font-display text-2xl leading-tight font-bold text-balance text-ocean-950"
       >
-        <app-icon class="text-lg text-ocean-700" [icon]="typeIcon" />{{
-          'content.devilFruitTypes.title' | transloco
+        <app-icon class="text-lg text-ocean-700" [icon]="entity.icon" />{{
+          entity.i18n + '.title' | transloco
         }}
       </h1>
       <p class="mt-1 max-w-xl font-heading text-[13px] font-bold text-pretty text-ocean-500">
-        {{ 'content.devilFruitTypes.lead' | transloco }}
+        {{ entity.i18n + '.lead' | transloco }}
       </p>
     </div>
     @if (canWrite()) {
-      <a routerLink="new" [class]="newButtonClasses">{{
-        'content.devilFruitTypes.new' | transloco
-      }}</a>
+      <a routerLink="new" [class]="newButtonClasses">{{ entity.i18n + '.new' | transloco }}</a>
     }
   </div>
 

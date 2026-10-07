@@ -48,21 +48,23 @@
     </p>
   </div>
 
-  @if (description(); as longText) {
-    <ng-container
-      [ngTemplateOutlet]="textBlock"
-      [ngTemplateOutletContext]="{ $implicit: longText }"
-    />
-  }
-
-  <div class="grid items-start gap-3.5 md:grid-cols-2">
-    @for (longText of contrasts(); track longText.field) {
+  @for (block of blocks(); track $index) {
+    @if (block.layout === 'wide') {
       <ng-container
         [ngTemplateOutlet]="textBlock"
-        [ngTemplateOutletContext]="{ $implicit: longText }"
+        [ngTemplateOutletContext]="{ $implicit: block.text }"
       />
+    } @else {
+      <div class="grid items-start gap-3.5 md:grid-cols-2">
+        @for (longText of block.texts; track longText.field) {
+          <ng-container
+            [ngTemplateOutlet]="textBlock"
+            [ngTemplateOutletContext]="{ $implicit: longText }"
+          />
+        }
+      </div>
     }
-  </div>
+  }
 </section>
 
 <ng-template #textBlock let-longText>

@@ -21,29 +21,21 @@ import {
 import { discardConfirmation, discardDoneMessage, versionLeftAfterDiscard } from '../discard-draft';
 import { LanguageCatalogService } from '../language-catalog';
 import { refusedSlug } from '../version-transition';
+import { ENTITY } from './entities';
 import {
-  ADVANTAGES_MAX_LENGTH,
-  DESCRIPTION_MAX_LENGTH,
-  DISADVANTAGES_MAX_LENGTH,
-  LONG_TEXT_FIELDS,
-  NAME_MAX_LENGTH,
-  ROMAJI_MAX_LENGTH,
   draftFieldKey,
-  DEVIL_FRUIT_TYPE_ICON,
   draftOf,
   isTranslationComplete,
+  localizedFields,
   namesOf,
   readinessChecks,
-  toDevilFruitType,
-  type DevilFruitType,
-  type DevilFruitTypeDraft,
-  type DraftField,
-  type LongTextField,
+  sharedFields,
+  toBody,
+  type EntityBody,
+  type EntityDraft,
   type TranslationDraft,
-} from './devil-fruit-type.model';
-
-const ENDPOINT = '/api/content/devil-fruit-types';
-const LIST_ROUTE = '/content/devil-fruit-types';
+} from './entity-body';
+import { textOf } from './field-kinds';
 
 /** What the backend answers for a content that is not there - or not for this caller. */
 const NOT_FOUND_STATUSES = [400, 404];
@@ -76,21 +68,6 @@ const SAVE_ERROR_KEY: Record<string, string> = {
 const CHECK_DONE = { classes: 'bg-success-100 text-success-700', mark: '✓' };
 const CHECK_MISSING = { classes: 'bg-treasure-100 text-treasure-700', mark: '!' };
 
-const READY_LABEL_KEY: Record<DraftField, string> = {
-  romaji: 'content.editor.ready.romaji',
-  name: 'content.editor.ready.name',
-  description: 'content.editor.ready.description',
-  advantages: 'content.editor.ready.advantages',
-  disadvantages: 'content.editor.ready.disadvantages',
-};
-
-/** The height of each long text box: the description is the longest read. */
-const LONG_TEXT_ROWS: Record<LongTextField, number> = {
-  description: 8,
-  advantages: 5,
-  disadvantages: 5,
-};
-
 /** One language tab of the editor. */
 interface LanguageTab {
   readonly code: string;
@@ -110,20 +87,20 @@ interface CheckView {
 }
 
 /**
- * The editor of a Devil Fruit Type draft (UF-CNT-01, UF-CNT-02): the romaji, then a name, a
- * description, advantages and disadvantages per language of the catalog, and how far the draft is from being ready for
- * review. Without an id it writes a new content, which is created by its first save; with
+ * The editor of a draft of any entity (UF-CNT-01, UF-CNT-02): the fields shared by every
+ * language, then the translated ones per language of the catalog, as the definition lists
+ * them, and how far the draft is from being ready for review. Without an id it writes a new content, which is created by its first save; with
  * one it edits the draft the caller may edit - told by the backend, never worked out here.
  * A draft is saved incomplete: the checklist informs, it does not block. The draft can also
  * be discarded (UF-CNT-11), after a confirmation saying what is left once it is gone.
  */
 @Component({
-  selector: 'app-devil-fruit-type-editor',
-  templateUrl: './devil-fruit-type-editor.html',
+  selector: 'app-entity-editor',
+  templateUrl: './entity-editor.html',
   imports: [Breadcrumb, ConfirmDialog, Icon, LoadingPlaceholder, RouterLink, TranslocoPipe],
 })
-export class DevilFruitTypeEditor {
-  protected readonly typeIcon = DEVIL_FRUIT_TYPE_ICON;
+export class EntityEditor {
+  protected readonly entity = inject(ENTITY);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -137,7 +114,7 @@ export class DevilFruitTypeEditor {
 
   private readonly content = httpResource<Content>(() => {
     const id = this.id();
-    return id ? `${ENDPOINT}/${id}` : undefined;
+    return id ? `${this.entity.api}/${id}` : undefined;
   });
 
   /** The version being edited: the one of the chain the backend lets the caller edit. */
@@ -147,23 +124,23 @@ export class DevilFruitTypeEditor {
 
   private readonly versionUrl = computed(() => {
     const editable = this.editable();
-    return editable ? `${ENDPOINT}/${this.id()}/versions/${editable.number}` : undefined;
+    return editable ? `${this.entity.api}/${this.id()}/versions/${editable.number}` : undefined;
   });
-  private readonly version = httpResource<Version<DevilFruitType>>(() => this.versionUrl());
+  private readonly version = httpResource<Version<EntityBody>>(() => this.versionUrl());
 
   protected readonly languages = computed(() => this.languageCatalog.languages.value() ?? []);
   private readonly languageCodes = computed(() => this.languages().map(({ code }) => code));
 
   /** What the editor starts from, once everything it needs has arrived. */
-  private readonly saved = computed<DevilFruitTypeDraft | null>(() => {
+  private readonly saved = computed<EntityDraft | null>(() => {
     if (!this.languageCatalog.languages.hasValue()) {
       return null;
     }
     if (this.isNew()) {
-      return draftOf(null, this.languageCodes());
+      return draftOf(this.entity, null, this.languageCodes());
     }
     return this.version.hasValue()
-      ? draftOf(this.version.value().body, this.languageCodes())
+      ? draftOf(this.entity, this.version.value().body, this.languageCodes())
       : null;
   });
 
@@ -190,31 +167,28 @@ export class DevilFruitTypeEditor {
   });
   protected readonly languageLabel = computed(() => this.language()?.toUpperCase() ?? '');
 
-  /** The translation on screen. */
-  protected readonly translation = computed<TranslationDraft>(
-    () =>
-      this.draft()?.translations[this.language() ?? ''] ?? {
-        name: '',
-        description: '',
-        advantages: '',
-        disadvantages: '',
-      },
-  );
-
   /** The fields the backend refused at the last save, by key (`romaji`, `it.name`), with why. */
   private readonly refusedFields = signal<Record<string, string>>({});
-  protected readonly romajiError = computed(() => this.refusedFields()['romaji'] ?? null);
-  protected readonly nameError = computed(
-    () => this.refusedFields()[`${this.language()}.name`] ?? null,
-  );
-  /** The long texts of the language on screen, each with why the backend refused it, if it did. */
-  protected readonly longTexts = computed(() =>
-    LONG_TEXT_FIELDS.map((field) => ({
+
+  /** The fields shared by every language, each with its value and why the backend refused it. */
+  protected readonly sharedViews = computed(() => {
+    const draft = this.draft();
+    return sharedFields(this.entity).map((field) => ({
       field,
-      rows: LONG_TEXT_ROWS[field],
-      error: this.refusedFields()[`${this.language()}.${field}`] ?? null,
-    })),
-  );
+      value: textOf(draft?.[field.key]),
+      error: this.refusedFields()[field.key] ?? null,
+    }));
+  });
+  /** The translated fields in the language on screen, likewise. */
+  protected readonly localizedViews = computed(() => {
+    const language = this.language();
+    const translation = this.draft()?.translations[language ?? ''];
+    return localizedFields(this.entity).map((field) => ({
+      field,
+      value: textOf(translation?.[field.key]),
+      error: this.refusedFields()[`${language}.${field.key}`] ?? null,
+    }));
+  });
 
   protected readonly tabs = computed<LanguageTab[]>(() => {
     const draft = this.draft();
@@ -224,7 +198,7 @@ export class DevilFruitTypeEditor {
       label: code.toUpperCase(),
       name,
       selected: code === this.language(),
-      incomplete: !isTranslationComplete(draft?.translations[code]),
+      incomplete: !isTranslationComplete(this.entity, draft?.translations[code]),
       refused: refused.some((key) => key.startsWith(`${code}.`)),
     }));
   });
@@ -232,13 +206,13 @@ export class DevilFruitTypeEditor {
   /** "Ready for review": the romaji, then every translated field per language. */
   private readonly readiness = computed(() => {
     const draft = this.draft();
-    return draft ? readinessChecks(draft, this.languageCodes()) : [];
+    return draft ? readinessChecks(this.entity, draft, this.languageCodes()) : [];
   });
   protected readonly checks = computed<CheckView[]>(() => {
     this.transloco.activeLang();
     const languageNames = new Map(this.languages().map(({ code, name }) => [code, name]));
     return this.readiness().map((check) => ({
-      label: this.transloco.translate(READY_LABEL_KEY[check.field], {
+      label: this.transloco.translate(`content.editor.ready.${check.field}`, {
         language: languageNames.get(check.language ?? '') ?? '',
       }),
       ...(check.done ? CHECK_DONE : CHECK_MISSING),
@@ -258,11 +232,11 @@ export class DevilFruitTypeEditor {
     if (!draft) {
       return '';
     }
-    const written = toDevilFruitType(draft);
+    const written = toBody(this.entity, draft);
     return (
       localizedName(namesOf(written), language) ??
       written.romaji ??
-      this.transloco.translate('content.editor.newTitle')
+      this.transloco.translate(`${this.entity.i18n}.newTitle`)
     );
   });
 
@@ -298,10 +272,10 @@ export class DevilFruitTypeEditor {
     this.transloco.activeLang();
     const crumbs: Crumb[] = [
       contentsCrumb(this.transloco),
-      { label: this.transloco.translate('content.devilFruitTypes.title'), route: LIST_ROUTE },
+      { label: this.transloco.translate(`${this.entity.i18n}.title`), route: this.entity.route },
     ];
     if (this.isNew()) {
-      crumbs.push({ label: this.transloco.translate('content.editor.newTitle') });
+      crumbs.push({ label: this.transloco.translate(`${this.entity.i18n}.newTitle`) });
     } else {
       crumbs.push(
         {
@@ -317,7 +291,7 @@ export class DevilFruitTypeEditor {
   /** Where leaving the editor leads: the content being edited, or the list for a new one. */
   protected readonly backRoute = computed(() => {
     const id = this.id();
-    return id ? `${LIST_ROUTE}/${id}` : LIST_ROUTE;
+    return id ? `${this.entity.route}/${id}` : this.entity.route;
   });
 
   protected readonly saving = signal(false);
@@ -342,28 +316,17 @@ export class DevilFruitTypeEditor {
   });
 
   protected readonly backButtonClasses = buttonClasses('secondary');
-  protected readonly listRoute = LIST_ROUTE;
-  protected readonly maxLength = {
-    romaji: ROMAJI_MAX_LENGTH,
-    name: NAME_MAX_LENGTH,
-    description: DESCRIPTION_MAX_LENGTH,
-    advantages: ADVANTAGES_MAX_LENGTH,
-    disadvantages: DISADVANTAGES_MAX_LENGTH,
-  };
-
-  protected setRomaji(romaji: string): void {
-    this.draft.update((draft) => draft && { ...draft, romaji });
-    this.forgetRefusal('romaji');
+  protected readonly listRoute = this.entity.route;
+  /** Writes a field shared by every language. */
+  protected setShared(key: string, value: string): void {
+    this.draft.update((draft) => draft && { ...draft, [key]: value });
+    this.forgetRefusal(key);
   }
 
-  protected setName(name: string): void {
-    this.writeTranslation({ name });
-    this.forgetRefusal(`${this.language()}.name`);
-  }
-
-  protected setLongText(field: LongTextField, text: string): void {
-    this.writeTranslation({ [field]: text });
-    this.forgetRefusal(`${this.language()}.${field}`);
+  /** Writes a translated field, in the language on screen. */
+  protected setLocalized(key: string, value: string): void {
+    this.writeTranslation({ [key]: value });
+    this.forgetRefusal(`${this.language()}.${key}`);
   }
 
   /** Saves the draft as it is, complete or not, then goes to the content it belongs to. */
@@ -375,16 +338,16 @@ export class DevilFruitTypeEditor {
     this.saving.set(true);
     this.refusedFields.set({});
     try {
-      const body = toDevilFruitType(draft);
+      const body = toBody(this.entity, draft);
       const url = this.versionUrl();
       if (url) {
-        const saved = await firstValueFrom(this.http.put<Version<DevilFruitType>>(url, body));
+        const saved = await firstValueFrom(this.http.put<Version<EntityBody>>(url, body));
         this.mascot.show(this.transloco.translate('content.editor.saved'), 'success');
         await this.router.navigate([this.backRoute()], { queryParams: { v: saved.number } });
       } else {
-        const created = await firstValueFrom(this.http.post<Content>(ENDPOINT, body));
+        const created = await firstValueFrom(this.http.post<Content>(this.entity.api, body));
         this.mascot.show(this.transloco.translate('content.editor.created'), 'success');
-        await this.router.navigate([LIST_ROUTE, created.id]);
+        await this.router.navigate([this.entity.route, created.id]);
       }
     } catch (error) {
       this.onSaveRefused(error);
@@ -408,7 +371,8 @@ export class DevilFruitTypeEditor {
       await firstValueFrom(this.http.delete<void>(url));
       this.mascot.show(discardDoneMessage(this.transloco, number), 'success');
       // With nothing left, the content went too: back to the list.
-      const leftRoute = versionLeftAfterDiscard(number) === null ? LIST_ROUTE : this.backRoute();
+      const leftRoute =
+        versionLeftAfterDiscard(number) === null ? this.entity.route : this.backRoute();
       await this.router.navigate([leftRoute]);
     } catch (error) {
       this.onDiscardRefused(error);
@@ -446,7 +410,7 @@ export class DevilFruitTypeEditor {
       const message = this.transloco.translate(fieldErrorKey);
       const refused: Record<string, string> = {};
       for (const violation of apiError?.errors ?? []) {
-        const key = draftFieldKey(violation.field);
+        const key = draftFieldKey(this.entity, violation.field);
         if (key) {
           refused[key] = message;
         }
@@ -457,7 +421,7 @@ export class DevilFruitTypeEditor {
     this.mascot.show(this.transloco.translate(messageKey, { slug: refusedSlug(error) }), 'error');
   }
 
-  private writeTranslation(change: Partial<TranslationDraft>): void {
+  private writeTranslation(change: TranslationDraft): void {
     const language = this.language();
     if (!language) {
       return;

@@ -8,7 +8,9 @@ import { MascotService } from '../../shared/mascot/mascot';
 import { polyfillDialog } from '../../testing/dialog-polyfill';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import type { VersionAction, VersionStatus } from '../content.model';
-import { DevilFruitTypeEditor } from './devil-fruit-type-editor';
+import { ENTITY } from '../entity/entities';
+import { EntityEditor } from '../entity/entity-editor';
+import { DEVIL_FRUIT_TYPE } from './devil-fruit-type.model';
 
 const ID = '3f2a9c1b-0000-4000-8000-000000000001';
 const ENDPOINT = '/api/content/devil-fruit-types';
@@ -75,10 +77,11 @@ describe('DevilFruitTypeEditor', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: ENTITY, useValue: DEVIL_FRUIT_TYPE },
         provideRouter(
           [
-            { path: 'content/devil-fruit-types/new', component: DevilFruitTypeEditor },
-            { path: 'content/devil-fruit-types/:id/edit', component: DevilFruitTypeEditor },
+            { path: 'content/devil-fruit-types/new', component: EntityEditor },
+            { path: 'content/devil-fruit-types/:id/edit', component: EntityEditor },
             { path: 'content/devil-fruit-types/:id', component: Elsewhere },
             { path: 'content/devil-fruit-types', component: Elsewhere },
           ],

@@ -9,7 +9,7 @@ import {
   type VersionAction,
   type VersionStatus,
 } from '../content.model';
-import { DEVIL_FRUIT_TYPE_ICON } from '../devil-fruit-types/devil-fruit-type.model';
+import { entityOf } from '../entity/entities';
 import { eventKind } from '../version-event';
 
 /** The illustration that stands for the dashboard wherever the app shows an icon. */
@@ -18,21 +18,11 @@ export const DASHBOARD_ICON = 'assets/dashboard.webp';
 /** The glyph of the overview page itself: its menu entry and the first step of a trail. */
 export const OVERVIEW_ICON = '◎';
 
-/** The kinds of content, as the API names them. */
-export type EntityType = 'DEVIL_FRUIT_TYPE';
-
-/** Where each kind of content lives in the app and in the API, and how one of it is called. */
-export const ENTITY_SECTION: Record<
-  EntityType,
-  { route: string; api: string; labelKey: string; icon: string }
-> = {
-  DEVIL_FRUIT_TYPE: {
-    route: '/content/devil-fruit-types',
-    api: '/api/content/devil-fruit-types',
-    labelKey: 'content.devilFruitTypes.one',
-    icon: DEVIL_FRUIT_TYPE_ICON,
-  },
-};
+/**
+ * A kind of content, as the API names it - possibly one this app has no pages for yet
+ * (`entityOf` tells).
+ */
+export type EntityType = string;
 
 /**
  * One tile: how many contents have a version the caller sees in this status. `mine` is the
@@ -136,12 +126,16 @@ export function activityName(activity: Activity, language: string): string | nul
   return activity.label;
 }
 
-/** Where the action's content opens - `null` when the caller can no longer open it. */
+/**
+ * Where the action's content opens - `null` when the caller can no longer open it, or the
+ * app has no pages for its entity yet.
+ */
 export function activityLink(activity: Activity): string | null {
-  if (!activity.title || !activity.entityType) {
+  const entity = entityOf(activity.entityType);
+  if (!activity.title || !entity) {
     return null;
   }
-  return `${ENTITY_SECTION[activity.entityType].route}/${activity.contentId}`;
+  return `${entity.route}/${activity.contentId}`;
 }
 
 /**

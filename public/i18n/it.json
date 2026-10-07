@@ -16,7 +16,6 @@
       "contents": "Contenuti",
       "characters": "Personaggi",
       "devilFruits": "Frutti del Diavolo",
-      "devilFruitTypes": "Tipi di Frutto del Diavolo",
       "crews": "Ciurme",
       "soon": "in arrivo",
       "soonMessage": "{{label}} non è ancora attiva: arriverà con lo stesso schema di lista e dettaglio.",
@@ -652,7 +651,18 @@
       "title": "Tipi di Frutto del Diavolo",
       "lead": "Le categorie in cui si dividono i Frutti del Diavolo.",
       "new": "+ Nuovo tipo di frutto",
-      "one": "Tipo di Frutto"
+      "one": "Tipo di Frutto",
+      "newTitle": "Nuovo tipo di frutto",
+      "placeholder": {
+        "romaji": "es. Chōjin-kei",
+        "name": "nome nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata",
+        "advantages": "cosa dà questo tipo a chi lo possiede, nella lingua selezionata",
+        "disadvantages": "cosa costa a chi lo possiede, nella lingua selezionata"
+      }
+    },
+    "entity": {
+      "unknown": "Altro contenuto"
     },
     "list": {
       "search": "Cerca",
@@ -786,7 +796,6 @@
     },
     "editor": {
       "crumb": "Modifica",
-      "newTitle": "Nuovo tipo di frutto",
       "sublineNew": "nuova bozza · nasce al primo salvataggio",
       "subline": "tua bozza v{{version}}",
       "sublineOnline": "tua bozza v{{version}} · la v{{online}} resta online",
@@ -794,20 +803,7 @@
       "loading": "Apriamo la bozza…",
       "romaji": {
         "label": "Romaji",
-        "hint": "unico · condiviso da tutte le lingue",
-        "placeholder": "es. Chōjin-kei"
-      },
-      "name": {
-        "placeholder": "nome nella lingua selezionata"
-      },
-      "description": {
-        "placeholder": "descrizione nella lingua selezionata"
-      },
-      "advantages": {
-        "placeholder": "cosa dà questo tipo a chi lo possiede, nella lingua selezionata"
-      },
-      "disadvantages": {
-        "placeholder": "cosa costa a chi lo possiede, nella lingua selezionata"
+        "hint": "unico · condiviso da tutte le lingue"
       },
       "incomplete": "incompleta",
       "refused": "da correggere",

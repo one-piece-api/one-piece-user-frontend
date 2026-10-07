@@ -94,6 +94,10 @@ describe('activityLink', () => {
     expect(activityLink(activity({ title: null }))).toBeNull();
     expect(activityLink(activity({ entityType: null, title: null }))).toBeNull();
   });
+
+  it('leads nowhere for an entity the app has no pages for yet', () => {
+    expect(activityLink(activity({ entityType: 'DEVIL_FRUIT' }))).toBeNull();
+  });
 });
 
 describe('status pages', () => {

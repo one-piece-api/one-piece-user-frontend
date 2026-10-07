@@ -164,6 +164,22 @@ describe('DashboardStatus', () => {
     expect(new Set(icons)).toEqual(new Set(['assets/devil-fruit-type.webp']));
   });
 
+  it('shows a content of an entity the app has no pages for yet, without link or actions', async () => {
+    await open('/dashboard/in-review', page([row('c1', { entityType: 'DEVIL_FRUIT' })]));
+
+    const link = rows()[0].querySelector<HTMLAnchorElement>('[data-testid="status-row-link"]')!;
+    expect(link.querySelector('[data-testid="status-row-name"]')?.textContent?.trim()).toBe(
+      'Logia c1',
+    );
+    expect(link.getAttribute('href')).toBeNull();
+    expect(rows()[0].querySelectorAll('[data-testid="status-row-action"]')).toHaveLength(0);
+    expect(rows()[0].textContent).toContain('Other content');
+    const icons = Array.from(rows()[0].querySelectorAll('img')).map((image) =>
+      image.getAttribute('src'),
+    );
+    expect(new Set(icons)).toEqual(new Set(['assets/contents.webp']));
+  });
+
   it('says why a row offers nothing', async () => {
     await open('/dashboard/in-review', page([row('c1', { claimant: LAW, allowedActions: [] })]));
 

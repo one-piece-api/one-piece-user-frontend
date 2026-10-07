@@ -1,18 +1,19 @@
 import {
-  diffDevilFruitTypes,
+  diffBodies,
   draftFieldKey,
   draftOf,
   isTranslationComplete,
   namesOf,
   readinessChecks,
-  toDevilFruitType,
-  type DevilFruitTypeDraft,
-  type DevilFruitTypeTranslation,
+  toBody,
+  type EntityDraft,
+  type Translation,
   type TranslationDraft,
-} from './devil-fruit-type.model';
+} from '../entity/entity-body';
+import { DEVIL_FRUIT_TYPE } from './devil-fruit-type.model';
 
 /** A translation saying only what a test is about: every other field not written. */
-function translation(fields: Partial<DevilFruitTypeTranslation>): DevilFruitTypeTranslation {
+function translation(fields: Partial<Translation>): Translation {
   return { name: null, description: null, advantages: null, disadvantages: null, ...fields };
 }
 
@@ -30,7 +31,7 @@ const COMPLETE = translation({
 
 describe('isTranslationComplete', () => {
   it('is complete with a name, a description, advantages and disadvantages', () => {
-    expect(isTranslationComplete(COMPLETE)).toBe(true);
+    expect(isTranslationComplete(DEVIL_FRUIT_TYPE, COMPLETE)).toBe(true);
   });
 
   it.each([
@@ -40,11 +41,11 @@ describe('isTranslationComplete', () => {
     ['no advantages', { ...COMPLETE, advantages: null }],
     ['blank disadvantages', { ...COMPLETE, disadvantages: ' ' }],
   ])('is incomplete with %s', (_case, incomplete) => {
-    expect(isTranslationComplete(incomplete)).toBe(false);
+    expect(isTranslationComplete(DEVIL_FRUIT_TYPE, incomplete)).toBe(false);
   });
 
   it('is incomplete for a language the version does not have at all', () => {
-    expect(isTranslationComplete(undefined)).toBe(false);
+    expect(isTranslationComplete(DEVIL_FRUIT_TYPE, undefined)).toBe(false);
   });
 });
 
@@ -64,7 +65,7 @@ describe('namesOf', () => {
 
 describe('draftOf', () => {
   it('starts a new content from nothing, with a translation for every language', () => {
-    expect(draftOf(null, ['it', 'en'])).toEqual({
+    expect(draftOf(DEVIL_FRUIT_TYPE, null, ['it', 'en'])).toEqual({
       romaji: '',
       translations: { it: typed({}), en: typed({}) },
     });
@@ -72,6 +73,7 @@ describe('draftOf', () => {
 
   it('starts from what the version says, filling in what it lacks', () => {
     const draft = draftOf(
+      DEVIL_FRUIT_TYPE,
       {
         romaji: 'Shizen-kei',
         translations: {
@@ -89,9 +91,9 @@ describe('draftOf', () => {
   });
 });
 
-describe('toDevilFruitType', () => {
+describe('toBody', () => {
   it('saves a draft without the space around its texts, and nothing written as null', () => {
-    const draft: DevilFruitTypeDraft = {
+    const draft: EntityDraft = {
       romaji: '  Shizen-kei ',
       translations: {
         it: typed({ name: ' Rogia ', description: '   ', disadvantages: ' Acqua di mare\n' }),
@@ -99,7 +101,7 @@ describe('toDevilFruitType', () => {
       },
     };
 
-    expect(toDevilFruitType(draft)).toEqual({
+    expect(toBody(DEVIL_FRUIT_TYPE, draft)).toEqual({
       romaji: 'Shizen-kei',
       translations: {
         it: translation({ name: 'Rogia', disadvantages: 'Acqua di mare' }),
@@ -109,12 +111,12 @@ describe('toDevilFruitType', () => {
   });
 
   it('saves an empty romaji as null', () => {
-    expect(toDevilFruitType({ romaji: ' ', translations: {} }).romaji).toBeNull();
+    expect(toBody(DEVIL_FRUIT_TYPE, { romaji: ' ', translations: {} }).romaji).toBeNull();
   });
 });
 
 describe('readinessChecks', () => {
-  const half: DevilFruitTypeDraft = {
+  const half: EntityDraft = {
     romaji: 'Shizen-kei',
     translations: {
       it: typed({
@@ -128,7 +130,7 @@ describe('readinessChecks', () => {
   };
 
   it('asks for the romaji, then every translated field in every language', () => {
-    expect(readinessChecks(half, ['it', 'en'])).toEqual([
+    expect(readinessChecks(DEVIL_FRUIT_TYPE, half, ['it', 'en'])).toEqual([
       { field: 'romaji', language: null, done: true },
       { field: 'name', language: 'it', done: true },
       { field: 'description', language: 'it', done: true },
@@ -142,7 +144,7 @@ describe('readinessChecks', () => {
   });
 
   it('asks for a language of the catalog the draft has nothing for', () => {
-    const checks = readinessChecks(half, ['it', 'en', 'fr']);
+    const checks = readinessChecks(DEVIL_FRUIT_TYPE, half, ['it', 'en', 'fr']);
 
     expect(checks.filter((check) => check.language === 'fr')).toEqual([
       { field: 'name', language: 'fr', done: false },
@@ -161,18 +163,18 @@ describe('draftFieldKey', () => {
     ['translations[it].advantages', 'it.advantages'],
     ['translations[en].disadvantages', 'en.disadvantages'],
   ])('reads %s as %s', (field, key) => {
-    expect(draftFieldKey(field)).toBe(key);
+    expect(draftFieldKey(DEVIL_FRUIT_TYPE, field)).toBe(key);
   });
 
   it.each(['translations[it].other', 'something', 'translations.it.name'])(
     'does not know %s',
     (field) => {
-      expect(draftFieldKey(field)).toBeNull();
+      expect(draftFieldKey(DEVIL_FRUIT_TYPE, field)).toBeNull();
     },
   );
 });
 
-describe('diffDevilFruitTypes', () => {
+describe('diffBodies', () => {
   const v1 = {
     romaji: 'Rogia',
     translations: {
@@ -182,7 +184,7 @@ describe('diffDevilFruitTypes', () => {
   };
 
   /** "romaji", "name.it": the fields of a comparison, in order, with their change. */
-  function changes(diffs: ReturnType<typeof diffDevilFruitTypes>): string[] {
+  function changes(diffs: ReturnType<typeof diffBodies>): string[] {
     return diffs.map(
       ({ field, change }) => [field.field, field.language].filter(Boolean).join('.') + ':' + change,
     );
@@ -197,7 +199,7 @@ describe('diffDevilFruitTypes', () => {
       },
     };
 
-    expect(changes(diffDevilFruitTypes(v1, v2, ['it', 'en']))).toEqual([
+    expect(changes(diffBodies(DEVIL_FRUIT_TYPE, v1, v2, ['it', 'en']))).toEqual([
       'romaji:UNCHANGED',
       'name.it:UNCHANGED',
       'name.en:REMOVED',
@@ -219,7 +221,7 @@ describe('diffDevilFruitTypes', () => {
       },
     };
 
-    expect(changes(diffDevilFruitTypes(v1, v2, ['it', 'en'])).slice(-3)).toEqual([
+    expect(changes(diffBodies(DEVIL_FRUIT_TYPE, v1, v2, ['it', 'en'])).slice(-3)).toEqual([
       'advantages.it:ADDED',
       'disadvantages.it:ADDED',
       'disadvantages.en:ADDED',
@@ -227,7 +229,7 @@ describe('diffDevilFruitTypes', () => {
   });
 
   it('compares the first version with an empty content: everything it says is added', () => {
-    const diffs = diffDevilFruitTypes(null, v1, ['it', 'en']);
+    const diffs = diffBodies(DEVIL_FRUIT_TYPE, null, v1, ['it', 'en']);
 
     expect(changes(diffs)).toEqual([
       'romaji:ADDED',
@@ -252,7 +254,7 @@ describe('diffDevilFruitTypes', () => {
       },
     };
 
-    expect(changes(diffDevilFruitTypes(v1, withFrench, ['it', 'en', 'fr']))).toEqual([
+    expect(changes(diffBodies(DEVIL_FRUIT_TYPE, v1, withFrench, ['it', 'en', 'fr']))).toEqual([
       'romaji:UNCHANGED',
       'name.it:UNCHANGED',
       'name.en:REMOVED',
@@ -269,7 +271,7 @@ describe('diffDevilFruitTypes', () => {
     };
 
     expect(
-      diffDevilFruitTypes(v1, withGerman, ['en', 'it'])
+      diffBodies(DEVIL_FRUIT_TYPE, v1, withGerman, ['en', 'it'])
         .filter(({ field }) => field.field === 'name')
         .map(({ field }) => field.language),
     ).toEqual(['en', 'it', 'de']);
@@ -277,7 +279,7 @@ describe('diffDevilFruitTypes', () => {
 
   it('finds no change between two identical versions', () => {
     expect(
-      diffDevilFruitTypes(v1, structuredClone(v1), ['it', 'en']).every(
+      diffBodies(DEVIL_FRUIT_TYPE, v1, structuredClone(v1), ['it', 'en']).every(
         ({ change }) => change === 'UNCHANGED',
       ),
     ).toBe(true);

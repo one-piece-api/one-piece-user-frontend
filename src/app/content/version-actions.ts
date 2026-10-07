@@ -7,7 +7,9 @@ import { CurrentUserService } from '../identity/current-user';
 import { MascotService } from '../shared/mascot/mascot';
 import { ConfirmDialog } from '../shared/ui/confirm-dialog';
 import type { VersionAction, VersionSummary } from './content.model';
-import { draftFieldKey } from './devil-fruit-types/devil-fruit-type.model';
+import { draftFieldKey } from './entity/entity-body';
+import { entityLabelKey } from './entity/entities';
+import type { EntityDefinition } from './entity/entity-definition';
 import { discardConfirmation, discardDoneMessage } from './discard-draft';
 import { RejectDialog } from './reject-dialog';
 import {
@@ -29,8 +31,8 @@ export interface ActionTarget {
   readonly contentRoute: string;
   /** "Logia": how the content is called, in the dialogs and the mascot's words. */
   readonly name: string;
-  /** "Devil Fruit Type": its kind, already translated. */
-  readonly entityLabel: string;
+  /** Its entity: how one of it is called, and how its fields are named. */
+  readonly entity: EntityDefinition;
   readonly version: Pick<
     VersionSummary,
     'number' | 'status' | 'author' | 'claimant' | 'overrideActions'
@@ -151,7 +153,7 @@ export class VersionActions {
     const by = this.transloco.translate('content.detail.by', {
       author: target.version.author.username,
     });
-    return `${target.name} · ${target.entityLabel} ${by}`;
+    return `${target.name} · ${this.transloco.translate(entityLabelKey(target.entity))} ${by}`;
   });
 
   /**
@@ -204,7 +206,7 @@ export class VersionActions {
       await firstValueFrom(this.http.delete<void>(`${target.contentUrl}/versions/${number}`));
       this.mascot.show(discardDoneMessage(this.transloco, number), 'success');
     } catch (error) {
-      this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
+      this.mascot.show(this.refusalMessage(target, transitionRefusal(error)), 'error');
     } finally {
       // Closed on every outcome: the dialog's top layer would otherwise hide the mascot.
       this.confirmingDiscard.set(false);
@@ -274,7 +276,7 @@ export class VersionActions {
         transition.doneTone ?? 'success',
       );
     } catch (error) {
-      this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
+      this.mascot.show(this.refusalMessage(target, transitionRefusal(error)), 'error');
     } finally {
       await this.reload()();
       this.acting.set(false);
@@ -306,7 +308,7 @@ export class VersionActions {
       );
       this.openEditor(target);
     } catch (error) {
-      this.mascot.show(this.refusalMessage(transitionRefusal(error)), 'error');
+      this.mascot.show(this.refusalMessage(target, transitionRefusal(error)), 'error');
       await this.reload()();
     } finally {
       this.acting.set(false);
@@ -318,13 +320,13 @@ export class VersionActions {
     void this.router.navigateByUrl(`${target.contentRoute}/edit`);
   }
 
-  private refusalMessage(refusal: TransitionRefusal): string {
+  private refusalMessage(target: ActionTarget, refusal: TransitionRefusal): string {
     const key = (name: string) => `content.workflow.refused.${name}`;
     switch (refusal.kind) {
       case 'incomplete':
       case 'taken':
         return this.transloco.translate(key(refusal.kind), {
-          fields: refusal.fields.map((field) => this.fieldLabel(field)).join(', '),
+          fields: refusal.fields.map((field) => this.fieldLabel(target.entity, field)).join(', '),
         });
       case 'slugTaken':
         return this.transloco.translate(key('slugTaken'), { slug: refusal.slug });
@@ -338,8 +340,8 @@ export class VersionActions {
   }
 
   /** "romaji", "nome EN": a field named as the backend names it, in words. */
-  private fieldLabel(field: string): string {
-    const [language, name] = (draftFieldKey(field) ?? field).split('.');
+  private fieldLabel(entity: EntityDefinition, field: string): string {
+    const [language, name] = (draftFieldKey(entity, field) ?? field).split('.');
     return name
       ? this.transloco.translate(`content.workflow.refused.field.${name}`, {
           language: language.toUpperCase(),

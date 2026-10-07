@@ -6,10 +6,10 @@ import { CurrentUserService } from '../../identity/current-user';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import { PageHeader } from '../../shared/ui/page-header';
 import { STATUS_LABEL_KEY, type VersionStatus } from '../content.model';
+import { entityLabelKey, entityOf } from '../entity/entities';
 import { momentLabel } from '../moment-label';
 import { STATUS_GLYPH } from '../status-badge';
 import {
-  ENTITY_SECTION,
   TILE_QUIP_KEY,
   activityLink,
   activityName,
@@ -153,7 +153,7 @@ export class DashboardHome {
     const meta = [
       activity.versionNumber === null ? null : `v${activity.versionNumber}`,
       activity.entityType
-        ? this.transloco.translate(ENTITY_SECTION[activity.entityType].labelKey)
+        ? this.transloco.translate(entityLabelKey(entityOf(activity.entityType)))
         : null,
     ].filter((part) => part !== null);
     return {

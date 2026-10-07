@@ -3,6 +3,8 @@ import { SessionExpired } from './identity/session-expired';
 import { WhoAmI } from './identity/who-am-i';
 import { Forbidden } from './shared/nav/forbidden';
 import { statusPageGuard } from './content/dashboard/status-page.guard';
+import { ENTITIES } from './content/entity/entities';
+import { entityRoutes } from './content/entity/entity-routes';
 import { homeGuard } from './shared/nav/home.guard';
 import { permissionGuard } from './shared/nav/permission.guard';
 
@@ -26,45 +28,8 @@ export const routes: Routes = [
       import('./content/dashboard/dashboard-status').then((module) => module.DashboardStatus),
     canActivate: [statusPageGuard],
   },
-  {
-    // Loaded on demand, like every route below: only the pages anyone can land on stay in
-    // the bundle every page starts with.
-    path: 'content/devil-fruit-types',
-    loadComponent: () =>
-      import('./content/devil-fruit-types/devil-fruit-type-list').then(
-        (module) => module.DevilFruitTypeList,
-      ),
-    canActivate: [permissionGuard],
-    data: { permission: 'content:read' },
-  },
-  {
-    // Before ":id": "new" is a page, not the id of a content.
-    path: 'content/devil-fruit-types/new',
-    loadComponent: () =>
-      import('./content/devil-fruit-types/devil-fruit-type-editor').then(
-        (module) => module.DevilFruitTypeEditor,
-      ),
-    canActivate: [permissionGuard],
-    data: { permission: 'content:write' },
-  },
-  {
-    path: 'content/devil-fruit-types/:id/edit',
-    loadComponent: () =>
-      import('./content/devil-fruit-types/devil-fruit-type-editor').then(
-        (module) => module.DevilFruitTypeEditor,
-      ),
-    canActivate: [permissionGuard],
-    data: { permission: 'content:write' },
-  },
-  {
-    path: 'content/devil-fruit-types/:id',
-    loadComponent: () =>
-      import('./content/devil-fruit-types/devil-fruit-type-detail').then(
-        (module) => module.DevilFruitTypeDetail,
-      ),
-    canActivate: [permissionGuard],
-    data: { permission: 'content:read' },
-  },
+  // One section per entity, from the registry: list, new, edit, detail.
+  ...ENTITIES.flatMap(entityRoutes),
   {
     path: 'users',
     loadComponent: () => import('./admin/user-list').then((module) => module.AdminUserList),

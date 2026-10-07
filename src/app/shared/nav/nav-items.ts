@@ -1,4 +1,5 @@
-import { DEVIL_FRUIT_TYPE_ICON } from '../../content/devil-fruit-types/devil-fruit-type.model';
+import { DEVIL_FRUIT_TYPE } from '../../content/devil-fruit-types/devil-fruit-type.model';
+import type { EntityDefinition } from '../../content/entity/entity-definition';
 import { STATUS_LABEL_KEY } from '../../content/content.model';
 import {
   DASHBOARD_ICON,
@@ -33,6 +34,17 @@ export interface NavGroup {
   /** Its flyout tells how many of its sections are already open (not `soon`). */
   readonly countsLiveItems?: boolean;
   readonly items: readonly NavItem[];
+}
+
+/** The menu entry of an entity's section: named, drawn and reached as its definition says. */
+export function entityNavItem(entity: EntityDefinition): NavItem {
+  return {
+    id: entity.route.split('/').at(-1) ?? entity.route,
+    label: `${entity.i18n}.title`,
+    icon: entity.icon,
+    route: entity.route,
+    permission: 'content:read',
+  };
 }
 
 export const NAV_GROUPS: readonly NavGroup[] = [
@@ -80,13 +92,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         permission: 'content:read',
         soon: true,
       },
-      {
-        id: 'devil-fruit-types',
-        label: 'shell.nav.devilFruitTypes',
-        icon: DEVIL_FRUIT_TYPE_ICON,
-        route: '/content/devil-fruit-types',
-        permission: 'content:read',
-      },
+      entityNavItem(DEVIL_FRUIT_TYPE),
       {
         id: 'crews',
         label: 'shell.nav.crews',
