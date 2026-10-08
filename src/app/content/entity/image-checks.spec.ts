@@ -8,7 +8,7 @@ import {
 } from './image-checks';
 import { pixels, pngFile, pngHeader } from '../../testing/png-file';
 
-/** The Devil Fruit's profile, as the backend configures it. */
+/** A 4:5 profile, twice the size of the Devil Fruit's: the checks do not depend on the numbers. */
 const PROFILE: ImageProfile = {
   width: 640,
   height: 800,

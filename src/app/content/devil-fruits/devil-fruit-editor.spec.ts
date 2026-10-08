@@ -327,13 +327,13 @@ describe('the editor of a Devil Fruit', () => {
       it('offers the Media area with what the image must be, outside the checklist', () => {
         expect(root.textContent).toContain('Drop the main image here');
         expect(root.textContent).toContain(
-          'PNG with a transparent background, 4:5, at least 640 × 800 px.',
+          'PNG with a transparent background, 4:5, at least 320 × 400 px.',
         );
         expect(checks().join()).not.toContain('mage');
       });
 
       it('shows a file that passes the checks and sends it beside the JSON', async () => {
-        await pick(pngFile(640, 800));
+        await pick(pngFile(334, 400));
         expect(preview()?.getAttribute('src')).toBe('blob:chosen');
 
         await save();
@@ -349,9 +349,9 @@ describe('the editor of a Devil Fruit', () => {
       });
 
       it('refuses a file before sending it, says why and sends the JSON alone', async () => {
-        await pick(pngFile(600, 750));
+        await pick(pngFile(300, 375));
 
-        expect(imageError()).toBe('The image is 600 × 750: it must be at least 640 × 800.');
+        expect(imageError()).toBe('The image is 300 × 375: it must be at least 320 × 400.');
         expect(preview()).toBeNull();
         await save();
         const request = httpTesting.expectOne(ENDPOINT);
@@ -362,7 +362,7 @@ describe('the editor of a Devil Fruit', () => {
       });
 
       it('tells the refusal of the backend under the image and keeps the file to retry', async () => {
-        await pick(pngFile(640, 800));
+        await pick(pngFile(334, 400));
         await save();
         httpTesting.expectOne(ENDPOINT).flush(
           {
@@ -390,7 +390,7 @@ describe('the editor of a Devil Fruit', () => {
       });
 
       it('tells a file cut off for its size by the upload limit', async () => {
-        await pick(pngFile(640, 800));
+        await pick(pngFile(334, 400));
         await save();
         httpTesting
           .expectOne(ENDPOINT)
@@ -469,7 +469,7 @@ describe('the editor of a Devil Fruit', () => {
       });
 
       it('lets go of the preview of a file replaced by another', async () => {
-        await pick(pngFile(640, 800));
+        await pick(pngFile(334, 400));
         await pick(pngFile(1280, 1600, 'bigger.png'));
 
         expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:chosen');
