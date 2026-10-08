@@ -7,14 +7,17 @@
  */
 import { diffField, type FieldDiff } from '../version-comparison';
 import type { FieldKindName } from './entity-definition';
+import { isImageDraft, isImageReference } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
 
 export interface FieldKind {
   /** Written once per language, inside `translations`, rather than once on the version. */
   readonly localized: boolean;
+  /** Asked for by review: an empty value keeps the draft from being ready. */
+  readonly forReview: boolean;
   /** What the editor holds for a value of a version - `undefined` for a content not saved yet. */
   draftValue(saved: unknown): unknown;
-  /** What the editor's value is saved as. */
+  /** What the editor's value is saved as in the JSON - `undefined` for one sent otherwise. */
   savedValue(draft: unknown): unknown;
   /** Whether a value - saved, or being written - counts as filled in for review. */
   isFilled(value: unknown): boolean;
@@ -63,8 +66,36 @@ const RELATION_VALUE = {
   },
 };
 
+/** The id of a saved image, `null` where there is none. */
+function imageIdOf(value: unknown): string | null {
+  return isImageReference(value) ? value.id : null;
+}
+
+/**
+ * An image: the editor holds the one saved or a file just chosen (`ImageDraft`). It is not
+ * part of the JSON - the file travels beside it, and removing it is a flag (`uploadOf` in
+ * `entity-body.ts`). A comparison looks at the ids, the hashes of the bytes: an image sent
+ * again is still the same one; what it shows is each side's URL.
+ */
+const IMAGE_VALUE = {
+  draftValue: (saved: unknown) => (isImageReference(saved) ? { saved } : null),
+  savedValue: () => undefined,
+  isFilled: isImageDraft,
+  diff: <TField>(field: TField, before: unknown, after: unknown) => {
+    const diff = diffField(field, imageIdOf(before), imageIdOf(after));
+    return (
+      diff && {
+        ...diff,
+        before: isImageReference(before) ? before.url : null,
+        after: isImageReference(after) ? after.url : null,
+      }
+    );
+  },
+};
+
 export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
-  text: { localized: false, ...TEXT_VALUE },
-  localizedText: { localized: true, ...TEXT_VALUE },
-  relation: { localized: false, ...RELATION_VALUE },
+  text: { localized: false, forReview: true, ...TEXT_VALUE },
+  localizedText: { localized: true, forReview: true, ...TEXT_VALUE },
+  relation: { localized: false, forReview: true, ...RELATION_VALUE },
+  image: { localized: false, forReview: false, ...IMAGE_VALUE },
 };

@@ -15,9 +15,10 @@ const GOMU = {
 };
 
 describe('the Devil Fruit entity', () => {
-  it('has a romaji, the type it belongs to, and the four texts of a language', () => {
+  it('has a romaji, an image, the type it belongs to, and the four texts of a language', () => {
     expect(DEVIL_FRUIT.fields.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
       'romaji:text',
+      'image:image',
       'type:relation',
       'name:localizedText',
       'description:localizedText',

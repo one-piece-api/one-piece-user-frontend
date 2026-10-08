@@ -1,0 +1,86 @@
+<div class="grid gap-1.5">
+  <span class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase">{{
+    'content.image.media' | transloco
+  }}</span>
+  <label
+    [for]="inputId()"
+    class="relative block aspect-4/5 cursor-pointer overflow-hidden rounded-[14px] bg-parchment-200 ring-2"
+    [class]="
+      problem() ? 'ring-flag-600' : dragging() ? 'ring-4 ring-ocean-700' : 'ring-treasure-400'
+    "
+    data-testid="image-drop"
+    (dragover)="onDragOver($event)"
+    (dragleave)="dragging.set(false)"
+    (drop)="onDrop($event)"
+  >
+    @if (source(); as source) {
+      @if (!broken()) {
+        <img
+          [src]="source"
+          [alt]="alt()"
+          class="absolute inset-0 size-full object-contain"
+          data-testid="image-preview"
+          (error)="broken.set(true)"
+        />
+      }
+    }
+    @if (!source() || broken()) {
+      <span
+        class="absolute inset-0 flex items-center justify-center p-3 text-center font-heading text-[13px] font-bold text-ocean-500/70"
+        >{{ 'content.image.drop' | transloco }}</span
+      >
+    }
+    @if (checking()) {
+      <span
+        class="absolute inset-0 flex items-center justify-center bg-parchment-100/80 font-heading text-[13px] font-bold text-ocean-800"
+        >{{ 'content.image.checking' | transloco }}</span
+      >
+    }
+  </label>
+  <input
+    #fileInput
+    [id]="inputId()"
+    type="file"
+    accept="image/png"
+    class="sr-only"
+    [attr.aria-invalid]="problem() ? true : null"
+    [attr.aria-describedby]="inputId() + '-hint'"
+    (change)="onFileInput(fileInput)"
+  />
+  <div class="flex flex-wrap gap-1.5">
+    <button
+      type="button"
+      class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 ring-2 ring-ocean-800/20 ring-inset"
+      [disabled]="checking()"
+      (click)="fileInput.click()"
+    >
+      {{ (source() ? 'content.image.replace' : 'content.image.choose') | transloco }}
+    </button>
+    @if (value()) {
+      <button
+        type="button"
+        class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-flag-700 ring-2 ring-flag-600/30 ring-inset"
+        [disabled]="checking()"
+        data-testid="image-remove"
+        (click)="remove()"
+      >
+        {{ 'content.image.remove' | transloco }}
+      </button>
+    }
+  </div>
+  <p
+    [id]="inputId() + '-hint'"
+    class="font-heading text-[11px] leading-snug font-bold text-ocean-500/60"
+  >
+    {{ requirements() }}
+  </p>
+  @if (problem(); as problem) {
+    <p
+      class="font-heading text-sm leading-snug font-bold text-flag-700"
+      role="alert"
+      data-testid="image-error"
+    >
+      {{ problem }}
+    </p>
+  }
+</div>

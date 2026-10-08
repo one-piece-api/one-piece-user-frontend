@@ -71,4 +71,43 @@ describe('the card of a Devil Fruit', () => {
     expect(type()?.getAttribute('href')).toBeNull();
     expect(type()?.textContent?.trim()).toBe('— no type chosen —');
   });
+
+  describe('its image', () => {
+    const IMAGE = { id: 'a1b2', url: '/api/content/images/a1b2' };
+
+    function frame(): HTMLElement | null {
+      return root.querySelector('app-entity-image-frame');
+    }
+
+    it('shows the image, named after the fruit in the language shown', () => {
+      render({ ...GOMU, image: IMAGE });
+
+      const image = frame()?.querySelector('img');
+      expect(image?.getAttribute('src')).toBe(IMAGE.url);
+      expect(image?.getAttribute('alt')).toBe('Gum-Gum');
+    });
+
+    it('stands a placeholder in for an image not there', () => {
+      render({ ...GOMU, image: null });
+
+      expect(frame()?.querySelector('img')).toBeNull();
+      expect(frame()?.textContent?.trim()).toBe('Image of Gum-Gum');
+    });
+
+    it('stands the placeholder in for an image that cannot be loaded', () => {
+      render({ ...GOMU, image: IMAGE });
+
+      frame()?.querySelector('img')?.dispatchEvent(new Event('error'));
+      fixture.detectChanges();
+
+      expect(frame()?.querySelector('img')).toBeNull();
+      expect(frame()?.textContent?.trim()).toBe('Image of Gum-Gum');
+    });
+
+    it('names the placeholder by the romaji when the language has no name', () => {
+      render({ ...GOMU, image: null, translations: {} });
+
+      expect(frame()?.textContent?.trim()).toBe('Image of Gomu Gomu no Mi');
+    });
+  });
 });

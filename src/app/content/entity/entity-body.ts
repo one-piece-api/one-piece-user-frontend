@@ -5,6 +5,7 @@
  */
 import type { FieldDiff } from '../version-comparison';
 import type { EntityDefinition, EntityField } from './entity-definition';
+import { chosenFileOf, isImageDraft, isImageReference } from './entity-image';
 import { FIELD_KINDS } from './field-kinds';
 
 /** What a version says in one language, by field key. */
@@ -107,7 +108,10 @@ export function draftOf(
 export function toBody(definition: EntityDefinition, draft: EntityDraft): EntityBody {
   const body: Record<string, unknown> = {};
   for (const field of sharedFields(definition)) {
-    body[field.key] = kindOf(field).savedValue(draft[field.key]);
+    const value = kindOf(field).savedValue(draft[field.key]);
+    if (value !== undefined) {
+      body[field.key] = value;
+    }
   }
   const translations: Record<string, Translation> = {};
   for (const [language, translation] of Object.entries(draft.translations)) {
@@ -121,6 +125,47 @@ export function toBody(definition: EntityDefinition, draft: EntityDraft): Entity
   return { romaji: null, ...body, translations };
 }
 
+/** A file saved beside the JSON of a version, in the request part named after its field. */
+export interface UploadedFile {
+  readonly part: string;
+  readonly file: File;
+}
+
+/** What saving a draft sends: the JSON, and the file to go beside it if one was chosen. */
+export interface Upload {
+  readonly body: EntityBody;
+  readonly file: UploadedFile | null;
+}
+
+/**
+ * What saving a draft sends, worked out from the draft and the version it was written from
+ * (`null` for a new content). For an image: a file chosen is sent beside the JSON (replace);
+ * no image where the saved version had one sets `remove<Key>` (remove); otherwise nothing,
+ * and the backend keeps what the version had (plan D5).
+ */
+export function uploadOf(
+  definition: EntityDefinition,
+  draft: EntityDraft,
+  saved: EntityBody | null,
+): Upload {
+  const flags: Record<string, true> = {};
+  let file: UploadedFile | null = null;
+  for (const field of definition.fields.filter(({ kind }) => kind === 'image')) {
+    const chosen = chosenFileOf(draft[field.key]);
+    if (chosen) {
+      file = { part: field.key, file: chosen };
+    } else if (!isImageDraft(draft[field.key]) && isImageReference(saved?.[field.key])) {
+      flags[removeFlagOf(field.key)] = true;
+    }
+  }
+  return { body: { ...toBody(definition, draft), ...flags }, file };
+}
+
+/** `image` → `removeImage`: how the backend is told to drop the image of a draft. */
+function removeFlagOf(key: string): string {
+  return `remove${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+}
+
 /**
  * What a draft still needs to be ready for review: the shared fields, then every translated
  * field in every language of the catalog (flows document 3.2). A draft is saved without any
@@ -131,11 +176,13 @@ export function readinessChecks(
   draft: EntityDraft,
   languages: readonly string[],
 ): ReadinessCheck[] {
-  const checks: ReadinessCheck[] = sharedFields(definition).map((field) => ({
-    field: field.key,
-    language: null,
-    done: kindOf(field).isFilled(draft[field.key]),
-  }));
+  const checks: ReadinessCheck[] = sharedFields(definition)
+    .filter((field) => kindOf(field).forReview)
+    .map((field) => ({
+      field: field.key,
+      language: null,
+      done: kindOf(field).isFilled(draft[field.key]),
+    }));
   for (const language of languages) {
     const translation = draft.translations[language];
     checks.push(

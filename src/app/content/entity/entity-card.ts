@@ -10,6 +10,8 @@ import {
   sharedFields,
   type EntityBody,
 } from './entity-body';
+import { EntityImageFrame } from './entity-image-frame';
+import { isImageReference } from './entity-image';
 import { isReference, referenceLabel } from './entity-reference';
 import { textOf } from './field-kinds';
 
@@ -48,14 +50,14 @@ type Block =
   | { readonly layout: 'pair'; readonly texts: LongText[] };
 
 /**
- * The card of a version of any entity: its name, then its long texts as the definition lays
- * them out, one language at a time. The tabs are the language catalog; a dot marks a
+ * The card of a version of any entity: its image when the entity has one, its name, then its
+ * long texts as the definition lays them out, one language at a time. The tabs are the language catalog; a dot marks a
  * language whose translation is incomplete.
  */
 @Component({
   selector: 'app-entity-card',
   templateUrl: './entity-card.html',
-  imports: [NgTemplateOutlet, RouterLink, TranslocoPipe],
+  imports: [EntityImageFrame, NgTemplateOutlet, RouterLink, TranslocoPipe],
 })
 export class EntityCard {
   private readonly transloco = inject(TranslocoService);
@@ -85,6 +87,27 @@ export class EntityCard {
 
   private readonly translation = computed(() => this.body().translations[this.language() ?? '']);
   protected readonly name = computed(() => textOf(this.translation()?.['name']).trim() || null);
+
+  /**
+   * The image of the version, for an entity that has one: its URL - `null` for none - named
+   * in the language shown, else by its romaji, and the placeholder saying whose it would be.
+   */
+  protected readonly image = computed(() => {
+    const field = this.entity.fields.find(({ kind }) => kind === 'image');
+    if (!field) {
+      return null;
+    }
+    this.transloco.activeLang();
+    const saved = this.body()[field.key];
+    const named = this.name() ?? textOf(this.body().romaji).trim();
+    return {
+      src: isImageReference(saved) ? saved.url : null,
+      alt: named,
+      placeholder: this.transloco.translate('content.card.imageOf', {
+        name: named || this.transloco.translate('content.card.thisContent'),
+      }),
+    };
+  });
 
   /** The contents this one points to, named in the language shown. */
   protected readonly relations = computed<RelationChip[]>(() => {

@@ -1,4 +1,5 @@
 import {
+  imageField,
   localizedTextField,
   relationField,
   textField,
@@ -28,4 +29,23 @@ export const NOTE: EntityDefinition = {
 export const NOTE_IN_FOLDER: EntityDefinition = {
   ...NOTE,
   fields: [...NOTE.fields, relationField('folder', { target: 'FOLDER' })],
+};
+
+/**
+ * The same note with a picture: another key and another profile than the Devil Fruit's -
+ * twice as wide as high, and small - so nothing of the fruit's image is taken for granted.
+ */
+export const NOTE_WITH_PICTURE: EntityDefinition = {
+  ...NOTE,
+  fields: [
+    ...NOTE.fields,
+    imageField('picture', {
+      width: 40,
+      height: 20,
+      ratioTolerance: 0.1,
+      maxBytes: 1000,
+      maxPixels: 10_000,
+      minTransparentPercent: 10,
+    }),
+  ],
 };

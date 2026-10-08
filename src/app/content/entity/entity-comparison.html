@@ -152,44 +152,75 @@
                       {{ row.changeKey | transloco }}
                     </span>
                   </div>
-                  <div class="grid gap-px bg-parchment-200 sm:grid-cols-2">
+                  @if (row.image) {
                     <div
-                      class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5"
-                      [class]="row.classes.before"
+                      class="grid grid-cols-2 gap-px bg-parchment-200"
+                      data-testid="comparison-images"
                     >
-                      <span
-                        class="w-3 flex-none font-display text-base leading-snug font-bold"
-                        aria-hidden="true"
-                        >{{ row.classes.beforeSign }}</span
-                      >
-                      <p
-                        class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
+                      @for (
+                        side of [
+                          { src: row.before, classes: row.classes.before, version: baseNumber() },
+                          { src: row.after, classes: row.classes.after, version: shownNumber() },
+                        ];
+                        track $index
+                      ) {
+                        <div
+                          class="grid min-w-0 justify-items-center gap-1.5 px-3.5 py-2.5"
+                          [class]="side.classes"
+                        >
+                          <span
+                            class="font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/60"
+                            >{{ side.version === null ? '—' : 'v' + side.version }}</span
+                          >
+                          <app-entity-image-frame
+                            class="block w-full max-w-36"
+                            [src]="side.src"
+                            [alt]="row.label + (side.version === null ? '' : ' v' + side.version)"
+                            [placeholder]="'content.comparison.noImage' | transloco"
+                          />
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="grid gap-px bg-parchment-200 sm:grid-cols-2">
+                      <div
+                        class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5"
+                        [class]="row.classes.before"
                       >
                         <span
-                          class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
-                          >{{ baseNumber() === null ? '' : 'v' + baseNumber() }}</span
-                        ><span [class.line-through]="row.struck">{{ row.before ?? '—' }}</span>
-                      </p>
-                    </div>
-                    <div
-                      class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5"
-                      [class]="row.classes.after"
-                    >
-                      <span
-                        class="w-3 flex-none font-display text-base leading-snug font-bold"
-                        aria-hidden="true"
-                        >{{ row.classes.afterSign }}</span
-                      >
-                      <p
-                        class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
+                          class="w-3 flex-none font-display text-base leading-snug font-bold"
+                          aria-hidden="true"
+                          >{{ row.classes.beforeSign }}</span
+                        >
+                        <p
+                          class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
+                        >
+                          <span
+                            class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
+                            >{{ baseNumber() === null ? '' : 'v' + baseNumber() }}</span
+                          ><span [class.line-through]="row.struck">{{ row.before ?? '—' }}</span>
+                        </p>
+                      </div>
+                      <div
+                        class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5"
+                        [class]="row.classes.after"
                       >
                         <span
-                          class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
-                          >{{ 'v' + shownNumber() }}</span
-                        >{{ row.after ?? '—' }}
-                      </p>
+                          class="w-3 flex-none font-display text-base leading-snug font-bold"
+                          aria-hidden="true"
+                          >{{ row.classes.afterSign }}</span
+                        >
+                        <p
+                          class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
+                        >
+                          <span
+                            class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
+                            >{{ 'v' + shownNumber() }}</span
+                          >{{ row.after ?? '—' }}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  }
                 </div>
               }
 
@@ -230,7 +261,16 @@
                       <dd
                         class="font-heading text-[13px] leading-normal font-bold wrap-anywhere text-ocean-500/80"
                       >
-                        {{ row.after }}
+                        @if (row.image) {
+                          <app-entity-image-frame
+                            class="block w-20"
+                            [src]="row.after"
+                            [alt]="row.label"
+                            [placeholder]="'content.comparison.noImage' | transloco"
+                          />
+                        } @else {
+                          {{ row.after }}
+                        }
                       </dd>
                     </div>
                   }

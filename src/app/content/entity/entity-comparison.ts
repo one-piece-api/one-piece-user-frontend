@@ -34,6 +34,7 @@ import {
 import { EntityCard } from './entity-card';
 import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
 import { ENTITY } from './entities';
+import { EntityImageFrame } from './entity-image-frame';
 
 type Mode = 'changes' | 'card';
 const MODES: readonly Mode[] = ['changes', 'card'];
@@ -86,6 +87,8 @@ interface DiffRow {
   readonly label: string;
   readonly before: string | null;
   readonly after: string | null;
+  /** `before` and `after` are the URLs of two images, shown side by side, not texts. */
+  readonly image: boolean;
   readonly sign: string;
   /** A removed value is struck through. */
   readonly struck: boolean;
@@ -103,7 +106,14 @@ interface DiffRow {
 @Component({
   selector: 'app-entity-comparison',
   templateUrl: './entity-comparison.html',
-  imports: [CloseButton, EntityCard, LoadingPlaceholder, TranslocoPipe, VersionChain],
+  imports: [
+    CloseButton,
+    EntityCard,
+    EntityImageFrame,
+    LoadingPlaceholder,
+    TranslocoPipe,
+    VersionChain,
+  ],
 })
 export class EntityComparison {
   private readonly entity = inject(ENTITY);
@@ -308,6 +318,9 @@ export class EntityComparison {
       }),
       before: diff.before,
       after: diff.after,
+      image: this.entity.fields.some(
+        (candidate) => candidate.key === field && candidate.kind === 'image',
+      ),
       sign: CHANGE_SIGN[diff.change],
       struck: diff.change === 'REMOVED',
       changeKey: `content.comparison.change.${diff.change}`,

@@ -1,4 +1,4 @@
-import { NOTE, NOTE_IN_FOLDER } from '../../testing/note-entity';
+import { NOTE, NOTE_IN_FOLDER, NOTE_WITH_PICTURE } from '../../testing/note-entity';
 import {
   diffBodies,
   draftFieldKey,
@@ -6,6 +6,7 @@ import {
   isTranslationComplete,
   readinessChecks,
   toBody,
+  uploadOf,
 } from './entity-body';
 
 /**
@@ -120,6 +121,73 @@ describe('the body of any entity', () => {
         field: { field: 'folder', language: null },
         change: 'ADDED',
         after: 'Cartella',
+      });
+    });
+  });
+
+  describe('with an image', () => {
+    const picture = { id: 'a1b2', url: '/api/content/images/a1b2' };
+    const pictured = { ...note, picture };
+    const file = new File([new Uint8Array(4)], 'memo.png', { type: 'image/png' });
+    const languages = ['it', 'en'];
+    const draftFrom = (body: object | null) => draftOf(NOTE_WITH_PICTURE, body as never, languages);
+
+    it('starts the draft with the saved image to keep, or none', () => {
+      expect(draftFrom(pictured)['picture']).toEqual({ saved: picture });
+      expect(draftFrom(null)['picture']).toBeNull();
+    });
+
+    it('leaves the image out of the JSON and of the review checklist', () => {
+      const draft = draftFrom(pictured);
+
+      expect(toBody(NOTE_WITH_PICTURE, draft)).not.toHaveProperty('picture');
+      expect(
+        readinessChecks(NOTE_WITH_PICTURE, draft, languages).map(({ field }) => field),
+      ).not.toContain('picture');
+    });
+
+    it('sends nothing about an image kept, and no flag', () => {
+      const upload = uploadOf(NOTE_WITH_PICTURE, draftFrom(pictured), pictured as never);
+
+      expect(upload.file).toBeNull();
+      expect(upload.body).not.toHaveProperty('removePicture');
+    });
+
+    it('sends a file chosen beside the JSON, in the part named after the field', () => {
+      const draft = { ...draftFrom(pictured), picture: { chosen: file, preview: 'blob:x' } };
+      const upload = uploadOf(NOTE_WITH_PICTURE, draft, pictured as never);
+
+      expect(upload.file).toEqual({ part: 'picture', file });
+      expect(upload.body).not.toHaveProperty('removePicture');
+      expect(upload.body.romaji).toBe('Memo');
+    });
+
+    it('asks to remove an image the saved version had and the draft dropped', () => {
+      const draft = { ...draftFrom(pictured), picture: null };
+
+      expect(uploadOf(NOTE_WITH_PICTURE, draft, pictured as never)).toMatchObject({
+        file: null,
+        body: { removePicture: true },
+      });
+    });
+
+    it('asks to remove nothing on a content that never had an image', () => {
+      expect(uploadOf(NOTE_WITH_PICTURE, draftFrom(null), null).body).not.toHaveProperty(
+        'removePicture',
+      );
+      expect(uploadOf(NOTE_WITH_PICTURE, draftFrom(note), note as never).body).not.toHaveProperty(
+        'removePicture',
+      );
+    });
+
+    it('compares the images by id and shows their URLs', () => {
+      const diffs = diffBodies(NOTE_WITH_PICTURE, note as never, pictured as never, languages);
+
+      expect(diffs.at(-1)).toMatchObject({
+        field: { field: 'picture', language: null },
+        change: 'ADDED',
+        before: null,
+        after: picture.url,
       });
     });
   });

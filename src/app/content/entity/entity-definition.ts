@@ -37,8 +37,36 @@ export interface RelationField {
   readonly target: string;
 }
 
+/**
+ * What an uploaded image must be - the entity's image profile of the backend (plan D6),
+ * written again here so the browser can refuse a file before sending it. The backend stays
+ * the authority: these numbers only spare a round trip.
+ */
+export interface ImageProfile {
+  /** The canvas the backend fits the image into, and the smallest image it accepts. */
+  readonly width: number;
+  readonly height: number;
+  /** How far the image's ratio may be from the canvas', as a fraction (0.1 = 10 %). */
+  readonly ratioTolerance: number;
+  readonly maxBytes: number;
+  readonly maxPixels: number;
+  /** How much of the image must be fully transparent - "an image without background". */
+  readonly minTransparentPercent: number;
+}
+
+/**
+ * The image of a version - optional, not translated, not asked for by review. Saved beside
+ * the version's JSON as a file, and removed through `remove<Key>`; one per entity, as the
+ * backend's single `image` part allows.
+ */
+export interface ImageField {
+  readonly kind: 'image';
+  readonly key: string;
+  readonly profile: ImageProfile;
+}
+
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
-export type EntityField = TextField | LocalizedTextField | RelationField;
+export type EntityField = TextField | LocalizedTextField | RelationField | ImageField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -103,6 +131,10 @@ export function relationField(
   options: Omit<RelationField, 'kind' | 'key'>,
 ): RelationField {
   return { kind: 'relation', key, ...options };
+}
+
+export function imageField(key: string, profile: ImageProfile): ImageField {
+  return { kind: 'image', key, profile };
 }
 
 export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {

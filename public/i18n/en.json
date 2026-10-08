@@ -772,7 +772,9 @@
       "noDisadvantages": "— no disadvantages in this language —",
       "incomplete": "incomplete translation",
       "type": "Type",
-      "noType": "— no type chosen —"
+      "noType": "— no type chosen —",
+      "imageOf": "Image of {{name}}",
+      "thisContent": "this entry"
     },
     "comparison": {
       "title": "Compare versions",
@@ -804,7 +806,8 @@
         "description": "Description · {{language}}",
         "advantages": "Advantages · {{language}}",
         "disadvantages": "Disadvantages · {{language}}",
-        "type": "Type"
+        "type": "Type",
+        "image": "Image"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -821,7 +824,8 @@
         "one": "Hide 1 unchanged field",
         "many": "Hide {{count}} unchanged fields"
       },
-      "frozen": "Content frozen in this version."
+      "frozen": "Content frozen in this version.",
+      "noImage": "No image"
     },
     "editor": {
       "crumb": "Edit",
@@ -892,7 +896,8 @@
         "error": "Search failed, try again",
         "empty": "No results"
       },
-      "notLinkableMessage": "Arrr! The chosen type cannot be linked: it must be a type that has passed review."
+      "notLinkableMessage": "Arrr! The chosen type cannot be linked: it must be a type that has passed review.",
+      "imageRefusedMessage": "Arrr! The image won't do: the reason is written under it."
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1044,6 +1049,24 @@
         "disadvantages": "what it costs whoever eats it, in the selected language"
       },
       "hintMissing": "Review takes a romaji, a type and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete."
+    },
+    "image": {
+      "media": "Media",
+      "drop": "Drop the main image here",
+      "choose": "Choose a file",
+      "replace": "Replace",
+      "remove": "Remove",
+      "checking": "Checking the image…",
+      "requirements": "PNG with a transparent background, 4:5, at least {{width}} × {{height}} px.",
+      "refused": {
+        "CONTENT_IMAGE_FORMAT_UNSUPPORTED": "It must be a PNG file: this one isn't, whatever its name says.",
+        "CONTENT_IMAGE_NOT_TRANSPARENT": "The background must be transparent: only {{transparentPercent}}% of this image is, at least {{minPercent}}% is needed.",
+        "CONTENT_IMAGE_WRONG_RATIO": "The image is {{width}} × {{height}}: it must be {{ratioWidth}}:{{ratioHeight}} (within {{tolerancePercent}}%).",
+        "CONTENT_IMAGE_TOO_SMALL": "The image is {{width}} × {{height}}: it must be at least {{minWidth}} × {{minHeight}}.",
+        "CONTENT_IMAGE_TOO_LARGE": "The file is {{sizeMegabytes}} MB: the most is {{maxMegabytes}} MB.",
+        "PIXELS": "The image is {{width}} × {{height}}: too many pixels, the most is {{maxMegapixels}} megapixels.",
+        "CONTENT_TOO_LARGE": "The file is too heavy to send: the most is {{maxMegabytes}} MB."
+      }
     }
   }
 }

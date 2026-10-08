@@ -1,5 +1,13 @@
 import { HttpClient, HttpErrorResponse, httpResource } from '@angular/common/http';
-import { Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
@@ -31,12 +39,17 @@ import {
   readinessChecks,
   sharedFields,
   toBody,
+  uploadOf,
   type EntityBody,
   type EntityDraft,
   type TranslationDraft,
 } from './entity-body';
+import type { ImageField } from './entity-definition';
+import { isImageDraft, type ImageDraft } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
 import { textOf } from './field-kinds';
+import { ImagePicker } from './image-picker';
+import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
 
 /** What the backend answers for a content that is not there - or not for this caller. */
@@ -52,6 +65,9 @@ const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
 /** What is said under a relation the backend refused: the content chosen cannot be linked. */
 const RELATION_REFUSED_KEY = 'content.editor.error.notLinkable';
 const RELATION_REFUSED_MESSAGE_KEY = 'content.editor.notLinkableMessage';
+
+/** What the Lumacofono says when the image was refused - the reason is under the image. */
+const IMAGE_REFUSED_MESSAGE_KEY = 'content.editor.imageRefusedMessage';
 
 /** What is said under a field the backend refused, by error code. */
 const FIELD_ERROR_KEY: Record<string, string> = {
@@ -107,6 +123,7 @@ interface CheckView {
     Breadcrumb,
     ConfirmDialog,
     Icon,
+    ImagePicker,
     LoadingPlaceholder,
     RelationPicker,
     RouterLink,
@@ -120,6 +137,11 @@ export class EntityEditor {
   private readonly transloco = inject(TranslocoService);
   private readonly mascot = inject(MascotService);
   private readonly languageCatalog = inject(LanguageCatalogService);
+
+  constructor() {
+    // A file chosen and never saved is still held by the browser: let it go with the page.
+    inject(DestroyRef).onDestroy(() => this.releasePreviews(this.draft()));
+  }
 
   /** Bound by the router: the path's id - absent when a new content is being written. */
   readonly id = input<string>();
@@ -191,17 +213,38 @@ export class EntityEditor {
    */
   protected readonly sharedViews = computed(() => {
     const draft = this.draft();
-    return sharedFields(this.entity).map((field) => {
-      const chosen = draft?.[field.key];
-      return {
-        field,
-        value: textOf(chosen),
-        reference: isReference(chosen) ? chosen : null,
-        source: field.kind === 'relation' ? (entityOf(field.target)?.api ?? null) : null,
-        error: this.refusedFields()[field.key] ?? null,
-      };
-    });
+    return sharedFields(this.entity)
+      .filter((field) => field.kind !== 'image')
+      .map((field) => {
+        const chosen = draft?.[field.key];
+        return {
+          field,
+          value: textOf(chosen),
+          reference: isReference(chosen) ? chosen : null,
+          source: field.kind === 'relation' ? (entityOf(field.target)?.api ?? null) : null,
+          error: this.refusedFields()[field.key] ?? null,
+        };
+      });
   });
+  /**
+   * The image of the draft, when the entity has one - shown beside the other shared fields,
+   * as the "Media" area of the mockup - with why the backend refused it.
+   */
+  protected readonly imageView = computed(() => {
+    const field = this.entity.fields.find(
+      (candidate): candidate is ImageField => candidate.kind === 'image',
+    );
+    if (!field) {
+      return null;
+    }
+    const value = this.draft()?.[field.key];
+    return {
+      field,
+      value: isImageDraft(value) ? value : null,
+      error: this.refusedFields()[field.key] ?? null,
+    };
+  });
+
   /** The translated fields in the language on screen, likewise. */
   protected readonly localizedViews = computed(() => {
     const language = this.language();
@@ -352,6 +395,20 @@ export class EntityEditor {
     this.forgetRefusal(key);
   }
 
+  /**
+   * Chooses the image of the draft - a file already checked by the picker - or none. The
+   * file is shown from an object URL until it is saved; the one it replaces is let go.
+   */
+  protected setImage(key: string, file: File | null): void {
+    const previous = this.draft()?.[key];
+    const image: ImageDraft | null = file
+      ? { chosen: file, preview: URL.createObjectURL(file) }
+      : null;
+    this.draft.update((draft) => draft && { ...draft, [key]: image });
+    this.releasePreview(previous);
+    this.forgetRefusal(key);
+  }
+
   /** Writes a translated field, in the language on screen. */
   protected setLocalized(key: string, value: string): void {
     this.writeTranslation({ [key]: value });
@@ -367,14 +424,14 @@ export class EntityEditor {
     this.saving.set(true);
     this.refusedFields.set({});
     try {
-      const body = toBody(this.entity, draft);
+      const request = this.requestOf(draft);
       const url = this.versionUrl();
       if (url) {
-        const saved = await firstValueFrom(this.http.put<Version<EntityBody>>(url, body));
+        const saved = await firstValueFrom(this.http.put<Version<EntityBody>>(url, request));
         this.mascot.show(this.transloco.translate('content.editor.saved'), 'success');
         await this.router.navigate([this.backRoute()], { queryParams: { v: saved.number } });
       } else {
-        const created = await firstValueFrom(this.http.post<Content>(this.entity.api, body));
+        const created = await firstValueFrom(this.http.post<Content>(this.entity.api, request));
         this.mascot.show(this.transloco.translate('content.editor.created'), 'success');
         await this.router.navigate([this.entity.route, created.id]);
       }
@@ -383,6 +440,23 @@ export class EntityEditor {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /**
+   * What a save sends: the JSON alone, or - with a file chosen - a multipart form with the
+   * JSON as its `version` part and the file beside it (plan D5). Keeping or removing an image
+   * needs no file: `uploadOf` says it in the JSON.
+   */
+  private requestOf(draft: EntityDraft): EntityBody | FormData {
+    const saved = this.version.hasValue() ? this.version.value().body : null;
+    const { body, file } = uploadOf(this.entity, draft, saved);
+    if (!file) {
+      return body;
+    }
+    const form = new FormData();
+    form.append('version', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+    form.append(file.part, file.file, file.file.name);
+    return form;
   }
 
   /**
@@ -432,6 +506,15 @@ export class EntityEditor {
     if (!(error instanceof HttpErrorResponse) || error.status === 403 || error.status >= 500) {
       return;
     }
+    const image = this.imageView();
+    const imageProblem = imageProblemOf(error);
+    if (image && imageProblem) {
+      this.refusedFields.set({
+        [image.field.key]: imageProblemWords(this.transloco, imageProblem),
+      });
+      this.mascot.show(this.transloco.translate(IMAGE_REFUSED_MESSAGE_KEY), 'error');
+      return;
+    }
     const apiError = apiErrorOf(error);
     const errorCode = apiError?.errorCode ?? '';
     const fieldErrorKey = FIELD_ERROR_KEY[errorCode];
@@ -475,6 +558,17 @@ export class EntityEditor {
           },
         },
     );
+  }
+
+  /** Lets go of the object URLs of every file a draft holds unsaved. */
+  private releasePreviews(draft: EntityDraft | null): void {
+    Object.values(draft ?? {}).forEach((value) => this.releasePreview(value));
+  }
+
+  private releasePreview(value: unknown): void {
+    if (isImageDraft(value) && 'chosen' in value) {
+      URL.revokeObjectURL(value.preview);
+    }
   }
 
   /** A field being rewritten is no longer the one that was refused. */

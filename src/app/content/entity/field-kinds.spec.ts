@@ -83,3 +83,54 @@ describe('the relation field kind', () => {
     expect(strategy.diff('f', null, { id: 't9', romaji: null, names: {} })?.after).toBe('t9');
   });
 });
+
+describe('the image field kind', () => {
+  const strategy = FIELD_KINDS.image;
+  const saved = { id: 'a1b2', url: '/api/content/images/a1b2' };
+  const other = { id: 'c3d4', url: '/api/content/images/c3d4' };
+  const file = new File([new Uint8Array(4)], 'fruit.png', { type: 'image/png' });
+
+  it('keeps the image on the version and leaves it out of review', () => {
+    expect(strategy.localized).toBe(false);
+    expect(strategy.forReview).toBe(false);
+  });
+
+  it('gives the editor the saved image to keep, or none', () => {
+    expect(strategy.draftValue(saved)).toEqual({ saved });
+    expect(strategy.draftValue(null)).toBeNull();
+    expect(strategy.draftValue(undefined)).toBeNull();
+  });
+
+  it('puts nothing in the JSON: the file travels beside it', () => {
+    expect(strategy.savedValue({ chosen: file, preview: 'blob:x' })).toBeUndefined();
+    expect(strategy.savedValue({ saved })).toBeUndefined();
+  });
+
+  it('counts an image kept or chosen as present', () => {
+    expect(strategy.isFilled({ saved })).toBe(true);
+    expect(strategy.isFilled({ chosen: file, preview: 'blob:x' })).toBe(true);
+    expect(strategy.isFilled(null)).toBe(false);
+  });
+
+  it('compares the ids and shows the URL of each side', () => {
+    expect(strategy.diff('f', saved, { ...saved, url: '/elsewhere' })?.change).toBe('UNCHANGED');
+    expect(strategy.diff('f', saved, other)).toEqual({
+      field: 'f',
+      before: saved.url,
+      after: other.url,
+      change: 'MODIFIED',
+    });
+    expect(strategy.diff('f', null, other)?.change).toBe('ADDED');
+    expect(strategy.diff('f', saved, null)).toMatchObject({ change: 'REMOVED', after: null });
+    expect(strategy.diff('f', null, undefined)).toBeNull();
+  });
+});
+
+describe('which field kinds review asks for', () => {
+  it('asks for texts and relations, not for an image', () => {
+    expect(FIELD_KINDS.text.forReview).toBe(true);
+    expect(FIELD_KINDS.localizedText.forReview).toBe(true);
+    expect(FIELD_KINDS.relation.forReview).toBe(true);
+    expect(FIELD_KINDS.image.forReview).toBe(false);
+  });
+});

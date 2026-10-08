@@ -85,78 +85,100 @@
                 {{ toFix }}
               </p>
             }
-            @for (view of sharedViews(); track view.field.key) {
-              @switch (view.field.kind) {
-                @case ('relation') {
-                  @if (view.source; as source) {
-                    <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                      <div class="flex items-center justify-between gap-2.5">
-                        <label
-                          [for]="'draft-' + view.field.key"
-                          class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                          >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
-                        >
-                        <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                          'content.editor.' + view.field.key + '.hint' | transloco
-                        }}</span>
-                      </div>
-                      <div class="mt-2">
-                        <app-relation-picker
-                          [inputId]="'draft-' + view.field.key"
-                          [source]="source"
-                          [value]="view.reference"
-                          [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
-                          [invalid]="!!view.error"
-                          (picked)="setRelation(view.field.key, $event)"
-                        />
-                      </div>
-                      @if (view.error; as error) {
-                        <p
-                          class="mt-1 font-heading text-sm font-bold text-flag-700"
-                          data-testid="field-error"
-                        >
-                          {{ error }}
-                        </p>
+            <div
+              class="grid items-start gap-3.5"
+              [class]="imageView() ? 'sm:grid-cols-[150px_minmax(0,1fr)]' : ''"
+            >
+              @if (imageView(); as image) {
+                <app-image-picker
+                  [inputId]="'draft-' + image.field.key"
+                  [value]="image.value"
+                  [profile]="image.field.profile"
+                  [alt]="title()"
+                  [error]="image.error"
+                  (picked)="setImage(image.field.key, $event)"
+                />
+              }
+              <div class="grid min-w-0 gap-3.5">
+                @for (view of sharedViews(); track view.field.key) {
+                  @switch (view.field.kind) {
+                    @case ('relation') {
+                      @if (view.source; as source) {
+                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                          <div class="flex items-center justify-between gap-2.5">
+                            <label
+                              [for]="'draft-' + view.field.key"
+                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                              >{{
+                                'content.editor.' + view.field.key + '.label' | transloco
+                              }}</label
+                            >
+                            <span
+                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
+                            >
+                          </div>
+                          <div class="mt-2">
+                            <app-relation-picker
+                              [inputId]="'draft-' + view.field.key"
+                              [source]="source"
+                              [value]="view.reference"
+                              [placeholder]="
+                                entity.i18n + '.placeholder.' + view.field.key | transloco
+                              "
+                              [invalid]="!!view.error"
+                              (picked)="setRelation(view.field.key, $event)"
+                            />
+                          </div>
+                          @if (view.error; as error) {
+                            <p
+                              class="mt-1 font-heading text-sm font-bold text-flag-700"
+                              data-testid="field-error"
+                            >
+                              {{ error }}
+                            </p>
+                          }
+                        </div>
                       }
-                    </div>
+                    }
+                    @case ('text') {
+                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                        <div class="flex items-center justify-between gap-2.5">
+                          <label
+                            [for]="'draft-' + view.field.key"
+                            class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                            >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
+                          >
+                          <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                            'content.editor.' + view.field.key + '.hint' | transloco
+                          }}</span>
+                        </div>
+                        <input
+                          #sharedInput
+                          [id]="'draft-' + view.field.key"
+                          type="text"
+                          class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                          [value]="view.value"
+                          [maxLength]="view.field.maxLength"
+                          [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
+                          [attr.aria-invalid]="view.error ? true : null"
+                          (input)="setShared(view.field.key, sharedInput.value)"
+                        />
+                        @if (view.error; as error) {
+                          <p
+                            class="mt-1 font-heading text-sm font-bold text-flag-700"
+                            data-testid="field-error"
+                          >
+                            {{ error }}
+                          </p>
+                        }
+                      </div>
+                    }
                   }
                 }
-                @case ('text') {
-                  <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                    <div class="flex items-center justify-between gap-2.5">
-                      <label
-                        [for]="'draft-' + view.field.key"
-                        class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                        >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
-                      >
-                      <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                        'content.editor.' + view.field.key + '.hint' | transloco
-                      }}</span>
-                    </div>
-                    <input
-                      #sharedInput
-                      [id]="'draft-' + view.field.key"
-                      type="text"
-                      class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                      [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                      [value]="view.value"
-                      [maxLength]="view.field.maxLength"
-                      [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
-                      [attr.aria-invalid]="view.error ? true : null"
-                      (input)="setShared(view.field.key, sharedInput.value)"
-                    />
-                    @if (view.error; as error) {
-                      <p
-                        class="mt-1 font-heading text-sm font-bold text-flag-700"
-                        data-testid="field-error"
-                      >
-                        {{ error }}
-                      </p>
-                    }
-                  </div>
-                }
-              }
-            }
+              </div>
+            </div>
 
             <div class="flex flex-wrap gap-2" role="tablist">
               @for (tab of tabs(); track tab.code) {

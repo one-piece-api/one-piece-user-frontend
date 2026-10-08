@@ -772,7 +772,9 @@
       "noDisadvantages": "— nessuno svantaggio in questa lingua —",
       "incomplete": "traduzione incompleta",
       "type": "Tipo",
-      "noType": "— nessun Tipo scelto —"
+      "noType": "— nessun Tipo scelto —",
+      "imageOf": "Immagine di {{name}}",
+      "thisContent": "questa voce"
     },
     "comparison": {
       "title": "Confronto versioni",
@@ -804,7 +806,8 @@
         "description": "Descrizione · {{language}}",
         "advantages": "Vantaggi · {{language}}",
         "disadvantages": "Svantaggi · {{language}}",
-        "type": "Tipo"
+        "type": "Tipo",
+        "image": "Immagine"
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -821,7 +824,8 @@
         "one": "Nascondi 1 campo invariato",
         "many": "Nascondi {{count}} campi invariati"
       },
-      "frozen": "Contenuto congelato in questa versione."
+      "frozen": "Contenuto congelato in questa versione.",
+      "noImage": "Nessuna immagine"
     },
     "editor": {
       "crumb": "Modifica",
@@ -892,7 +896,8 @@
         "error": "Ricerca non riuscita, riprova",
         "empty": "Nessun risultato"
       },
-      "notLinkableMessage": "Arrr! Il Tipo scelto non si può collegare: serve un Tipo già approvato in revisione."
+      "notLinkableMessage": "Arrr! Il Tipo scelto non si può collegare: serve un Tipo già approvato in revisione.",
+      "imageRefusedMessage": "Arrr! L'immagine non va bene: il motivo è scritto sotto l'immagine."
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1044,6 +1049,24 @@
         "disadvantages": "cosa costa a chi lo mangia, nella lingua selezionata"
       },
       "hintMissing": "Per la revisione servono il romaji, il Tipo e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta."
+    },
+    "image": {
+      "media": "Media",
+      "drop": "Trascina qui l'immagine principale",
+      "choose": "Scegli un file",
+      "replace": "Sostituisci",
+      "remove": "Rimuovi",
+      "checking": "Controllo l'immagine…",
+      "requirements": "PNG con sfondo trasparente, in proporzione 4:5, almeno {{width}} × {{height}} px.",
+      "refused": {
+        "CONTENT_IMAGE_FORMAT_UNSUPPORTED": "Serve un file PNG: questo non lo è, qualunque cosa dica il suo nome.",
+        "CONTENT_IMAGE_NOT_TRANSPARENT": "Lo sfondo deve essere trasparente: qui lo è solo il {{transparentPercent}}% dell'immagine, ne serve almeno il {{minPercent}}%.",
+        "CONTENT_IMAGE_WRONG_RATIO": "L'immagine è {{width}} × {{height}}: le proporzioni devono essere {{ratioWidth}}:{{ratioHeight}} (si tollera il {{tolerancePercent}}% di scarto).",
+        "CONTENT_IMAGE_TOO_SMALL": "L'immagine è {{width}} × {{height}}: ne serve una di almeno {{minWidth}} × {{minHeight}}.",
+        "CONTENT_IMAGE_TOO_LARGE": "Il file pesa {{sizeMegabytes}} MB: il massimo è {{maxMegabytes}} MB.",
+        "PIXELS": "L'immagine è {{width}} × {{height}}: troppi pixel, il massimo è {{maxMegapixels}} megapixel.",
+        "CONTENT_TOO_LARGE": "Il file è troppo pesante da inviare: il massimo è {{maxMegabytes}} MB."
+      }
     }
   }
 }
