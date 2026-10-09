@@ -122,6 +122,10 @@
         "tip3": {
           "text": "Ogni versione resta nello storico: da una precedente puoi aprire una nuova bozza e rimandarla in revisione.",
           "code": "versioni · nello storico"
+        },
+        "tip4": {
+          "text": "Un frutto va online solo dopo il suo tipo, e un tipo resta online finché lo è uno dei suoi frutti: pubblica prima il tipo, ritira prima i frutti.",
+          "code": "tipo → frutto · ordine di pubblicazione"
         }
       }
     }

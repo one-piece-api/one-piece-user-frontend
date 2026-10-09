@@ -122,6 +122,10 @@
         "tip3": {
           "text": "Every version stays in the log: from an older one you can open a new draft and send it back through review.",
           "code": "versions · in the history"
+        },
+        "tip4": {
+          "text": "A fruit goes online only after its type, and a type stays online while any of its fruits is: publish the type first, retire the fruits first.",
+          "code": "type → fruit · publish order"
         }
       }
     }

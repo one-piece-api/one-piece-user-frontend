@@ -19,7 +19,12 @@ const TIPS: Record<TipTopic, readonly string[]> = {
   audit: ['mascot.tips.audit.tip1', 'mascot.tips.audit.tip2'],
   languages: ['mascot.tips.languages.tip1', 'mascot.tips.languages.tip2'],
   dashboard: ['mascot.tips.dashboard.tip1', 'mascot.tips.dashboard.tip2'],
-  content: ['mascot.tips.content.tip1', 'mascot.tips.content.tip2', 'mascot.tips.content.tip3'],
+  content: [
+    'mascot.tips.content.tip1',
+    'mascot.tips.content.tip2',
+    'mascot.tips.content.tip3',
+    'mascot.tips.content.tip4',
+  ],
 };
 
 /** Sparse enough that a tip stays a nudge, not the thing the eye learns to skip. */
