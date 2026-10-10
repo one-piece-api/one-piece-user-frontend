@@ -7,6 +7,7 @@ import { CurrentUserService } from '../../identity/current-user';
 import { Breadcrumb, type Crumb } from '../../shared/ui/breadcrumb';
 import { buttonClasses } from '../../shared/ui/button-variants';
 import { Icon } from '../../shared/ui/icon';
+import { delayedLoading } from '../../shared/ui/delayed-loading';
 import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import {
   STATUS_LABEL_KEY,
@@ -134,6 +135,21 @@ export class EntityDetail {
     computation: (loaded, previous) => loaded ?? previous?.value,
   });
   protected readonly shown = computed(() => this.view()?.version);
+  /**
+   * Another link of the chain was picked and its version is on its way. Reading the same
+   * version again (after an action) keeps it up instead.
+   */
+  protected readonly switching = computed(() => {
+    const shown = this.shown();
+    return !!shown && this.selected()?.number !== shown.number;
+  });
+  /**
+   * The Sunny stands in for what belongs to the version once the switch takes a while,
+   * rather than the previous version passing for the picked one; until then, the previous
+   * one stays up, dimmed - a quick answer shows no Sunny at all.
+   */
+  protected readonly loadingShown = delayedLoading(this.switching);
+  protected readonly dimmed = computed(() => this.switching() && !this.loadingShown());
   /** Its history, oldest first: the Workflow tab, and the counter on it. */
   protected readonly events = computed(() => this.view()?.events ?? []);
 

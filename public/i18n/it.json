@@ -758,6 +758,7 @@
         "workflow": "Workflow"
       },
       "loading": "Recuperiamo la scheda…",
+      "loadingVersion": "Recuperiamo questa versione…",
       "missingTitle": "Contenuto non trovato",
       "missingText": "Arrr! Questa voce non esiste, o non è visibile al tuo ruolo.",
       "backToList": "Torna all'elenco",

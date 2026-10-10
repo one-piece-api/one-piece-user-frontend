@@ -47,10 +47,12 @@
             </h1>
             <p class="font-heading text-sm font-bold text-ocean-500">{{ version.body.romaji }}</p>
           </div>
-          <span class="flex-none"><app-status-badge prominent [status]="version.status" /></span>
+          @if (!loadingShown()) {
+            <span class="flex-none"><app-status-badge prominent [status]="version.status" /></span>
+          }
         </header>
 
-        @if (rejection(); as rejection) {
+        @if (!loadingShown() && rejection(); as rejection) {
           <div
             class="mx-5.5 mt-2.5 flex items-start gap-2.75 rounded-[14px] border-2 border-flag-100 bg-status-rejected-soft px-3.5 py-2.75"
             data-testid="rejection-banner"
@@ -94,7 +96,7 @@
               (picked)="selectVersion($event)"
             />
           </div>
-          @if (selectedBar(); as bar) {
+          @if (!loadingShown() && selectedBar(); as bar) {
             <div
               class="mt-2 flex flex-wrap items-center justify-between gap-2.5 rounded-xl bg-parchment-200/50 px-3 py-2"
             >
@@ -155,8 +157,16 @@
           }
         </div>
 
-        <div class="min-w-0 px-5.5 pt-5 pb-5.5" role="tabpanel">
-          @if (openTab() === 'overview') {
+        <div
+          class="min-w-0 px-5.5 pt-5 pb-5.5 transition-opacity"
+          [class.opacity-50]="dimmed()"
+          [class.pointer-events-none]="dimmed()"
+          [attr.aria-busy]="switching()"
+          role="tabpanel"
+        >
+          @if (loadingShown()) {
+            <app-loading-placeholder [label]="'content.detail.loadingVersion' | transloco" />
+          } @else if (openTab() === 'overview') {
             <app-entity-card [body]="version.body" [languages]="languages()">
               <ng-container ngProjectAs="[cardSide]">
                 @if (isCurrent()) {

@@ -758,6 +758,7 @@
         "workflow": "Workflow"
       },
       "loading": "Fetching the card…",
+      "loadingVersion": "Fetching this version…",
       "missingTitle": "Content not found",
       "missingText": "Arrr! This entry does not exist, or is not visible to your role.",
       "backToList": "Back to the list",

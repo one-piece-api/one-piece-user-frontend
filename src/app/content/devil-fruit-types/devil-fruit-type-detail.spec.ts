@@ -8,6 +8,7 @@ import { MascotService } from '../../shared/mascot/mascot';
 import { polyfillDialog } from '../../testing/dialog-polyfill';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import type { VersionStatus } from '../content.model';
+import { LOADING_DELAY_MS, LOADING_MIN_VISIBLE_MS } from '../../shared/ui/delayed-loading';
 import { ENTITY } from '../entity/entities';
 import { EntityDetail } from '../entity/entity-detail';
 import { DEVIL_FRUIT_TYPE } from './devil-fruit-type.model';
@@ -327,6 +328,49 @@ describe('DevilFruitTypeDetail', () => {
     expect(selectedBar()).toContain('v1 · Superseded');
     expect(selectedBar()).toContain('by You');
     expect(selectedBar()).not.toContain('the most recent');
+  });
+
+  it('keeps the previous version up, dimmed, while a quick answer is on its way', async () => {
+    await open(PAGE, 'nami', EDITOR);
+    await answerContent([V1, V2, V3], 2);
+    await answerVersion(V3, body('Logia draft'));
+
+    circles()[2].click();
+    await afterInteraction();
+
+    const panel = root.querySelector('[role="tabpanel"]');
+    expect(panel?.classList).toContain('opacity-50');
+    expect(panel?.getAttribute('aria-busy')).toBe('true');
+    expect(root.querySelector('app-loading-placeholder')).toBeNull();
+
+    await answerVersion(V1, body('Logia first'));
+
+    expect(panel?.classList).not.toContain('opacity-50');
+    expect(root.querySelector('app-loading-placeholder')).toBeNull();
+    expect(root.querySelector('[data-testid="card-name"]')?.textContent).toContain('Logia first');
+  });
+
+  it('shows the Sunny, not the previous version, when the picked one takes a while', async () => {
+    await open(PAGE, 'nami', EDITOR);
+    await answerContent([V1, V2, V3], 2);
+    await answerVersion(V3, body('Logia draft'));
+
+    circles()[2].click();
+    await afterInteraction();
+    await new Promise((resolve) => setTimeout(resolve, LOADING_DELAY_MS));
+    harness.detectChanges();
+
+    expect(root.querySelector('[role="tabpanel"] app-loading-placeholder')).not.toBeNull();
+    expect(root.querySelector('app-entity-card')).toBeNull();
+    expect(root.querySelector('header app-status-badge')).toBeNull();
+    expect(root.querySelector('[data-testid="selected-version"]')).toBeNull();
+
+    await answerVersion(V1, body('Logia first'));
+    await new Promise((resolve) => setTimeout(resolve, LOADING_MIN_VISIBLE_MS));
+    harness.detectChanges();
+
+    expect(root.querySelector('app-loading-placeholder')).toBeNull();
+    expect(root.querySelector('[data-testid="card-name"]')?.textContent).toContain('Logia first');
   });
 
   it('opens on the version the URL asks for', async () => {
