@@ -1,12 +1,16 @@
 @if (listed(); as listed) {
-  <section
-    class="min-w-0 rounded-[14px] bg-white px-4 py-3 ring-2 ring-card-line"
-    data-testid="related-list"
-  >
-    <h2
-      class="mb-2 font-heading text-[10px] font-extrabold tracking-widest text-card-ink uppercase"
-    >
-      {{ i18n + '.related.' + section().of + '.title' | transloco }}
+  <section class="min-w-0" data-testid="related-list">
+    <h2 class="mb-2.5 flex items-center gap-2">
+      <span class="font-display text-[13px] font-bold tracking-[0.08em] text-ocean-900 uppercase">{{
+        i18n + '.related.' + section().of + '.title' | transloco
+      }}</span>
+      @if (state() === 'ready' || state() === 'empty') {
+        <span
+          class="rounded-full bg-ocean-900 px-2 font-heading text-[11px] font-extrabold text-treasure-500"
+          data-testid="related-count"
+          >{{ total() }}</span
+        >
+      }
     </h2>
 
     @switch (state()) {
@@ -21,20 +25,25 @@
         </p>
       }
       @case ('empty') {
-        <p class="font-heading text-sm font-bold text-treasure-700" data-testid="related-empty">
+        <p class="font-heading text-[13px] font-bold text-ocean-500/50" data-testid="related-empty">
           {{ i18n + '.related.' + section().of + '.empty' | transloco }}
         </p>
       }
       @case ('ready') {
-        <ul class="grid gap-1.5">
+        <ul class="grid gap-2.25">
           @for (item of items(); track item.id) {
-            <li class="flex items-center justify-between gap-2.5" data-testid="related-item">
+            <li data-testid="related-item">
               <a
                 [routerLink]="item.link"
-                class="min-w-0 truncate font-heading text-[15px] font-extrabold text-ocean-950 underline decoration-ocean-500/30 hover:decoration-ocean-500"
-                >{{ item.name }}</a
+                class="flex items-center gap-2 font-heading text-sm font-extrabold text-ocean-700 hover:text-ocean-800"
+                [title]="item.statusKey | transloco"
               >
-              <app-status-badge [status]="item.status" />
+                <span class="size-1.75 flex-none rounded-full" [class]="item.dotClass"></span>
+                <span class="min-w-0 wrap-anywhere" data-testid="related-name">{{
+                  item.name
+                }}</span>
+                <span class="sr-only">({{ item.statusKey | transloco }})</span>
+              </a>
             </li>
           }
         </ul>

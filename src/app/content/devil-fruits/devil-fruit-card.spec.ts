@@ -69,7 +69,7 @@ describe('the card of a Devil Fruit', () => {
     render({ ...GOMU, type: null });
 
     expect(type()?.getAttribute('href')).toBeNull();
-    expect(type()?.textContent?.trim()).toBe('— no type chosen —');
+    expect(type()?.textContent?.trim()).toBe('not linked');
   });
 
   describe('its image', () => {

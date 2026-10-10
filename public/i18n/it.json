@@ -776,9 +776,15 @@
       "noDisadvantages": "— nessuno svantaggio in questa lingua —",
       "incomplete": "traduzione incompleta",
       "type": "Tipo",
-      "noType": "— nessun Tipo scelto —",
+      "noType": "non collegato",
       "imageOf": "Immagine di {{name}}",
-      "thisContent": "questa voce"
+      "thisContent": "questa voce",
+      "heading": {
+        "type": "Tipo di frutto",
+        "description": "Descrizione",
+        "advantages": "Vantaggi",
+        "disadvantages": "Svantaggi"
+      }
     },
     "comparison": {
       "title": "Confronto versioni",

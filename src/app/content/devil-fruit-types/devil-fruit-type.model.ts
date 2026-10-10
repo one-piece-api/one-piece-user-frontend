@@ -20,9 +20,9 @@ export const DEVIL_FRUIT_TYPE: EntityDefinition = {
   fields: [
     textField('romaji', { maxLength: 100 }),
     localizedTextField('name', { maxLength: 100 }),
-    localizedTextField('description', { maxLength: 2000, rows: 8, layout: 'wide' }),
-    localizedTextField('advantages', { maxLength: 2000, rows: 5, layout: 'pair' }),
-    localizedTextField('disadvantages', { maxLength: 2000, rows: 5, layout: 'pair' }),
+    localizedTextField('description', { maxLength: 2000, rows: 8 }),
+    localizedTextField('advantages', { maxLength: 2000, rows: 5 }),
+    localizedTextField('disadvantages', { maxLength: 2000, rows: 5 }),
   ],
   counts: [countColumn('devilFruitCount', { of: 'DEVIL_FRUIT', by: 'type' })],
   sections: [relatedList({ of: 'DEVIL_FRUIT', by: 'type' })],

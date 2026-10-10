@@ -14,15 +14,13 @@ export interface TextField {
 
 /**
  * A text written once per language. Without `rows` it is a single line, such as the name;
- * with them, a long text the card lays out `wide` (across the card) or as a `pair` (side by
- * side with the next one).
+ * with them, a long text the card shows as a section of its own.
  */
 export interface LocalizedTextField {
   readonly kind: 'localizedText';
   readonly key: string;
   readonly maxLength: number;
   readonly rows?: number;
-  readonly layout?: 'wide' | 'pair';
 }
 
 /**

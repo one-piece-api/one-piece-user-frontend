@@ -3,8 +3,13 @@ import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { PageResponse } from '../../shared/http/page-response';
-import { localizedName, type ContentSummary, type VersionStatus } from '../content.model';
-import { StatusBadge } from '../status-badge';
+import {
+  localizedName,
+  STATUS_LABEL_KEY,
+  type ContentSummary,
+  type VersionStatus,
+} from '../content.model';
+import { STATUS_DOT_CLASS } from '../status-badge';
 import { ENTITY, entityOf } from './entities';
 import type { RelatedListSection } from './entity-definition';
 
@@ -22,6 +27,8 @@ interface ItemView {
   readonly id: string;
   readonly name: string;
   readonly status: VersionStatus;
+  readonly dotClass: string;
+  readonly statusKey: string;
   readonly link: readonly string[];
 }
 
@@ -34,7 +41,7 @@ interface ItemView {
 @Component({
   selector: 'app-related-list',
   templateUrl: './related-list.html',
-  imports: [RouterLink, StatusBadge, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe],
 })
 export class RelatedList {
   private readonly transloco = inject(TranslocoService);
@@ -84,6 +91,8 @@ export class RelatedList {
         row.body.romaji ??
         this.transloco.translate('content.list.unnamed'),
       status: row.status,
+      dotClass: STATUS_DOT_CLASS[row.status],
+      statusKey: STATUS_LABEL_KEY[row.status],
       link: listed ? [listed.route, row.id] : [],
     }));
   });

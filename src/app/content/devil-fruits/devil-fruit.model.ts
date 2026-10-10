@@ -38,8 +38,8 @@ export const DEVIL_FRUIT: EntityDefinition = {
     imageField('image', DEVIL_FRUIT_IMAGE),
     relationField('type', { target: 'DEVIL_FRUIT_TYPE' }),
     localizedTextField('name', { maxLength: 100 }),
-    localizedTextField('description', { maxLength: 2000, rows: 8, layout: 'wide' }),
-    localizedTextField('advantages', { maxLength: 2000, rows: 5, layout: 'pair' }),
-    localizedTextField('disadvantages', { maxLength: 2000, rows: 5, layout: 'pair' }),
+    localizedTextField('description', { maxLength: 2000, rows: 8 }),
+    localizedTextField('advantages', { maxLength: 2000, rows: 5 }),
+    localizedTextField('disadvantages', { maxLength: 2000, rows: 5 }),
   ],
 };

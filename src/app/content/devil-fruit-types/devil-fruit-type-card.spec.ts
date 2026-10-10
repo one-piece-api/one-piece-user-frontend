@@ -63,9 +63,9 @@ describe('DevilFruitTypeCard', () => {
     expect(text('card-description')).toBe('Turns the body into an element.');
     expect(text('card-advantages')).toBe('Attacks pass through.');
     expect(text('card-disadvantages')).toBe('Haki and sea water.');
-    expect(root.textContent).toContain('Description · EN');
-    expect(root.textContent).toContain('Advantages · EN');
-    expect(root.textContent).toContain('Disadvantages · EN');
+    expect(root.textContent).toContain('Description');
+    expect(root.textContent).toContain('Advantages');
+    expect(root.textContent).toContain('Disadvantages');
   });
 
   it('opens on the first language when the catalog does not have the UI one', () => {

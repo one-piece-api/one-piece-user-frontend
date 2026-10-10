@@ -232,7 +232,7 @@ describe('DevilFruitTypeDetail', () => {
       return { content, page: 0, size: 12, totalElements, totalPages: 2 };
     }
 
-    it('lists a few under the card, each leading to the fruit, with a way to see all', async () => {
+    it('lists a few beside the card, each leading to the fruit, with a way to see all', async () => {
       await openWithFruits(
         fruitsPage(
           [
@@ -244,10 +244,11 @@ describe('DevilFruitTypeDetail', () => {
       );
 
       const items = Array.from(root.querySelectorAll('[data-testid="related-item"]'));
-      expect(items.map((item) => item.querySelector('a')?.textContent?.trim())).toEqual([
-        'Mera Mera no Mi',
-        'Hie Hie no Mi',
-      ]);
+      expect(
+        items.map((item) =>
+          item.querySelector('[data-testid="related-name"]')?.textContent?.trim(),
+        ),
+      ).toEqual(['Mera Mera no Mi', 'Hie Hie no Mi']);
       expect(items[0].querySelector('a')?.getAttribute('href')).toBe('/content/devil-fruits/f1');
       expect(items[1].textContent).toContain('Draft');
       const all = root.querySelector('[data-testid="related-all"]');

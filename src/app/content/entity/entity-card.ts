@@ -1,4 +1,3 @@
-import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -32,32 +31,29 @@ interface LongText {
   readonly emptyKey: string;
 }
 
-/** A content this one points to, as the card shows it: a chip leading to its page. */
+/** A content this one points to, as the card shows it: a link to its page under a heading. */
 interface RelationChip {
   readonly field: string;
-  /** `content.card.type`, `content.card.noType`: the heading, and what stands in for none. */
+  /** `content.card.heading.type`, `content.card.noType`: the heading, and what stands in for none. */
   readonly headingKey: string;
   readonly emptyKey: string;
   /** `null` when none is chosen. */
   readonly label: string | null;
-  /** Where the chip leads - empty for a content whose section this app does not have. */
+  /** Where the link leads - empty for a content whose section this app does not have. */
   readonly link: readonly string[];
 }
 
-/** A row of the card: a long text across it, or two side by side. */
-type Block =
-  | { readonly layout: 'wide'; readonly text: LongText }
-  | { readonly layout: 'pair'; readonly texts: LongText[] };
-
 /**
- * The card of a version of any entity: its image when the entity has one, its name, then its
- * long texts as the definition lays them out, one language at a time. The tabs are the language catalog; a dot marks a
- * language whose translation is incomplete.
+ * The card of a version of any entity: its image on the left when the entity has one, then its
+ * name and the language tabs, the contents it points to, and its long texts one section each,
+ * one language at a time. The tabs are the language catalog; a dot marks a language whose
+ * translation is incomplete. What the page projects (`[cardSide]`) becomes a column on the
+ * right - the fruits of a type.
  */
 @Component({
   selector: 'app-entity-card',
   templateUrl: './entity-card.html',
-  imports: [EntityImageFrame, NgTemplateOutlet, RouterLink, TranslocoPipe],
+  imports: [EntityImageFrame, RouterLink, TranslocoPipe],
 })
 export class EntityCard {
   private readonly transloco = inject(TranslocoService);
@@ -87,6 +83,7 @@ export class EntityCard {
 
   private readonly translation = computed(() => this.body().translations[this.language() ?? '']);
   protected readonly name = computed(() => textOf(this.translation()?.['name']).trim() || null);
+  protected readonly romaji = computed(() => textOf(this.body().romaji).trim() || null);
 
   /**
    * The image of the version, for an entity that has one: its URL - `null` for none - named
@@ -99,7 +96,7 @@ export class EntityCard {
     }
     this.transloco.activeLang();
     const saved = this.body()[field.key];
-    const named = this.name() ?? textOf(this.body().romaji).trim();
+    const named = this.name() ?? this.romaji() ?? '';
     return {
       src: isImageReference(saved) ? saved.url : null,
       alt: named,
@@ -122,7 +119,7 @@ export class EntityCard {
       return [
         {
           field: field.key,
-          headingKey: `content.card.${field.key}`,
+          headingKey: `content.card.heading.${field.key}`,
           emptyKey: `content.card.no${name}`,
           label: isReference(reference) ? referenceLabel(reference, language) : null,
           link: isReference(reference) && target ? [target.route, reference.id] : [],
@@ -131,27 +128,18 @@ export class EntityCard {
     });
   });
 
-  /** The long texts in reading order: each wide one alone, side by side those in a pair. */
-  protected readonly blocks = computed<Block[]>(() => {
-    const blocks: Block[] = [];
-    for (const field of localizedFields(this.entity)) {
-      if (field.kind !== 'localizedText' || !field.layout) {
-        continue;
-      }
-      const text: LongText = {
-        field: field.key,
-        text: textOf(this.translation()?.[field.key]).trim() || null,
-        emptyKey: `content.card.no${field.key[0].toUpperCase()}${field.key.slice(1)}`,
-      };
-      const last = blocks.at(-1);
-      if (field.layout === 'wide') {
-        blocks.push({ layout: 'wide', text });
-      } else if (last?.layout === 'pair') {
-        last.texts.push(text);
-      } else {
-        blocks.push({ layout: 'pair', texts: [text] });
-      }
-    }
-    return blocks;
-  });
+  /** The long texts in reading order, each a section of the card. */
+  protected readonly longTexts = computed<LongText[]>(() =>
+    localizedFields(this.entity).flatMap((field) =>
+      field.kind === 'localizedText' && field.rows
+        ? [
+            {
+              field: field.key,
+              text: textOf(this.translation()?.[field.key]).trim() || null,
+              emptyKey: `content.card.no${field.key[0].toUpperCase()}${field.key.slice(1)}`,
+            },
+          ]
+        : [],
+    ),
+  );
 }

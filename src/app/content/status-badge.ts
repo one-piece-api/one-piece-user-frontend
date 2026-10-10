@@ -14,7 +14,8 @@ export const STATUS_SOFT_CLASS: Record<VersionStatus, string> = {
   SUPERSEDED: 'bg-status-superseded-soft text-status-superseded-ink',
 };
 
-const DOT_CLASSES: Record<VersionStatus, string> = {
+/** The accent of each status as a dot - the pill, a related content. */
+export const STATUS_DOT_CLASS: Record<VersionStatus, string> = {
   DRAFT: 'bg-status-draft-accent',
   IN_REVIEW: 'bg-status-review-accent',
   REJECTED: 'bg-status-rejected-accent',
@@ -70,7 +71,7 @@ export class StatusBadge {
     () =>
       `${STATUS_SOFT_CLASS[this.status()]} ${this.prominent() ? PROMINENT_CLASSES : COMPACT_CLASSES}`,
   );
-  protected readonly dotClasses = computed(() => DOT_CLASSES[this.status()]);
+  protected readonly dotClasses = computed(() => STATUS_DOT_CLASS[this.status()]);
   protected readonly glyph = computed(() => STATUS_GLYPH[this.status()]);
   protected readonly labelKey = computed(() => STATUS_LABEL_KEY[this.status()]);
 }

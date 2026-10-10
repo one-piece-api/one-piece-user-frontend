@@ -157,12 +157,15 @@
 
         <div class="min-w-0 px-5.5 pt-5 pb-5.5" role="tabpanel">
           @if (openTab() === 'overview') {
-            <app-entity-card [body]="version.body" [languages]="languages()" />
-            @if (isCurrent()) {
-              @for (section of entity.sections ?? []; track section.of) {
-                <app-related-list class="mt-3.5 block" [section]="section" [contentId]="id()" />
-              }
-            }
+            <app-entity-card [body]="version.body" [languages]="languages()">
+              <ng-container ngProjectAs="[cardSide]">
+                @if (isCurrent()) {
+                  @for (section of entity.sections ?? []; track section.of) {
+                    <app-related-list class="block" [section]="section" [contentId]="id()" />
+                  }
+                }
+              </ng-container>
+            </app-entity-card>
           } @else {
             <app-version-workflow
               [version]="version"

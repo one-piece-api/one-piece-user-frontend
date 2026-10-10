@@ -20,7 +20,7 @@ export const NOTE: EntityDefinition = {
   fields: [
     textField('romaji', { maxLength: 40 }),
     localizedTextField('name', { maxLength: 60 }),
-    localizedTextField('body', { maxLength: 500, rows: 4, layout: 'wide' }),
+    localizedTextField('body', { maxLength: 500, rows: 4 }),
     textField('code', { maxLength: 8 }),
   ],
 };
