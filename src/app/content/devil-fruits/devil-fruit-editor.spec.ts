@@ -19,7 +19,13 @@ const LINKABLE = '/api/content/devil-fruit-types/linkable?size=20';
 const NAMI = { id: 'u1', username: 'nami', email: 'nami@onepiece.local' };
 
 const LOGIA = { id: 't1', romaji: 'Shizen-kei', names: { it: 'Rogia', en: 'Logia' } };
-const ZOAN = { id: 't2', romaji: 'Dobutsu-kei', names: { it: 'Zoo', en: 'Zoan' } };
+const MYTHICAL = { id: 's2', names: { it: 'Mitologico', en: 'Mythical' } };
+const ZOAN = {
+  id: 't2',
+  romaji: 'Dobutsu-kei',
+  names: { it: 'Zoo', en: 'Zoan' },
+  subcategories: [{ id: 's1', names: { it: 'Antico', en: 'Ancient' } }, MYTHICAL],
+};
 
 /**
  * Stands in for the browser's decoding (`createImageBitmap`, `OffscreenCanvas`), which the
@@ -284,6 +290,90 @@ describe('the editor of a Devil Fruit', () => {
       expect(request.request.body).toMatchObject({ type: null });
       request.flush({ number: 1 });
       await settle();
+    });
+  });
+
+  describe('the subcategory', () => {
+    beforeEach(async () => {
+      await open(`${SECTION}/new`);
+    });
+
+    function picker(): HTMLSelectElement | null {
+      return root.querySelector<HTMLSelectElement>('#draft-subcategory');
+    }
+
+    async function pick(id: string): Promise<void> {
+      picker()!.value = id;
+      picker()!.dispatchEvent(new Event('change'));
+      await settle();
+    }
+
+    it('is offered only once a type with subcategories is chosen', async () => {
+      expect(picker()).toBeNull();
+
+      await openChoices([LOGIA, ZOAN]);
+      await choose(0);
+      expect(picker()).toBeNull();
+
+      await openChoices([LOGIA, ZOAN]);
+      await choose(1);
+      expect(Array.from(picker()!.options).map((option) => option.textContent?.trim())).toEqual([
+        '— none —',
+        'Ancient',
+        'Mythical',
+      ]);
+    });
+
+    it('is not asked for by review', async () => {
+      await openChoices([ZOAN]);
+      await choose(0);
+      expect(checks().some((check) => check.includes('Subcategory'))).toBe(false);
+    });
+
+    it('saves the id of the subcategory picked', async () => {
+      await openChoices([ZOAN]);
+      await choose(0);
+      await pick('s2');
+
+      await save();
+      const request = httpTesting.expectOne(ENDPOINT);
+      expect(request.request.body).toMatchObject({ type: 't2', subcategory: 's2' });
+      request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
+      await settle();
+    });
+
+    it('is cleared when another type is chosen', async () => {
+      await openChoices([LOGIA, ZOAN]);
+      await choose(1);
+      await pick('s2');
+      await openChoices([LOGIA, ZOAN]);
+      await choose(0);
+
+      await save();
+      const request = httpTesting.expectOne(ENDPOINT);
+      expect(request.request.body).toMatchObject({ type: 't1', subcategory: null });
+      request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
+      await settle();
+    });
+
+    it('is marked when the backend says it is not of the type', async () => {
+      await openChoices([ZOAN]);
+      await choose(0);
+      await pick('s1');
+
+      await save();
+      httpTesting.expectOne(ENDPOINT).flush(
+        {
+          errorCode: 'CONTENT_VALUE_INVALID',
+          errors: [{ field: 'subcategory', message: 'must be a subcategory of its type' }],
+        },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await settle();
+
+      expect(picker()!.getAttribute('aria-invalid')).toBe('true');
+      expect(root.textContent).toContain('this subcategory is not of the chosen Type');
+      expect(mascotSays()).toContain('subcategory');
     });
   });
 

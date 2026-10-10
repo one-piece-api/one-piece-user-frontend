@@ -38,18 +38,34 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
       const sentence = text('sentence.TYPE_NOT_ONLINE');
       return { note: text('note.TYPE_NOT_ONLINE'), sentence, links: [], more: 0, titled: sentence };
     }
-    case 'ONLINE_FRUITS_LINKED': {
+    case 'SUBCATEGORY_NOT_ONLINE': {
+      const names = cause.detail.subcategoryNames ?? {};
+      const subcategory =
+        names[transloco.getActiveLang()] ||
+        Object.values(names).find(Boolean) ||
+        cause.detail.subcategoryId;
+      const sentence = text('sentence.SUBCATEGORY_NOT_ONLINE', { subcategory });
+      return {
+        note: text('note.SUBCATEGORY_NOT_ONLINE'),
+        sentence,
+        links: [],
+        more: 0,
+        titled: sentence,
+      };
+    }
+    case 'ONLINE_FRUITS_LINKED':
+    case 'SUBCATEGORY_IN_USE': {
       const { count, fruits } = cause.detail;
       const route = entityOf(FRUIT_ENTITY)?.route;
       const links = fruits.map((fruit) => ({
         label: fruit.romaji ?? fruit.id,
         route: route ? `${route}/${fruit.id}` : '',
       }));
-      const sentence = text('sentence.ONLINE_FRUITS_LINKED', { count });
+      const sentence = text(`sentence.${cause.reason}`, { count });
       const more = Math.max(count - links.length, 0);
       const names = links.map(({ label }) => label).join(', ');
       return {
-        note: text('note.ONLINE_FRUITS_LINKED', { count }),
+        note: text(`note.${cause.reason}`, { count }),
         sentence,
         links,
         more,

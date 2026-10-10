@@ -63,8 +63,37 @@ export interface ImageField {
   readonly profile: ImageProfile;
 }
 
+/**
+ * A list of subcategories the content defines, in display order - the Zoan's Ancient,
+ * Mythical, Artificial. Each has an id given by the backend and a name and a description per
+ * language, both asked for by review; part of the version, so reviewed and published with it.
+ */
+export interface SubcategoryListField {
+  readonly kind: 'subcategoryList';
+  readonly key: string;
+  readonly nameMaxLength: number;
+  readonly descriptionMaxLength: number;
+}
+
+/**
+ * One subcategory of the content a relation of the same entity points to - the Mythical of a
+ * fruit's Zoan. `of` is the key of that relation: its reference carries the choices, and
+ * choosing another content clears this one. Optional: most contents have none.
+ */
+export interface SubcategoryField {
+  readonly kind: 'subcategory';
+  readonly key: string;
+  readonly of: string;
+}
+
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
-export type EntityField = TextField | LocalizedTextField | RelationField | ImageField;
+export type EntityField =
+  | TextField
+  | LocalizedTextField
+  | RelationField
+  | ImageField
+  | SubcategoryListField
+  | SubcategoryField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -133,6 +162,20 @@ export function relationField(
 
 export function imageField(key: string, profile: ImageProfile): ImageField {
   return { kind: 'image', key, profile };
+}
+
+export function subcategoryListField(
+  key: string,
+  options: Omit<SubcategoryListField, 'kind' | 'key'>,
+): SubcategoryListField {
+  return { kind: 'subcategoryList', key, ...options };
+}
+
+export function subcategoryField(
+  key: string,
+  options: Omit<SubcategoryField, 'kind' | 'key'>,
+): SubcategoryField {
+  return { kind: 'subcategory', key, ...options };
 }
 
 export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {

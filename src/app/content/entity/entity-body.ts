@@ -3,9 +3,15 @@
  * each walks the fields of the entity's definition and leaves every value to the field's
  * kind (`field-kinds.ts`). No Angular in here, so each one is testable on its own.
  */
-import type { FieldDiff } from '../version-comparison';
+import { diffField, type FieldDiff } from '../version-comparison';
 import type { EntityDefinition, EntityField } from './entity-definition';
 import { chosenFileOf, isImageDraft, isImageReference } from './entity-image';
+import {
+  SUBCATEGORY_PARTS,
+  subcategoriesOf,
+  subcategoryText,
+  type SubcategoryPart,
+} from './entity-subcategory';
 import { FIELD_KINDS } from './field-kinds';
 
 /** What a version says in one language, by field key. */
@@ -37,6 +43,18 @@ export interface EntityFieldRef {
   readonly field: string;
   /** The language of a translated field; `null` for a field shared by all. */
   readonly language: string | null;
+  /** One text of one entry of a list - a subcategory's name - when the field is a list. */
+  readonly entry?: FieldEntry;
+}
+
+/** One text of one entry of a list field: which entry, where it stands, how it is called. */
+export interface FieldEntry {
+  readonly id: string;
+  /** Its place in the list, from 1. */
+  readonly position: number;
+  readonly part: SubcategoryPart;
+  /** Its name in the language of the reference, `null` where it has none. */
+  readonly name: string | null;
 }
 
 /** One thing a version needs before it can go to review, and whether the draft has it. */
@@ -66,6 +84,56 @@ export function isTranslationComplete(
   return localizedFields(definition).every((field) =>
     kindOf(field).isFilled(translation?.[field.key]),
   );
+}
+
+/** The fields that are lists of subcategories, such as a type's. */
+function subcategoryListFields(definition: EntityDefinition): EntityField[] {
+  return definition.fields.filter(({ kind }) => kind === 'subcategoryList');
+}
+
+/**
+ * A language is complete - saved or being written - when every translated field and every
+ * subcategory's name and description are filled in there.
+ */
+export function isLanguageComplete(
+  definition: EntityDefinition,
+  value: EntityBody | EntityDraft,
+  language: string,
+): boolean {
+  return (
+    isTranslationComplete(definition, value.translations[language]) &&
+    subcategoryChecks(definition, value, language).every(({ done }) => done)
+  );
+}
+
+/** Whether each subcategory has its name and its description in `language`. */
+function subcategoryChecks(
+  definition: EntityDefinition,
+  value: EntityBody | EntityDraft,
+  language: string,
+): ReadinessCheck[] {
+  return subcategoryListFields(definition).flatMap((field) =>
+    entriesOf(value[field.key]).flatMap((subcategory, index) =>
+      SUBCATEGORY_PARTS.map((part) => ({
+        field: field.key,
+        language,
+        entry: {
+          id: subcategory.id ?? subcategory.key ?? String(index),
+          position: index + 1,
+          part,
+          name: subcategoryText(subcategory, language, 'name').trim() || null,
+        },
+        done: !!subcategoryText(subcategory, language, part).trim(),
+      })),
+    ),
+  );
+}
+
+/** The entries of a list, saved or being written. */
+function entriesOf(
+  value: unknown,
+): { id: string | null; key?: string; translations: Record<string, unknown> }[] {
+  return Array.isArray(value) ? value : [];
 }
 
 /** The names of a version per language code, for the languages that have one. */
@@ -191,6 +259,7 @@ export function readinessChecks(
         language,
         done: kindOf(field).isFilled(translation?.[field.key]),
       })),
+      ...subcategoryChecks(definition, draft, language),
     );
   }
   return checks;
@@ -198,10 +267,19 @@ export function readinessChecks(
 
 /**
  * Where the backend says a value is at fault, as the editor addresses its fields: `romaji`,
- * or `it.name`. The backend names them `romaji` and `translations[it].name`; anything else
- * is `null`.
+ * `it.name`, `it.subcategories.0.name` or `subcategories.0`. The backend names them
+ * `romaji`, `translations[it].name`, `subcategories[0].translations[it].name` and
+ * `subcategories[0].id`; anything else is `null`.
  */
 export function draftFieldKey(definition: EntityDefinition, field: string): string | null {
+  const lists = subcategoryListFields(definition).map(({ key }) => key);
+  const entry = new RegExp(
+    String.raw`^(${lists.join('|')})\[(\d+)\](?:\.translations\[([^\]]+)\]\.(name|description)|\.id)?$`,
+  ).exec(field);
+  if (lists.length && entry) {
+    const [, list, index, language, part] = entry;
+    return language ? `${language}.${list}.${index}.${part}` : `${list}.${index}`;
+  }
   if (sharedFields(definition).some(({ key }) => key === field)) {
     return field;
   }
@@ -227,23 +305,59 @@ export function diffBodies(
 ): FieldDiff<EntityFieldRef>[] {
   const languages = languagesOf(base, target, catalogOrder);
   const diffs = definition.fields.flatMap((field) =>
-    kindOf(field).localized
-      ? languages.map((language) =>
-          kindOf(field).diff<EntityFieldRef>(
-            { field: field.key, language },
-            base?.translations[language]?.[field.key],
-            target.translations[language]?.[field.key],
-          ),
-        )
-      : [
-          kindOf(field).diff<EntityFieldRef>(
-            { field: field.key, language: null },
-            base?.[field.key],
-            target[field.key],
-          ),
-        ],
+    field.kind === 'subcategoryList'
+      ? diffSubcategories(field.key, base?.[field.key], target[field.key], languages)
+      : kindOf(field).localized
+        ? languages.map((language) =>
+            kindOf(field).diff<EntityFieldRef>(
+              { field: field.key, language },
+              base?.translations[language]?.[field.key],
+              target.translations[language]?.[field.key],
+            ),
+          )
+        : [
+            kindOf(field).diff<EntityFieldRef>(
+              { field: field.key, language: null },
+              base?.[field.key],
+              target[field.key],
+            ),
+          ],
   );
   return diffs.filter((diff) => diff !== null);
+}
+
+/**
+ * Compares two lists of subcategories, matched by id: each subcategory in the list's order,
+ * then those removed; for each, its name and description per language - one added or
+ * removed shows all its texts as added or removed, one renamed only its name as modified.
+ */
+function diffSubcategories(
+  key: string,
+  before: unknown,
+  after: unknown,
+  languages: readonly string[],
+): (FieldDiff<EntityFieldRef> | null)[] {
+  const was = subcategoriesOf(before);
+  const is = subcategoriesOf(after);
+  const removed = was.filter(({ id }) => !is.some((subcategory) => subcategory.id === id));
+  return [...is, ...removed].flatMap((subcategory) => {
+    const old = was.find(({ id }) => id === subcategory.id);
+    const now = is.find(({ id }) => id === subcategory.id);
+    const position = (now ? is.indexOf(now) : was.indexOf(subcategory)) + 1;
+    return languages.flatMap((language) => {
+      const name =
+        (now && subcategoryText(now, language, 'name').trim()) ||
+        (old && subcategoryText(old, language, 'name').trim()) ||
+        null;
+      return SUBCATEGORY_PARTS.map((part) =>
+        diffField<EntityFieldRef>(
+          { field: key, language, entry: { id: subcategory.id, position, part, name } },
+          old && subcategoryText(old, language, part),
+          now && subcategoryText(now, language, part),
+        ),
+      );
+    });
+  });
 }
 
 /** The languages either version has a translation in: the catalog's first, then the rest. */

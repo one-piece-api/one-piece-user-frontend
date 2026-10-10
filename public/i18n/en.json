@@ -591,7 +591,8 @@
           "name": "name {{language}}",
           "description": "description {{language}}",
           "advantages": "advantages {{language}}",
-          "disadvantages": "disadvantages {{language}}"
+          "disadvantages": "disadvantages {{language}}",
+          "subcategories": "subcategories {{language}}"
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
         "blockedUnknown": "the content does not allow it right now."
@@ -648,11 +649,15 @@
       "blocked": {
         "note": {
           "TYPE_NOT_ONLINE": "Type not online",
-          "ONLINE_FRUITS_LINKED": "Fruits online: {{count}}"
+          "ONLINE_FRUITS_LINKED": "Fruits online: {{count}}",
+          "SUBCATEGORY_NOT_ONLINE": "Subcategory not online",
+          "SUBCATEGORY_IN_USE": "Subcategory in use: {{count}}"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "This fruit's type is not online. Republish the type first.",
-          "ONLINE_FRUITS_LINKED": "Fruits are online with this type, retire them first:"
+          "ONLINE_FRUITS_LINKED": "Fruits are online with this type, retire them first:",
+          "SUBCATEGORY_NOT_ONLINE": "The subcategory \"{{subcategory}}\" is not in the Type's online version. Publish a Type that has it first, or pick another one.",
+          "SUBCATEGORY_IN_USE": "This version drops a subcategory used by online Fruits: retire them or change their subcategory first."
         },
         "andMore": "and {{count}} more"
       }
@@ -677,9 +682,13 @@
         "name": "name in the selected language",
         "description": "description in the selected language",
         "advantages": "what this type gives its user, in the selected language",
-        "disadvantages": "what it costs its user, in the selected language"
+        "disadvantages": "what it costs its user, in the selected language",
+        "subcategories": {
+          "name": "subcategory name, e.g. Mythical",
+          "description": "what sets it apart, in the selected language"
+        }
       },
-      "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages, plus each subcategory's name and description. Meanwhile the draft can be saved incomplete.",
       "related": {
         "DEVIL_FRUIT": {
           "title": "Fruits of this type",
@@ -784,7 +793,9 @@
         "type": "Fruit type",
         "description": "Description",
         "advantages": "Advantages",
-        "disadvantages": "Disadvantages"
+        "disadvantages": "Disadvantages",
+        "subcategories": "Subcategories",
+        "subcategory": "Subcategory"
       }
     },
     "comparison": {
@@ -818,7 +829,13 @@
         "advantages": "Advantages · {{language}}",
         "disadvantages": "Disadvantages · {{language}}",
         "type": "Type",
-        "image": "Image"
+        "image": "Image",
+        "subcategories": {
+          "name": "Subcategory {{subcategory}} · Name · {{language}}",
+          "description": "Subcategory {{subcategory}} · Description · {{language}}"
+        },
+        "unnamedEntry": "no. {{position}}",
+        "subcategory": "Subcategory"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -861,7 +878,11 @@
         "done": "complete",
         "required": "required",
         "hintReady": "All set for review.",
-        "type": "Fruit type"
+        "type": "Fruit type",
+        "subcategories": {
+          "name": "Subcategory {{position}} · name · {{language}}",
+          "description": "Subcategory {{position}} · description · {{language}}"
+        }
       },
       "save": "Save draft",
       "saving": "Saving…",
@@ -872,7 +893,10 @@
         "tooLong": "text too long",
         "slugTaken": "gives the same public address as another content",
         "noSlug": "needs at least one letter or digit",
-        "notLinkable": "this type can no longer be chosen"
+        "notLinkable": "this type can no longer be chosen",
+        "subcategoryNotOfType": "this subcategory is not of the chosen Type",
+        "subcategoryUnknown": "unknown subcategory: reload the draft",
+        "subcategoryNameTaken": "already the name of another subcategory"
       },
       "takenMessage": "Arrr! Another content already has the same romaji or name: it must be unique.",
       "slugTakenMessage": "Arrr! This romaji would give the same public address as another content (\"{{slug}}\"): accents, case and punctuation don't count.",
@@ -908,7 +932,23 @@
         "empty": "No results"
       },
       "notLinkableMessage": "Arrr! The chosen type cannot be linked: it must be a type that has passed review.",
-      "imageRefusedMessage": "Arrr! The image won't do: the reason is written under it."
+      "imageRefusedMessage": "Arrr! The image won't do: the reason is written under it.",
+      "subcategoryRefusedMessage": "Arrr! Some subcategory is off course: the reason is written below it.",
+      "subcategories": {
+        "label": "Subcategories · {{language}}",
+        "hint": "optional · shown in this order",
+        "entry": "Subcategory {{position}}",
+        "up": "Move up",
+        "down": "Move down",
+        "remove": "Remove",
+        "add": "Add subcategory",
+        "empty": "No subcategories."
+      },
+      "subcategory": {
+        "label": "Subcategory",
+        "hint": "optional · one of the Type's",
+        "none": "— none —"
+      }
     },
     "dashboard": {
       "eyebrow": "Dashboard",

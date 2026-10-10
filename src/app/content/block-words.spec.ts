@@ -23,6 +23,32 @@ describe('blockWords', () => {
     expect(words.titled).toBe(words.sentence);
   });
 
+  it('tells a fruit that its subcategory is not online, naming it', () => {
+    const words = blockWords(transloco, {
+      reason: 'SUBCATEGORY_NOT_ONLINE',
+      detail: {
+        typeId: 't1',
+        subcategoryId: 's2',
+        subcategoryNames: { it: 'Mitologico', en: 'Mythical' },
+      },
+    });
+
+    expect(words.note).toBe('Subcategory not online');
+    expect(words.sentence).toContain('"Mythical"');
+    expect(words.links).toEqual([]);
+  });
+
+  it('names the online fruits using a subcategory a type version leaves out', () => {
+    const words = blockWords(transloco, {
+      reason: 'SUBCATEGORY_IN_USE',
+      detail: { count: 3, fruits: [{ id: 'f1', romaji: 'Uo Uo no Mi', subcategoryId: 's2' }] },
+    });
+
+    expect(words.note).toBe('Subcategory in use: 3');
+    expect(words.links).toEqual([{ label: 'Uo Uo no Mi', route: '/content/devil-fruits/f1' }]);
+    expect(words.more).toBe(2);
+  });
+
   it('names the fruits that keep a type from being retired, each leading to its page', () => {
     const words = blockWords(transloco, {
       reason: 'ONLINE_FRUITS_LINKED',

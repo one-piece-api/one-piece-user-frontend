@@ -141,6 +141,48 @@
                         </div>
                       }
                     }
+                    @case ('subcategory') {
+                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                        <div class="flex items-center justify-between gap-2.5">
+                          <label
+                            [for]="'draft-' + view.field.key"
+                            class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                            >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
+                          >
+                          <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                            'content.editor.' + view.field.key + '.hint' | transloco
+                          }}</span>
+                        </div>
+                        <select
+                          #subcategoryInput
+                          [id]="'draft-' + view.field.key"
+                          class="mt-2 w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                          [attr.aria-invalid]="view.error ? true : null"
+                          (change)="setSubcategory(view.field, subcategoryInput.value)"
+                        >
+                          <option value="" [selected]="!view.reference">
+                            {{ 'content.editor.' + view.field.key + '.none' | transloco }}
+                          </option>
+                          @for (choice of view.choices; track choice.id) {
+                            <option
+                              [value]="choice.id"
+                              [selected]="choice.id === view.reference?.id"
+                            >
+                              {{ choice.label }}
+                            </option>
+                          }
+                        </select>
+                        @if (view.error; as error) {
+                          <p
+                            class="mt-1 font-heading text-sm font-bold text-flag-700"
+                            data-testid="field-error"
+                          >
+                            {{ error }}
+                          </p>
+                        }
+                      </div>
+                    }
                     @case ('text') {
                       <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
                         <div class="flex items-center justify-between gap-2.5">
@@ -262,6 +304,150 @@
                   </div>
                 }
               }
+            }
+
+            @for (list of subcategoryListViews(); track list.field.key) {
+              <section class="grid gap-2.5" [attr.data-testid]="'draft-' + list.field.key">
+                <div class="flex flex-wrap items-center justify-between gap-2.5">
+                  <h2
+                    class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                  >
+                    {{
+                      'content.editor.' + list.field.key + '.label'
+                        | transloco: { language: languageLabel() }
+                    }}
+                  </h2>
+                  <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                    'content.editor.' + list.field.key + '.hint' | transloco
+                  }}</span>
+                </div>
+                @for (entry of list.entries; track entry.key; let index = $index) {
+                  <div
+                    class="grid gap-2 rounded-[14px] bg-parchment-200 px-4 py-3.5"
+                    data-testid="subcategory-entry"
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="font-display text-[13px] font-bold text-ocean-900">
+                        {{
+                          'content.editor.' + list.field.key + '.entry'
+                            | transloco: { position: entry.position }
+                        }}
+                      </span>
+                      <span class="flex gap-1.5">
+                        <button
+                          type="button"
+                          class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 disabled:pointer-events-none disabled:opacity-40"
+                          [disabled]="entry.first"
+                          [attr.aria-label]="'content.editor.' + list.field.key + '.up' | transloco"
+                          [title]="'content.editor.' + list.field.key + '.up' | transloco"
+                          data-testid="subcategory-up"
+                          (click)="moveSubcategory(list.field.key, index, -1)"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 disabled:pointer-events-none disabled:opacity-40"
+                          [disabled]="entry.last"
+                          [attr.aria-label]="
+                            'content.editor.' + list.field.key + '.down' | transloco
+                          "
+                          [title]="'content.editor.' + list.field.key + '.down' | transloco"
+                          data-testid="subcategory-down"
+                          (click)="moveSubcategory(list.field.key, index, 1)"
+                        >
+                          ↓
+                        </button>
+                        <button
+                          type="button"
+                          class="cursor-pointer rounded-lg bg-flag-100 px-2.5 py-1 font-heading text-xs font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
+                          data-testid="subcategory-remove"
+                          (click)="removeSubcategory(list.field.key, index)"
+                        >
+                          ✕ {{ 'content.editor.' + list.field.key + '.remove' | transloco }}
+                        </button>
+                      </span>
+                    </div>
+                    <label
+                      [for]="'draft-' + list.field.key + '-' + index + '-name'"
+                      class="sr-only"
+                      >{{ 'content.card.name' | transloco: { language: languageLabel() } }}</label
+                    >
+                    <input
+                      #subcategoryName
+                      [id]="'draft-' + list.field.key + '-' + index + '-name'"
+                      type="text"
+                      class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                      [class]="entry.nameError ? 'border-flag-600' : 'border-ocean-800/20'"
+                      [value]="entry.name"
+                      [maxLength]="list.field.nameMaxLength"
+                      [placeholder]="
+                        entity.i18n + '.placeholder.' + list.field.key + '.name' | transloco
+                      "
+                      [attr.aria-invalid]="entry.nameError ? true : null"
+                      (input)="
+                        setSubcategoryText(list.field.key, index, 'name', subcategoryName.value)
+                      "
+                    />
+                    @if (entry.nameError; as error) {
+                      <p
+                        class="font-heading text-sm font-bold text-flag-700"
+                        data-testid="field-error"
+                      >
+                        {{ error }}
+                      </p>
+                    }
+                    <label
+                      [for]="'draft-' + list.field.key + '-' + index + '-description'"
+                      class="sr-only"
+                      >{{
+                        'content.card.description' | transloco: { language: languageLabel() }
+                      }}</label
+                    >
+                    <textarea
+                      #subcategoryDescription
+                      [id]="'draft-' + list.field.key + '-' + index + '-description'"
+                      rows="3"
+                      class="w-full resize-y rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                      [class]="entry.descriptionError ? 'border-flag-600' : 'border-ocean-800/20'"
+                      [value]="entry.description"
+                      [maxLength]="list.field.descriptionMaxLength"
+                      [placeholder]="
+                        entity.i18n + '.placeholder.' + list.field.key + '.description' | transloco
+                      "
+                      [attr.aria-invalid]="entry.descriptionError ? true : null"
+                      (input)="
+                        setSubcategoryText(
+                          list.field.key,
+                          index,
+                          'description',
+                          subcategoryDescription.value
+                        )
+                      "
+                    ></textarea>
+                    @if (entry.descriptionError ?? entry.error; as error) {
+                      <p
+                        class="font-heading text-sm font-bold text-flag-700"
+                        data-testid="field-error"
+                      >
+                        {{ error }}
+                      </p>
+                    }
+                  </div>
+                } @empty {
+                  <p class="font-heading text-[13px] font-bold text-ocean-500/60">
+                    {{ 'content.editor.' + list.field.key + '.empty' | transloco }}
+                  </p>
+                }
+                <button
+                  type="button"
+                  class="cursor-pointer justify-self-start rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800"
+                  data-testid="subcategory-add"
+                  (click)="addSubcategory(list.field.key)"
+                >
+                  + {{ 'content.editor.' + list.field.key + '.add' | transloco }}
+                </button>
+              </section>
             }
           </div>
 

@@ -15,11 +15,12 @@ const GOMU = {
 };
 
 describe('the Devil Fruit entity', () => {
-  it('has a romaji, an image, the type it belongs to, and the four texts of a language', () => {
+  it('has a romaji, an image, the type it belongs to and its subcategory, and the four texts of a language', () => {
     expect(DEVIL_FRUIT.fields.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
       'romaji:text',
       'image:image',
       'type:relation',
+      'subcategory:subcategory',
       'name:localizedText',
       'description:localizedText',
       'advantages:localizedText',
@@ -80,5 +81,46 @@ describe('the Devil Fruit entity', () => {
     );
 
     expect(diff).toMatchObject({ change: 'MODIFIED', before: 'Shizen-kei', after: 'Dobutsu-kei' });
+  });
+});
+
+describe('the subcategory of a fruit', () => {
+  const MYTHICAL = { id: 's2', names: { it: 'Mitologico', en: 'Mythical' } };
+
+  it('is saved as its id, and as null when none is picked', () => {
+    const picked = draftOf(
+      DEVIL_FRUIT,
+      { romaji: 'Uo Uo no Mi', subcategory: MYTHICAL, translations: {} } as never,
+      ['it'],
+    );
+    const none = draftOf(DEVIL_FRUIT, null, ['it']);
+
+    expect(toBody(DEVIL_FRUIT, picked)['subcategory']).toBe('s2');
+    expect(toBody(DEVIL_FRUIT, none)['subcategory']).toBeNull();
+  });
+
+  it('is not asked for by review', () => {
+    const draft = draftOf(DEVIL_FRUIT, null, ['it']);
+
+    expect(readinessChecks(DEVIL_FRUIT, draft, ['it']).map(({ field }) => field)).not.toContain(
+      'subcategory',
+    );
+  });
+
+  it('is compared by id, named in every language', () => {
+    const before = { romaji: 'Uo Uo no Mi', subcategory: null, translations: {} };
+    const after = { ...before, subcategory: MYTHICAL };
+    const renamed = { ...before, subcategory: { id: 's2', names: { en: 'Mythic' } } };
+
+    expect(
+      diffBodies(DEVIL_FRUIT, before as never, after as never, ['it']).find(
+        ({ field }) => field.field === 'subcategory',
+      ),
+    ).toMatchObject({ change: 'ADDED', after: 'Mitologico / Mythical' });
+    expect(
+      diffBodies(DEVIL_FRUIT, after as never, renamed as never, ['it']).find(
+        ({ field }) => field.field === 'subcategory',
+      )?.change,
+    ).toBe('UNCHANGED');
   });
 });

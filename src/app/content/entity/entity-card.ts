@@ -3,15 +3,16 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { LanguageEntry } from '../language-catalog';
 import { ENTITY, entityOf } from './entities';
-import {
-  isTranslationComplete,
-  localizedFields,
-  sharedFields,
-  type EntityBody,
-} from './entity-body';
+import { isLanguageComplete, localizedFields, sharedFields, type EntityBody } from './entity-body';
 import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { isReference, referenceLabel } from './entity-reference';
+import {
+  isSubcategoryReference,
+  subcategoriesOf,
+  subcategoryLabel,
+  subcategoryText,
+} from './entity-subcategory';
 import { textOf } from './field-kinds';
 
 /** One language tab of the card. */
@@ -29,6 +30,13 @@ interface LongText {
   readonly text: string | null;
   /** What the card says where the language has no such text yet: `content.card.noDescription`. */
   readonly emptyKey: string;
+}
+
+/** A subcategory the content defines, in the language shown; a text is null when not written. */
+interface SubcategoryEntry {
+  readonly id: string;
+  readonly name: string | null;
+  readonly description: string | null;
 }
 
 /** A content this one points to, as the card shows it: a link to its page under a heading. */
@@ -75,7 +83,7 @@ export class EntityCard {
       label: code.toUpperCase(),
       name,
       selected: code === this.language(),
-      incomplete: !isTranslationComplete(this.entity, this.body().translations[code]),
+      incomplete: !isLanguageComplete(this.entity, this.body(), code),
     })),
   );
 
@@ -126,6 +134,49 @@ export class EntityCard {
         },
       ];
     });
+  });
+
+  /**
+   * The subcategory picked, beside the content it belongs to - only when there is one: most
+   * contents have none.
+   */
+  protected readonly subcategories = computed<RelationChip[]>(() => {
+    const language = this.language() ?? this.transloco.activeLang();
+    return sharedFields(this.entity).flatMap((field) => {
+      const picked = this.body()[field.key];
+      return field.kind === 'subcategory' && isSubcategoryReference(picked)
+        ? [
+            {
+              field: field.key,
+              headingKey: `content.card.heading.${field.key}`,
+              emptyKey: '',
+              label: subcategoryLabel(picked, language),
+              link: [],
+            },
+          ]
+        : [];
+    });
+  });
+
+  /** The lists of subcategories the content defines, in their order, each a section. */
+  protected readonly subcategoryLists = computed(() => {
+    const language = this.language() ?? '';
+    return this.entity.fields.flatMap((field) =>
+      field.kind === 'subcategoryList'
+        ? [
+            {
+              field: field.key,
+              entries: subcategoriesOf(this.body()[field.key]).map<SubcategoryEntry>(
+                (subcategory) => ({
+                  id: subcategory.id,
+                  name: subcategoryText(subcategory, language, 'name').trim() || null,
+                  description: subcategoryText(subcategory, language, 'description').trim() || null,
+                }),
+              ),
+            },
+          ]
+        : [],
+    );
   });
 
   /** The long texts in reading order, each a section of the card. */

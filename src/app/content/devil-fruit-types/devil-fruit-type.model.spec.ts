@@ -2,6 +2,7 @@ import {
   diffBodies,
   draftFieldKey,
   draftOf,
+  isLanguageComplete,
   isTranslationComplete,
   namesOf,
   readinessChecks,
@@ -67,6 +68,7 @@ describe('draftOf', () => {
   it('starts a new content from nothing, with a translation for every language', () => {
     expect(draftOf(DEVIL_FRUIT_TYPE, null, ['it', 'en'])).toEqual({
       romaji: '',
+      subcategories: [],
       translations: { it: typed({}), en: typed({}) },
     });
   });
@@ -86,6 +88,7 @@ describe('draftOf', () => {
 
     expect(draft).toEqual({
       romaji: 'Shizen-kei',
+      subcategories: [],
       translations: { it: typed({ name: 'Rogia', advantages: 'Intangibile.' }), en: typed({}) },
     });
   });
@@ -103,6 +106,7 @@ describe('toBody', () => {
 
     expect(toBody(DEVIL_FRUIT_TYPE, draft)).toEqual({
       romaji: 'Shizen-kei',
+      subcategories: [],
       translations: {
         it: translation({ name: 'Rogia', disadvantages: 'Acqua di mare' }),
         en: translation({}),
@@ -283,5 +287,91 @@ describe('diffBodies', () => {
         ({ change }) => change === 'UNCHANGED',
       ),
     ).toBe(true);
+  });
+});
+
+describe('the subcategories of a type', () => {
+  const ANCIENT = {
+    id: 's1',
+    translations: {
+      it: { name: 'Antico', description: 'Estinti.' },
+      en: { name: 'Ancient', description: 'Extinct.' },
+    },
+  };
+  const MYTHICAL = {
+    id: 's2',
+    translations: {
+      it: { name: 'Mitologico', description: 'Leggendari.' },
+      en: { name: 'Mythical', description: null },
+    },
+  };
+  const ZOAN = {
+    romaji: 'Dobutsu-kei',
+    translations: { it: COMPLETE, en: COMPLETE },
+    subcategories: [ANCIENT, MYTHICAL],
+  };
+
+  it('are saved as they were read, ids and order kept', () => {
+    const draft = draftOf(DEVIL_FRUIT_TYPE, ZOAN, ['it', 'en']);
+
+    expect(toBody(DEVIL_FRUIT_TYPE, draft)['subcategories']).toEqual([ANCIENT, MYTHICAL]);
+  });
+
+  it('ask review for a name and a description in every language', () => {
+    const draft = draftOf(DEVIL_FRUIT_TYPE, ZOAN, ['it', 'en']);
+    const missing = readinessChecks(DEVIL_FRUIT_TYPE, draft, ['it', 'en']).filter(
+      ({ done }) => !done,
+    );
+
+    expect(missing).toEqual([
+      {
+        field: 'subcategories',
+        language: 'en',
+        entry: { id: 's2', position: 2, part: 'description', name: 'Mythical' },
+        done: false,
+      },
+    ]);
+    expect(isLanguageComplete(DEVIL_FRUIT_TYPE, ZOAN, 'it')).toBe(true);
+    expect(isLanguageComplete(DEVIL_FRUIT_TYPE, ZOAN, 'en')).toBe(false);
+  });
+
+  it.each([
+    ['subcategories[1].translations[en].name', 'en.subcategories.1.name'],
+    ['subcategories[0].translations[it].description', 'it.subcategories.0.description'],
+    ['subcategories[2].id', 'subcategories.2'],
+    ['subcategories', 'subcategories'],
+  ])('read %s as %s', (field, key) => {
+    expect(draftFieldKey(DEVIL_FRUIT_TYPE, field)).toBe(key);
+  });
+
+  it('are compared by id: renamed, added and removed', () => {
+    const renamed = {
+      ...MYTHICAL,
+      translations: { ...MYTHICAL.translations, en: { name: 'Mythic', description: null } },
+    };
+    const artificial = {
+      id: 's3',
+      translations: { it: { name: 'Artificiale', description: 'SMILE.' } },
+    };
+    const v2 = { ...ZOAN, subcategories: [renamed, artificial] };
+
+    const changed = diffBodies(DEVIL_FRUIT_TYPE, ZOAN, v2, ['it', 'en'])
+      .filter(({ change }) => change !== 'UNCHANGED')
+      .map(({ field, change, before, after }) => [
+        `${field.entry?.id}.${field.entry?.part}.${field.language}`,
+        change,
+        before,
+        after,
+      ]);
+
+    expect(changed).toEqual([
+      ['s2.name.en', 'MODIFIED', 'Mythical', 'Mythic'],
+      ['s3.name.it', 'ADDED', null, 'Artificiale'],
+      ['s3.description.it', 'ADDED', null, 'SMILE.'],
+      ['s1.name.it', 'REMOVED', 'Antico', null],
+      ['s1.description.it', 'REMOVED', 'Estinti.', null],
+      ['s1.name.en', 'REMOVED', 'Ancient', null],
+      ['s1.description.en', 'REMOVED', 'Extinct.', null],
+    ]);
   });
 });

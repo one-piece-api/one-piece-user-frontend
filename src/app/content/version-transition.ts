@@ -229,6 +229,8 @@ function blockCauseOf(error: HttpErrorResponse): BlockCause | null {
   switch (reason) {
     case 'TYPE_NOT_ONLINE':
     case 'ONLINE_FRUITS_LINKED':
+    case 'SUBCATEGORY_NOT_ONLINE':
+    case 'SUBCATEGORY_IN_USE':
       return { reason, detail } as BlockCause;
     default:
       return null;

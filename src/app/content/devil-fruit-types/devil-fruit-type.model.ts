@@ -2,13 +2,15 @@ import {
   countColumn,
   localizedTextField,
   relatedList,
+  subcategoryListField,
   textField,
   type EntityDefinition,
 } from '../entity/entity-definition';
 
 /**
  * The Devil Fruit Type: one romaji, and a name, a description, advantages and disadvantages
- * per language - the longest each may be is what the backend accepts. Fruits point to it:
+ * per language - the longest each may be is what the backend accepts - and its subcategories,
+ * if any, in display order (Zoan: Ancient, Mythical, Artificial). Fruits point to it:
  * its list counts them, and its card lists a few.
  */
 export const DEVIL_FRUIT_TYPE: EntityDefinition = {
@@ -23,6 +25,7 @@ export const DEVIL_FRUIT_TYPE: EntityDefinition = {
     localizedTextField('description', { maxLength: 2000, rows: 8 }),
     localizedTextField('advantages', { maxLength: 2000, rows: 5 }),
     localizedTextField('disadvantages', { maxLength: 2000, rows: 5 }),
+    subcategoryListField('subcategories', { nameMaxLength: 100, descriptionMaxLength: 2000 }),
   ],
   counts: [countColumn('devilFruitCount', { of: 'DEVIL_FRUIT', by: 'type' })],
   sections: [relatedList({ of: 'DEVIL_FRUIT', by: 'type' })],

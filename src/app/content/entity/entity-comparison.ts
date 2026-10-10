@@ -310,12 +310,23 @@ export class EntityComparison {
   }
 
   private toRow(diff: FieldDiff<EntityFieldRef>): DiffRow {
-    const { field, language } = diff.field;
+    const { field, language, entry } = diff.field;
     return {
-      key: `${field}.${language ?? ''}`,
-      label: this.transloco.translate(`content.comparison.field.${field}`, {
-        language: language?.toUpperCase(),
-      }),
+      key: entry
+        ? `${field}.${entry.id}.${entry.part}.${language ?? ''}`
+        : `${field}.${language ?? ''}`,
+      label: entry
+        ? this.transloco.translate(`content.comparison.field.${field}.${entry.part}`, {
+            language: language?.toUpperCase(),
+            subcategory:
+              entry.name ??
+              this.transloco.translate('content.comparison.field.unnamedEntry', {
+                position: entry.position,
+              }),
+          })
+        : this.transloco.translate(`content.comparison.field.${field}`, {
+            language: language?.toUpperCase(),
+          }),
       before: diff.before,
       after: diff.after,
       image: this.entity.fields.some(

@@ -102,6 +102,22 @@ export type BlockCause =
       /** A type cannot be retired while fruits are online with it: the count, and the first few. */
       reason: 'ONLINE_FRUITS_LINKED';
       detail: { count: number; fruits: { id: string; romaji: string | null }[] };
+    }
+  | {
+      /** A fruit cannot go online while its subcategory is not in its type's online version. */
+      reason: 'SUBCATEGORY_NOT_ONLINE';
+      detail: { typeId: string; subcategoryId: string; subcategoryNames?: Record<string, string> };
+    }
+  | {
+      /**
+       * A type's version cannot go online while it leaves out a subcategory online fruits
+       * use: the count, and the first few with the subcategory each uses.
+       */
+      reason: 'SUBCATEGORY_IN_USE';
+      detail: {
+        count: number;
+        fruits: { id: string; romaji: string | null; subcategoryId: string }[];
+      };
     };
 
 /**

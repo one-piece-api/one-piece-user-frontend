@@ -259,6 +259,7 @@ describe('DevilFruitTypeEditor', () => {
       expect(request.request.method).toBe('POST');
       expect(request.request.body).toEqual({
         romaji: 'Shizen-kei',
+        subcategories: [],
         translations: {
           it: { name: null, description: null, advantages: null, disadvantages: null },
           en: {
@@ -416,6 +417,7 @@ describe('DevilFruitTypeEditor', () => {
       expect(request.request.method).toBe('PUT');
       expect(request.request.body).toEqual({
         romaji: 'Shizen-kei',
+        subcategories: [],
         translations: {
           it: DRAFT_BODY.translations.it,
           en: {
@@ -469,6 +471,147 @@ describe('DevilFruitTypeEditor', () => {
       await settle();
 
       expect(root.textContent).toContain('Content not found');
+    });
+  });
+
+  describe('the subcategories', () => {
+    const ANCIENT = 'a1a1a1a1-0000-4000-8000-000000000001';
+    const MYTHICAL = 'b2b2b2b2-0000-4000-8000-000000000002';
+    const ZOAN_BODY = {
+      ...DRAFT_BODY,
+      subcategories: [
+        {
+          id: ANCIENT,
+          translations: {
+            it: { name: 'Antico', description: 'Animali estinti.' },
+            en: { name: 'Ancient', description: 'Extinct animals.' },
+          },
+        },
+        {
+          id: MYTHICAL,
+          translations: {
+            it: { name: 'Mitologico', description: 'Creature leggendarie.' },
+            en: { name: 'Mythical', description: 'Legendary creatures.' },
+          },
+        },
+      ],
+    };
+
+    async function openZoan(): Promise<void> {
+      await open(`${SECTION}/${ID}/edit`);
+      httpTesting
+        .expectOne(DETAIL)
+        .flush({ id: ID, onlineVersionNumber: 1, versions: [ONLINE, DRAFT] });
+      await settle();
+      httpTesting
+        .expectOne(`${DETAIL}/versions/2`)
+        .flush({ ...DRAFT, rejectionReason: null, body: ZOAN_BODY });
+      await settle();
+    }
+
+    function entryNames(): string[] {
+      return Array.from(
+        root.querySelectorAll<HTMLInputElement>('[data-testid="subcategory-entry"] input'),
+      ).map((input) => input.value);
+    }
+
+    async function click(testId: string, index = 0): Promise<void> {
+      root.querySelectorAll<HTMLButtonElement>(`[data-testid="${testId}"]`)[index].click();
+      await settle();
+    }
+
+    async function write(selector: string, text: string): Promise<void> {
+      const input = root.querySelector<HTMLInputElement | HTMLTextAreaElement>(selector)!;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+      await settle();
+    }
+
+    async function saved(): Promise<Record<string, unknown>> {
+      await save();
+      const request = httpTesting.expectOne(`${DETAIL}/versions/2`);
+      const body = request.request.body as Record<string, unknown>;
+      request.flush({ number: 2 });
+      await settle();
+      return body;
+    }
+
+    it('has none on a new content, and adds one only when asked', async () => {
+      await open(`${SECTION}/new`);
+
+      expect(root.querySelectorAll('[data-testid="subcategory-entry"]')).toHaveLength(0);
+      expect(root.textContent).toContain('No subcategories.');
+
+      await click('subcategory-add');
+      expect(root.querySelectorAll('[data-testid="subcategory-entry"]')).toHaveLength(1);
+      expect(checks()).toContain('! Subcategory 1 · name · Italiano required');
+      expect(checks()).toContain('! Subcategory 1 · description · English required');
+    });
+
+    it('creates one without an id, with its texts per language', async () => {
+      await openZoan();
+      await click('subcategory-add');
+      await write('#draft-subcategories-2-name', ' Artificial ');
+      await write('#draft-subcategories-2-description', 'The SMILEs.');
+
+      const body = await saved();
+      expect(body['subcategories']).toEqual([
+        ZOAN_BODY.subcategories[0],
+        ZOAN_BODY.subcategories[1],
+        {
+          translations: {
+            en: { name: 'Artificial', description: 'The SMILEs.' },
+          },
+        },
+      ]);
+    });
+
+    it('shows the texts of the language on screen', async () => {
+      await openZoan();
+      expect(entryNames()).toEqual(['Ancient', 'Mythical']);
+
+      await pickLanguage('IT');
+      expect(entryNames()).toEqual(['Antico', 'Mitologico']);
+    });
+
+    it('keeps the ids while the list is reordered or shortened', async () => {
+      await openZoan();
+      await click('subcategory-down', 0);
+      expect(entryNames()).toEqual(['Mythical', 'Ancient']);
+
+      await click('subcategory-remove', 1);
+      const body = await saved();
+      expect(body['subcategories']).toEqual([ZOAN_BODY.subcategories[1]]);
+    });
+
+    it('marks a language incomplete while a subcategory lacks a text there', async () => {
+      await openZoan();
+      expect(tab('IT').querySelector('[data-testid="incomplete-marker"]')).toBeNull();
+
+      await click('subcategory-add');
+      expect(tab('IT').querySelector('[data-testid="incomplete-marker"]')).not.toBeNull();
+    });
+
+    it('marks a name another subcategory already has, in its language', async () => {
+      await openZoan();
+      await save();
+      httpTesting.expectOne(`${DETAIL}/versions/2`).flush(
+        {
+          errorCode: 'CONTENT_VALUE_INVALID',
+          errors: [
+            {
+              field: 'subcategories[1].translations[en].name',
+              message: 'is the name of another subcategory of this type',
+            },
+          ],
+        },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await settle();
+
+      expect(fieldErrors()).toEqual(['already the name of another subcategory']);
+      expect(tab('EN').querySelector('[data-testid="refused-marker"]')).not.toBeNull();
+      expect(mascotSays()).toContain('subcategory');
     });
   });
 

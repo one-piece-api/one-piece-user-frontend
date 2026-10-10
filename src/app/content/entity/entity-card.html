@@ -53,7 +53,7 @@
         </div>
       </div>
 
-      @if (relations().length) {
+      @if (relations().length || subcategories().length) {
         <dl class="mb-3.5 grid grid-cols-[repeat(auto-fit,minmax(min(150px,100%),1fr))] gap-2">
           @for (relation of relations(); track relation.field) {
             <div class="min-w-0 py-0.5">
@@ -88,6 +88,21 @@
               </dd>
             </div>
           }
+          @for (subcategory of subcategories(); track subcategory.field) {
+            <div class="min-w-0 py-0.5">
+              <dt
+                class="mb-0.5 font-display text-[13px] font-bold tracking-[0.08em] text-ocean-900 uppercase"
+              >
+                {{ subcategory.headingKey | transloco }}
+              </dt>
+              <dd
+                class="font-heading text-[15px] font-extrabold wrap-anywhere text-ocean-950"
+                [attr.data-testid]="'card-' + subcategory.field"
+              >
+                {{ subcategory.label }}
+              </dd>
+            </div>
+          }
         </dl>
       }
 
@@ -106,6 +121,38 @@
             {{ longText.text ?? (longText.emptyKey | transloco) }}
           </p>
         </div>
+      }
+      @for (list of subcategoryLists(); track list.field) {
+        @if (list.entries.length) {
+          <div
+            class="mb-3.5 flow-root border-t border-dashed border-card-line pt-3"
+            [attr.data-testid]="'card-' + list.field"
+          >
+            <h3
+              class="mb-1.5 font-display text-[13px] font-bold tracking-[0.08em] text-ocean-900 uppercase"
+            >
+              {{ 'content.card.heading.' + list.field | transloco }}
+            </h3>
+            <ol class="grid gap-2">
+              @for (entry of list.entries; track entry.id) {
+                <li class="rounded-xl bg-parchment-200/60 px-3 py-2">
+                  <p
+                    class="font-heading text-[15px] font-extrabold"
+                    [class]="entry.name ? 'text-ocean-950' : 'text-treasure-700'"
+                  >
+                    {{ entry.name ?? ('content.card.noName' | transloco) }}
+                  </p>
+                  <p
+                    class="font-heading text-sm leading-relaxed font-semibold text-pretty whitespace-pre-line"
+                    [class]="entry.description ? 'text-ocean-500' : 'text-treasure-700'"
+                  >
+                    {{ entry.description ?? ('content.card.noDescription' | transloco) }}
+                  </p>
+                </li>
+              }
+            </ol>
+          </div>
+        }
       }
     </section>
 

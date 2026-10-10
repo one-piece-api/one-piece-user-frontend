@@ -33,7 +33,7 @@ import { ENTITY, entityOf } from './entities';
 import {
   draftFieldKey,
   draftOf,
-  isTranslationComplete,
+  isLanguageComplete,
   localizedFields,
   namesOf,
   readinessChecks,
@@ -44,13 +44,21 @@ import {
   type EntityDraft,
   type TranslationDraft,
 } from './entity-body';
-import type { ImageField } from './entity-definition';
+import type { ImageField, SubcategoryField } from './entity-definition';
 import { isImageDraft, type ImageDraft } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
 import { textOf } from './field-kinds';
 import { ImagePicker } from './image-picker';
 import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
+import {
+  newSubcategoryKey,
+  subcategoryChoices,
+  subcategoryLabel,
+  subcategoryText,
+  type SubcategoryDraft,
+  type SubcategoryPart,
+} from './entity-subcategory';
 
 /** What the backend answers for a content that is not there - or not for this caller. */
 const NOT_FOUND_STATUSES = [400, 404];
@@ -65,6 +73,14 @@ const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
 /** What is said under a relation the backend refused: the content chosen cannot be linked. */
 const RELATION_REFUSED_KEY = 'content.editor.error.notLinkable';
 const RELATION_REFUSED_MESSAGE_KEY = 'content.editor.notLinkableMessage';
+
+/** What is said under a subcategory the backend refused, and what the Lumacofono says then. */
+const SUBCATEGORY_REFUSED_KEY = {
+  picked: 'content.editor.error.subcategoryNotOfType',
+  id: 'content.editor.error.subcategoryUnknown',
+  name: 'content.editor.error.subcategoryNameTaken',
+};
+const SUBCATEGORY_REFUSED_MESSAGE_KEY = 'content.editor.subcategoryRefusedMessage';
 
 /** What the Lumacofono says when the image was refused - the reason is under the image. */
 const IMAGE_REFUSED_MESSAGE_KEY = 'content.editor.imageRefusedMessage';
@@ -213,18 +229,30 @@ export class EntityEditor {
    */
   protected readonly sharedViews = computed(() => {
     const draft = this.draft();
-    return sharedFields(this.entity)
-      .filter((field) => field.kind !== 'image')
-      .map((field) => {
-        const chosen = draft?.[field.key];
-        return {
-          field,
-          value: textOf(chosen),
-          reference: isReference(chosen) ? chosen : null,
-          source: field.kind === 'relation' ? (entityOf(field.target)?.api ?? null) : null,
-          error: this.refusedFields()[field.key] ?? null,
-        };
-      });
+    const language = this.transloco.activeLang();
+    return (
+      sharedFields(this.entity)
+        .filter((field) => field.kind !== 'image' && field.kind !== 'subcategoryList')
+        .map((field) => {
+          const chosen = draft?.[field.key];
+          return {
+            field,
+            value: textOf(chosen),
+            reference: isReference(chosen) ? chosen : null,
+            source: field.kind === 'relation' ? (entityOf(field.target)?.api ?? null) : null,
+            choices:
+              field.kind === 'subcategory'
+                ? subcategoryChoices(draft?.[field.of]).map((choice) => ({
+                    id: choice.id,
+                    label: subcategoryLabel(choice, language),
+                  }))
+                : [],
+            error: this.refusedFields()[field.key] ?? null,
+          };
+        })
+        // A subcategory is offered only when the content chosen has some.
+        .filter((view) => view.field.kind !== 'subcategory' || view.choices.length > 0)
+    );
   });
   /**
    * The image of the draft, when the entity has one - shown beside the other shared fields,
@@ -256,6 +284,37 @@ export class EntityEditor {
     }));
   });
 
+  /**
+   * The lists of subcategories, in the language on screen: each one's texts, where it stands
+   * and why the backend refused it - its id, or a text in this language.
+   */
+  protected readonly subcategoryListViews = computed(() => {
+    const language = this.language() ?? '';
+    const refused = this.refusedFields();
+    return this.entity.fields.flatMap((field) => {
+      if (field.kind !== 'subcategoryList') {
+        return [];
+      }
+      const entries = this.subcategoriesIn(field.key);
+      return [
+        {
+          field,
+          entries: entries.map((subcategory, index) => ({
+            key: subcategory.key,
+            position: index + 1,
+            first: index === 0,
+            last: index === entries.length - 1,
+            name: subcategoryText(subcategory, language, 'name'),
+            description: subcategoryText(subcategory, language, 'description'),
+            nameError: refused[`${language}.${field.key}.${index}.name`] ?? null,
+            descriptionError: refused[`${language}.${field.key}.${index}.description`] ?? null,
+            error: refused[`${field.key}.${index}`] ?? null,
+          })),
+        },
+      ];
+    });
+  });
+
   protected readonly tabs = computed<LanguageTab[]>(() => {
     const draft = this.draft();
     const refused = Object.keys(this.refusedFields());
@@ -264,7 +323,7 @@ export class EntityEditor {
       label: code.toUpperCase(),
       name,
       selected: code === this.language(),
-      incomplete: !isTranslationComplete(this.entity, draft?.translations[code]),
+      incomplete: !draft || !isLanguageComplete(this.entity, draft, code),
       refused: refused.some((key) => key.startsWith(`${code}.`)),
     }));
   });
@@ -278,9 +337,15 @@ export class EntityEditor {
     this.transloco.activeLang();
     const languageNames = new Map(this.languages().map(({ code, name }) => [code, name]));
     return this.readiness().map((check) => ({
-      label: this.transloco.translate(`content.editor.ready.${check.field}`, {
-        language: languageNames.get(check.language ?? '') ?? '',
-      }),
+      label: this.transloco.translate(
+        check.entry
+          ? `content.editor.ready.${check.field}.${check.entry.part}`
+          : `content.editor.ready.${check.field}`,
+        {
+          language: languageNames.get(check.language ?? '') ?? '',
+          position: check.entry?.position,
+        },
+      ),
       ...(check.done ? CHECK_DONE : CHECK_MISSING),
       noteKey: check.done ? 'content.editor.ready.done' : 'content.editor.ready.required',
     }));
@@ -391,8 +456,78 @@ export class EntityEditor {
 
   /** Chooses the content a relation points to - or none. */
   protected setRelation(key: string, reference: EntityReference | null): void {
-    this.draft.update((draft) => draft && { ...draft, [key]: reference });
-    this.forgetRefusal(key);
+    const before = this.draft()?.[key];
+    const changed = (isReference(before) ? before.id : null) !== (reference?.id ?? null);
+    // The subcategories of the content left behind are not this one's to offer.
+    const cleared = changed
+      ? Object.fromEntries(this.subcategoryFieldsOf(key).map((field) => [field.key, null]))
+      : {};
+    this.draft.update((draft) => draft && { ...draft, [key]: reference, ...cleared });
+    [key, ...Object.keys(cleared)].forEach((field) => this.forgetRefusal(field));
+  }
+
+  /** Picks one of the subcategories the related content offers - or none, for an empty id. */
+  protected setSubcategory(field: SubcategoryField, id: string): void {
+    const choice = subcategoryChoices(this.draft()?.[field.of]).find(
+      (candidate) => candidate.id === id,
+    );
+    this.draft.update((draft) => draft && { ...draft, [field.key]: choice ?? null });
+    this.forgetRefusal(field.key);
+  }
+
+  /** Adds an empty subcategory at the end of the list: the backend gives its id at the save. */
+  protected addSubcategory(key: string): void {
+    const added: SubcategoryDraft = { id: null, key: newSubcategoryKey(), translations: {} };
+    this.writeSubcategories(key, [...this.subcategoriesIn(key), added]);
+  }
+
+  /** Removes a subcategory: a version that leaves it out no longer has it. */
+  protected removeSubcategory(key: string, index: number): void {
+    this.writeSubcategories(
+      key,
+      this.subcategoriesIn(key).filter((_, position) => position !== index),
+    );
+    this.forgetRefusalsOf(key);
+  }
+
+  /** Moves a subcategory one place up (-1) or down (+1): the order is the display order. */
+  protected moveSubcategory(key: string, index: number, step: -1 | 1): void {
+    const entries = [...this.subcategoriesIn(key)];
+    const target = index + step;
+    if (target < 0 || target >= entries.length) {
+      return;
+    }
+    [entries[index], entries[target]] = [entries[target], entries[index]];
+    this.writeSubcategories(key, entries);
+    this.forgetRefusalsOf(key);
+  }
+
+  /** Writes a subcategory's name or description, in the language on screen. */
+  protected setSubcategoryText(
+    key: string,
+    index: number,
+    part: SubcategoryPart,
+    value: string,
+  ): void {
+    const language = this.language();
+    if (!language) {
+      return;
+    }
+    this.writeSubcategories(
+      key,
+      this.subcategoriesIn(key).map((subcategory, position) =>
+        position === index
+          ? {
+              ...subcategory,
+              translations: {
+                ...subcategory.translations,
+                [language]: { ...subcategory.translations[language], [part]: value },
+              },
+            }
+          : subcategory,
+      ),
+    );
+    this.forgetRefusal(`${language}.${key}.${index}.${part}`);
   }
 
   /**
@@ -518,29 +653,77 @@ export class EntityEditor {
     const apiError = apiErrorOf(error);
     const errorCode = apiError?.errorCode ?? '';
     const fieldErrorKey = FIELD_ERROR_KEY[errorCode];
-    const relationKeys = new Set(
-      this.entity.fields.filter((field) => field.kind === 'relation').map(({ key }) => key),
-    );
     let relationRefused = false;
+    let subcategoryRefused = false;
     if (fieldErrorKey) {
       const refused: Record<string, string> = {};
       for (const violation of apiError?.errors ?? []) {
         const key = draftFieldKey(this.entity, violation.field);
         if (key) {
-          // A relation is refused for being invalid: not for a slug, which says the same code.
-          const aboutRelation = errorCode === VALUE_INVALID && relationKeys.has(key);
-          relationRefused ||= aboutRelation;
-          refused[key] = this.transloco.translate(
-            aboutRelation ? RELATION_REFUSED_KEY : fieldErrorKey,
-          );
+          // A relation or a subcategory is refused for being invalid: not for a slug, which
+          // says the same code.
+          const invalid = errorCode === VALUE_INVALID ? this.invalidValueKey(key) : null;
+          relationRefused ||= invalid === RELATION_REFUSED_KEY;
+          subcategoryRefused ||= invalid !== null && invalid !== RELATION_REFUSED_KEY;
+          refused[key] = this.transloco.translate(invalid ?? fieldErrorKey);
         }
       }
       this.refusedFields.set(refused);
     }
     const messageKey = relationRefused
       ? RELATION_REFUSED_MESSAGE_KEY
-      : (SAVE_ERROR_KEY[errorCode] ?? 'content.editor.saveFailed');
+      : subcategoryRefused
+        ? SUBCATEGORY_REFUSED_MESSAGE_KEY
+        : (SAVE_ERROR_KEY[errorCode] ?? 'content.editor.saveFailed');
     this.mascot.show(this.transloco.translate(messageKey, { slug: refusedSlug(error) }), 'error');
+  }
+
+  /**
+   * What is said under a field refused as invalid, when it is not the romaji's slug: a
+   * relation that cannot be linked, a subcategory not of the chosen content, a subcategory id
+   * the draft does not have, or a name another subcategory has. `null` for the romaji.
+   */
+  private invalidValueKey(key: string): string | null {
+    const field = this.entity.fields.find((candidate) => candidate.key === key);
+    if (field?.kind === 'relation') {
+      return RELATION_REFUSED_KEY;
+    }
+    if (field?.kind === 'subcategory') {
+      return SUBCATEGORY_REFUSED_KEY.picked;
+    }
+    const lists = this.entity.fields.filter(({ kind }) => kind === 'subcategoryList');
+    const [first, second] = key.split('.');
+    if (lists.some((list) => list.key === first)) {
+      return SUBCATEGORY_REFUSED_KEY.id;
+    }
+    return lists.some((list) => list.key === second) ? SUBCATEGORY_REFUSED_KEY.name : null;
+  }
+
+  /** The subcategory fields that pick among those of the content a relation points to. */
+  private subcategoryFieldsOf(relation: string): SubcategoryField[] {
+    return this.entity.fields.filter(
+      (field): field is SubcategoryField => field.kind === 'subcategory' && field.of === relation,
+    );
+  }
+
+  private subcategoriesIn(key: string): SubcategoryDraft[] {
+    const value = this.draft()?.[key];
+    return Array.isArray(value) ? (value as SubcategoryDraft[]) : [];
+  }
+
+  private writeSubcategories(key: string, entries: SubcategoryDraft[]): void {
+    this.draft.update((draft) => draft && { ...draft, [key]: entries });
+  }
+
+  /** Entries moved or removed: what was refused at a position is no longer there. */
+  private forgetRefusalsOf(key: string): void {
+    this.refusedFields.update((refused) =>
+      Object.fromEntries(
+        Object.entries(refused).filter(
+          ([field]) => !field.startsWith(`${key}.`) && !field.includes(`.${key}.`),
+        ),
+      ),
+    );
   }
 
   private writeTranslation(change: TranslationDraft): void {

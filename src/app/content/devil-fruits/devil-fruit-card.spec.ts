@@ -65,6 +65,16 @@ describe('the card of a Devil Fruit', () => {
     expect(type()?.textContent?.trim()).toBe('Shizen-kei');
   });
 
+  it('shows the subcategory beside the type, only when there is one', () => {
+    render(GOMU);
+    expect(root.querySelector('[data-testid="card-subcategory"]')).toBeNull();
+
+    render({ ...GOMU, subcategory: { id: 's2', names: { it: 'Mitologico', en: 'Mythical' } } });
+    expect(root.querySelector('[data-testid="card-subcategory"]')?.textContent?.trim()).toBe(
+      'Mythical',
+    );
+  });
+
   it('says so when no type is chosen yet', () => {
     render({ ...GOMU, type: null });
 
