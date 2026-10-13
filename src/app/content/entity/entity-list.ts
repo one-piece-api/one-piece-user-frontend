@@ -29,6 +29,7 @@ import { formatSort, nextSort, parseSort, type ListSort } from '../list-sort';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { ENTITY, entityOf } from './entities';
+import { naturalKeyOf } from './entity-body';
 import type { RelationField } from './entity-definition';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 
@@ -59,12 +60,11 @@ type SortField = (typeof SORT_FIELDS)[number];
 const DEFAULT_SORT: ListSort<SortField> = { field: 'updatedAt', direction: 'desc' };
 
 /**
- * What a list row shows of a version, whatever the entity: its romaji and its names - and,
+ * What a list row shows of a version, whatever the entity: its natural key and its names - and,
  * under the key of a relation field, the content it points to.
  */
 interface RowNames {
   readonly [field: string]: unknown;
-  romaji: string | null;
   names: Record<string, string>;
 }
 
@@ -91,7 +91,7 @@ interface RelationChip {
 interface RowView {
   readonly id: string;
   readonly name: string;
-  readonly romaji: string;
+  readonly naturalKey: string;
   readonly versionTag: string;
   readonly otherOnlineVersion: number | null;
   readonly status: VersionStatus;
@@ -388,16 +388,18 @@ export class EntityList {
   }
 
   private toRowView(row: ContentSummary<RowNames>, language: string): RowView {
-    const { romaji, names } = row.body;
+    const { names } = row.body;
+    const naturalKey = naturalKeyOf(this.entity, row.body);
     const authoredByMe = row.author.username === this.myUsername();
     const you = this.transloco.translate('content.list.you');
     return {
       id: row.id,
       name:
         localizedName(names, language) ??
-        romaji ??
+        naturalKey ??
         this.transloco.translate('content.list.unnamed'),
-      romaji: romaji ?? this.transloco.translate('content.list.romajiMissing'),
+      naturalKey:
+        naturalKey ?? this.transloco.translate(`content.list.${this.entity.naturalKey}Missing`),
       versionTag: `v${row.versionNumber}`,
       otherOnlineVersion: otherOnlineVersion(row),
       status: row.status,

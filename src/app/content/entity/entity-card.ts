@@ -3,7 +3,13 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { LanguageEntry } from '../language-catalog';
 import { ENTITY, entityOf } from './entities';
-import { isLanguageComplete, localizedFields, sharedFields, type EntityBody } from './entity-body';
+import {
+  isLanguageComplete,
+  localizedFields,
+  naturalKeyOf,
+  sharedFields,
+  type EntityBody,
+} from './entity-body';
 import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { isReference, referenceLabel } from './entity-reference';
@@ -91,11 +97,13 @@ export class EntityCard {
 
   private readonly translation = computed(() => this.body().translations[this.language() ?? '']);
   protected readonly name = computed(() => textOf(this.translation()?.['name']).trim() || null);
-  protected readonly romaji = computed(() => textOf(this.body().romaji).trim() || null);
+  protected readonly naturalKey = computed(
+    () => (naturalKeyOf(this.entity, this.body()) ?? '').trim() || null,
+  );
 
   /**
    * The image of the version, for an entity that has one: its URL - `null` for none - named
-   * in the language shown, else by its romaji, and the placeholder saying whose it would be.
+   * in the language shown, else by its natural key, and the placeholder saying whose it would be.
    */
   protected readonly image = computed(() => {
     const field = this.entity.fields.find(({ kind }) => kind === 'image');
@@ -104,7 +112,7 @@ export class EntityCard {
     }
     this.transloco.activeLang();
     const saved = this.body()[field.key];
-    const named = this.name() ?? this.romaji() ?? '';
+    const named = this.name() ?? this.naturalKey() ?? '';
     return {
       src: isImageReference(saved) ? saved.url : null,
       alt: named,

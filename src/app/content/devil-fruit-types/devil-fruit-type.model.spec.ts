@@ -115,7 +115,7 @@ describe('toBody', () => {
   });
 
   it('saves an empty romaji as null', () => {
-    expect(toBody(DEVIL_FRUIT_TYPE, { romaji: ' ', translations: {} }).romaji).toBeNull();
+    expect(toBody(DEVIL_FRUIT_TYPE, { romaji: ' ', translations: {} })['romaji']).toBeNull();
   });
 });
 

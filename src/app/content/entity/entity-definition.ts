@@ -13,6 +13,15 @@ export interface TextField {
 }
 
 /**
+ * An integer >= 0 shared by every language, such as a chapter number. The editor holds it as
+ * the string typed; it is saved as a number.
+ */
+export interface NumberField {
+  readonly kind: 'number';
+  readonly key: string;
+}
+
+/**
  * A text written once per language. Without `rows` it is a single line, such as the name;
  * with them, a long text the card shows as a section of its own.
  */
@@ -89,6 +98,7 @@ export interface SubcategoryField {
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
 export type EntityField =
   | TextField
+  | NumberField
   | LocalizedTextField
   | RelationField
   | ImageField
@@ -134,6 +144,11 @@ export interface EntityDefinition {
   /** The prefix of its own translation keys: `title`, `one`… below it. */
   readonly i18n: string;
   readonly icon: string;
+  /**
+   * The key of the field - text or number kind - whose value is unique within the entity and
+   * is the source of its public slug: `romaji` for the Devil Fruit and its type.
+   */
+  readonly naturalKey: string;
   /** Its fields, in the order they are read. */
   readonly fields: readonly EntityField[];
   /** Counts of other contents that point to it, as columns of its list. */
@@ -144,6 +159,10 @@ export interface EntityDefinition {
 
 export function textField(key: string, options: Omit<TextField, 'kind' | 'key'>): TextField {
   return { kind: 'text', key, ...options };
+}
+
+export function numberField(key: string): NumberField {
+  return { kind: 'number', key };
 }
 
 export function localizedTextField(

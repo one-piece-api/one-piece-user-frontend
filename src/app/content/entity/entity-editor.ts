@@ -35,6 +35,7 @@ import {
   draftOf,
   isLanguageComplete,
   localizedFields,
+  naturalKeyOf,
   namesOf,
   readinessChecks,
   sharedFields,
@@ -328,7 +329,7 @@ export class EntityEditor {
     }));
   });
 
-  /** "Ready for review": the romaji, then every translated field per language. */
+  /** "Ready for review": the shared fields, then every translated field per language. */
   private readonly readiness = computed(() => {
     const draft = this.draft();
     return draft ? readinessChecks(this.entity, draft, this.languageCodes()) : [];
@@ -356,7 +357,7 @@ export class EntityEditor {
       : `${this.entity.i18n}.hintMissing`,
   );
 
-  /** What the draft is called while it is written: its name, else its romaji, else "new". */
+  /** What the draft is called while it is written: its name, else its natural key, else "new". */
   protected readonly title = computed(() => {
     const language = this.transloco.activeLang();
     const draft = this.draft();
@@ -366,7 +367,7 @@ export class EntityEditor {
     const written = toBody(this.entity, draft);
     return (
       localizedName(namesOf(written), language) ??
-      written.romaji ??
+      naturalKeyOf(this.entity, written) ??
       this.transloco.translate(`${this.entity.i18n}.newTitle`)
     );
   });
@@ -679,9 +680,9 @@ export class EntityEditor {
   }
 
   /**
-   * What is said under a field refused as invalid, when it is not the romaji's slug: a
+   * What is said under a field refused as invalid, when it is not the natural key's slug: a
    * relation that cannot be linked, a subcategory not of the chosen content, a subcategory id
-   * the draft does not have, or a name another subcategory has. `null` for the romaji.
+   * the draft does not have, or a name another subcategory has. `null` for the natural key.
    */
   private invalidValueKey(key: string): string | null {
     const field = this.entity.fields.find((candidate) => candidate.key === key);

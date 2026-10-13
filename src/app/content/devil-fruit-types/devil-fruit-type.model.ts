@@ -15,6 +15,7 @@ import {
  */
 export const DEVIL_FRUIT_TYPE: EntityDefinition = {
   entityType: 'DEVIL_FRUIT_TYPE',
+  naturalKey: 'romaji',
   route: '/content/devil-fruit-types',
   api: '/api/content/devil-fruit-types',
   i18n: 'content.devilFruitTypes',

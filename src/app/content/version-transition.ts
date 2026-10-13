@@ -176,7 +176,7 @@ export function routeTargetOf(action: VersionAction): VersionStatus | undefined 
 
 /**
  * Why a transition did not happen, as the screen tells it: what the version still lacks,
- * which values another content holds, a romaji giving another content's public address
+ * which values another content holds, a natural key giving another content's public address
  * (`slug`) or none at all, which version it repeats - or that it moved in the meantime, or
  * a failure with nothing more to say. `fields` are named as the backend names
  * them (`romaji`, `translations[it].name`).

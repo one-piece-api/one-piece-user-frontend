@@ -20,11 +20,11 @@ export type Translation = Record<string, unknown>;
 /**
  * What a version says: the fields shared by every language at the top level, the others in
  * a translation per language code - as the backend sends and receives it. Every entity has
- * a romaji (the backend's `ContentBody`): what a content is called where it has no name.
+ * a natural key (the backend's `ContentBody`), named by the definition: what a content is called
+ * where it has no name.
  */
 export interface EntityBody {
   readonly [field: string]: unknown;
-  readonly romaji: string | null;
   readonly translations: Record<string, Translation>;
 }
 
@@ -34,7 +34,6 @@ export type TranslationDraft = Record<string, unknown>;
 /** A version while it is being written: one translation per language of the catalog. */
 export interface EntityDraft {
   [field: string]: unknown;
-  romaji: string;
   translations: Record<string, TranslationDraft>;
 }
 
@@ -66,7 +65,7 @@ function kindOf(field: EntityField) {
   return FIELD_KINDS[field.kind];
 }
 
-/** The fields written once on the version, such as the romaji. */
+/** The fields written once on the version, such as the natural key. */
 export function sharedFields(definition: EntityDefinition): EntityField[] {
   return definition.fields.filter((field) => !kindOf(field).localized);
 }
@@ -136,6 +135,15 @@ function entriesOf(
   return Array.isArray(value) ? value : [];
 }
 
+/** The natural key of a version - its romaji, a chapter number - as text; `null` where unset. */
+export function naturalKeyOf(
+  definition: EntityDefinition,
+  body: Readonly<Record<string, unknown>>,
+): string | null {
+  const value = body[definition.naturalKey];
+  return value === null || value === undefined ? null : String(value);
+}
+
 /** The names of a version per language code, for the languages that have one. */
 export function namesOf(body: EntityBody): Record<string, string> {
   const names: Record<string, string> = {};
@@ -156,7 +164,7 @@ export function draftOf(
   body: EntityBody | null,
   languages: readonly string[],
 ): EntityDraft {
-  const draft: EntityDraft = { romaji: '', translations: {} };
+  const draft: EntityDraft = { [definition.naturalKey]: '', translations: {} };
   for (const field of sharedFields(definition)) {
     draft[field.key] = kindOf(field).draftValue(body?.[field.key]);
   }
@@ -190,7 +198,7 @@ export function toBody(definition: EntityDefinition, draft: EntityDraft): Entity
       ]),
     );
   }
-  return { romaji: null, ...body, translations };
+  return { [definition.naturalKey]: null, ...body, translations };
 }
 
 /** A file saved beside the JSON of a version, in the request part named after its field. */
@@ -266,7 +274,7 @@ export function readinessChecks(
 }
 
 /**
- * Where the backend says a value is at fault, as the editor addresses its fields: `romaji`,
+ * Where the backend says a value is at fault, as the editor addresses its fields: the natural key (`romaji`),
  * `it.name`, `it.subcategories.0.name` or `subcategories.0`. The backend names them
  * `romaji`, `translations[it].name`, `subcategories[0].translations[it].name` and
  * `subcategories[0].id`; anything else is `null`.

@@ -134,3 +134,44 @@ describe('which field kinds review asks for', () => {
     expect(FIELD_KINDS.image.forReview).toBe(false);
   });
 });
+
+describe('the number field kind', () => {
+  const strategy = FIELD_KINDS.number;
+
+  it('is shared by every language and asked for by review', () => {
+    expect(strategy.localized).toBe(false);
+    expect(strategy.forReview).toBe(true);
+  });
+
+  it('gives the editor the digits of a saved number, else an empty text', () => {
+    expect(strategy.draftValue(12)).toBe('12');
+    expect(strategy.draftValue(0)).toBe('0');
+    expect(strategy.draftValue(undefined)).toBe('');
+    expect(strategy.draftValue(null)).toBe('');
+  });
+
+  it('saves digits as a number and anything else as nothing', () => {
+    expect(strategy.savedValue(' 12 ')).toBe(12);
+    expect(strategy.savedValue('0')).toBe(0);
+    for (const written of ['', '-1', '1.5', 'abc', undefined]) {
+      expect(strategy.savedValue(written)).toBeNull();
+    }
+  });
+
+  it('counts 0 as filled, but not a negative, a decimal or text', () => {
+    expect(strategy.isFilled(0)).toBe(true);
+    expect(strategy.isFilled(7)).toBe(true);
+    expect(strategy.isFilled('0')).toBe(true);
+    expect(strategy.isFilled('12')).toBe(true);
+    for (const value of [-1, 1.5, '', '-1', '1.5', 'abc', null, undefined]) {
+      expect(strategy.isFilled(value)).toBe(false);
+    }
+  });
+
+  it('compares the written forms: a saved 12 is the draft "12"', () => {
+    const field = { name: 'number' };
+    expect(strategy.diff(field, 12, '12')).toMatchObject({ change: 'UNCHANGED' });
+    expect(strategy.diff(field, undefined, undefined)).toBeNull();
+    expect(strategy.diff(field, 12, 13)).toMatchObject({ before: '12', after: '13' });
+  });
+});

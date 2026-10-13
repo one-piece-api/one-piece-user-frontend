@@ -32,7 +32,13 @@ import {
   type FieldDiff,
 } from '../version-comparison';
 import { EntityCard } from './entity-card';
-import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
+import {
+  diffBodies,
+  naturalKeyOf,
+  namesOf,
+  type EntityBody,
+  type EntityFieldRef,
+} from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityImageFrame } from './entity-image-frame';
 
@@ -259,7 +265,7 @@ export class EntityComparison {
       }),
       title:
         localizedName(namesOf(shown.body), this.transloco.activeLang()) ??
-        shown.body.romaji ??
+        naturalKeyOf(this.entity, shown.body) ??
         this.transloco.translate('content.list.unnamed'),
       line: `${comparing} · ${opened}`,
       after: `v${shown.number}`,

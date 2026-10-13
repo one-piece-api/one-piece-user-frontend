@@ -28,7 +28,7 @@ import { defaultBase } from '../version-comparison';
 import { REJECTED_ACTION } from '../version-event';
 import { VersionActions } from '../version-actions';
 import { VersionWorkflow } from '../version-workflow';
-import { namesOf, type EntityBody } from '../entity/entity-body';
+import { naturalKeyOf, namesOf, type EntityBody } from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityCard } from './entity-card';
 import { EntityComparison } from './entity-comparison';
@@ -163,6 +163,11 @@ export class EntityDetail {
 
   protected readonly languages = computed(() => this.languageCatalog.languages.value() ?? []);
 
+  protected readonly naturalKey = computed(() => {
+    const version = this.shown();
+    return version ? naturalKeyOf(this.entity, version.body) : null;
+  });
+
   protected readonly title = computed(() => {
     const language = this.transloco.activeLang();
     const version = this.shown();
@@ -171,7 +176,7 @@ export class EntityDetail {
     }
     return (
       localizedName(namesOf(version.body), language) ??
-      version.body.romaji ??
+      naturalKeyOf(this.entity, version.body) ??
       this.transloco.translate('content.list.unnamed')
     );
   });

@@ -159,7 +159,7 @@ describe('the body of any entity', () => {
 
       expect(upload.file).toEqual({ part: 'picture', file });
       expect(upload.body).not.toHaveProperty('removePicture');
-      expect(upload.body.romaji).toBe('Memo');
+      expect(upload.body['romaji']).toBe('Memo');
     });
 
     it('asks to remove an image the saved version had and the draft dropped', () => {

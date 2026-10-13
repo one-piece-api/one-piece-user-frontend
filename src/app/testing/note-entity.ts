@@ -13,6 +13,7 @@ import {
  */
 export const NOTE: EntityDefinition = {
   entityType: 'NOTE',
+  naturalKey: 'romaji',
   route: '/content/notes',
   api: '/api/content/notes',
   i18n: 'content.notes',

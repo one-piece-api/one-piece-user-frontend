@@ -11,14 +11,15 @@ import {
 } from '../content.model';
 import { STATUS_DOT_CLASS } from '../status-badge';
 import { ENTITY, entityOf } from './entities';
+import { naturalKeyOf } from './entity-body';
 import type { RelatedListSection } from './entity-definition';
 
 /** How many contents are listed at most; the rest is one link away. */
 const LISTED = 12;
 
-/** What a row of the listed entity shows: its romaji and its names. */
+/** What a row of the listed entity shows: its natural key and its names. */
 interface RowNames {
-  readonly romaji: string | null;
+  readonly [field: string]: unknown;
   readonly names: Record<string, string>;
 }
 
@@ -88,7 +89,7 @@ export class RelatedList {
       id: row.id,
       name:
         localizedName(row.body.names, language) ??
-        row.body.romaji ??
+        (listed && naturalKeyOf(listed, row.body)) ??
         this.transloco.translate('content.list.unnamed'),
       status: row.status,
       dotClass: STATUS_DOT_CLASS[row.status],

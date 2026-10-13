@@ -47,6 +47,33 @@ const TEXT_VALUE = {
     diffField(field, textOf(before), textOf(after)),
 };
 
+/** A whole number >= 0 as typed in the editor: only digits, so no sign, decimals or text. */
+const DIGITS = /^\d+$/;
+
+/**
+ * An integer >= 0 shared by every language, such as a chapter number: the editor holds the
+ * string typed, the JSON a number - `null` where nothing valid was written, so the backend
+ * refuses what the browser let through. A comparison looks at the written forms.
+ */
+const NUMBER_VALUE = {
+  draftValue: (saved: unknown) => (typeof saved === 'number' ? String(saved) : ''),
+  savedValue: (draft: unknown) => {
+    const written = textOf(draft).trim();
+    return DIGITS.test(written) ? Number(written) : null;
+  },
+  isFilled: (value: unknown) =>
+    typeof value === 'number'
+      ? Number.isInteger(value) && value >= 0
+      : DIGITS.test(textOf(value).trim()),
+  diff: <TField>(field: TField, before: unknown, after: unknown) =>
+    diffField(field, numberText(before), numberText(after)),
+};
+
+/** A number as compared: its digits; `''` where there is none. */
+function numberText(value: unknown): string {
+  return typeof value === 'number' ? String(value) : textOf(value);
+}
+
 /** The id of a reference, `null` for a value that points nowhere. */
 function idOf(value: unknown): string | null {
   return isReference(value) ? value.id : null;
@@ -171,6 +198,7 @@ const SUBCATEGORY_VALUE = {
 
 export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
   text: { localized: false, forReview: true, ...TEXT_VALUE },
+  number: { localized: false, forReview: true, ...NUMBER_VALUE },
   localizedText: { localized: true, forReview: true, ...TEXT_VALUE },
   relation: { localized: false, forReview: true, ...RELATION_VALUE },
   image: { localized: false, forReview: false, ...IMAGE_VALUE },

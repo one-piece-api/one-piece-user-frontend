@@ -353,7 +353,7 @@ export class VersionActions {
       ? this.transloco.translate(`content.workflow.refused.field.${name}`, {
           language: language.toUpperCase(),
         })
-      : this.transloco.translate('content.workflow.refused.field.romaji');
+      : this.transloco.translate(`content.workflow.refused.field.${entity.naturalKey}`);
   }
 }
 
