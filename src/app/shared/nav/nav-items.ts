@@ -139,7 +139,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       {
         id: 'story',
         labelKey: 'shell.nav.story',
-        icon: 'assets/logpose.webp',
+        icon: 'assets/story.webp',
         items: [SAGA, ARC, VOLUME, CHAPTER, EPISODE].map((entity) => entityNavItem(entity)),
       },
     ],
