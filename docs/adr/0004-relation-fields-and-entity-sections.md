@@ -68,3 +68,20 @@ che le pagine generiche dell'ADR-0003 non sapevano dire:
 - Le righe delle liste e della dashboard non sanno quali azioni sono bloccate (il backend non
   lo manda lì): il blocco si vede nella scheda e, se si prova comunque, nel messaggio del `409`.
 - Il confronto delle relazioni mostra il romaji e non il nome nella lingua.
+
+## Addendum - sezioni della struttura narrativa (SS5)
+
+Saga, Arco, Volume, Capitolo ed Episodio sono cinque righe di `EntityDefinition`, senza pagine
+nuove. Servono quattro estensioni della definizione:
+
+- `labelField` (`name` o `title`) e chiave naturale `number`; i riferimenti numerati si leggono
+  come `{id, number, names}` e si mostrano `"9 · Titolo"`.
+- `optional` sui campi che la revisione non conta come mancanti (titolo giapponese, date, pagine).
+- Tipo di campo `releaseList`: righe paese (select, codice ISO, nomi con `Intl.DisplayNames`) +
+  data, al massimo una per paese.
+- Più filtri di relazione per lista (`?saga=`, `?arc=`, `?volume=`), ordinamento predefinito
+  `number,asc`, `ImageProfile` con minimi e rapporto (copertina verticale), `removeImage`.
+
+Compromessi: nessuna colonna con il conteggio dei figli (il backend non lo manda: passo futuro);
+i selettori elencano solo elementi approvati (`linkable`); il confronto mostra la relazione nella
+prima lingua disponibile.
