@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { blockWords, type BlockLink } from './block-words';
 import { actionLabelKey, type Version } from './content.model';
 
@@ -23,7 +23,7 @@ interface NoticeView {
 @Component({
   selector: 'app-blocked-notice',
   templateUrl: './blocked-notice.html',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink],
 })
 export class BlockedNotice {
   private readonly transloco = inject(TranslocoService);
