@@ -47,6 +47,54 @@
   >
 </ng-template>
 
+<ng-template #subgroupRow let-subgroup>
+  @let lit = isSubgroupActive(subgroup) || isSubgroupPanelOpen(subgroup);
+  <button
+    type="button"
+    aria-haspopup="true"
+    [attr.aria-expanded]="isSubgroupPanelOpen(subgroup)"
+    (pointerenter)="openSubgroupPanelOnHover($event, subgroup)"
+    (click)="toggleSubgroupPanel($event, subgroup)"
+    class="flex w-full cursor-pointer items-center gap-3 rounded-xl border-l-4 px-3 py-3 text-left font-heading text-[15px] font-bold transition-colors hover:bg-white/10"
+    [class]="entryStateClasses(isSubgroupActive(subgroup), lit)"
+  >
+    <app-icon class="w-5 font-display" [class]="entryIconClasses(lit)" [icon]="subgroup.icon" />
+    <span class="min-w-0 flex-1 truncate">{{ subgroup.labelKey | transloco }}</span>
+    <span
+      class="w-3.5 flex-none text-center text-sm"
+      [class]="entryIconClasses(lit)"
+      aria-hidden="true"
+      >›</span
+    >
+  </button>
+</ng-template>
+
+<ng-template #subgroupHeading let-subgroup>
+  @let expanded = isSubgroupExpanded(subgroup);
+  <button
+    type="button"
+    [attr.aria-expanded]="expanded"
+    [attr.aria-controls]="'subgroup-' + subgroup.id"
+    (click)="toggleSubgroupInline(subgroup)"
+    class="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left font-display text-[12px] font-bold tracking-[0.1em] text-nav-icon uppercase transition-colors hover:bg-white/10"
+  >
+    <span class="min-w-0 flex-1 truncate">{{ subgroup.labelKey | transloco }}</span>
+    <span class="text-[11px] transition-transform" [class.rotate-90]="expanded" aria-hidden="true"
+      >›</span
+    >
+  </button>
+  @if (expanded) {
+    <div
+      [id]="'subgroup-' + subgroup.id"
+      class="ml-2.5 flex flex-col gap-0.5 border-l border-nav-line pl-1"
+    >
+      @for (item of subgroup.items; track item.id) {
+        <ng-container *ngTemplateOutlet="entry; context: { $implicit: item }" />
+      }
+    </div>
+  }
+</ng-template>
+
 <div class="flex h-dvh overflow-hidden">
   @if (drawerOpen()) {
     <button
@@ -98,8 +146,16 @@
             </button>
             @if (isExpandedInline(group)) {
               <div class="flex flex-col gap-0.5 pl-3.5 lg:hidden">
-                @for (item of items; track item.id) {
-                  <ng-container *ngTemplateOutlet="entry; context: { $implicit: item }" />
+                @for (node of visibleEntries(group); track node.id) {
+                  @if (isSubgroup(node)) {
+                    <div role="group" [attr.aria-label]="node.labelKey | transloco">
+                      <ng-container
+                        *ngTemplateOutlet="subgroupHeading; context: { $implicit: node }"
+                      />
+                    </div>
+                  } @else {
+                    <ng-container *ngTemplateOutlet="entry; context: { $implicit: node }" />
+                  }
                 }
               </div>
             }
@@ -173,11 +229,42 @@
         class="scrollbar-treasure flex flex-col gap-0.5 overflow-x-hidden overflow-y-auto"
         [style.max-height]="flyoutListMaxHeight(panel)"
       >
-        @for (item of visibleItems(panel.group); track item.id) {
-          <ng-container *ngTemplateOutlet="entry; context: { $implicit: item }" />
+        @for (item of visibleEntries(panel.group); track item.id) {
+          @if (isSubgroup(item)) {
+            <ng-container *ngTemplateOutlet="subgroupRow; context: { $implicit: item }" />
+          } @else {
+            <ng-container *ngTemplateOutlet="entry; context: { $implicit: item }" />
+          }
         }
       </div>
     </div>
+    @if (subgroupPanel(); as sub) {
+      <div
+        data-nav-flyout-area
+        data-nav-subgroup-flyout
+        role="group"
+        [attr.aria-label]="sub.subgroup.labelKey | transloco"
+        class="anim-fade-enter fixed left-[34rem] z-50 hidden w-64 flex-col gap-0.5 rounded-2xl border border-nav-line bg-nav-flyout px-2 pt-2.5 pb-2 shadow-[0_18px_44px_rgba(10,20,60,0.45)] lg:flex"
+        [style.top.px]="sub.top"
+        (pointerenter)="keepFlyoutOpen()"
+        (pointerleave)="scheduleFlyoutClose()"
+      >
+        <div class="flex items-center justify-between gap-2 px-2.5 pt-0.5 pb-2">
+          <span
+            class="font-display text-[11px] font-bold tracking-[0.16em] text-treasure-500 uppercase"
+            >{{ sub.subgroup.labelKey | transloco }}</span
+          >
+          @let live = liveSubgroupItemCount(sub.subgroup);
+          <span class="text-[10px] font-extrabold tracking-[0.08em] text-nav-hint">{{
+            (live === 1 ? 'shell.nav.liveItems.one' : 'shell.nav.liveItems.other')
+              | transloco: { count: live }
+          }}</span>
+        </div>
+        @for (item of sub.subgroup.items; track item.id) {
+          <ng-container *ngTemplateOutlet="entry; context: { $implicit: item }" />
+        }
+      </div>
+    }
   }
 
   <div class="flex min-w-0 flex-1 flex-col overflow-y-auto">

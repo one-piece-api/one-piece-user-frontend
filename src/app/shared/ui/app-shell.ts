@@ -7,7 +7,15 @@ import { CurrentUserService } from '../../identity/current-user';
 import { LanguageSwitcher } from '../i18n/language-switcher';
 import { MascotService } from '../mascot/mascot';
 import { PROFILE_ROUTE } from '../nav/home.guard';
-import { NAV_GROUPS, type NavGroup, type NavItem } from '../nav/nav-items';
+import {
+  isSubgroup,
+  NAV_GROUPS,
+  sectionsOf,
+  type NavEntry,
+  type NavGroup,
+  type NavItem,
+  type NavSubgroup,
+} from '../nav/nav-items';
 import { Icon } from './icon';
 import { initialsOf } from './initials';
 
@@ -18,6 +26,13 @@ interface Flyout {
   readonly top: number;
   /** Opened by a click: it stays until clicked again or closed, instead of following the pointer. */
   readonly pinned: boolean;
+}
+
+/** The subgroup whose sections are listed in a second panel, beside the flyout (desktop). */
+interface SubgroupPanel {
+  readonly subgroup: NavSubgroup;
+  /** Viewport offset of the panel, aligned with the subgroup's entry in the flyout. */
+  readonly top: number;
 }
 
 /** How long the pointer may travel from a group to its flyout before the flyout closes. */
@@ -38,6 +53,9 @@ const FLYOUT_AREA_SELECTOR = '[data-nav-flyout-area]';
  * entry: on desktop its sections open in a flyout beside the sidebar (on hover, pinned by a
  * click); in the mobile drawer they expand inline under it. A group with a single section
  * shows that section directly, and a group with its own route (the Dashboard) is also a link.
+ * A group may gather its sections in subgroups: on desktop a subgroup opens its sections in a
+ * second panel beside the flyout, in the drawer it is a collapsible heading. A subgroup with a
+ * single visible section shows that section directly, like a group does.
  */
 @Component({
   selector: 'app-shell',
@@ -58,13 +76,17 @@ export class AppShell {
   protected readonly navGroups = NAV_GROUPS;
   protected readonly drawerOpen = signal(false);
   protected readonly flyout = signal<Flyout | null>(null);
+  protected readonly subgroupPanel = signal<SubgroupPanel | null>(null);
+  protected readonly isSubgroup = isSubgroup;
   /** Groups the user expanded (true) or collapsed (false) inline in the mobile drawer, by label key. */
   private readonly toggledGroups = signal<ReadonlyMap<string, boolean>>(new Map());
+  /** Subgroups the user collapsed (false) or expanded again (true) in the mobile drawer, by id. */
+  private readonly toggledSubgroups = signal<ReadonlyMap<string, boolean>>(new Map());
   private flyoutCloseTimer?: ReturnType<typeof setTimeout>;
 
   /** One router-backed signal per routed item, so the active entry follows navigation. */
   private readonly activeItems: ReadonlyMap<string, Signal<boolean>> = new Map(
-    NAV_GROUPS.flatMap((group) => group.items).flatMap((item) =>
+    NAV_GROUPS.flatMap(sectionsOf).flatMap((item) =>
       item.route
         ? [
             [
@@ -93,12 +115,28 @@ export class AppShell {
     inject(DestroyRef).onDestroy(() => clearTimeout(this.flyoutCloseTimer));
   }
 
-  protected visibleItems(group: NavGroup) {
-    return group.items.filter((item) =>
-      item.anyPermission
-        ? this.currentUser.hasAnyPermission(item.anyPermission)
-        : this.currentUser.hasPermission(item.permission),
-    );
+  /** The sections of a group the user may see, subgroups opened up. */
+  protected visibleItems(group: NavGroup): readonly NavItem[] {
+    return sectionsOf(group).filter((item) => this.isVisible(item));
+  }
+
+  /**
+   * What the flyout and the drawer list for a group: its visible sections, and its subgroups
+   * trimmed to the visible sections - a subgroup left with one is that section, with none is gone.
+   */
+  protected visibleEntries(group: NavGroup): readonly NavEntry[] {
+    return group.items.flatMap((entry): NavEntry[] => {
+      if (!isSubgroup(entry)) return this.isVisible(entry) ? [entry] : [];
+      const items = entry.items.filter((item) => this.isVisible(item));
+      if (items.length <= 1) return items;
+      return [{ ...entry, items }];
+    });
+  }
+
+  private isVisible(item: NavItem): boolean {
+    return item.anyPermission
+      ? this.currentUser.hasAnyPermission(item.anyPermission)
+      : this.currentUser.hasPermission(item.permission);
   }
 
   protected isItemActive(item: NavItem): boolean {
@@ -108,6 +146,24 @@ export class AppShell {
   /** The group holding the current page: it carries the same marker as the active section. */
   protected isGroupActive(group: NavGroup): boolean {
     return this.visibleItems(group).some((item) => this.isItemActive(item));
+  }
+
+  protected isSubgroupActive(subgroup: NavSubgroup): boolean {
+    return subgroup.items.some((item) => this.isItemActive(item));
+  }
+
+  protected isSubgroupPanelOpen(subgroup: NavSubgroup): boolean {
+    return this.subgroupPanel()?.subgroup.id === subgroup.id;
+  }
+
+  /** Mobile only: every subgroup starts expanded, the user's own toggle wins. */
+  protected isSubgroupExpanded(subgroup: NavSubgroup): boolean {
+    return this.toggledSubgroups().get(subgroup.id) ?? true;
+  }
+
+  protected toggleSubgroupInline(subgroup: NavSubgroup): void {
+    const expanded = this.isSubgroupExpanded(subgroup);
+    this.toggledSubgroups.update((toggled) => new Map(toggled).set(subgroup.id, !expanded));
   }
 
   protected isFlyoutOpen(group: NavGroup): boolean {
@@ -146,6 +202,20 @@ export class AppShell {
     return this.visibleItems(group).filter((item) => !item.soon).length;
   }
 
+  protected liveSubgroupItemCount(subgroup: NavSubgroup): number {
+    return subgroup.items.filter((item) => !item.soon).length;
+  }
+
+  /** Hover shows a subgroup's sections only with a mouse: a tap is followed by a click. */
+  protected openSubgroupPanelOnHover(event: PointerEvent, subgroup: NavSubgroup): void {
+    if (event.pointerType === 'mouse') this.openSubgroupPanel(event, subgroup);
+  }
+
+  protected toggleSubgroupPanel(event: MouseEvent, subgroup: NavSubgroup): void {
+    if (this.isSubgroupPanelOpen(subgroup)) this.subgroupPanel.set(null);
+    else this.openSubgroupPanel(event, subgroup);
+  }
+
   /** Hover opens the flyout only with a mouse: a tap also fires pointer events, and is a click. */
   protected openFlyoutOnHover(event: PointerEvent, group: NavGroup): void {
     if (event.pointerType !== 'mouse') return;
@@ -178,6 +248,7 @@ export class AppShell {
   protected closeFlyout(): void {
     clearTimeout(this.flyoutCloseTimer);
     this.flyout.set(null);
+    this.subgroupPanel.set(null);
   }
 
   protected closeFlyoutOnOutsideClick(event: MouseEvent): void {
@@ -211,11 +282,23 @@ export class AppShell {
   private openFlyout(event: Event, group: NavGroup, pinned: boolean): void {
     clearTimeout(this.flyoutCloseTimer);
     const entryTop = (event.currentTarget as HTMLElement).getBoundingClientRect().top;
-    const height = FLYOUT_HEADER_PX + this.visibleItems(group).length * FLYOUT_ROW_PX;
+    const height = FLYOUT_HEADER_PX + this.visibleEntries(group).length * FLYOUT_ROW_PX;
     const top = Math.max(
       FLYOUT_VIEWPORT_MARGIN_PX,
       Math.min(entryTop - FLYOUT_OFFSET_PX, window.innerHeight - height),
     );
+    if (this.flyout()?.group !== group) this.subgroupPanel.set(null);
     this.flyout.set({ group, top, pinned });
+  }
+
+  private openSubgroupPanel(event: Event, subgroup: NavSubgroup): void {
+    clearTimeout(this.flyoutCloseTimer);
+    const entryTop = (event.currentTarget as HTMLElement).getBoundingClientRect().top;
+    const height = FLYOUT_HEADER_PX + subgroup.items.length * FLYOUT_ROW_PX;
+    const top = Math.max(
+      FLYOUT_VIEWPORT_MARGIN_PX,
+      Math.min(entryTop - FLYOUT_OFFSET_PX, window.innerHeight - height),
+    );
+    this.subgroupPanel.set({ subgroup, top });
   }
 }

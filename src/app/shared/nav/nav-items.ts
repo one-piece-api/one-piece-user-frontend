@@ -33,20 +33,41 @@ export interface NavItem {
   readonly soon?: boolean;
 }
 
+/** A named set of sections inside a group, e.g. "Story" within "Contents". */
+export interface NavSubgroup {
+  readonly id: string;
+  /** A `transloco` translation key, not display text - the shell resolves it at render time. */
+  readonly labelKey: string;
+  readonly icon: string;
+  readonly items: readonly NavItem[];
+}
+
+/** What a group holds: a section, or a subgroup of sections (Composite). */
+export type NavEntry = NavItem | NavSubgroup;
+
 export interface NavGroup {
   /** A `transloco` translation key, not display text - the shell resolves it at render time. */
   readonly labelKey: string;
   readonly icon: string;
   /** Its flyout tells how many of its sections are already open (not `soon`). */
   readonly countsLiveItems?: boolean;
-  readonly items: readonly NavItem[];
+  readonly items: readonly NavEntry[];
+}
+
+export function isSubgroup(entry: NavEntry): entry is NavSubgroup {
+  return 'labelKey' in entry;
+}
+
+/** Every section of a group, with the subgroups opened up. */
+export function sectionsOf(group: NavGroup): readonly NavItem[] {
+  return group.items.flatMap((entry) => (isSubgroup(entry) ? entry.items : [entry]));
 }
 
 /** The menu entry of an entity's section: named, drawn and reached as its definition says. */
-export function entityNavItem(entity: EntityDefinition): NavItem {
+export function entityNavItem(entity: EntityDefinition, label?: string): NavItem {
   return {
     id: entity.route.split('/').at(-1) ?? entity.route,
-    label: `${entity.i18n}.title`,
+    label: label ?? `${entity.i18n}.title`,
     icon: entity.icon,
     route: entity.route,
     permission: 'content:read',
@@ -78,36 +99,50 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     ],
   },
   {
-    // One entry per content entity (docs/user-flows/content-editorial-workflow.md 6): the
-    // ones not built yet are announced, so the section shows where the encyclopedia is going.
+    // One section per content entity (docs/user-flows/content-editorial-workflow.md 6), in
+    // subgroups by domain: the ones not built yet are announced, so the menu shows where the
+    // encyclopedia is going. The story structure is 3.1.3-3.1.7 of the same document.
     labelKey: 'shell.nav.contents',
     icon: 'assets/contents.webp',
     countsLiveItems: true,
     items: [
       {
-        id: 'characters',
-        label: 'shell.nav.characters',
-        icon: 'assets/characters.webp',
-        permission: 'content:read',
-        soon: true,
+        id: 'devil-fruits',
+        labelKey: 'shell.nav.devilFruits',
+        icon: 'assets/devil-fruit.webp',
+        items: [
+          entityNavItem(DEVIL_FRUIT, 'shell.nav.fruits'),
+          entityNavItem(DEVIL_FRUIT_TYPE, 'shell.nav.fruitTypes'),
+        ],
       },
-      entityNavItem(DEVIL_FRUIT),
-      entityNavItem(DEVIL_FRUIT_TYPE),
       {
-        id: 'crews',
-        label: 'shell.nav.crews',
-        icon: 'assets/crews.webp',
-        permission: 'content:read',
-        soon: true,
+        id: 'crews-and-characters',
+        labelKey: 'shell.nav.crewsAndCharacters',
+        icon: 'assets/characters.webp',
+        items: [
+          {
+            id: 'characters',
+            label: 'shell.nav.characters',
+            icon: 'assets/characters.webp',
+            permission: 'content:read',
+            soon: true,
+          },
+          {
+            id: 'crews',
+            label: 'shell.nav.crews',
+            icon: 'assets/crews.webp',
+            permission: 'content:read',
+            soon: true,
+          },
+        ],
+      },
+      {
+        id: 'story',
+        labelKey: 'shell.nav.story',
+        icon: 'assets/logpose.webp',
+        items: [SAGA, ARC, VOLUME, CHAPTER, EPISODE].map((entity) => entityNavItem(entity)),
       },
     ],
-  },
-  {
-    // The story structure (docs/user-flows/content-editorial-workflow.md 3.1.3-3.1.7).
-    labelKey: 'shell.nav.story',
-    icon: 'assets/logpose.webp',
-    countsLiveItems: true,
-    items: [SAGA, ARC, VOLUME, CHAPTER, EPISODE].map(entityNavItem),
   },
   {
     labelKey: 'shell.nav.account',

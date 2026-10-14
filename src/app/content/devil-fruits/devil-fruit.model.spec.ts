@@ -1,4 +1,4 @@
-import { NAV_GROUPS } from '../../shared/nav/nav-items';
+import { NAV_GROUPS, sectionsOf } from '../../shared/nav/nav-items';
 import { ENTITIES, entityOf } from '../entity/entities';
 import { diffBodies, draftFieldKey, draftOf, readinessChecks, toBody } from '../entity/entity-body';
 import { DEVIL_FRUIT } from './devil-fruit.model';
@@ -43,12 +43,12 @@ describe('the Devil Fruit entity', () => {
   });
 
   it('has a live entry in the menu, no longer an announced one', () => {
-    const items = NAV_GROUPS.flatMap((group) => group.items);
+    const items = NAV_GROUPS.flatMap(sectionsOf);
     const entry = items.find(({ id }) => id === 'devil-fruits');
 
     expect(entry).toMatchObject({
       route: '/content/devil-fruits',
-      label: 'content.devilFruits.title',
+      label: 'shell.nav.fruits',
       permission: 'content:read',
     });
     expect(entry?.soon).toBeUndefined();

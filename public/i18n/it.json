@@ -22,7 +22,11 @@
         "one": "{{count}} sezione attiva",
         "other": "{{count}} sezioni attive"
       },
-      "story": "Storia"
+      "story": "Storia",
+      "devilFruits": "Frutti del Diavolo",
+      "fruits": "Frutti",
+      "fruitTypes": "Tipi",
+      "crewsAndCharacters": "Ciurme e personaggi"
     }
   },
   "langSwitcher": {

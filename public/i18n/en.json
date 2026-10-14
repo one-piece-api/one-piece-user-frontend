@@ -22,7 +22,11 @@
         "one": "{{count}} section open",
         "other": "{{count}} sections open"
       },
-      "story": "Story"
+      "story": "Story",
+      "devilFruits": "Devil Fruits",
+      "fruits": "Fruits",
+      "fruitTypes": "Types",
+      "crewsAndCharacters": "Crews and characters"
     }
   },
   "langSwitcher": {

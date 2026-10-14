@@ -1,4 +1,4 @@
-import { NAV_GROUPS } from '../../shared/nav/nav-items';
+import { isSubgroup, NAV_GROUPS } from '../../shared/nav/nav-items';
 import { ARC } from '../arcs/arc.model';
 import { CHAPTER } from '../chapters/chapter.model';
 import { EPISODE } from '../episodes/episode.model';
@@ -25,11 +25,12 @@ describe('the story entities', () => {
     }
   });
 
-  it('have their own menu group, in order', () => {
-    const group = NAV_GROUPS.find(({ labelKey }) => labelKey === 'shell.nav.story');
+  it('have their own menu subgroup, in order', () => {
+    const subgroup = NAV_GROUPS.flatMap(({ items }) => items)
+      .filter(isSubgroup)
+      .find(({ labelKey }) => labelKey === 'shell.nav.story');
 
-    expect(group?.countsLiveItems).toBe(true);
-    expect(group?.items.map(({ route }) => route)).toEqual(story.map(({ route }) => route));
+    expect(subgroup?.items.map(({ route }) => route)).toEqual(story.map(({ route }) => route));
   });
 
   it('ask review for the relation they require and not for the optional extras', () => {

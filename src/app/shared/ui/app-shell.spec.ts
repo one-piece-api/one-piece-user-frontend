@@ -23,6 +23,19 @@ function flyout(root: HTMLElement): HTMLElement | null {
   return root.querySelector<HTMLElement>('[data-nav-flyout]');
 }
 
+function subgroupFlyout(root: HTMLElement): HTMLElement | null {
+  return root.querySelector<HTMLElement>('[data-nav-subgroup-flyout]');
+}
+
+/** Points at a subgroup's entry in the flyout, as a mouse does: its sections open beside it. */
+function hoverSubgroup(root: HTMLElement, label: string): void {
+  const entry = Array.from(flyout(root)?.querySelectorAll('button') ?? []).find((button) =>
+    button.textContent?.includes(label),
+  );
+  if (!entry) throw new Error(`No subgroup "${label}"`);
+  hover(entry, 'mouse');
+}
+
 function hrefsIn(element: Element | null): (string | null)[] {
   return Array.from(element?.querySelectorAll('a') ?? []).map((link) => link.getAttribute('href'));
 }
@@ -171,16 +184,34 @@ describe('AppShell', () => {
     groupButton(root, 'Contents').click();
     fixture.detectChanges();
     const panel = flyout(root);
-    expect(hrefsIn(panel)).toEqual(['/content/devil-fruits', '/content/devil-fruit-types']);
-    expect(panel?.textContent).toContain('Devil Fruit Types');
-    expect(panel?.textContent).toContain('2 sections open');
+    const subgroups = Array.from(panel?.querySelectorAll('button') ?? []).map((button) =>
+      button.textContent?.trim().replace(/\s*›$/, ''),
+    );
+    expect(subgroups).toEqual(['Devil Fruits', 'Crews and characters', 'Story']);
+    expect(panel?.textContent).toContain('7 sections open');
+    expect(subgroupFlyout(root)).toBeNull();
 
-    const announced = Array.from(panel?.querySelectorAll('button') ?? []).map((button) =>
-      Array.from(button.querySelectorAll(':scope > span'))
-        .map((part) => part.textContent?.trim())
-        .join(' '),
+    hoverSubgroup(root, 'Devil Fruits');
+    fixture.detectChanges();
+    expect(hrefsIn(subgroupFlyout(root))).toEqual([
+      '/content/devil-fruits',
+      '/content/devil-fruit-types',
+    ]);
+    expect(subgroupFlyout(root)?.textContent).toContain('Types');
+
+    hoverSubgroup(root, 'Crews and characters');
+    fixture.detectChanges();
+    const announced = Array.from(subgroupFlyout(root)?.querySelectorAll('button') ?? []).map(
+      (button) =>
+        Array.from(button.querySelectorAll(':scope > span'))
+          .map((part) => part.textContent?.trim())
+          .join(' '),
     );
     expect(announced).toEqual(['Characters coming soon', 'Crews coming soon']);
+
+    hoverSubgroup(root, 'Story');
+    fixture.detectChanges();
+    expect(hrefsIn(subgroupFlyout(root))).toHaveLength(5);
   });
 
   it('hides the content section from who lacks content:read', async () => {
@@ -217,10 +248,13 @@ describe('AppShell', () => {
     const root = fixture.nativeElement as HTMLElement;
     groupButton(root, 'Contents').click();
     fixture.detectChanges();
-    (flyout(root)?.querySelector('button') as HTMLButtonElement).click();
+    hoverSubgroup(root, 'Crews and characters');
+    fixture.detectChanges();
+    (subgroupFlyout(root)?.querySelector('button') as HTMLButtonElement).click();
     fixture.detectChanges();
 
     expect(flyout(root)).toBeNull();
+    expect(subgroupFlyout(root)).toBeNull();
     const mascot = TestBed.inject(MascotService);
     expect(mascot.open()).toBe(true);
     expect(mascot.message().text).toContain("Characters isn't open yet");
@@ -407,6 +441,22 @@ describe('AppShell', () => {
       fixture.detectChanges();
 
       expect(hrefsIn(root.querySelector('nav'))).toEqual(['/profile', '/users', '/audit']);
+    });
+
+    it('lists the subgroups of a group inline, each one collapsible', async () => {
+      const { fixture, root } = await signIn(['content:read']);
+      groupButton(root, 'Contents').click();
+      fixture.detectChanges();
+
+      const story = groupButton(root, 'Story');
+      expect(story.getAttribute('aria-expanded')).toBe('true');
+      expect(hrefsIn(root.querySelector('nav'))).toContain('/content/sagas');
+
+      story.click();
+      fixture.detectChanges();
+      expect(story.getAttribute('aria-expanded')).toBe('false');
+      expect(hrefsIn(root.querySelector('nav'))).not.toContain('/content/sagas');
+      expect(hrefsIn(root.querySelector('nav'))).toContain('/content/devil-fruits');
     });
 
     it('collapses the current group inline when the user asks, and expands it again', async () => {
