@@ -1,5 +1,10 @@
+import { ARC } from '../../content/arcs/arc.model';
+import { CHAPTER } from '../../content/chapters/chapter.model';
 import { DEVIL_FRUIT_TYPE } from '../../content/devil-fruit-types/devil-fruit-type.model';
 import { DEVIL_FRUIT } from '../../content/devil-fruits/devil-fruit.model';
+import { EPISODE } from '../../content/episodes/episode.model';
+import { SAGA } from '../../content/sagas/saga.model';
+import { VOLUME } from '../../content/volumes/volume.model';
 import type { EntityDefinition } from '../../content/entity/entity-definition';
 import { STATUS_LABEL_KEY } from '../../content/content.model';
 import {
@@ -96,6 +101,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         soon: true,
       },
     ],
+  },
+  {
+    // The story structure (docs/user-flows/content-editorial-workflow.md 3.1.3-3.1.7).
+    labelKey: 'shell.nav.story',
+    icon: 'assets/logpose.webp',
+    countsLiveItems: true,
+    items: [SAGA, ARC, VOLUME, CHAPTER, EPISODE].map(entityNavItem),
   },
   {
     labelKey: 'shell.nav.account',

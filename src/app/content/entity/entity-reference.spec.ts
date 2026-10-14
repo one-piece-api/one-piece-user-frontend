@@ -17,3 +17,13 @@ describe('a reference to another content', () => {
     expect(referenceLabel({ id: 't2', romaji: null, names: {} }, 'it')).toBe('t2');
   });
 });
+
+describe('a numbered reference', () => {
+  it('is called by its number and name in the language, else its number alone', () => {
+    const arc = { id: 'a1', number: 12, names: { it: 'Alabasta' } };
+
+    expect(referenceLabel(arc, 'it')).toBe('12 · Alabasta');
+    expect(referenceLabel(arc, 'en')).toBe('12');
+    expect(referenceLabel({ id: 'a0', number: 0, names: {} }, 'en')).toBe('0');
+  });
+});

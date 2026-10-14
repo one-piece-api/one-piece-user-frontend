@@ -49,6 +49,16 @@ describe('the checks of an image before it is sent', () => {
     });
   });
 
+  it("measures 'too small' against the profile's own minimum when it has one", () => {
+    const cover = { ...PROFILE, width: 420, height: 600, minWidth: 560, minHeight: 800 };
+
+    expect(dimensionRefusal(500, 714, cover)).toEqual({
+      code: 'CONTENT_IMAGE_TOO_SMALL',
+      numbers: { width: 500, height: 714, minWidth: 560, minHeight: 800 },
+    });
+    expect(dimensionRefusal(560, 800, cover)).toBeNull();
+  });
+
   it('accepts a ratio within the tolerance and refuses one beyond, as the smallest ratio', () => {
     expect(dimensionRefusal(1280, 1600, PROFILE)).toBeNull();
     expect(dimensionRefusal(700, 800, PROFILE)).toBeNull();

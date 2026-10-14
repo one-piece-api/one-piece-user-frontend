@@ -118,7 +118,40 @@ export type BlockCause =
         count: number;
         fruits: { id: string; romaji: string | null; subcategoryId: string }[];
       };
+    }
+  | {
+      /**
+       * A story content cannot go online while the one it points to is not: the relation
+       * names the keys - `{ sagaId, sagaNumber }`, `{ arcId, arcNumber }` or
+       * `{ volumeId, volumeNumber }`.
+       */
+      reason: 'RELATED_NOT_ONLINE';
+      detail: Partial<Record<`${StoryRelation}Id`, string>> &
+        Partial<Record<`${StoryRelation}Number`, number>>;
+    }
+  | {
+      /**
+       * A story content's version cannot go online while it leaves out one that online items
+       * point to: the count, and the first few as `{ id, number }` - under `arcs`,
+       * `chapters` or `episodes`, whichever points to it.
+       */
+      reason: 'ONLINE_ITEMS_LINKED';
+      detail: { count: number } & Partial<Record<StoryItems, NumberedItem[]>>;
     };
+
+/** The relations of the story contents a block can name: a saga, an arc, a volume. */
+export const STORY_RELATIONS = ['saga', 'arc', 'volume'] as const;
+export type StoryRelation = (typeof STORY_RELATIONS)[number];
+
+/** The story contents that point to another, as a block names them. */
+export const STORY_ITEMS = ['arcs', 'chapters', 'episodes'] as const;
+export type StoryItems = (typeof STORY_ITEMS)[number];
+
+/** A story content that stands in the way: its id and its number. */
+export interface NumberedItem {
+  id: string;
+  number: number;
+}
 
 /**
  * An action of `allowedActions` that the backend answers with `409

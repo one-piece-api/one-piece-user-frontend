@@ -201,6 +201,7 @@
                           type="text"
                           class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
                           [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                          [attr.lang]="view.field.lang ?? null"
                           [value]="view.value"
                           [maxLength]="view.field.maxLength"
                           [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
@@ -233,7 +234,7 @@
                           #sharedInput
                           [id]="'draft-' + view.field.key"
                           type="number"
-                          min="0"
+                          [min]="view.field.min ?? 0"
                           step="1"
                           inputmode="numeric"
                           class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
@@ -257,6 +258,114 @@
                 }
               </div>
             </div>
+
+            @for (list of releaseListViews(); track list.field.key) {
+              <section
+                class="grid gap-2.5 rounded-[14px] bg-parchment-200 px-4 py-3.5"
+                [attr.data-testid]="'draft-' + list.field.key"
+              >
+                <div class="flex flex-wrap items-center justify-between gap-2.5">
+                  <h2
+                    class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                  >
+                    {{ 'content.editor.' + list.field.key + '.label' | transloco }}
+                  </h2>
+                  <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                    'content.editor.' + list.field.key + '.hint' | transloco
+                  }}</span>
+                </div>
+                @for (row of list.rows; track row.key; let index = $index) {
+                  <div
+                    class="grid items-start gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                    data-testid="release-row"
+                  >
+                    <div class="grid gap-1">
+                      <label
+                        [for]="'draft-' + list.field.key + '-' + index + '-country'"
+                        class="sr-only"
+                        >{{ 'content.editor.release.country' | transloco }}</label
+                      >
+                      <select
+                        #countryInput
+                        [id]="'draft-' + list.field.key + '-' + index + '-country'"
+                        class="w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                        [class]="row.countryError ? 'border-flag-600' : 'border-ocean-800/20'"
+                        [attr.aria-invalid]="row.countryError ? true : null"
+                        (change)="setRelease(list.field.key, index, 'country', countryInput.value)"
+                      >
+                        <option value="" [selected]="!row.country">
+                          {{ 'content.editor.release.pickCountry' | transloco }}
+                        </option>
+                        @for (country of countries(); track country.code) {
+                          <option
+                            [value]="country.code"
+                            [selected]="country.code === row.country"
+                            [disabled]="
+                              country.code !== row.country && list.used.includes(country.code)
+                            "
+                          >
+                            {{ country.name }}
+                          </option>
+                        }
+                      </select>
+                      @if (row.countryError; as error) {
+                        <p
+                          class="font-heading text-sm font-bold text-flag-700"
+                          data-testid="field-error"
+                        >
+                          {{ error }}
+                        </p>
+                      }
+                    </div>
+                    <div class="grid gap-1">
+                      <label
+                        [for]="'draft-' + list.field.key + '-' + index + '-date'"
+                        class="sr-only"
+                        >{{ 'content.editor.release.date' | transloco }}</label
+                      >
+                      <input
+                        #dateInput
+                        [id]="'draft-' + list.field.key + '-' + index + '-date'"
+                        type="date"
+                        class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                        [class]="row.dateError ? 'border-flag-600' : 'border-ocean-800/20'"
+                        [value]="row.date"
+                        [attr.aria-invalid]="row.dateError ? true : null"
+                        (input)="setRelease(list.field.key, index, 'date', dateInput.value)"
+                      />
+                      @if (row.dateError; as error) {
+                        <p
+                          class="font-heading text-sm font-bold text-flag-700"
+                          data-testid="field-error"
+                        >
+                          {{ error }}
+                        </p>
+                      }
+                    </div>
+                    <button
+                      type="button"
+                      class="cursor-pointer rounded-lg bg-flag-100 px-2.5 py-2.5 font-heading text-xs font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
+                      data-testid="release-remove"
+                      (click)="removeRelease(list.field.key, index)"
+                    >
+                      ✕ {{ 'content.editor.release.remove' | transloco }}
+                    </button>
+                  </div>
+                } @empty {
+                  <p class="font-heading text-[13px] font-bold text-ocean-500/60">
+                    {{ 'content.editor.release.empty' | transloco }}
+                  </p>
+                }
+                <button
+                  type="button"
+                  class="cursor-pointer justify-self-start rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800"
+                  data-testid="release-add"
+                  (click)="addRelease(list.field.key)"
+                >
+                  + {{ 'content.editor.release.add' | transloco }}
+                </button>
+              </section>
+            }
 
             <div class="flex flex-wrap gap-2" role="tablist">
               @for (tab of tabs(); track tab.code) {
@@ -491,7 +600,7 @@
             <h2
               class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
             >
-              {{ 'content.editor.ready.title' | transloco }}
+              {{ 'content.editor.ready.heading' | transloco }}
             </h2>
             <ul class="grid gap-2">
               @for (check of checks(); track check.label) {

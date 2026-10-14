@@ -2,7 +2,7 @@ import { Component, computed, inject, input, linkedSignal, output, signal } from
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { ImageProfile } from './entity-definition';
 import type { ImageDraft } from './entity-image';
-import { checkImage } from './image-checks';
+import { checkImage, simplestRatio } from './image-checks';
 import { imageProblemWords } from './image-words';
 
 /**
@@ -49,11 +49,22 @@ export class ImagePicker {
   private readonly refusal = signal<string | null>(null);
   protected readonly problem = computed(() => this.refusal() ?? this.error());
 
-  /** "4:5, at least 640 × 800, PNG with a transparent background". */
+  /** The frame has the profile's own ratio: 4:5 for a fruit, 7:10 for a cover. */
+  protected readonly ratio = computed(() => this.profile().width / this.profile().height);
+
+  /** "PNG with a transparent background, 4:5, at least 320 × 400 px" - from the profile's numbers. */
   protected readonly requirements = computed(() => {
     this.transloco.activeLang();
-    const { width, height } = this.profile();
-    return this.transloco.translate('content.image.requirements', { width, height });
+    const profile = this.profile();
+    const key =
+      profile.minTransparentPercent > 0
+        ? 'content.image.requirements'
+        : 'content.image.requirementsOpaque';
+    return this.transloco.translate(key, {
+      ...simplestRatio(profile),
+      width: profile.minWidth ?? profile.width,
+      height: profile.minHeight ?? profile.height,
+    });
   });
 
   protected onFileInput(input: HTMLInputElement): void {

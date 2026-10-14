@@ -81,7 +81,7 @@ export function pngSizeOf(header: Uint8Array): { width: number; height: number }
   return { width: view.getUint32(WIDTH_OFFSET), height: view.getUint32(HEIGHT_OFFSET) };
 }
 
-/** Too many pixels, too small, then too far from the canvas' ratio - read before decoding. */
+/** Too many pixels, too small (the profile's minimum, else its canvas), then too far from the canvas' ratio - read before decoding. */
 export function dimensionRefusal(
   width: number,
   height: number,
@@ -93,22 +93,21 @@ export function dimensionRefusal(
       numbers: { width, height, maxPixels: profile.maxPixels },
     };
   }
-  if (width < profile.width || height < profile.height) {
-    return {
-      code: 'CONTENT_IMAGE_TOO_SMALL',
-      numbers: { width, height, minWidth: profile.width, minHeight: profile.height },
-    };
+  const minWidth = profile.minWidth ?? profile.width;
+  const minHeight = profile.minHeight ?? profile.height;
+  if (width < minWidth || height < minHeight) {
+    return { code: 'CONTENT_IMAGE_TOO_SMALL', numbers: { width, height, minWidth, minHeight } };
   }
   const offBy = Math.abs(width / height / (profile.width / profile.height) - 1);
   if (offBy > profile.ratioTolerance) {
-    const divisor = greatestCommonDivisor(profile.width, profile.height);
+    const { ratioWidth, ratioHeight } = simplestRatio(profile);
     return {
       code: 'CONTENT_IMAGE_WRONG_RATIO',
       numbers: {
         width,
         height,
-        ratioWidth: profile.width / divisor,
-        ratioHeight: profile.height / divisor,
+        ratioWidth,
+        ratioHeight,
         tolerancePercent: Math.round(profile.ratioTolerance * 100),
       },
     };
@@ -137,6 +136,12 @@ export function transparencyRefusal(
         },
       }
     : null;
+}
+
+/** The profile's ratio in its smallest whole numbers: 420 × 600 is 7:10. */
+export function simplestRatio(profile: ImageProfile): { ratioWidth: number; ratioHeight: number } {
+  const divisor = greatestCommonDivisor(profile.width, profile.height);
+  return { ratioWidth: profile.width / divisor, ratioHeight: profile.height / divisor };
 }
 
 function greatestCommonDivisor(a: number, b: number): number {

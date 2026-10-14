@@ -1,9 +1,17 @@
 import { NOTE, NOTE_IN_FOLDER, NOTE_WITH_PICTURE } from '../../testing/note-entity';
 import {
+  imageField,
+  localizedTextField,
+  numberField,
+  releaseListField,
+  type EntityDefinition,
+} from './entity-definition';
+import {
   diffBodies,
   draftFieldKey,
   draftOf,
   isTranslationComplete,
+  namesOf,
   readinessChecks,
   toBody,
   uploadOf,
@@ -150,7 +158,7 @@ describe('the body of any entity', () => {
       const upload = uploadOf(NOTE_WITH_PICTURE, draftFrom(pictured), pictured as never);
 
       expect(upload.file).toBeNull();
-      expect(upload.body).not.toHaveProperty('removePicture');
+      expect(upload.body).not.toHaveProperty('removeImage');
     });
 
     it('sends a file chosen beside the JSON, in the part named after the field', () => {
@@ -158,7 +166,7 @@ describe('the body of any entity', () => {
       const upload = uploadOf(NOTE_WITH_PICTURE, draft, pictured as never);
 
       expect(upload.file).toEqual({ part: 'picture', file });
-      expect(upload.body).not.toHaveProperty('removePicture');
+      expect(upload.body).not.toHaveProperty('removeImage');
       expect(upload.body['romaji']).toBe('Memo');
     });
 
@@ -167,16 +175,16 @@ describe('the body of any entity', () => {
 
       expect(uploadOf(NOTE_WITH_PICTURE, draft, pictured as never)).toMatchObject({
         file: null,
-        body: { removePicture: true },
+        body: { removeImage: true },
       });
     });
 
     it('asks to remove nothing on a content that never had an image', () => {
       expect(uploadOf(NOTE_WITH_PICTURE, draftFrom(null), null).body).not.toHaveProperty(
-        'removePicture',
+        'removeImage',
       );
       expect(uploadOf(NOTE_WITH_PICTURE, draftFrom(note), note as never).body).not.toHaveProperty(
-        'removePicture',
+        'removeImage',
       );
     });
 
@@ -189,6 +197,98 @@ describe('the body of any entity', () => {
         before: null,
         after: picture.url,
       });
+    });
+  });
+});
+
+const COVER = {
+  width: 40,
+  height: 20,
+  ratioTolerance: 0.1,
+  maxBytes: 1000,
+  maxPixels: 10_000,
+  minTransparentPercent: 0,
+};
+
+describe('the body of an entity with optional fields and a number as its natural key', () => {
+  const issue: EntityDefinition = {
+    entityType: 'ISSUE',
+    naturalKey: 'number',
+    labelField: 'title',
+    route: '/content/issues',
+    api: '/api/content/issues',
+    i18n: 'content.issues',
+    icon: '#',
+    fields: [
+      numberField('number'),
+      localizedTextField('title', { maxLength: 20 }),
+      localizedTextField('subtitle', { maxLength: 20, optional: true }),
+      numberField('pages', { min: 1, optional: true }),
+      releaseListField('releases'),
+    ],
+  };
+  const languages = ['it'];
+
+  it('names a version by its labelField', () => {
+    const body = { number: 3, translations: { it: { title: 'Alba', subtitle: 'x' }, en: {} } };
+
+    expect(namesOf(issue, body)).toEqual({ it: 'Alba' });
+  });
+
+  it('asks review only for what is not optional', () => {
+    const draft = draftOf(issue, null, languages);
+
+    expect(readinessChecks(issue, draft, languages)).toEqual([
+      { field: 'number', language: null, done: false },
+      { field: 'title', language: 'it', done: false },
+    ]);
+    expect(isTranslationComplete(issue, { title: 'Alba', subtitle: '' })).toBe(true);
+  });
+
+  it('saves the releases sorted without the incomplete ones, and a number as a number', () => {
+    const draft = draftOf(issue, null, languages);
+    draft['number'] = '3';
+    draft['pages'] = '';
+    draft['releases'] = [
+      { key: 'a', country: 'US', date: '1999-01-01' },
+      { key: 'b', country: 'JP', date: '1997-10-20' },
+      { key: 'c', country: '', date: '2000-01-01' },
+    ];
+
+    expect(toBody(issue, draft)).toMatchObject({
+      number: 3,
+      pages: null,
+      releases: [
+        { country: 'JP', date: '1997-10-20' },
+        { country: 'US', date: '1999-01-01' },
+      ],
+    });
+  });
+
+  it('removes an image with the same flag whatever the field is called', () => {
+    const covered: EntityDefinition = {
+      ...issue,
+      fields: [...issue.fields, imageField('cover', COVER)],
+    };
+    const draft = { ...draftOf(covered, null, languages), cover: null };
+    const saved = { number: 1, cover: { id: 'c1', url: '/c1' }, translations: {} };
+
+    expect(uploadOf(covered, draft, saved).body).toMatchObject({ removeImage: true });
+  });
+
+  it('addresses the errors of any translated field as the editor does', () => {
+    expect(draftFieldKey(issue, 'translations[it].title')).toBe('it.title');
+    expect(draftFieldKey(issue, 'number')).toBe('number');
+  });
+
+  it('compares the releases as one text, an entry per line', () => {
+    const before = { number: 1, translations: {} };
+    const after = { ...before, releases: [{ country: 'JP', date: '1997-10-20' }] };
+
+    expect(diffBodies(issue, before, after, languages).at(-1)).toMatchObject({
+      field: { field: 'releases', language: null },
+      change: 'ADDED',
+      after: 'JP 1997-10-20',
     });
   });
 });

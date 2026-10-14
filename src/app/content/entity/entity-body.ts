@@ -12,7 +12,7 @@ import {
   subcategoryText,
   type SubcategoryPart,
 } from './entity-subcategory';
-import { FIELD_KINDS } from './field-kinds';
+import { FIELD_KINDS, isAskedByReview } from './field-kinds';
 
 /** What a version says in one language, by field key. */
 export type Translation = Record<string, unknown>;
@@ -75,14 +75,14 @@ export function localizedFields(definition: EntityDefinition): EntityField[] {
   return definition.fields.filter((field) => kindOf(field).localized);
 }
 
-/** A language is complete when every one of its fields is filled in. */
+/** A language is complete when every one of its fields review asks for is filled in. */
 export function isTranslationComplete(
   definition: EntityDefinition,
   translation: Translation | undefined,
 ): boolean {
-  return localizedFields(definition).every((field) =>
-    kindOf(field).isFilled(translation?.[field.key]),
-  );
+  return localizedFields(definition)
+    .filter(isAskedByReview)
+    .every((field) => kindOf(field).isFilled(translation?.[field.key]));
 }
 
 /** The fields that are lists of subcategories, such as a type's. */
@@ -144,12 +144,13 @@ export function naturalKeyOf(
   return value === null || value === undefined ? null : String(value);
 }
 
-/** The names of a version per language code, for the languages that have one. */
-export function namesOf(body: EntityBody): Record<string, string> {
+/** The names of a version per language code - its `labelField` - for the languages that have one. */
+export function namesOf(definition: EntityDefinition, body: EntityBody): Record<string, string> {
   const names: Record<string, string> = {};
   for (const [language, translation] of Object.entries(body.translations)) {
-    if (typeof translation['name'] === 'string' && translation['name']) {
-      names[language] = translation['name'];
+    const name = translation[definition.labelField];
+    if (typeof name === 'string' && name) {
+      names[language] = name;
     }
   }
   return names;
@@ -216,7 +217,7 @@ export interface Upload {
 /**
  * What saving a draft sends, worked out from the draft and the version it was written from
  * (`null` for a new content). For an image: a file chosen is sent beside the JSON (replace);
- * no image where the saved version had one sets `remove<Key>` (remove); otherwise nothing,
+ * no image where the saved version had one sets `removeImage` (remove); otherwise nothing,
  * and the backend keeps what the version had (plan D5).
  */
 export function uploadOf(
@@ -231,16 +232,14 @@ export function uploadOf(
     if (chosen) {
       file = { part: field.key, file: chosen };
     } else if (!isImageDraft(draft[field.key]) && isImageReference(saved?.[field.key])) {
-      flags[removeFlagOf(field.key)] = true;
+      flags[REMOVE_IMAGE_FLAG] = true;
     }
   }
   return { body: { ...toBody(definition, draft), ...flags }, file };
 }
 
-/** `image` → `removeImage`: how the backend is told to drop the image of a draft. */
-function removeFlagOf(key: string): string {
-  return `remove${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-}
+/** How the backend is told to drop the image of a draft, whatever the image field is called. */
+const REMOVE_IMAGE_FLAG = 'removeImage';
 
 /**
  * What a draft still needs to be ready for review: the shared fields, then every translated
@@ -253,7 +252,7 @@ export function readinessChecks(
   languages: readonly string[],
 ): ReadinessCheck[] {
   const checks: ReadinessCheck[] = sharedFields(definition)
-    .filter((field) => kindOf(field).forReview)
+    .filter(isAskedByReview)
     .map((field) => ({
       field: field.key,
       language: null,
@@ -262,22 +261,30 @@ export function readinessChecks(
   for (const language of languages) {
     const translation = draft.translations[language];
     checks.push(
-      ...localizedFields(definition).map((field) => ({
-        field: field.key,
-        language,
-        done: kindOf(field).isFilled(translation?.[field.key]),
-      })),
+      ...localizedFields(definition)
+        .filter(isAskedByReview)
+        .map((field) => ({
+          field: field.key,
+          language,
+          done: kindOf(field).isFilled(translation?.[field.key]),
+        })),
       ...subcategoryChecks(definition, draft, language),
     );
   }
   return checks;
 }
 
+/** The fields that are lists of releases or broadcasts, such as a volume's. */
+function releaseListFields(definition: EntityDefinition): EntityField[] {
+  return definition.fields.filter(({ kind }) => kind === 'releaseList');
+}
+
 /**
- * Where the backend says a value is at fault, as the editor addresses its fields: the natural key (`romaji`),
- * `it.name`, `it.subcategories.0.name` or `subcategories.0`. The backend names them
- * `romaji`, `translations[it].name`, `subcategories[0].translations[it].name` and
- * `subcategories[0].id`; anything else is `null`.
+ * Where the backend says a value is at fault, as the editor addresses its fields: the natural
+ * key (`romaji`, `number`), `it.name`, `it.subcategories.0.name`, `subcategories.0` or
+ * `releases.1.country`. The backend names them `romaji`, `translations[it].name`,
+ * `subcategories[0].translations[it].name`, `subcategories[0].id` and `releases[1].country` -
+ * a release by its position in the JSON sent (`sentReleaseRows`); anything else is `null`.
  */
 export function draftFieldKey(definition: EntityDefinition, field: string): string | null {
   const lists = subcategoryListFields(definition).map(({ key }) => key);
@@ -287,6 +294,13 @@ export function draftFieldKey(definition: EntityDefinition, field: string): stri
   if (lists.length && entry) {
     const [, list, index, language, part] = entry;
     return language ? `${language}.${list}.${index}.${part}` : `${list}.${index}`;
+  }
+  const releases = releaseListFields(definition).map(({ key }) => key);
+  const release = new RegExp(String.raw`^(${releases.join('|')})\[(\d+)\]\.(country|date)$`).exec(
+    field,
+  );
+  if (releases.length && release) {
+    return `${release[1]}.${release[2]}.${release[3]}`;
   }
   if (sharedFields(definition).some(({ key }) => key === field)) {
     return field;

@@ -6,9 +6,10 @@
  * the comparison.
  */
 import { diffField, type FieldDiff } from '../version-comparison';
-import type { FieldKindName } from './entity-definition';
+import type { EntityField, FieldKindName } from './entity-definition';
 import { isImageDraft, isImageReference } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
+import { newReleaseKey, releasesOf, type ReleaseDraft } from './entity-release';
 import {
   SUBCATEGORY_PARTS,
   isSubcategoryReference,
@@ -79,9 +80,19 @@ function idOf(value: unknown): string | null {
   return isReference(value) ? value.id : null;
 }
 
-/** What a reference is called in a comparison, which is not tied to a language: romaji, else id. */
+/**
+ * What a reference is called in a comparison, not tied to a language: a numbered one is
+ * "12 · Name" with the first name it has, else its number; otherwise the romaji, else the id.
+ */
 function comparedLabel(value: unknown): string | null {
-  return isReference(value) ? value.romaji || value.id : null;
+  if (!isReference(value)) {
+    return null;
+  }
+  if (typeof value.number === 'number') {
+    const name = Object.values(value.names).find(Boolean);
+    return name ? `${value.number} · ${name}` : String(value.number);
+  }
+  return value.romaji || value.id;
 }
 
 /**
@@ -196,6 +207,55 @@ const SUBCATEGORY_VALUE = {
   },
 };
 
+/** A release as a comparison and a sorted list write it: `JP 1997-10-20`. */
+function releaseText({ country, date }: { country: string; date: string }): string {
+  return `${country} ${date}`;
+}
+
+/** The releases with both a country and a date, by date then country. */
+function completeReleases<TRelease extends { country: string; date: string }>(
+  releases: readonly TRelease[],
+): TRelease[] {
+  return releases
+    .filter(({ country, date }) => country && date)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.country.localeCompare(b.country));
+}
+
+/**
+ * The rows of the editor the way the JSON lists them - only the complete ones, in date
+ * order - so an error the backend names by position (`releases[1].date`) finds its row.
+ */
+export function sentReleaseRows(draft: unknown): ReleaseDraft[] {
+  return completeReleases(Array.isArray(draft) ? (draft as ReleaseDraft[]) : []);
+}
+
+/**
+ * The `{country, date}` list of a volume's releases or an episode's broadcasts: the editor
+ * holds each entry with a key of its own, the JSON sends the complete ones - always a list,
+ * `[]` where there is none - sorted by date then country. Optional, so never asked for by
+ * review; a comparison shows one text, an entry per line.
+ */
+const RELEASE_LIST_VALUE = {
+  draftValue: (saved: unknown): ReleaseDraft[] =>
+    releasesOf(saved).map(({ country, date }) => ({ key: newReleaseKey(), country, date })),
+  savedValue: (draft: unknown) =>
+    sentReleaseRows(draft).map(({ country, date }) => ({ country, date })),
+  isFilled: (value: unknown) => sentReleaseRows(value).length > 0,
+  diff: <TField>(field: TField, before: unknown, after: unknown) => {
+    const written = (value: unknown) =>
+      completeReleases(releasesOf(value)).map(releaseText).join('\n');
+    return diffField(field, written(before), written(after));
+  },
+};
+
+/**
+ * Whether review asks for a field: its kind is one review looks at, and the definition did
+ * not mark it `optional` - an optional one is never "missing".
+ */
+export function isAskedByReview(field: EntityField): boolean {
+  return FIELD_KINDS[field.kind].forReview && !('optional' in field && field.optional);
+}
+
 export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
   text: { localized: false, forReview: true, ...TEXT_VALUE },
   number: { localized: false, forReview: true, ...NUMBER_VALUE },
@@ -204,4 +264,5 @@ export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
   image: { localized: false, forReview: false, ...IMAGE_VALUE },
   subcategoryList: { localized: false, forReview: false, ...SUBCATEGORY_LIST_VALUE },
   subcategory: { localized: false, forReview: false, ...SUBCATEGORY_VALUE },
+  releaseList: { localized: false, forReview: false, ...RELEASE_LIST_VALUE },
 };

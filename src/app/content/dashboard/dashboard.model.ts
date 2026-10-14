@@ -10,6 +10,7 @@ import {
   type VersionStatus,
 } from '../content.model';
 import { entityOf } from '../entity/entities';
+import { isNumbered } from '../entity/entity-definition';
 import { eventKind } from '../version-event';
 
 /** The illustration that stands for the dashboard wherever the app shows an icon. */
@@ -43,6 +44,23 @@ export interface Dashboard {
 export interface ContentTitle {
   names: Record<string, string>;
   fallback: string | null;
+}
+
+/**
+ * How a content is called: its name in the reader's language, else in any, else its fallback.
+ * A numbered one - a chapter - is "12 · Title": its number is the fallback the API sends.
+ */
+export function titleLabel(
+  title: ContentTitle,
+  language: string,
+  entityType: EntityType | null,
+): string | null {
+  const name = localizedName(title.names, language);
+  const entity = entityOf(entityType);
+  if (name && title.fallback && entity && isNumbered(entity)) {
+    return `${title.fallback} · ${name}`;
+  }
+  return name ?? title.fallback;
 }
 
 /**
@@ -121,7 +139,7 @@ export function activityStatus(action: string): VersionStatus | null {
  */
 export function activityName(activity: Activity, language: string): string | null {
   if (activity.title) {
-    return localizedName(activity.title.names, language) ?? activity.title.fallback;
+    return titleLabel(activity.title, language, activity.entityType);
   }
   return activity.label;
 }

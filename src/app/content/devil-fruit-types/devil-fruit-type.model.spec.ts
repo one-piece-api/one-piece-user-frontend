@@ -52,7 +52,7 @@ describe('isTranslationComplete', () => {
 
 describe('namesOf', () => {
   it('keeps the languages that have a name', () => {
-    const names = namesOf({
+    const names = namesOf(DEVIL_FRUIT_TYPE, {
       romaji: 'Shizen-kei',
       translations: {
         it: translation({ name: 'Rogia' }),

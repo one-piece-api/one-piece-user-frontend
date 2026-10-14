@@ -1,16 +1,21 @@
 import { Component, input, linkedSignal } from '@angular/core';
 
+/** The ratio (width / height) of the Devil Fruit's image, the frame's default. */
+const DEFAULT_RATIO = 4 / 5;
+
 /**
- * An image of a content in its 4:5 gold frame, as the card and the comparison show it - or,
- * where there is none or it cannot be loaded, the placeholder that names what is missing
- * ("Image of Mera Mera no Mi"). A plain `<img>`: the image is served on this app's origin,
- * with the session cookie, and cached by the browser for as long as its id lives.
+ * An image of a content in its gold frame, at the ratio of the entity's image profile (4:5
+ * unless told otherwise) - or, where there is none or it cannot be loaded, the placeholder
+ * that names what is missing ("Image of Mera Mera no Mi"). A plain `<img>`: the image is
+ * served on this app's origin, with the session cookie, and cached by the browser for as
+ * long as its id lives.
  */
 @Component({
   selector: 'app-entity-image-frame',
   template: `
     <div
-      class="relative aspect-4/5 overflow-hidden rounded-2xl bg-parchment-200 ring-2 ring-treasure-400"
+      class="relative aspect-(--ratio) overflow-hidden rounded-2xl bg-parchment-200 ring-2 ring-treasure-400"
+      [style.--ratio]="ratio()"
     >
       @if (src() && !broken()) {
         <img
@@ -36,6 +41,8 @@ export class EntityImageFrame {
   readonly src = input<string | null>(null);
   readonly alt = input('');
   readonly placeholder = input('');
+  /** Width over height of the frame: the image profile's `width / height`. */
+  readonly ratio = input(DEFAULT_RATIO);
 
   /** The image could not be loaded: the placeholder stands in, until another one is given. */
   protected readonly broken = linkedSignal({ source: this.src, computation: () => false });

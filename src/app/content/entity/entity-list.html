@@ -34,6 +34,7 @@
     [otherAuthors]="otherAuthors()"
     [myUsername]="myUsername()"
     [resultLine]="resultLine()"
+    [searchPlaceholderKey]="searchPlaceholderKey"
     (queryChange)="onSearchTyped($event)"
     (statusChange)="setStatus($event)"
     (authorChange)="setAuthor($event)"
@@ -41,21 +42,24 @@
     (cleared)="clearFilters()"
   />
 
-  @if (relationChip(); as chip) {
-    <div class="flex" data-testid="relation-filter">
-      <span
-        class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 font-heading text-xs font-extrabold text-ocean-800 shadow-sm"
-      >
-        {{ chip.labelKey | transloco }}: {{ chip.name }}
-        <button
-          type="button"
-          class="cursor-pointer rounded-full px-1 text-ocean-500 hover:text-flag-700"
-          [attr.aria-label]="'content.list.removeFilter' | transloco"
-          (click)="clearRelationFilter()"
+  @if (relationChips().length > 0) {
+    <div class="flex flex-wrap gap-2" data-testid="relation-filter">
+      @for (chip of relationChips(); track chip.key) {
+        <span
+          class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 font-heading text-xs font-extrabold text-ocean-800 shadow-sm"
+          data-testid="relation-chip"
         >
-          <span aria-hidden="true">✕</span>
-        </button>
-      </span>
+          {{ chip.labelKey | transloco }}: {{ chip.name }}
+          <button
+            type="button"
+            class="cursor-pointer rounded-full px-1 text-ocean-500 hover:text-flag-700"
+            [attr.aria-label]="'content.list.removeFilter' | transloco"
+            (click)="clearRelationFilter(chip.key)"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
+        </span>
+      }
     </div>
   }
 
@@ -83,15 +87,24 @@
           class="hidden gap-3.5 border-b border-parchment-200 bg-parchment-200/50 py-2.5 pr-4.5 pl-5.5 font-heading text-[11px] font-extrabold tracking-widest text-ocean-500 uppercase sm:grid"
           [class]="columns"
         >
+          @if (numbered) {
+            <app-sort-header
+              [label]="'content.list.column.number' | transloco"
+              [direction]="sortDirectionOf('number')"
+              (toggled)="sortBy('number')"
+            />
+          }
           <app-sort-header
             [label]="'content.list.column.name' | transloco"
             [direction]="sortDirectionOf('name')"
             (toggled)="sortBy('name')"
           />
-          @if (relationField; as relation) {
+          @for (relation of relationFields; track relation.key) {
             <span>{{ 'content.list.column.' + relation.key | transloco }}</span>
-          } @else if (countColumn; as counted) {
-            <span>{{ 'content.list.column.' + counted.field | transloco }}</span>
+          } @empty {
+            @if (countColumn; as counted) {
+              <span>{{ 'content.list.column.' + counted.field | transloco }}</span>
+            }
           }
           <app-sort-header
             [label]="'content.list.column.status' | transloco"
@@ -117,6 +130,13 @@
           [class]="row.borderClass + ' ' + columns"
           data-testid="content-row"
         >
+          @if (numbered) {
+            <span
+              class="hidden font-heading text-[13px] font-extrabold text-ocean-800 sm:block"
+              data-testid="number-cell"
+              >{{ row.naturalKey }}</span
+            >
+          }
           <a [routerLink]="[row.id]" class="block min-w-0">
             <span class="flex min-w-0 items-center gap-2">
               <span class="truncate font-heading text-[15px] font-extrabold text-ocean-950">{{
@@ -134,9 +154,11 @@
               }
             </span>
             <span class="mt-px block truncate font-heading text-xs font-bold text-ocean-500">
-              {{ row.naturalKey }}
-              @if (row.relation; as cell) {
-                <span class="sm:hidden"> · {{ cell.label }}</span>
+              <span [class]="numbered ? 'sm:hidden' : ''">{{ row.naturalKey }}</span>
+              @for (cell of row.relations; track $index) {
+                @if (cell) {
+                  <span class="sm:hidden"> · {{ cell.label }}</span>
+                }
               }
               @if (countColumn && row.count; as cell) {
                 <span class="sm:hidden">
@@ -149,9 +171,9 @@
             <span class="mt-1.5 block sm:hidden"><app-status-badge [status]="row.status" /></span>
           </a>
 
-          @if (relationField) {
+          @for (cell of row.relations; track $index) {
             <div class="hidden min-w-0 sm:block" data-testid="relation-cell">
-              @if (row.relation; as cell) {
+              @if (cell) {
                 @if (cell.link.length) {
                   <a
                     [routerLink]="cell.link"
@@ -169,7 +191,7 @@
             </div>
           }
 
-          @if (countColumn && !relationField) {
+          @if (countColumn && relationFields.length === 0) {
             <div class="hidden sm:block" data-testid="count-cell">
               @if (row.count; as cell) {
                 @if (cell.link; as link) {

@@ -4,10 +4,11 @@
   }}</span>
   <label
     [for]="inputId()"
-    class="relative block aspect-4/5 cursor-pointer overflow-hidden rounded-[14px] bg-parchment-200 ring-2"
+    class="relative block aspect-(--ratio) cursor-pointer overflow-hidden rounded-[14px] bg-parchment-200 ring-2"
     [class]="
       problem() ? 'ring-flag-600' : dragging() ? 'ring-4 ring-ocean-700' : 'ring-treasure-400'
     "
+    [style.--ratio]="ratio()"
     data-testid="image-drop"
     (dragover)="onDragOver($event)"
     (dragleave)="dragging.set(false)"

@@ -30,7 +30,7 @@ import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { ENTITY, entityOf } from './entities';
 import { naturalKeyOf } from './entity-body';
-import type { RelationField } from './entity-definition';
+import { isNumbered, type RelationField } from './entity-definition';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 
 /** How long the search box waits after the last keystroke before filtering. */
@@ -46,18 +46,38 @@ const PARAM = {
   sort: 'sort',
 } as const;
 
-/** The columns of a list row from the small breakpoint up - literal, so Tailwind keeps them. */
-const COLUMNS = 'sm:grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]';
-const COLUMNS_WITH_RELATION =
-  'sm:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_13rem_minmax(0,1fr)_7rem]';
-const COLUMNS_WITH_COUNT = 'sm:grid-cols-[minmax(0,2.4fr)_5.5rem_13rem_minmax(0,1fr)_7rem]';
+/**
+ * The columns of a list row from the small breakpoint up, by what sits between the name and the
+ * status: nothing, a count, one relation or two - literal, so Tailwind keeps them. A numbered
+ * entity has a narrow number column in front.
+ */
+const COLUMNS = {
+  plain: {
+    none: 'sm:grid-cols-[minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]',
+    count: 'sm:grid-cols-[minmax(0,2.4fr)_5.5rem_13rem_minmax(0,1fr)_7rem]',
+    oneRelation: 'sm:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_13rem_minmax(0,1fr)_7rem]',
+    twoRelations:
+      'sm:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1fr)_13rem_minmax(0,1fr)_7rem]',
+  },
+  numbered: {
+    none: 'sm:grid-cols-[3.5rem_minmax(0,2.4fr)_13rem_minmax(0,1fr)_7rem]',
+    count: 'sm:grid-cols-[3.5rem_minmax(0,2.4fr)_5.5rem_13rem_minmax(0,1fr)_7rem]',
+    oneRelation: 'sm:grid-cols-[3.5rem_minmax(0,2.4fr)_minmax(0,1fr)_13rem_minmax(0,1fr)_7rem]',
+    twoRelations:
+      'sm:grid-cols-[3.5rem_minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1fr)_13rem_minmax(0,1fr)_7rem]',
+  },
+} as const;
 
 /** The columns the list can be sorted by, named as the backend names them. */
 const SORT_FIELDS = ['name', 'status', 'author', 'updatedAt'] as const;
-type SortField = (typeof SORT_FIELDS)[number];
+/** A numbered entity can also be sorted by its number. */
+const NUMBERED_SORT_FIELDS = [...SORT_FIELDS, 'number'] as const;
+type SortField = (typeof NUMBERED_SORT_FIELDS)[number];
 
 /** Last update, newest first: what the backend does when no sort is asked for. */
-const DEFAULT_SORT: ListSort<SortField> = { field: 'updatedAt', direction: 'desc' };
+const LATEST_FIRST: ListSort<SortField> = { field: 'updatedAt', direction: 'desc' };
+/** Story order: what a numbered entity lists by when no sort is asked for. */
+const BY_NUMBER: ListSort<SortField> = { field: 'number', direction: 'asc' };
 
 /**
  * What a list row shows of a version, whatever the entity: its natural key and its names - and,
@@ -83,6 +103,8 @@ interface CountCell {
 
 /** The filter "only the contents that point to this one", shown as a chip that removes it. */
 interface RelationChip {
+  /** The query parameter it lives in. */
+  readonly key: string;
   readonly labelKey: string;
   readonly name: string;
 }
@@ -100,8 +122,8 @@ interface RowView {
   readonly authorInitials: string;
   readonly authoredByMe: boolean;
   readonly updated: string;
-  /** The content the row points to - `null` for an entity with no relation, or none chosen. */
-  readonly relation: RelationCell | null;
+  /** The content the row points to, per relation of the entity - `null` where none is chosen. */
+  readonly relations: readonly (RelationCell | null)[];
   /** How many contents point to the row - `null` for an entity with no such column. */
   readonly count: CountCell | null;
 }
@@ -149,26 +171,35 @@ export class EntityList {
     return days === null ? null : Number(days);
   });
   /** The sort asked for in the URL; `null` leaves the backend's default. */
-  private readonly sort = computed(() => parseSort(this.params().get(PARAM.sort), SORT_FIELDS));
+  private readonly sort = computed(() => parseSort(this.params().get(PARAM.sort), this.sortFields));
+  /** Whether the contents have a number - a chapter - to sort and look them up by. */
+  protected readonly numbered = isNumbered(this.entity);
+  private readonly sortFields: readonly SortField[] = this.numbered
+    ? NUMBERED_SORT_FIELDS
+    : SORT_FIELDS;
+  private readonly defaultSort = this.numbered ? BY_NUMBER : LATEST_FIRST;
   /**
-   * The relation the list shows a column for and can be narrowed by: the first one the entity
-   * has. Its key is the query parameter of the filter, here and in the backend alike.
+   * The relations the list shows a column for and can be narrowed by - a chapter has two. The
+   * key of each is the query parameter of its filter, here and in the backend alike.
    */
-  protected readonly relationField: RelationField | undefined = this.entity.fields.find(
-    (field) => field.kind === 'relation',
+  protected readonly relationFields = this.entity.fields.filter(
+    (field): field is RelationField => field.kind === 'relation',
   );
   /** The count of other contents pointing to each row, when the entity has one. */
   protected readonly countColumn = this.entity.counts?.[0];
-  protected readonly columns = this.relationField
-    ? COLUMNS_WITH_RELATION
-    : this.countColumn
-      ? COLUMNS_WITH_COUNT
-      : COLUMNS;
-  protected readonly relationFilter = computed(() =>
-    this.relationField ? this.params().get(this.relationField.key) : null,
+  protected readonly columns = this.columnsOf();
+  protected readonly searchPlaceholderKey = this.numbered
+    ? 'content.list.searchPlaceholderNumbered'
+    : 'content.list.searchPlaceholder';
+  /** The id each relation is narrowed to in the URL - only the relations that are. */
+  protected readonly relationFilters = computed(() =>
+    this.relationFields.flatMap((field) => {
+      const id = this.params().get(field.key);
+      return id ? [{ field, id }] : [];
+    }),
   );
   /** Which column the rows are actually sorted by, and how - the default included. */
-  protected readonly shownSort = computed(() => this.sort() ?? DEFAULT_SORT);
+  protected readonly shownSort = computed(() => this.sort() ?? this.defaultSort);
 
   /** What the search box shows: follows the URL, and runs ahead of it while typing. */
   protected readonly searchText = linkedSignal(() => this.query());
@@ -206,26 +237,25 @@ export class EntityList {
   });
 
   /**
-   * The filter chip: the name of the content filtered by, taken from a row that points to it
-   * - none does when nothing matches - else its short serial.
+   * One chip per relation filter: the name of the content filtered by, taken from a row that
+   * points to it - none does when nothing matches - else its short serial.
    */
-  protected readonly relationChip = computed<RelationChip | null>(() => {
-    const field = this.relationField;
-    const id = this.relationFilter();
-    if (!field || !id) {
-      return null;
-    }
+  protected readonly relationChips = computed<RelationChip[]>(() => {
     const language = this.transloco.activeLang();
-    const references = (this.rows.hasValue() ? this.rows.value().content : []).map(
-      (row) => row.body[field.key],
-    );
-    const reference = references.find(
-      (candidate): candidate is EntityReference => isReference(candidate) && candidate.id === id,
-    );
-    return {
-      labelKey: `content.list.column.${field.key}`,
-      name: reference ? referenceLabel(reference, language) : contentSerial(id),
-    };
+    const rows = this.rows.hasValue() ? this.rows.value().content : [];
+    return this.relationFilters().map(({ field, id }) => {
+      const reference = rows
+        .map((row) => row.body[field.key])
+        .find(
+          (candidate): candidate is EntityReference =>
+            isReference(candidate) && candidate.id === id,
+        );
+      return {
+        key: field.key,
+        labelKey: `content.list.column.${field.key}`,
+        name: reference ? referenceLabel(reference, language) : contentSerial(id),
+      };
+    });
   });
 
   /** "20 of 24 entries · 5 yours", or the note about drafts for who cannot write. */
@@ -311,7 +341,7 @@ export class EntityList {
 
   /** Ascending, then descending, then back to the default; like a filter, back to page one. */
   protected sortBy(field: SortField): void {
-    const next = nextSort(this.sort(), field, DEFAULT_SORT);
+    const next = nextSort(this.sort(), field, this.defaultSort);
     this.applyFilters({ [PARAM.sort]: next && formatSort(next) });
   }
 
@@ -327,21 +357,28 @@ export class EntityList {
       [PARAM.status]: null,
       [PARAM.author]: null,
       [PARAM.updated]: null,
-      ...this.relationReset(),
+      ...Object.fromEntries(this.relationFields.map(({ key }) => [key, null])),
     });
   }
 
   /** Lifts the narrowing to the contents that point to one. */
-  protected clearRelationFilter(): void {
-    this.applyFilters(this.relationReset());
+  protected clearRelationFilter(key: string): void {
+    this.applyFilters({ [key]: null });
   }
 
   protected goToPage(pageNumber: number): void {
     this.navigate({ [PARAM.page]: pageNumber || null });
   }
 
-  private relationReset(): Params {
-    return this.relationField ? { [this.relationField.key]: null } : {};
+  private columnsOf(): string {
+    const columns = this.numbered ? COLUMNS.numbered : COLUMNS.plain;
+    if (this.relationFields.length > 1) {
+      return columns.twoRelations;
+    }
+    if (this.relationFields.length === 1) {
+      return columns.oneRelation;
+    }
+    return this.countColumn ? columns.count : columns.none;
   }
 
   /** A changed filter always starts again from the first page. */
@@ -372,15 +409,15 @@ export class EntityList {
     if (author) {
       search.set('author', author);
     }
-    const related = this.relationFilter();
-    if (this.relationField && related) {
-      search.set(this.relationField.key, related);
+    for (const { field, id } of this.relationFilters()) {
+      search.set(field.key, id);
     }
     const days = this.updatedWithinDays();
     if (days !== null) {
       search.set('updatedWithinDays', String(days));
     }
-    const sort = this.sort();
+    // The backend lists by last update unless told: a numbered entity asks for story order.
+    const sort = this.numbered ? this.shownSort() : this.sort();
     if (sort) {
       search.set('sort', formatSort(sort));
     }
@@ -408,7 +445,7 @@ export class EntityList {
       authorInitials: authoredByMe ? you : initialsOf(row.author.username),
       authoredByMe,
       updated: momentLabel(this.transloco, row.updatedAt),
-      relation: this.relationCell(row, language),
+      relations: this.relationFields.map((field) => this.relationCell(row, field, language)),
       count: this.countCell(row),
     };
   }
@@ -426,9 +463,13 @@ export class EntityList {
     };
   }
 
-  private relationCell(row: ContentSummary<RowNames>, language: string): RelationCell | null {
-    const reference = this.relationField && row.body[this.relationField.key];
-    const target = entityOf(this.relationField?.target);
+  private relationCell(
+    row: ContentSummary<RowNames>,
+    field: RelationField,
+    language: string,
+  ): RelationCell | null {
+    const reference = row.body[field.key];
+    const target = entityOf(field.target);
     if (!isReference(reference)) {
       return null;
     }

@@ -3,16 +3,12 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { LanguageEntry } from '../language-catalog';
 import { ENTITY, entityOf } from './entities';
-import {
-  isLanguageComplete,
-  localizedFields,
-  naturalKeyOf,
-  sharedFields,
-  type EntityBody,
-} from './entity-body';
+import { isLanguageComplete, localizedFields, sharedFields, type EntityBody } from './entity-body';
 import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { isReference, referenceLabel } from './entity-reference';
+import { countryName, releaseDateLabel, releasesInOrder } from './entity-release';
+import { untitledOf } from './entity-title';
 import {
   isSubcategoryReference,
   subcategoriesOf,
@@ -36,6 +32,20 @@ interface LongText {
   readonly text: string | null;
   /** What the card says where the language has no such text yet: `content.card.noDescription`. */
   readonly emptyKey: string;
+}
+
+/** A text or a number of the content that is not its natural key: japanese title, page count. */
+interface Fact {
+  readonly field: string;
+  readonly value: string;
+  /** The language it is written in, where it is not the interface's own. */
+  readonly lang: string | null;
+}
+
+/** One release or broadcast of the card: the country and the day, in the interface's language. */
+interface ReleaseEntry {
+  readonly country: string;
+  readonly date: string;
 }
 
 /** A subcategory the content defines, in the language shown; a text is null when not written. */
@@ -96,18 +106,24 @@ export class EntityCard {
   protected readonly languageLabel = computed(() => this.language()?.toUpperCase() ?? '');
 
   private readonly translation = computed(() => this.body().translations[this.language() ?? '']);
-  protected readonly name = computed(() => textOf(this.translation()?.['name']).trim() || null);
-  protected readonly naturalKey = computed(
-    () => (naturalKeyOf(this.entity, this.body()) ?? '').trim() || null,
+  protected readonly name = computed(
+    () => textOf(this.translation()?.[this.entity.labelField]).trim() || null,
   );
+  /** What the card says where the language has no name: `content.card.noName`, `noTitle`. */
+  protected readonly noNameKey = `content.card.no${this.entity.labelField[0].toUpperCase()}${this.entity.labelField.slice(1)}`;
+  /** The natural key: the romaji, or "Chapter 12" for a numbered content. */
+  protected readonly naturalKey = computed(() => {
+    this.transloco.activeLang();
+    return (untitledOf(this.transloco, this.entity, this.body()) ?? '').trim() || null;
+  });
 
   /**
    * The image of the version, for an entity that has one: its URL - `null` for none - named
    * in the language shown, else by its natural key, and the placeholder saying whose it would be.
    */
   protected readonly image = computed(() => {
-    const field = this.entity.fields.find(({ kind }) => kind === 'image');
-    if (!field) {
+    const field = this.entity.fields.find((candidate) => candidate.kind === 'image');
+    if (field?.kind !== 'image') {
       return null;
     }
     this.transloco.activeLang();
@@ -115,6 +131,7 @@ export class EntityCard {
     const named = this.name() ?? this.naturalKey() ?? '';
     return {
       src: isImageReference(saved) ? saved.url : null,
+      ratio: field.profile.width / field.profile.height,
       alt: named,
       placeholder: this.transloco.translate('content.card.imageOf', {
         name: named || this.transloco.translate('content.card.thisContent'),
@@ -142,6 +159,49 @@ export class EntityCard {
         },
       ];
     });
+  });
+
+  /** The texts and numbers besides the natural key that the version filled in, in the order of the definition. */
+  protected readonly facts = computed<Fact[]>(() =>
+    sharedFields(this.entity).flatMap((field) => {
+      if (
+        (field.kind !== 'text' && field.kind !== 'number') ||
+        field.key === this.entity.naturalKey
+      ) {
+        return [];
+      }
+      const value = this.body()[field.key];
+      const written = (typeof value === 'number' ? String(value) : textOf(value)).trim();
+      return written
+        ? [
+            {
+              field: field.key,
+              value: written,
+              lang: field.kind === 'text' ? (field.lang ?? null) : null,
+            },
+          ]
+        : [];
+    }),
+  );
+
+  /** The releases or broadcasts, a section each, by day: the country named in the interface's language. */
+  protected readonly releaseLists = computed(() => {
+    const language = this.transloco.activeLang();
+    return this.entity.fields.flatMap((field) =>
+      field.kind === 'releaseList'
+        ? [
+            {
+              field: field.key,
+              entries: releasesInOrder(this.body()[field.key]).map<ReleaseEntry>(
+                ({ country, date }) => ({
+                  country: countryName(country, language),
+                  date: releaseDateLabel(date, language),
+                }),
+              ),
+            },
+          ]
+        : [],
+    );
   });
 
   /**

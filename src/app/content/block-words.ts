@@ -1,9 +1,16 @@
 import type { TranslocoService } from '@jsverse/transloco';
-import type { BlockCause } from './content.model';
+import { STORY_ITEMS, STORY_RELATIONS, type BlockCause, type StoryItems } from './content.model';
 import { entityOf } from './entity/entities';
 
 /** The section a fruit lives in - what a type that cannot be retired points to. */
 const FRUIT_ENTITY = 'DEVIL_FRUIT';
+
+/** The section each kind of story item lives in - what a content that cannot be retired points to. */
+const STORY_ITEM_ENTITY: Record<StoryItems, string> = {
+  arcs: 'ARC',
+  chapters: 'CHAPTER',
+  episodes: 'EPISODE',
+};
 
 /** A content that stands in the way, named and leading to its page. */
 export interface BlockLink {
@@ -53,27 +60,60 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
         titled: sentence,
       };
     }
+    case 'RELATED_NOT_ONLINE': {
+      const relation =
+        STORY_RELATIONS.find((candidate) => `${candidate}Id` in cause.detail) ?? 'arc';
+      const sentence = text(`sentence.RELATED_NOT_ONLINE.${relation}`);
+      return {
+        note: text(`note.RELATED_NOT_ONLINE.${relation}`),
+        sentence,
+        links: [],
+        more: 0,
+        titled: sentence,
+      };
+    }
+    case 'ONLINE_ITEMS_LINKED': {
+      const items = STORY_ITEMS.find((candidate) => candidate in cause.detail) ?? 'arcs';
+      const route = entityOf(STORY_ITEM_ENTITY[items])?.route;
+      const links = (cause.detail[items] ?? []).map(({ id, number }) => ({
+        label: String(number),
+        route: route ? `${route}/${id}` : '',
+      }));
+      return linkedWords(transloco, cause, `${cause.reason}.${items}`, links);
+    }
     case 'ONLINE_FRUITS_LINKED':
     case 'SUBCATEGORY_IN_USE': {
-      const { count, fruits } = cause.detail;
       const route = entityOf(FRUIT_ENTITY)?.route;
-      const links = fruits.map((fruit) => ({
+      const links = cause.detail.fruits.map((fruit) => ({
         label: fruit.romaji ?? fruit.id,
         route: route ? `${route}/${fruit.id}` : '',
       }));
-      const sentence = text(`sentence.${cause.reason}`, { count });
-      const more = Math.max(count - links.length, 0);
-      const names = links.map(({ label }) => label).join(', ');
-      return {
-        note: text(`note.${cause.reason}`, { count }),
-        sentence,
-        links,
-        more,
-        titled:
-          more > 0
-            ? `${sentence} ${names} ${text('andMore', { count: more })}`
-            : `${sentence} ${names}`,
-      };
+      return linkedWords(transloco, cause, cause.reason, links);
     }
   }
+}
+
+/** The words for a refusal that names the contents in the way: `key` is that of its note and sentence. */
+function linkedWords(
+  transloco: TranslocoService,
+  cause: { detail: { count: number } },
+  key: string,
+  links: readonly BlockLink[],
+): BlockWords {
+  const { count } = cause.detail;
+  const text = (part: string, params: Record<string, unknown> = {}) =>
+    transloco.translate(`content.workflow.blocked.${part}`, params);
+  const sentence = text(`sentence.${key}`, { count });
+  const more = Math.max(count - links.length, 0);
+  const names = links.map(({ label }) => label).join(', ');
+  return {
+    note: text(`note.${key}`, { count }),
+    sentence,
+    links,
+    more,
+    titled:
+      more > 0
+        ? `${sentence} ${names} ${text('andMore', { count: more })}`
+        : `${sentence} ${names}`,
+  };
 }

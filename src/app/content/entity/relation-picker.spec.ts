@@ -197,3 +197,73 @@ describe('the relation picker', () => {
     expect(box().getAttribute('aria-invalid')).toBe('true');
   });
 });
+
+describe('the relation picker with numbered contents', () => {
+  const SAGA_SOURCE = '/api/content/sagas';
+  const ALABASTA: EntityReference = {
+    id: 's1',
+    number: 2,
+    names: { it: 'Alabasta', en: 'Alabasta' },
+  };
+  const UNTITLED: EntityReference = { id: 's2', number: 3, names: {} };
+
+  let httpTesting: HttpTestingController;
+  let fixture: ComponentFixture<RelationPicker>;
+  let root: HTMLElement;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
+    httpTesting = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(RelationPicker);
+    fixture.componentRef.setInput('inputId', 'draft-saga');
+    fixture.componentRef.setInput('source', SAGA_SOURCE);
+    fixture.componentRef.setInput('value', ALABASTA);
+    fixture.detectChanges();
+    root = fixture.nativeElement as HTMLElement;
+  });
+
+  afterEach(() => {
+    httpTesting.verify();
+  });
+
+  it('shows the chosen content as "number · title" and lists the choices the same way', async () => {
+    const box = root.querySelector<HTMLInputElement>('#draft-saga')!;
+    expect(box.value).toBe('2 · Alabasta');
+
+    box.dispatchEvent(new Event('focus'));
+    fixture.detectChanges();
+    httpTesting
+      .expectOne(`${SAGA_SOURCE}/linkable?size=20`)
+      .flush({ content: [ALABASTA, UNTITLED], page: 0, size: 20, totalElements: 2, totalPages: 1 });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const labels = Array.from(root.querySelectorAll('[data-testid="relation-choice"]')).map(
+      (choice) => choice.textContent?.replace('✓', '').trim(),
+    );
+    expect(labels).toEqual(['2 · Alabasta', '3']);
+  });
+
+  it('leaves the search by number and title to the backend: it sends what is typed as q', async () => {
+    const box = root.querySelector<HTMLInputElement>('#draft-saga')!;
+    box.dispatchEvent(new Event('focus'));
+    fixture.detectChanges();
+    httpTesting
+      .expectOne(`${SAGA_SOURCE}/linkable?size=20`)
+      .flush({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 });
+    await fixture.whenStable();
+
+    box.value = '2 alab';
+    box.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    fixture.detectChanges();
+
+    httpTesting
+      .expectOne(`${SAGA_SOURCE}/linkable?q=2+alab&size=20`)
+      .flush({ content: [ALABASTA], page: 0, size: 20, totalElements: 1, totalPages: 1 });
+  });
+});

@@ -82,3 +82,49 @@ describe('blockWords', () => {
     expect(words.titled).toContain('Mera Mera no Mi and 7 more');
   });
 });
+
+describe('blockWords of the story contents', () => {
+  let transloco: TranslocoService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+    transloco = TestBed.inject(TranslocoService);
+  });
+
+  it('tells a content that the saga, arc or volume it points to is not online', () => {
+    const volume = blockWords(transloco, {
+      reason: 'RELATED_NOT_ONLINE',
+      detail: { volumeId: 'v1', volumeNumber: 4 },
+    });
+    const saga = blockWords(transloco, {
+      reason: 'RELATED_NOT_ONLINE',
+      detail: { sagaId: 's1', sagaNumber: 1 },
+    });
+
+    expect(volume.note).toBe('Volume not online');
+    expect(volume.sentence).toContain('volume');
+    expect(volume.links).toEqual([]);
+    expect(saga.note).toBe('Saga not online');
+  });
+
+  it('names, by number, the chapters that keep an arc from being retired', () => {
+    const words = blockWords(transloco, {
+      reason: 'ONLINE_ITEMS_LINKED',
+      detail: { count: 3, chapters: [{ id: 'c1', number: 12 }] },
+    });
+
+    expect(words.note).toBe('Chapters online: 3');
+    expect(words.links).toEqual([{ label: '12', route: '/content/chapters/c1' }]);
+    expect(words.more).toBe(2);
+    expect(words.titled).toContain('12 and 2 more');
+  });
+
+  it('points the arcs that keep a saga from being retired to the arcs section', () => {
+    const words = blockWords(transloco, {
+      reason: 'ONLINE_ITEMS_LINKED',
+      detail: { count: 1, arcs: [{ id: 'a1', number: 0 }] },
+    });
+
+    expect(words.links).toEqual([{ label: '0', route: '/content/arcs/a1' }]);
+  });
+});

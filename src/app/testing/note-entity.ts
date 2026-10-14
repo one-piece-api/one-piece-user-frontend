@@ -18,6 +18,7 @@ export const NOTE: EntityDefinition = {
   api: '/api/content/notes',
   i18n: 'content.notes',
   icon: '✎',
+  labelField: 'name',
   fields: [
     textField('romaji', { maxLength: 40 }),
     localizedTextField('name', { maxLength: 60 }),

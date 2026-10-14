@@ -13,7 +13,6 @@ import {
   STATUS_LABEL_KEY,
   STATUS_MEANING_KEY,
   actionLabelKey,
-  localizedName,
   type ContentUser,
   type VersionAction,
   type VersionStatus,
@@ -31,6 +30,7 @@ import {
   rowActions,
   rowNoteKey,
   statusPageOf,
+  titleLabel,
   type ActionTone,
   type EntityType,
   type StatusPage,
@@ -387,7 +387,7 @@ export class DashboardStatus {
     return {
       row,
       name:
-        (row.title && (localizedName(row.title.names, language) ?? row.title.fallback)) ||
+        (row.title && titleLabel(row.title, language, row.entityType)) ||
         this.transloco.translate('content.list.unnamed'),
       entity,
       link: entity && `${entity.route}/${row.contentId}`,

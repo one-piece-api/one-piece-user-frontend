@@ -21,7 +21,8 @@
       "liveItems": {
         "one": "{{count}} sezione attiva",
         "other": "{{count}} sezioni attive"
-      }
+      },
+      "story": "Storia"
     }
   },
   "langSwitcher": {
@@ -651,13 +652,33 @@
           "TYPE_NOT_ONLINE": "Tipo non online",
           "ONLINE_FRUITS_LINKED": "Frutti online: {{count}}",
           "SUBCATEGORY_NOT_ONLINE": "Sottocategoria non online",
-          "SUBCATEGORY_IN_USE": "Sottocategoria in uso: {{count}}"
+          "SUBCATEGORY_IN_USE": "Sottocategoria in uso: {{count}}",
+          "RELATED_NOT_ONLINE": {
+            "saga": "Saga non online",
+            "arc": "Arco non online",
+            "volume": "Volume non online"
+          },
+          "ONLINE_ITEMS_LINKED": {
+            "arcs": "Archi online: {{count}}",
+            "chapters": "Capitoli online: {{count}}",
+            "episodes": "Episodi online: {{count}}"
+          }
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "Il Tipo di questo Frutto non è online. Ripubblica prima il Tipo.",
           "ONLINE_FRUITS_LINKED": "Ci sono Frutti online con questo Tipo, ritirali prima:",
           "SUBCATEGORY_NOT_ONLINE": "La sottocategoria \"{{subcategory}}\" non è nella versione online del Tipo. Pubblica prima un Tipo che la contenga, o scegline un'altra.",
-          "SUBCATEGORY_IN_USE": "Questa versione toglie una sottocategoria usata da Frutti online: ritirali o cambiane la sottocategoria prima."
+          "SUBCATEGORY_IN_USE": "Questa versione toglie una sottocategoria usata da Frutti online: ritirali o cambiane la sottocategoria prima.",
+          "RELATED_NOT_ONLINE": {
+            "saga": "Arrr! La saga a cui appartiene non è ancora online, compare. Pubblica prima la saga.",
+            "arc": "Arrr! L'arco a cui appartiene non è ancora online, compare. Pubblica prima l'arco.",
+            "volume": "Arrr! Il volume che lo raccoglie non è ancora online, compare. Pubblica prima il volume."
+          },
+          "ONLINE_ITEMS_LINKED": {
+            "arcs": "Arrr! Ci sono ancora archi online sotto questa saga, compare. Ritirali prima:",
+            "chapters": "Arrr! Ci sono ancora capitoli online collegati, compare. Ritirali prima:",
+            "episodes": "Arrr! Ci sono ancora episodi online collegati a questo arco, compare. Ritirali prima:"
+          }
         },
         "andMore": "e altri {{count}}"
       }
@@ -703,6 +724,7 @@
     "list": {
       "search": "Cerca",
       "searchPlaceholder": "nome o romaji…",
+      "searchPlaceholderNumbered": "numero o titolo…",
       "status": "Stato",
       "allStatuses": "Tutti gli stati",
       "author": "Autore",
@@ -726,10 +748,15 @@
         "author": "Autore",
         "updated": "Aggiornato",
         "type": "Tipo",
-        "devilFruitCount": "Frutti"
+        "devilFruitCount": "Frutti",
+        "number": "N.",
+        "saga": "Saga",
+        "arc": "Arco",
+        "volume": "Volume"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
+      "numberMissing": "numero da definire",
       "unnamed": "Senza nome",
       "emptyTitle": "Qui non c'è ancora nulla",
       "emptyWriter": "Crea il primo contenuto con il pulsante qui sopra.",
@@ -775,7 +802,7 @@
       "rejectionReason": "Motivo del rifiuto:"
     },
     "card": {
-      "title": "Scheda",
+      "title": "Titolo · {{language}}",
       "name": "Nome · {{language}}",
       "description": "Descrizione · {{language}}",
       "advantages": "Vantaggi · {{language}}",
@@ -787,10 +814,21 @@
       "incomplete": "traduzione incompleta",
       "type": "Tipo",
       "noType": "non collegato",
+      "noTitle": "— nessun titolo in questa lingua —",
+      "noSaga": "non collegata",
+      "noArc": "non collegato",
+      "noVolume": "non raccolto in un volume",
       "imageOf": "Immagine di {{name}}",
       "thisContent": "questa voce",
       "heading": {
         "type": "Tipo di frutto",
+        "saga": "Saga",
+        "arc": "Arco",
+        "volume": "Volume",
+        "japaneseTitle": "Titolo giapponese",
+        "pageCount": "Pagine",
+        "releases": "Uscite",
+        "broadcasts": "Trasmissioni",
         "description": "Descrizione",
         "advantages": "Vantaggi",
         "disadvantages": "Svantaggi",
@@ -830,6 +868,16 @@
         "disadvantages": "Svantaggi · {{language}}",
         "type": "Tipo",
         "image": "Immagine",
+        "cover": "Copertina",
+        "number": "Numero",
+        "title": "Titolo · {{language}}",
+        "saga": "Saga",
+        "arc": "Arco",
+        "volume": "Volume",
+        "japaneseTitle": "Titolo giapponese",
+        "pageCount": "Pagine",
+        "releases": "Uscite",
+        "broadcasts": "Trasmissioni",
         "subcategories": {
           "name": "Sottocategoria {{subcategory}} · Nome · {{language}}",
           "description": "Sottocategoria {{subcategory}} · Descrizione · {{language}}"
@@ -866,11 +914,55 @@
         "label": "Romaji",
         "hint": "unico · condiviso da tutte le lingue"
       },
+      "number": {
+        "label": "Numero",
+        "hint": "unico · numero intero · condiviso da tutte le lingue"
+      },
+      "saga": {
+        "label": "Saga",
+        "hint": "la saga a cui appartiene"
+      },
+      "arc": {
+        "label": "Arco",
+        "hint": "l'arco a cui appartiene"
+      },
+      "volume": {
+        "label": "Volume",
+        "hint": "facoltativo · il volume che lo raccoglie"
+      },
+      "japaneseTitle": {
+        "label": "Titolo giapponese",
+        "hint": "facoltativo · il titolo originale"
+      },
+      "pageCount": {
+        "label": "Pagine",
+        "hint": "facoltativo · almeno 1"
+      },
+      "releases": {
+        "label": "Uscite",
+        "hint": "facoltativo · una data per paese"
+      },
+      "broadcasts": {
+        "label": "Trasmissioni",
+        "hint": "facoltativo · una data per paese"
+      },
+      "release": {
+        "country": "Paese",
+        "pickCountry": "— paese —",
+        "date": "Data",
+        "add": "Aggiungi data",
+        "remove": "Rimuovi",
+        "empty": "Nessuna data."
+      },
       "incomplete": "incompleta",
       "refused": "da correggere",
       "ready": {
-        "title": "Pronto per la revisione",
+        "heading": "Pronto per la revisione",
         "romaji": "Romaji · chiave unica",
+        "number": "Numero · unico",
+        "saga": "Saga",
+        "arc": "Arco",
+        "title": "Titolo · {{language}}",
         "name": "Nome · {{language}}",
         "description": "Descrizione · {{language}}",
         "advantages": "Vantaggi · {{language}}",
@@ -896,8 +988,14 @@
         "notLinkable": "questo Tipo non si può più scegliere",
         "subcategoryNotOfType": "questa sottocategoria non è del Tipo scelto",
         "subcategoryUnknown": "sottocategoria sconosciuta: ricarica la bozza",
-        "subcategoryNameTaken": "già il nome di un'altra sottocategoria"
+        "subcategoryNameTaken": "già il nome di un'altra sottocategoria",
+        "numberInvalid": "dev'essere un numero intero, non sotto il minimo",
+        "releaseCountry": "scegli un paese valido, con una sola data per paese",
+        "releaseDate": "scegli una data valida"
       },
+      "takenNumberMessage": "Arrr! Un altro contenuto ha già lo stesso numero: dev'essere unico.",
+      "numberRefusedMessage": "Arrr! Un numero non va: dev'essere un numero intero, non sotto il minimo.",
+      "releaseRefusedMessage": "Arrr! Qualche data non va: ognuna vuole un paese valido, una volta sola, e un giorno valido.",
       "takenMessage": "Arrr! Un altro contenuto ha già lo stesso romaji o lo stesso nome: dev'essere unico.",
       "slugTakenMessage": "Arrr! Questo romaji darebbe lo stesso indirizzo pubblico di un altro contenuto (\"{{slug}}\"): accenti, maiuscole e punteggiatura non contano.",
       "noSlugMessage": "Arrr! Il romaji deve contenere almeno una lettera o una cifra: da lì nasce l'indirizzo pubblico del contenuto.",
@@ -1108,7 +1206,8 @@
       "replace": "Sostituisci",
       "remove": "Rimuovi",
       "checking": "Controllo l'immagine…",
-      "requirements": "PNG con sfondo trasparente, in proporzione 4:5, almeno {{width}} × {{height}} px.",
+      "requirements": "PNG con sfondo trasparente, in proporzione {{ratioWidth}}:{{ratioHeight}}, almeno {{width}} × {{height}} px.",
+      "requirementsOpaque": "PNG, in proporzione {{ratioWidth}}:{{ratioHeight}}, almeno {{width}} × {{height}} px.",
       "refused": {
         "CONTENT_IMAGE_FORMAT_UNSUPPORTED": "Serve un file PNG: questo non lo è, qualunque cosa dica il suo nome.",
         "CONTENT_IMAGE_NOT_TRANSPARENT": "Lo sfondo deve essere trasparente: qui lo è solo il {{transparentPercent}}% dell'immagine, ne serve almeno il {{minPercent}}%.",
@@ -1118,6 +1217,109 @@
         "PIXELS": "L'immagine è {{width}} × {{height}}: troppi pixel, il massimo è {{maxMegapixels}} megapixel.",
         "CONTENT_TOO_LARGE": "Il file è troppo pesante da inviare: il massimo è {{maxMegabytes}} MB."
       }
+    },
+    "sagas": {
+      "kicker": "Contenuti · /sagas",
+      "title": "Saghe",
+      "lead": "I grandi tratti del viaggio, ciascuno fatto di archi narrativi.",
+      "new": "+ Nuova saga",
+      "one": "Saga",
+      "newTitle": "Nuova saga",
+      "placeholder": {
+        "number": "es. 1",
+        "title": "titolo nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata"
+      },
+      "hintMissing": "Per la revisione servono il numero e, in ogni lingua, titolo e descrizione. Intanto la bozza si salva anche incompleta.",
+      "related": {
+        "ARC": {
+          "title": "Archi di questa saga",
+          "empty": "Nessun arco collegato a questa saga.",
+          "viewAll": "Vedi tutti ({{count}})"
+        }
+      }
+    },
+    "arcs": {
+      "kicker": "Contenuti · /arcs",
+      "title": "Archi narrativi",
+      "lead": "Gli archi della storia, raccontati in capitoli ed episodi.",
+      "new": "+ Nuovo arco",
+      "one": "Arco",
+      "newTitle": "Nuovo arco",
+      "placeholder": {
+        "number": "es. 1",
+        "saga": "cerca e scegli una Saga",
+        "title": "titolo nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata"
+      },
+      "hintMissing": "Per la revisione servono il numero, la Saga e, in ogni lingua, titolo e descrizione. Intanto la bozza si salva anche incompleta.",
+      "related": {
+        "CHAPTER": {
+          "title": "Capitoli di questo arco",
+          "empty": "Nessun capitolo collegato a questo arco.",
+          "viewAll": "Vedi tutti ({{count}})"
+        },
+        "EPISODE": {
+          "title": "Episodi di questo arco",
+          "empty": "Nessun episodio collegato a questo arco.",
+          "viewAll": "Vedi tutti ({{count}})"
+        }
+      }
+    },
+    "volumes": {
+      "kicker": "Contenuti · /volumes",
+      "title": "Volumi",
+      "lead": "I volumi raccolti del manga, con le loro copertine.",
+      "new": "+ Nuovo volume",
+      "one": "Volume",
+      "newTitle": "Nuovo volume",
+      "placeholder": {
+        "number": "es. 1",
+        "title": "titolo nella lingua selezionata",
+        "japaneseTitle": "titolo originale in giapponese"
+      },
+      "hintMissing": "Per la revisione servono il numero e, in ogni lingua, il titolo. Intanto la bozza si salva anche incompleta.",
+      "related": {
+        "CHAPTER": {
+          "title": "Capitoli di questo volume",
+          "empty": "Nessun capitolo collegato a questo volume.",
+          "viewAll": "Vedi tutti ({{count}})"
+        }
+      }
+    },
+    "chapters": {
+      "kicker": "Contenuti · /chapters",
+      "title": "Capitoli",
+      "lead": "I capitoli del manga, ciascuno in un arco.",
+      "new": "+ Nuovo capitolo",
+      "one": "Capitolo",
+      "newTitle": "Nuovo capitolo",
+      "placeholder": {
+        "number": "es. 1",
+        "arc": "cerca e scegli un Arco",
+        "volume": "cerca e scegli un Volume",
+        "title": "titolo nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata",
+        "japaneseTitle": "titolo originale in giapponese",
+        "pageCount": "es. 19"
+      },
+      "hintMissing": "Per la revisione servono il numero, l'Arco e, in ogni lingua, titolo e descrizione. Intanto la bozza si salva anche incompleta."
+    },
+    "episodes": {
+      "kicker": "Contenuti · /episodes",
+      "title": "Episodi",
+      "lead": "Gli episodi dell'anime, in un arco o filler.",
+      "new": "+ Nuovo episodio",
+      "one": "Episodio",
+      "newTitle": "Nuovo episodio",
+      "placeholder": {
+        "number": "es. 1",
+        "arc": "cerca e scegli un Arco",
+        "title": "titolo nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata",
+        "japaneseTitle": "titolo originale in giapponese"
+      },
+      "hintMissing": "Per la revisione servono il numero e, in ogni lingua, titolo e descrizione. Intanto la bozza si salva anche incompleta."
     }
   }
 }

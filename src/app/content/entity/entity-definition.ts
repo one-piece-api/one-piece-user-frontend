@@ -10,6 +10,10 @@ export interface TextField {
   readonly key: string;
   /** The longest the text may be - the backend refuses a longer one. */
   readonly maxLength: number;
+  /** Never asked for by review, never "missing" - an extra the content may do without. */
+  readonly optional?: true;
+  /** The language the text is written in (`ja`), where it is not the interface's own. */
+  readonly lang?: string;
 }
 
 /**
@@ -19,6 +23,10 @@ export interface TextField {
 export interface NumberField {
   readonly kind: 'number';
   readonly key: string;
+  /** The smallest it may be (the editor's `min`); 0 where absent. */
+  readonly min?: number;
+  /** Never asked for by review, never "missing" - an extra the content may do without. */
+  readonly optional?: true;
 }
 
 /**
@@ -30,6 +38,8 @@ export interface LocalizedTextField {
   readonly key: string;
   readonly maxLength: number;
   readonly rows?: number;
+  /** Never asked for by review, never "missing" - an extra the content may do without. */
+  readonly optional?: true;
 }
 
 /**
@@ -42,6 +52,8 @@ export interface RelationField {
   readonly kind: 'relation';
   readonly key: string;
   readonly target: string;
+  /** Never asked for by review, never "missing" - an extra the content may do without. */
+  readonly optional?: true;
 }
 
 /**
@@ -50,9 +62,12 @@ export interface RelationField {
  * the authority: these numbers only spare a round trip.
  */
 export interface ImageProfile {
-  /** The canvas the backend fits the image into, and the smallest image it accepts. */
+  /** The canvas the backend fits the image into; its ratio is the one an image must have. */
   readonly width: number;
   readonly height: number;
+  /** The smallest image it accepts; the canvas' size where absent. */
+  readonly minWidth?: number;
+  readonly minHeight?: number;
   /** How far the image's ratio may be from the canvas', as a fraction (0.1 = 10 %). */
   readonly ratioTolerance: number;
   readonly maxBytes: number;
@@ -95,6 +110,16 @@ export interface SubcategoryField {
   readonly of: string;
 }
 
+/**
+ * The dates something came out, one per country - a volume's releases, an episode's
+ * broadcasts - sent as `{country, date}` (ISO country code, `YYYY-MM-DD`). Optional, not
+ * translated; the editor gives each entry a key of its own (`entity-release.ts`).
+ */
+export interface ReleaseListField {
+  readonly kind: 'releaseList';
+  readonly key: string;
+}
+
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
 export type EntityField =
   | TextField
@@ -103,7 +128,8 @@ export type EntityField =
   | RelationField
   | ImageField
   | SubcategoryListField
-  | SubcategoryField;
+  | SubcategoryField
+  | ReleaseListField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -144,6 +170,8 @@ export interface EntityDefinition {
   /** The prefix of its own translation keys: `title`, `one`… below it. */
   readonly i18n: string;
   readonly icon: string;
+  /** The key of the localized text that names a content: `name`, `title`. */
+  readonly labelField: string;
   /**
    * The key of the field - text or number kind - whose value is unique within the entity and
    * is the source of its public slug: `romaji` for the Devil Fruit and its type.
@@ -161,8 +189,11 @@ export function textField(key: string, options: Omit<TextField, 'kind' | 'key'>)
   return { kind: 'text', key, ...options };
 }
 
-export function numberField(key: string): NumberField {
-  return { kind: 'number', key };
+export function numberField(
+  key: string,
+  options: Omit<NumberField, 'kind' | 'key'> = {},
+): NumberField {
+  return { kind: 'number', key, ...options };
 }
 
 export function localizedTextField(
@@ -197,10 +228,21 @@ export function subcategoryField(
   return { kind: 'subcategory', key, ...options };
 }
 
+export function releaseListField(key: string): ReleaseListField {
+  return { kind: 'releaseList', key };
+}
+
 export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {
   return { field, ...options };
 }
 
 export function relatedList(options: Omit<RelatedListSection, 'kind'>): RelatedListSection {
   return { kind: 'relatedList', ...options };
+}
+
+/** Whether the contents are numbered - a saga, a chapter - rather than known by a text key. */
+export function isNumbered(definition: EntityDefinition): boolean {
+  return definition.fields.some(
+    (field) => field.key === definition.naturalKey && field.kind === 'number',
+  );
 }

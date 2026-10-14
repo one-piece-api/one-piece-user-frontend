@@ -35,6 +35,7 @@ export const DEVIL_FRUIT: EntityDefinition = {
   api: '/api/content/devil-fruits',
   i18n: 'content.devilFruits',
   icon: 'assets/devil-fruit.webp',
+  labelField: 'name',
   fields: [
     textField('romaji', { maxLength: 100 }),
     imageField('image', DEVIL_FRUIT_IMAGE),

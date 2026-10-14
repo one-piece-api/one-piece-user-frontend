@@ -32,15 +32,13 @@ import {
   type FieldDiff,
 } from '../version-comparison';
 import { EntityCard } from './entity-card';
-import {
-  diffBodies,
-  naturalKeyOf,
-  namesOf,
-  type EntityBody,
-  type EntityFieldRef,
-} from '../entity/entity-body';
+import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityImageFrame } from './entity-image-frame';
+import { untitledOf } from './entity-title';
+
+/** The ratio (width / height) a frame has where the entity's image says nothing else. */
+const DEFAULT_IMAGE_RATIO = 4 / 5;
 
 type Mode = 'changes' | 'card';
 const MODES: readonly Mode[] = ['changes', 'card'];
@@ -95,6 +93,8 @@ interface DiffRow {
   readonly after: string | null;
   /** `before` and `after` are the URLs of two images, shown side by side, not texts. */
   readonly image: boolean;
+  /** The ratio of the frames that show them: the image profile's own. */
+  readonly ratio: number;
   readonly sign: string;
   /** A removed value is struck through. */
   readonly struck: boolean;
@@ -264,8 +264,8 @@ export class EntityComparison {
         status,
       }),
       title:
-        localizedName(namesOf(shown.body), this.transloco.activeLang()) ??
-        naturalKeyOf(this.entity, shown.body) ??
+        localizedName(namesOf(this.entity, shown.body), this.transloco.activeLang()) ??
+        untitledOf(this.transloco, this.entity, shown.body) ??
         this.transloco.translate('content.list.unnamed'),
       line: `${comparing} · ${opened}`,
       after: `v${shown.number}`,
@@ -317,6 +317,9 @@ export class EntityComparison {
 
   private toRow(diff: FieldDiff<EntityFieldRef>): DiffRow {
     const { field, language, entry } = diff.field;
+    const image = this.entity.fields.find(
+      (candidate) => candidate.key === field && candidate.kind === 'image',
+    );
     return {
       key: entry
         ? `${field}.${entry.id}.${entry.part}.${language ?? ''}`
@@ -335,9 +338,9 @@ export class EntityComparison {
           }),
       before: diff.before,
       after: diff.after,
-      image: this.entity.fields.some(
-        (candidate) => candidate.key === field && candidate.kind === 'image',
-      ),
+      image: image !== undefined,
+      ratio:
+        image?.kind === 'image' ? image.profile.width / image.profile.height : DEFAULT_IMAGE_RATIO,
       sign: CHANGE_SIGN[diff.change],
       struck: diff.change === 'REMOVED',
       changeKey: `content.comparison.change.${diff.change}`,

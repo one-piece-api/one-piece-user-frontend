@@ -32,6 +32,8 @@ export class ContentListToolbar {
   readonly otherAuthors = input.required<readonly ContentUser[]>();
   readonly myUsername = input.required<string>();
   readonly resultLine = input.required<string>();
+  /** What the search box hints at: the key differs for numbered contents, found by number too. */
+  readonly searchPlaceholderKey = input('content.list.searchPlaceholder');
 
   readonly queryChange = output<string>();
   readonly statusChange = output<VersionStatus | null>();

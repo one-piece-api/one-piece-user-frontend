@@ -1,5 +1,5 @@
 import type { EntityReference } from './entity-reference';
-import { FIELD_KINDS } from './field-kinds';
+import { FIELD_KINDS, isAskedByReview } from './field-kinds';
 
 describe.each(['text', 'localizedText'] as const)('the %s field kind', (kind) => {
   const strategy = FIELD_KINDS[kind];
@@ -173,5 +173,73 @@ describe('the number field kind', () => {
     expect(strategy.diff(field, 12, '12')).toMatchObject({ change: 'UNCHANGED' });
     expect(strategy.diff(field, undefined, undefined)).toBeNull();
     expect(strategy.diff(field, 12, 13)).toMatchObject({ before: '12', after: '13' });
+  });
+});
+
+describe('the releaseList field kind', () => {
+  const strategy = FIELD_KINDS.releaseList;
+  const saved = [
+    { country: 'US', date: '1999-10-20' },
+    { country: 'JP', date: '1997-10-20' },
+  ];
+
+  it('is not translated, and not asked for by review', () => {
+    expect(strategy.localized).toBe(false);
+    expect(strategy.forReview).toBe(false);
+  });
+
+  it('gives each saved entry a key for the editor, and an empty list for a value never written', () => {
+    const drafts = strategy.draftValue(saved) as { key: string; country: string }[];
+
+    expect(drafts.map(({ country }) => country)).toEqual(['US', 'JP']);
+    expect(new Set(drafts.map(({ key }) => key)).size).toBe(2);
+    expect(strategy.draftValue(undefined)).toEqual([]);
+  });
+
+  it('saves the complete entries without their keys, by date then country, and [] for none', () => {
+    const drafts = [
+      ...(strategy.draftValue(saved) as object[]),
+      { key: 'x', country: 'IT', date: '' },
+      { key: 'y', country: 'FR', date: '1997-10-20' },
+    ];
+
+    expect(strategy.savedValue(drafts)).toEqual([
+      { country: 'FR', date: '1997-10-20' },
+      { country: 'JP', date: '1997-10-20' },
+      { country: 'US', date: '1999-10-20' },
+    ]);
+    expect(strategy.savedValue(undefined)).toEqual([]);
+  });
+
+  it('is filled with at least one complete entry', () => {
+    expect(strategy.isFilled(saved)).toBe(true);
+    expect(strategy.isFilled([{ key: 'x', country: 'IT', date: '' }])).toBe(false);
+    expect(strategy.isFilled(null)).toBe(false);
+  });
+
+  it('compares the entries as one text, an entry per line', () => {
+    expect(strategy.diff('f', saved, saved.slice(1))).toMatchObject({
+      change: 'MODIFIED',
+      before: 'JP 1997-10-20\nUS 1999-10-20',
+      after: 'JP 1997-10-20',
+    });
+    expect(strategy.diff('f', undefined, [])).toBeNull();
+  });
+});
+
+describe('which fields review asks for', () => {
+  it('asks for a kind review looks at, unless the field is optional', () => {
+    expect(isAskedByReview({ kind: 'number', key: 'number' })).toBe(true);
+    expect(isAskedByReview({ kind: 'number', key: 'pages', optional: true })).toBe(false);
+    expect(isAskedByReview({ kind: 'relation', key: 'arc', target: 'ARC', optional: true })).toBe(
+      false,
+    );
+    expect(isAskedByReview({ kind: 'releaseList', key: 'releases' })).toBe(false);
+  });
+
+  it('names a numbered reference in a comparison by its number', () => {
+    const arc: EntityReference = { id: 'a1', number: 0, names: {} };
+
+    expect(FIELD_KINDS.relation.diff('f', null, arc)).toMatchObject({ after: '0' });
   });
 });

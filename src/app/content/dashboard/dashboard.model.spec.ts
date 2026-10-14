@@ -10,6 +10,7 @@ import {
   rowNoteKey,
   statusPageOf,
   statusPageRoute,
+  titleLabel,
   type Activity,
 } from './dashboard.model';
 
@@ -198,5 +199,21 @@ describe('legendFor', () => {
 
   it('is empty for whoever can only read', () => {
     expect(legendFor('PUBLISHED', (permission) => permission === 'content:read')).toEqual([]);
+  });
+});
+
+describe('titleLabel', () => {
+  const title = { names: { it: 'Il sogno', en: 'The dream' }, fallback: '12' };
+
+  it('is "number · title" for a numbered content', () => {
+    expect(titleLabel(title, 'it', 'CHAPTER')).toBe('12 · Il sogno');
+  });
+
+  it('is the name alone for a content with a text key', () => {
+    expect(titleLabel(title, 'en', 'DEVIL_FRUIT')).toBe('The dream');
+  });
+
+  it('is the fallback - the number - where there is no name', () => {
+    expect(titleLabel({ names: {}, fallback: '12' }, 'it', 'CHAPTER')).toBe('12');
   });
 });

@@ -175,6 +175,7 @@
                           <app-entity-image-frame
                             class="block w-full max-w-36"
                             [src]="side.src"
+                            [ratio]="row.ratio"
                             [alt]="row.label + (side.version === null ? '' : ' v' + side.version)"
                             [placeholder]="'content.comparison.noImage' | transloco"
                           />
@@ -265,6 +266,7 @@
                           <app-entity-image-frame
                             class="block w-20"
                             [src]="row.after"
+                            [ratio]="row.ratio"
                             [alt]="row.label"
                             [placeholder]="'content.comparison.noImage' | transloco"
                           />

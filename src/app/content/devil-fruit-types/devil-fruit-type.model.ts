@@ -20,6 +20,7 @@ export const DEVIL_FRUIT_TYPE: EntityDefinition = {
   api: '/api/content/devil-fruit-types',
   i18n: 'content.devilFruitTypes',
   icon: 'assets/devil-fruit-type.webp',
+  labelField: 'name',
   fields: [
     textField('romaji', { maxLength: 100 }),
     localizedTextField('name', { maxLength: 100 }),

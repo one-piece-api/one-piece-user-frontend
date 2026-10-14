@@ -10,7 +10,7 @@
         type="search"
         [class]="fieldClasses"
         [value]="query()"
-        [placeholder]="'content.list.searchPlaceholder' | transloco"
+        [placeholder]="searchPlaceholderKey() | transloco"
         (input)="onQueryInput($event)"
       />
     </label>

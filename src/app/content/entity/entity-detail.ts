@@ -29,6 +29,7 @@ import { REJECTED_ACTION } from '../version-event';
 import { VersionActions } from '../version-actions';
 import { VersionWorkflow } from '../version-workflow';
 import { naturalKeyOf, namesOf, type EntityBody } from '../entity/entity-body';
+import { untitledOf } from './entity-title';
 import { ENTITY } from './entities';
 import { EntityCard } from './entity-card';
 import { EntityComparison } from './entity-comparison';
@@ -175,8 +176,8 @@ export class EntityDetail {
       return '';
     }
     return (
-      localizedName(namesOf(version.body), language) ??
-      naturalKeyOf(this.entity, version.body) ??
+      localizedName(namesOf(this.entity, version.body), language) ??
+      untitledOf(this.transloco, this.entity, version.body) ??
       this.transloco.translate('content.list.unnamed')
     );
   });

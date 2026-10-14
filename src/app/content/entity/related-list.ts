@@ -3,24 +3,20 @@ import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { PageResponse } from '../../shared/http/page-response';
-import {
-  localizedName,
-  STATUS_LABEL_KEY,
-  type ContentSummary,
-  type VersionStatus,
-} from '../content.model';
+import { STATUS_LABEL_KEY, type ContentSummary, type VersionStatus } from '../content.model';
 import { STATUS_DOT_CLASS } from '../status-badge';
 import { ENTITY, entityOf } from './entities';
-import { naturalKeyOf } from './entity-body';
 import type { RelatedListSection } from './entity-definition';
+import { referenceLabel } from './entity-reference';
 
 /** How many contents are listed at most; the rest is one link away. */
 const LISTED = 12;
 
-/** What a row of the listed entity shows: its natural key and its names. */
+/** What a row of the listed entity shows: its names and its natural key - romaji or number. */
 interface RowNames {
-  readonly [field: string]: unknown;
   readonly names: Record<string, string>;
+  readonly romaji?: string | null;
+  readonly number?: number | null;
 }
 
 /** One content in the section, ready to render. */
@@ -87,16 +83,19 @@ export class RelatedList {
     const rows = this.rows.hasValue() ? this.rows.value().content : [];
     return rows.map((row) => ({
       id: row.id,
-      name:
-        localizedName(row.body.names, language) ??
-        (listed && naturalKeyOf(listed, row.body)) ??
-        this.transloco.translate('content.list.unnamed'),
+      name: this.nameOf(row, language),
       status: row.status,
       dotClass: STATUS_DOT_CLASS[row.status],
       statusKey: STATUS_LABEL_KEY[row.status],
       link: listed ? [listed.route, row.id] : [],
     }));
   });
+
+  /** "1044 · Title" for a numbered content, its name or romaji otherwise, else "unnamed". */
+  private nameOf(row: ContentSummary<RowNames>, language: string): string {
+    const label = referenceLabel({ id: row.id, ...row.body }, language);
+    return label === row.id ? this.transloco.translate('content.list.unnamed') : label;
+  }
 
   /** The listed entity's list, narrowed to the contents that point to this one. */
   protected readonly allQuery = computed(() => ({ [this.section().by]: this.contentId() }));

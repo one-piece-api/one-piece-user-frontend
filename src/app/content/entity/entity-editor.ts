@@ -35,7 +35,6 @@ import {
   draftOf,
   isLanguageComplete,
   localizedFields,
-  naturalKeyOf,
   namesOf,
   readinessChecks,
   sharedFields,
@@ -48,7 +47,9 @@ import {
 import type { ImageField, SubcategoryField } from './entity-definition';
 import { isImageDraft, type ImageDraft } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
-import { textOf } from './field-kinds';
+import { COUNTRY_CODES, countryName, newReleaseKey, type ReleaseDraft } from './entity-release';
+import { isNumbered, untitledOf } from './entity-title';
+import { sentReleaseRows, textOf } from './field-kinds';
 import { ImagePicker } from './image-picker';
 import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
@@ -75,6 +76,23 @@ const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
 const RELATION_REFUSED_KEY = 'content.editor.error.notLinkable';
 const RELATION_REFUSED_MESSAGE_KEY = 'content.editor.notLinkableMessage';
 
+/** What is said under a number the backend refused, and what the Lumacofono says then. */
+const NUMBER_REFUSED_KEY = 'content.editor.error.numberInvalid';
+const NUMBER_REFUSED_MESSAGE_KEY = 'content.editor.numberRefusedMessage';
+
+/** What is said under a release the backend refused, by the part at fault, and the Lumacofono's word. */
+const RELEASE_REFUSED_KEY: Record<string, string> = {
+  country: 'content.editor.error.releaseCountry',
+  date: 'content.editor.error.releaseDate',
+};
+const RELEASE_REFUSED_MESSAGE_KEY = 'content.editor.releaseRefusedMessage';
+
+/** A release the editor addresses as `releases.1.country`: the list, the row and the part. */
+const RELEASE_ROW_KEY = /^([^.]+)\.(\d+)\.(country|date)$/;
+
+/** What the Lumacofono says when a number is already another content's. */
+const TAKEN_NUMBER_MESSAGE_KEY = 'content.editor.takenNumberMessage';
+
 /** What is said under a subcategory the backend refused, and what the Lumacofono says then. */
 const SUBCATEGORY_REFUSED_KEY = {
   picked: 'content.editor.error.subcategoryNotOfType',
@@ -82,6 +100,17 @@ const SUBCATEGORY_REFUSED_KEY = {
   name: 'content.editor.error.subcategoryNameTaken',
 };
 const SUBCATEGORY_REFUSED_MESSAGE_KEY = 'content.editor.subcategoryRefusedMessage';
+
+/** What the Lumacofono says for each of the specific texts above. */
+const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
+  [RELATION_REFUSED_KEY]: RELATION_REFUSED_MESSAGE_KEY,
+  [NUMBER_REFUSED_KEY]: NUMBER_REFUSED_MESSAGE_KEY,
+  [RELEASE_REFUSED_KEY['country']]: RELEASE_REFUSED_MESSAGE_KEY,
+  [RELEASE_REFUSED_KEY['date']]: RELEASE_REFUSED_MESSAGE_KEY,
+  ...Object.fromEntries(
+    Object.values(SUBCATEGORY_REFUSED_KEY).map((text) => [text, SUBCATEGORY_REFUSED_MESSAGE_KEY]),
+  ),
+};
 
 /** What the Lumacofono says when the image was refused - the reason is under the image. */
 const IMAGE_REFUSED_MESSAGE_KEY = 'content.editor.imageRefusedMessage';
@@ -233,7 +262,12 @@ export class EntityEditor {
     const language = this.transloco.activeLang();
     return (
       sharedFields(this.entity)
-        .filter((field) => field.kind !== 'image' && field.kind !== 'subcategoryList')
+        .filter(
+          (field) =>
+            field.kind !== 'image' &&
+            field.kind !== 'subcategoryList' &&
+            field.kind !== 'releaseList',
+        )
         .map((field) => {
           const chosen = draft?.[field.key];
           return {
@@ -272,6 +306,42 @@ export class EntityEditor {
       value: isImageDraft(value) ? value : null,
       error: this.refusedFields()[field.key] ?? null,
     };
+  });
+
+  /** The countries a release may be for, by name in the interface's language. */
+  protected readonly countries = computed(() => {
+    const language = this.transloco.activeLang();
+    const collator = new Intl.Collator(language);
+    return COUNTRY_CODES.map((code) => ({ code, name: countryName(code, language) })).sort((a, b) =>
+      collator.compare(a.name, b.name),
+    );
+  });
+
+  /**
+   * The lists of releases or broadcasts: each row with its country and day and why the
+   * backend refused it, and the countries already taken - one row per country.
+   */
+  protected readonly releaseListViews = computed(() => {
+    const refused = this.refusedFields();
+    return this.entity.fields.flatMap((field) => {
+      if (field.kind !== 'releaseList') {
+        return [];
+      }
+      const rows = this.releasesIn(field.key);
+      return [
+        {
+          field,
+          used: rows.map(({ country }) => country).filter(Boolean),
+          rows: rows.map((row, index) => ({
+            key: row.key,
+            country: row.country,
+            date: row.date,
+            countryError: refused[`${field.key}.${index}.country`] ?? null,
+            dateError: refused[`${field.key}.${index}.date`] ?? null,
+          })),
+        },
+      ];
+    });
   });
 
   /** The translated fields in the language on screen, likewise. */
@@ -366,8 +436,8 @@ export class EntityEditor {
     }
     const written = toBody(this.entity, draft);
     return (
-      localizedName(namesOf(written), language) ??
-      naturalKeyOf(this.entity, written) ??
+      localizedName(namesOf(this.entity, written), language) ??
+      untitledOf(this.transloco, this.entity, written) ??
       this.transloco.translate(`${this.entity.i18n}.newTitle`)
     );
   });
@@ -545,6 +615,34 @@ export class EntityEditor {
     this.forgetRefusal(key);
   }
 
+  /** Adds an empty row at the end of a list of releases: the country and the day are still to pick. */
+  protected addRelease(key: string): void {
+    this.writeReleases(key, [
+      ...this.releasesIn(key),
+      { key: newReleaseKey(), country: '', date: '' },
+    ]);
+  }
+
+  /** Removes a row: a version that leaves it out no longer has it. */
+  protected removeRelease(key: string, index: number): void {
+    this.writeReleases(
+      key,
+      this.releasesIn(key).filter((_, position) => position !== index),
+    );
+    this.forgetRefusalsOf(key);
+  }
+
+  /** Writes the country or the day of one row. */
+  protected setRelease(key: string, index: number, part: 'country' | 'date', value: string): void {
+    this.writeReleases(
+      key,
+      this.releasesIn(key).map((row, position) =>
+        position === index ? { ...row, [part]: value } : row,
+      ),
+    );
+    this.forgetRefusal(`${key}.${index}.${part}`);
+  }
+
   /** Writes a translated field, in the language on screen. */
   protected setLocalized(key: string, value: string): void {
     this.writeTranslation({ [key]: value });
@@ -654,29 +752,54 @@ export class EntityEditor {
     const apiError = apiErrorOf(error);
     const errorCode = apiError?.errorCode ?? '';
     const fieldErrorKey = FIELD_ERROR_KEY[errorCode];
-    let relationRefused = false;
-    let subcategoryRefused = false;
+    const refusedTexts: string[] = [];
     if (fieldErrorKey) {
       const refused: Record<string, string> = {};
+      const draft = this.draft();
       for (const violation of apiError?.errors ?? []) {
-        const key = draftFieldKey(this.entity, violation.field);
-        if (key) {
-          // A relation or a subcategory is refused for being invalid: not for a slug, which
-          // says the same code.
-          const invalid = errorCode === VALUE_INVALID ? this.invalidValueKey(key) : null;
-          relationRefused ||= invalid === RELATION_REFUSED_KEY;
-          subcategoryRefused ||= invalid !== null && invalid !== RELATION_REFUSED_KEY;
-          refused[key] = this.transloco.translate(invalid ?? fieldErrorKey);
+        const named = draftFieldKey(this.entity, violation.field);
+        if (named) {
+          const key = draft ? this.releaseRowOf(named, draft) : named;
+          // A number, a release, a relation or a subcategory is refused for being invalid:
+          // not for a slug, which says the same code.
+          const specific = this.specificRefusalKey(key, errorCode);
+          if (specific) {
+            refusedTexts.push(specific);
+          }
+          refused[key] = this.transloco.translate(specific ?? fieldErrorKey);
         }
       }
       this.refusedFields.set(refused);
     }
-    const messageKey = relationRefused
-      ? RELATION_REFUSED_MESSAGE_KEY
-      : subcategoryRefused
-        ? SUBCATEGORY_REFUSED_MESSAGE_KEY
-        : (SAVE_ERROR_KEY[errorCode] ?? 'content.editor.saveFailed');
+    const messageKey =
+      refusedTexts.map((text) => SPECIFIC_MESSAGE_KEY[text]).find(Boolean) ??
+      this.saveErrorKeyOf(errorCode);
     this.mascot.show(this.transloco.translate(messageKey, { slug: refusedSlug(error) }), 'error');
+  }
+
+  /** What the Lumacofono says for a refused save without a specific field: by code, and by kind of key. */
+  private saveErrorKeyOf(errorCode: string): string {
+    if (errorCode === VALUE_ALREADY_USED && isNumbered(this.entity)) {
+      return TAKEN_NUMBER_MESSAGE_KEY;
+    }
+    return SAVE_ERROR_KEY[errorCode] ?? 'content.editor.saveFailed';
+  }
+
+  /**
+   * What is said under a field the backend refused for what it is, not for its code's general
+   * meaning: a number that is not one, a release that is no country or has no day, or - when
+   * invalid - a relation or subcategory (`invalidValueKey`). `null` for any other field.
+   */
+  private specificRefusalKey(key: string, errorCode: string): string | null {
+    const field = this.entity.fields.find((candidate) => candidate.key === key);
+    if (field?.kind === 'number' && errorCode !== VALUE_ALREADY_USED) {
+      return NUMBER_REFUSED_KEY;
+    }
+    const release = RELEASE_ROW_KEY.exec(key);
+    if (release) {
+      return RELEASE_REFUSED_KEY[release[3]];
+    }
+    return errorCode === VALUE_INVALID ? this.invalidValueKey(key) : null;
   }
 
   /**
@@ -710,6 +833,26 @@ export class EntityEditor {
   private subcategoriesIn(key: string): SubcategoryDraft[] {
     const value = this.draft()?.[key];
     return Array.isArray(value) ? (value as SubcategoryDraft[]) : [];
+  }
+
+  private releasesIn(key: string): ReleaseDraft[] {
+    const value = this.draft()?.[key];
+    return Array.isArray(value) ? (value as ReleaseDraft[]) : [];
+  }
+
+  private writeReleases(key: string, rows: ReleaseDraft[]): void {
+    this.draft.update((draft) => draft && { ...draft, [key]: rows });
+  }
+
+  /**
+   * A release the backend names by its position in the JSON sent, as the row it came from:
+   * the JSON leaves out the incomplete rows and orders the others by day.
+   */
+  private releaseRowOf(key: string, draft: EntityDraft): string {
+    const [, list, position, part] = RELEASE_ROW_KEY.exec(key) ?? [];
+    const row = sentReleaseRows(draft[list])[Number(position)];
+    const index = row ? (draft[list] as ReleaseDraft[]).indexOf(row) : -1;
+    return index < 0 ? key : `${list}.${index}.${part}`;
   }
 
   private writeSubcategories(key: string, entries: SubcategoryDraft[]): void {
