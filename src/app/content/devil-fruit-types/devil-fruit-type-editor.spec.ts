@@ -206,6 +206,7 @@ describe('DevilFruitTypeEditor', () => {
 
       expect(checks()).toEqual([
         '! Romaji · unique key required',
+        '! First appearance required',
         '! Name · Italiano required',
         '! Description · Italiano required',
         '! Advantages · Italiano required',
@@ -227,7 +228,7 @@ describe('DevilFruitTypeEditor', () => {
 
       expect(root.querySelector('h1')?.textContent?.trim()).toBe('Logia');
       expect(checks()[0]).toBe('✓ Romaji · unique key complete');
-      expect(checks()[5]).toBe('✓ Name · English complete');
+      expect(checks()[6]).toBe('✓ Name · English complete');
     });
 
     it('keeps each language its own: the tabs switch what is shown and say what is incomplete', async () => {
@@ -259,6 +260,7 @@ describe('DevilFruitTypeEditor', () => {
       expect(request.request.method).toBe('POST');
       expect(request.request.body).toEqual({
         romaji: 'Shizen-kei',
+        firstAppearance: null,
         subcategories: [],
         translations: {
           it: { name: null, description: null, advantages: null, disadvantages: null },
@@ -417,6 +419,7 @@ describe('DevilFruitTypeEditor', () => {
       expect(request.request.method).toBe('PUT');
       expect(request.request.body).toEqual({
         romaji: 'Shizen-kei',
+        firstAppearance: null,
         subcategories: [],
         translations: {
           it: DRAFT_BODY.translations.it,
@@ -511,7 +514,9 @@ describe('DevilFruitTypeEditor', () => {
 
     function entryNames(): string[] {
       return Array.from(
-        root.querySelectorAll<HTMLInputElement>('[data-testid="subcategory-entry"] input'),
+        root.querySelectorAll<HTMLInputElement>(
+          '[data-testid="subcategory-entry"] input[id$="-name"]',
+        ),
       ).map((input) => input.value);
     }
 
@@ -556,12 +561,13 @@ describe('DevilFruitTypeEditor', () => {
 
       const body = await saved();
       expect(body['subcategories']).toEqual([
-        ZOAN_BODY.subcategories[0],
-        ZOAN_BODY.subcategories[1],
+        { ...ZOAN_BODY.subcategories[0], firstAppearance: null },
+        { ...ZOAN_BODY.subcategories[1], firstAppearance: null },
         {
           translations: {
             en: { name: 'Artificial', description: 'The SMILEs.' },
           },
+          firstAppearance: null,
         },
       ]);
     });
@@ -581,7 +587,9 @@ describe('DevilFruitTypeEditor', () => {
 
       await click('subcategory-remove', 1);
       const body = await saved();
-      expect(body['subcategories']).toEqual([ZOAN_BODY.subcategories[1]]);
+      expect(body['subcategories']).toEqual([
+        { ...ZOAN_BODY.subcategories[1], firstAppearance: null },
+      ]);
     });
 
     it('marks a language incomplete while a subcategory lacks a text there', async () => {

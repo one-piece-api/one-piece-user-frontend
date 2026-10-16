@@ -197,6 +197,23 @@
                   >
                     {{ entry.description ?? ('content.card.noDescription' | transloco) }}
                   </p>
+                  @if (entry.firstAppearance; as firstAppearance) {
+                    <p class="mt-1 font-heading text-xs font-bold text-ocean-500">
+                      {{ 'content.card.heading.firstAppearance' | transloco }}:
+                      @if (firstAppearance.link.length) {
+                        <a
+                          [routerLink]="firstAppearance.link"
+                          class="font-extrabold text-ocean-700 hover:text-ocean-800"
+                          data-testid="card-subcategory-firstAppearance"
+                          >{{ firstAppearance.label }}</a
+                        >
+                      } @else {
+                        <span class="font-extrabold text-ocean-950">{{
+                          firstAppearance.label
+                        }}</span>
+                      }
+                    </p>
+                  }
                 </li>
               }
             </ol>

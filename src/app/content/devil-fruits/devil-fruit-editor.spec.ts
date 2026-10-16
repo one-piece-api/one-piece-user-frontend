@@ -151,9 +151,10 @@ describe('the editor of a Devil Fruit', () => {
     });
 
     it('asks for the type to be ready for review, right after the romaji', () => {
-      expect(checks().slice(0, 3)).toEqual([
+      expect(checks().slice(0, 4)).toEqual([
         '! Romaji · unique key required',
         '! Fruit type required',
+        '! First appearance required',
         '! Name · Italiano required',
       ]);
       expect(root.textContent).toContain('Review takes a romaji, a type');

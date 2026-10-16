@@ -122,8 +122,9 @@ export type BlockCause =
   | {
       /**
        * A story content cannot go online while the one it points to is not: the relation
-       * names the keys - `{ sagaId, sagaNumber }`, `{ arcId, arcNumber }` or
-       * `{ volumeId, volumeNumber }`.
+       * names the keys - `{ sagaId, sagaNumber }`, `{ arcId, arcNumber }`,
+       * `{ volumeId, volumeNumber }` or, for a first appearance (of a subcategory too,
+       * with its `subcategoryId`), `{ firstAppearanceChapterId, firstAppearanceChapterNumber }`.
        */
       reason: 'RELATED_NOT_ONLINE';
       detail: Partial<Record<`${StoryRelation}Id`, string>> &
@@ -133,19 +134,36 @@ export type BlockCause =
       /**
        * A story content's version cannot go online while it leaves out one that online items
        * point to: the count, and the first few as `{ id, number }` - under `arcs`,
-       * `chapters` or `episodes`, whichever points to it.
+       * `chapters` or `episodes`, whichever points to it - or, for a chapter that fruits or
+       * types first appear in, as `{ id, romaji }` under `fruits` or `types`.
        */
       reason: 'ONLINE_ITEMS_LINKED';
-      detail: { count: number } & Partial<Record<StoryItems, NumberedItem[]>>;
+      detail: { count: number } & Partial<Record<StoryItems, NumberedItem[]>> &
+        Partial<Record<KeyedItems, KeyedItem[]>>;
+    }
+  | {
+      /** A fruit or type cannot go online without a first appearance (T7). */
+      reason: 'FIRST_APPEARANCE_MISSING';
+      detail: Record<string, never>;
     };
 
-/** The relations of the story contents a block can name: a saga, an arc, a volume. */
-export const STORY_RELATIONS = ['saga', 'arc', 'volume'] as const;
+/** The relations a block can name: a saga, an arc, a volume, the chapter of a first appearance. */
+export const STORY_RELATIONS = ['saga', 'arc', 'volume', 'firstAppearanceChapter'] as const;
 export type StoryRelation = (typeof STORY_RELATIONS)[number];
 
 /** The story contents that point to another, as a block names them. */
 export const STORY_ITEMS = ['arcs', 'chapters', 'episodes'] as const;
 export type StoryItems = (typeof STORY_ITEMS)[number];
+
+/** The contents known by their romaji that point to a chapter they first appear in. */
+export const KEYED_ITEMS = ['fruits', 'types'] as const;
+export type KeyedItems = (typeof KEYED_ITEMS)[number];
+
+/** A content known by its romaji that stands in the way. */
+export interface KeyedItem {
+  id: string;
+  romaji: string | null;
+}
 
 /** A story content that stands in the way: its id and its number. */
 export interface NumberedItem {

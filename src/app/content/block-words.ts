@@ -1,15 +1,24 @@
 import type { TranslocoService } from '@jsverse/transloco';
-import { STORY_ITEMS, STORY_RELATIONS, type BlockCause, type StoryItems } from './content.model';
+import {
+  KEYED_ITEMS,
+  STORY_ITEMS,
+  STORY_RELATIONS,
+  type BlockCause,
+  type KeyedItems,
+  type StoryItems,
+} from './content.model';
 import { entityOf } from './entity/entities';
 
 /** The section a fruit lives in - what a type that cannot be retired points to. */
 const FRUIT_ENTITY = 'DEVIL_FRUIT';
 
 /** The section each kind of story item lives in - what a content that cannot be retired points to. */
-const STORY_ITEM_ENTITY: Record<StoryItems, string> = {
+const STORY_ITEM_ENTITY: Record<StoryItems | KeyedItems, string> = {
   arcs: 'ARC',
   chapters: 'CHAPTER',
   episodes: 'EPISODE',
+  fruits: 'DEVIL_FRUIT',
+  types: 'DEVIL_FRUIT_TYPE',
 };
 
 /** A content that stands in the way, named and leading to its page. */
@@ -73,13 +82,30 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
       };
     }
     case 'ONLINE_ITEMS_LINKED': {
-      const items = STORY_ITEMS.find((candidate) => candidate in cause.detail) ?? 'arcs';
+      const keyed = KEYED_ITEMS.find((candidate) => candidate in cause.detail);
+      const items = keyed ?? STORY_ITEMS.find((candidate) => candidate in cause.detail) ?? 'arcs';
       const route = entityOf(STORY_ITEM_ENTITY[items])?.route;
-      const links = (cause.detail[items] ?? []).map(({ id, number }) => ({
-        label: String(number),
+      const named = keyed
+        ? (cause.detail[keyed] ?? []).map(({ id, romaji }) => ({ id, label: romaji ?? id }))
+        : (cause.detail[items as StoryItems] ?? []).map(({ id, number }) => ({
+            id,
+            label: String(number),
+          }));
+      const links = named.map(({ id, label }) => ({
+        label,
         route: route ? `${route}/${id}` : '',
       }));
       return linkedWords(transloco, cause, `${cause.reason}.${items}`, links);
+    }
+    case 'FIRST_APPEARANCE_MISSING': {
+      const sentence = text('sentence.FIRST_APPEARANCE_MISSING');
+      return {
+        note: text('note.FIRST_APPEARANCE_MISSING'),
+        sentence,
+        links: [],
+        more: 0,
+        titled: sentence,
+      };
     }
     case 'ONLINE_FRUITS_LINKED':
     case 'SUBCATEGORY_IN_USE': {

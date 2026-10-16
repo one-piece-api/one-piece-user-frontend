@@ -68,6 +68,7 @@ describe('draftOf', () => {
   it('starts a new content from nothing, with a translation for every language', () => {
     expect(draftOf(DEVIL_FRUIT_TYPE, null, ['it', 'en'])).toEqual({
       romaji: '',
+      firstAppearance: null,
       subcategories: [],
       translations: { it: typed({}), en: typed({}) },
     });
@@ -88,6 +89,7 @@ describe('draftOf', () => {
 
     expect(draft).toEqual({
       romaji: 'Shizen-kei',
+      firstAppearance: null,
       subcategories: [],
       translations: { it: typed({ name: 'Rogia', advantages: 'Intangibile.' }), en: typed({}) },
     });
@@ -106,6 +108,7 @@ describe('toBody', () => {
 
     expect(toBody(DEVIL_FRUIT_TYPE, draft)).toEqual({
       romaji: 'Shizen-kei',
+      firstAppearance: null,
       subcategories: [],
       translations: {
         it: translation({ name: 'Rogia', disadvantages: 'Acqua di mare' }),
@@ -136,6 +139,7 @@ describe('readinessChecks', () => {
   it('asks for the romaji, then every translated field in every language', () => {
     expect(readinessChecks(DEVIL_FRUIT_TYPE, half, ['it', 'en'])).toEqual([
       { field: 'romaji', language: null, done: true },
+      { field: 'firstAppearance', language: null, done: false },
       { field: 'name', language: 'it', done: true },
       { field: 'description', language: 'it', done: true },
       { field: 'advantages', language: 'it', done: true },
@@ -314,7 +318,10 @@ describe('the subcategories of a type', () => {
   it('are saved as they were read, ids and order kept', () => {
     const draft = draftOf(DEVIL_FRUIT_TYPE, ZOAN, ['it', 'en']);
 
-    expect(toBody(DEVIL_FRUIT_TYPE, draft)['subcategories']).toEqual([ANCIENT, MYTHICAL]);
+    expect(toBody(DEVIL_FRUIT_TYPE, draft)['subcategories']).toEqual([
+      { ...ANCIENT, firstAppearance: null },
+      { ...MYTHICAL, firstAppearance: null },
+    ]);
   });
 
   it('ask review for a name and a description in every language', () => {
@@ -324,6 +331,7 @@ describe('the subcategories of a type', () => {
     );
 
     expect(missing).toEqual([
+      { field: 'firstAppearance', language: null, done: false },
       {
         field: 'subcategories',
         language: 'en',
@@ -335,7 +343,41 @@ describe('the subcategories of a type', () => {
     expect(isLanguageComplete(DEVIL_FRUIT_TYPE, ZOAN, 'en')).toBe(false);
   });
 
+  it('save the chapter of their first appearance by id, none as null', () => {
+    const romanceDawn = { id: 'c1', number: 1, names: { en: 'Romance Dawn' } };
+    const draft = draftOf(
+      DEVIL_FRUIT_TYPE,
+      {
+        ...ZOAN,
+        subcategories: [{ ...ANCIENT, firstAppearance: { chapter: romanceDawn } }, MYTHICAL],
+      },
+      ['it', 'en'],
+    );
+
+    expect(
+      (toBody(DEVIL_FRUIT_TYPE, draft)['subcategories'] as { firstAppearance: unknown }[]).map(
+        ({ firstAppearance }) => firstAppearance,
+      ),
+    ).toEqual([{ chapter: 'c1' }, null]);
+  });
+
+  it('compare the first appearance of a subcategory, once for every language', () => {
+    const chapter = (id: string, number: number) => ({ chapter: { id, number, names: {} } });
+    const v1 = { ...ZOAN, subcategories: [{ ...ANCIENT, firstAppearance: chapter('c1', 1) }] };
+    const v2 = { ...ZOAN, subcategories: [{ ...ANCIENT, firstAppearance: chapter('c2', 2) }] };
+
+    const changed = diffBodies(DEVIL_FRUIT_TYPE, v1, v2, ['it', 'en']).filter(
+      ({ change }) => change !== 'UNCHANGED',
+    );
+
+    expect(changed.map(({ field }) => [field.entry?.part, field.language])).toEqual([
+      ['firstAppearance', null],
+    ]);
+  });
+
   it.each([
+    ['subcategories[0].firstAppearance.chapter', 'subcategories.0.firstAppearance'],
+    ['subcategories[1].firstAppearance', 'subcategories.1.firstAppearance'],
     ['subcategories[1].translations[en].name', 'en.subcategories.1.name'],
     ['subcategories[0].translations[it].description', 'it.subcategories.0.description'],
     ['subcategories[2].id', 'subcategories.2'],

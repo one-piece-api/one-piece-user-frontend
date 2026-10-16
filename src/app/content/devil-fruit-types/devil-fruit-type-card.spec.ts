@@ -1,4 +1,5 @@
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { ENTITY } from '../entity/entities';
 import { EntityCard } from '../entity/entity-card';
@@ -29,7 +30,7 @@ describe('DevilFruitTypeCard', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [provideTranslocoTesting()],
-      providers: [{ provide: ENTITY, useValue: DEVIL_FRUIT_TYPE }],
+      providers: [provideRouter([]), { provide: ENTITY, useValue: DEVIL_FRUIT_TYPE }],
     });
   });
 
@@ -116,5 +117,43 @@ describe('DevilFruitTypeCard', () => {
     fixture.detectChanges();
 
     expect(text('card-name')).toBe('Rogia v2');
+  });
+});
+
+describe('DevilFruitTypeCard, the first appearances', () => {
+  const ROMANCE_DAWN = { id: 'c1', number: 1, names: { en: 'Romance Dawn' } };
+
+  it('names the chapter of the type and of each subcategory, each leading to its page', () => {
+    TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [provideRouter([]), { provide: ENTITY, useValue: DEVIL_FRUIT_TYPE }],
+    });
+    const fixture = TestBed.createComponent(EntityCard);
+    fixture.componentRef.setInput('body', {
+      ...LOGIA,
+      firstAppearance: { chapter: ROMANCE_DAWN },
+      subcategories: [
+        {
+          id: 's1',
+          translations: { en: { name: 'Ancient', description: 'Extinct.' } },
+          firstAppearance: { chapter: ROMANCE_DAWN },
+        },
+        { id: 's2', translations: { en: { name: 'Mythical', description: 'Legends.' } } },
+      ],
+    });
+    fixture.componentRef.setInput('languages', [ENGLISH]);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+
+    const typeChapter = root.querySelector<HTMLAnchorElement>(
+      '[data-testid="card-firstAppearance"]',
+    );
+    const subcategoryChapters = root.querySelectorAll<HTMLAnchorElement>(
+      '[data-testid="card-subcategory-firstAppearance"]',
+    );
+    expect(typeChapter?.textContent?.trim()).toBe('Ch. 1 — Romance Dawn');
+    expect(typeChapter?.getAttribute('href')).toBe('/content/chapters/c1');
+    expect(subcategoryChapters).toHaveLength(1);
+    expect(subcategoryChapters[0].textContent?.trim()).toBe('Ch. 1 — Romance Dawn');
   });
 });

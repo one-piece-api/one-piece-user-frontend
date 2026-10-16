@@ -642,6 +642,34 @@
                         {{ error }}
                       </p>
                     }
+                    @if (chapterSource; as source) {
+                      <div>
+                        <label
+                          [for]="'draft-' + list.field.key + '-' + index + '-firstAppearance'"
+                          class="font-heading text-[11px] font-extrabold text-ocean-500"
+                          >{{ 'content.editor.subcategories.firstAppearance' | transloco }}</label
+                        >
+                        <div class="mt-1">
+                          <app-relation-picker
+                            [inputId]="'draft-' + list.field.key + '-' + index + '-firstAppearance'"
+                            [source]="source"
+                            [value]="entry.firstAppearance"
+                            [labelOf]="chapterPickLabel"
+                            [placeholder]="'content.storyPoint.placeholder' | transloco"
+                            [invalid]="!!entry.firstAppearanceError"
+                            (picked)="setSubcategoryFirstAppearance(list.field.key, index, $event)"
+                          />
+                        </div>
+                        @if (entry.firstAppearanceError; as error) {
+                          <p
+                            class="mt-1 font-heading text-sm font-bold text-flag-700"
+                            data-testid="field-error"
+                          >
+                            {{ error }}
+                          </p>
+                        }
+                      </div>
+                    }
                   </div>
                 } @empty {
                   <p class="font-heading text-[13px] font-bold text-ocean-500/60">

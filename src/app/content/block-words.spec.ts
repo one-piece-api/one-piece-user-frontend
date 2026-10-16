@@ -127,4 +127,41 @@ describe('blockWords of the story contents', () => {
 
     expect(words.links).toEqual([{ label: '0', route: '/content/arcs/a1' }]);
   });
+
+  it('tells a fruit or a type that the chapter of its first appearance is not online', () => {
+    const words = blockWords(transloco, {
+      reason: 'RELATED_NOT_ONLINE',
+      detail: { firstAppearanceChapterId: 'c1', firstAppearanceChapterNumber: 1 },
+    });
+
+    expect(words.note).toBe('First appearance chapter not online');
+    expect(words.links).toEqual([]);
+  });
+
+  it('names, by romaji, the fruits that keep a chapter from being retired', () => {
+    const words = blockWords(transloco, {
+      reason: 'ONLINE_ITEMS_LINKED',
+      detail: { count: 1, fruits: [{ id: 'f1', romaji: 'Gomu Gomu no Mi' }] },
+    });
+
+    expect(words.note).toBe('Fruits online: 1');
+    expect(words.links).toEqual([{ label: 'Gomu Gomu no Mi', route: '/content/devil-fruits/f1' }]);
+  });
+
+  it('points the types that keep a chapter from being retired to the types section', () => {
+    const words = blockWords(transloco, {
+      reason: 'ONLINE_ITEMS_LINKED',
+      detail: { count: 1, types: [{ id: 't1', romaji: 'Shizen-kei' }] },
+    });
+
+    expect(words.links).toEqual([{ label: 'Shizen-kei', route: '/content/devil-fruit-types/t1' }]);
+  });
+
+  it('asks a fruit or a type for its first appearance before it goes online', () => {
+    const words = blockWords(transloco, { reason: 'FIRST_APPEARANCE_MISSING', detail: {} });
+
+    expect(words.note).toBe('First appearance missing');
+    expect(words.links).toEqual([]);
+    expect(words.titled).toBe(words.sentence);
+  });
 });

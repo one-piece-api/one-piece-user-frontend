@@ -4,7 +4,8 @@
  * id, which the backend gives and keeps across versions: a rename is still the same one. No
  * Angular in here.
  */
-import { isReference } from './entity-reference';
+import { isReference, type EntityReference } from './entity-reference';
+import { chapterOf } from './entity-story-point';
 
 /** What a subcategory says in one language. */
 export interface SubcategoryTexts {
@@ -16,6 +17,8 @@ export interface SubcategoryTexts {
 export interface SavedSubcategory {
   readonly id: string;
   readonly translations: Record<string, SubcategoryTexts>;
+  /** The chapter where the reader first meets it - optional, never asked by review (T7). */
+  readonly firstAppearance: EntityReference | null;
 }
 
 /** The two texts of a subcategory, in the order they are read. */
@@ -30,6 +33,7 @@ export interface SubcategoryDraft {
   readonly id: string | null;
   readonly key: string;
   readonly translations: Record<string, Partial<Record<SubcategoryPart, string>>>;
+  readonly firstAppearance?: EntityReference | null;
 }
 
 /** A subcategory as the content picking it shows it: its id and its name per language. */
@@ -58,6 +62,7 @@ function asSaved(value: { id: string }): SavedSubcategory {
       typeof translations === 'object' && translations !== null
         ? (translations as Record<string, SubcategoryTexts>)
         : {},
+    firstAppearance: chapterOf((value as { firstAppearance?: unknown }).firstAppearance),
   };
 }
 

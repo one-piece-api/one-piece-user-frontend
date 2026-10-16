@@ -54,6 +54,8 @@ interface SubcategoryEntry {
   readonly id: string;
   readonly name: string | null;
   readonly description: string | null;
+  /** Its first appearance, "Cap. 1 — Romance Dawn", and the chapter's page; `null` for none. */
+  readonly firstAppearance: { readonly label: string; readonly link: readonly string[] } | null;
 }
 
 /** A content this one points to, as the card shows it: a link to its page under a heading. */
@@ -256,6 +258,8 @@ export class EntityCard {
   /** The lists of subcategories the content defines, in their order, each a section. */
   protected readonly subcategoryLists = computed(() => {
     const language = this.language() ?? '';
+    this.transloco.activeLang();
+    const chapterRoute = entityOf(STORY_POINT_TARGET)?.route;
     return this.entity.fields.flatMap((field) =>
       field.kind === 'subcategoryList'
         ? [
@@ -266,6 +270,14 @@ export class EntityCard {
                   id: subcategory.id,
                   name: subcategoryText(subcategory, language, 'name').trim() || null,
                   description: subcategoryText(subcategory, language, 'description').trim() || null,
+                  firstAppearance: subcategory.firstAppearance && {
+                    label: chapterLabel(
+                      (key, params) => this.transloco.translate(key, params),
+                      subcategory.firstAppearance,
+                      language,
+                    ),
+                    link: chapterRoute ? [chapterRoute, subcategory.firstAppearance.id] : [],
+                  },
                 }),
               ),
             },
