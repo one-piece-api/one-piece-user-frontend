@@ -35,6 +35,7 @@ import { EntityCard } from './entity-card';
 import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityImageFrame } from './entity-image-frame';
+import { STORY_POINT_CHAPTER_KEY } from './entity-story-point';
 import { untitledOf } from './entity-title';
 
 /** The ratio (width / height) a frame has where the entity's image says nothing else. */
@@ -320,6 +321,9 @@ export class EntityComparison {
     const image = this.entity.fields.find(
       (candidate) => candidate.key === field && candidate.kind === 'image',
     );
+    const storyPoint = this.entity.fields.some(
+      (candidate) => candidate.key === field && candidate.kind === 'storyPoint',
+    );
     return {
       key: entry
         ? `${field}.${entry.id}.${entry.part}.${language ?? ''}`
@@ -336,8 +340,8 @@ export class EntityComparison {
         : this.transloco.translate(`content.comparison.field.${field}`, {
             language: language?.toUpperCase(),
           }),
-      before: diff.before,
-      after: diff.after,
+      before: storyPoint ? this.chapterNamed(diff.before) : diff.before,
+      after: storyPoint ? this.chapterNamed(diff.after) : diff.after,
       image: image !== undefined,
       ratio:
         image?.kind === 'image' ? image.profile.width / image.profile.height : DEFAULT_IMAGE_RATIO,
@@ -346,6 +350,11 @@ export class EntityComparison {
       changeKey: `content.comparison.change.${diff.change}`,
       classes: CHANGE_CLASSES[diff.change],
     };
+  }
+
+  /** A chapter compared, as every screen names it: "Cap. 1 — Romance Dawn". */
+  private chapterNamed(text: string | null): string | null {
+    return text && this.transloco.translate(STORY_POINT_CHAPTER_KEY, { chapter: text });
   }
 
   /** A user as the screen names them: "you" for the caller. */

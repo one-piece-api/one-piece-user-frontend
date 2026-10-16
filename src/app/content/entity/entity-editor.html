@@ -141,6 +141,70 @@
                         </div>
                       }
                     }
+                    @case ('storyPoint') {
+                      @if (view.source; as source) {
+                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                          <div class="flex items-center justify-between gap-2.5">
+                            <span
+                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                              >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</span
+                            >
+                            <span
+                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
+                            >
+                          </div>
+                          <div
+                            class="mt-2 grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-2.5"
+                          >
+                            <div>
+                              <label
+                                [for]="'draft-' + view.field.key"
+                                class="font-heading text-[11px] font-extrabold text-ocean-500"
+                                >{{ 'content.storyPoint.chapterMedium' | transloco }}</label
+                              >
+                              <div class="mt-1">
+                                <app-relation-picker
+                                  [inputId]="'draft-' + view.field.key"
+                                  [source]="source"
+                                  [value]="view.reference"
+                                  [labelOf]="chapterPickLabel"
+                                  [placeholder]="'content.storyPoint.placeholder' | transloco"
+                                  [invalid]="!!view.error"
+                                  (picked)="setRelation(view.field.key, $event)"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label
+                                [for]="'draft-' + view.field.key + '-episode'"
+                                class="flex items-center gap-1.5 font-heading text-[11px] font-extrabold text-ocean-500"
+                                >{{ 'content.storyPoint.episodeMedium' | transloco }}
+                                <span
+                                  class="rounded-md bg-parchment-100 px-1.5 py-px text-[10px] font-extrabold text-ocean-500"
+                                  >{{ 'content.storyPoint.comingSoon' | transloco }}</span
+                                ></label
+                              >
+                              <input
+                                [id]="'draft-' + view.field.key + '-episode'"
+                                type="text"
+                                disabled
+                                placeholder="—"
+                                class="mt-1 w-full cursor-not-allowed rounded-[11px] border-2 border-ocean-800/20 bg-white px-3 py-2.5 font-heading text-[15px] font-bold opacity-55"
+                              />
+                            </div>
+                          </div>
+                          @if (view.error; as error) {
+                            <p
+                              class="mt-1 font-heading text-sm font-bold text-flag-700"
+                              data-testid="field-error"
+                            >
+                              {{ error }}
+                            </p>
+                          }
+                        </div>
+                      }
+                    }
                     @case ('subcategory') {
                       <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
                         <div class="flex items-center justify-between gap-2.5">

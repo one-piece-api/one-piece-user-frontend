@@ -43,6 +43,9 @@ export class RelationPicker {
   readonly source = input.required<string>();
   readonly value = input<EntityReference | null>(null);
   readonly placeholder = input('');
+  /** How a choice is named in a language: by default its name, "12 · Name" for a numbered one. */
+  readonly labelOf =
+    input<(reference: EntityReference, language: string) => string>(referenceLabel);
   /** The backend refused the choice: the box is marked. */
   readonly invalid = input(false);
 
@@ -77,7 +80,7 @@ export class RelationPicker {
     const found = this.results.hasValue() ? this.results.value().content : [];
     return found.map((reference, index) => ({
       reference,
-      label: referenceLabel(reference, language),
+      label: this.labelOf()(reference, language),
       id: `${this.inputId()}-option-${index}`,
       active: index === this.activeIndex(),
       selected: reference.id === chosen,
@@ -105,7 +108,7 @@ export class RelationPicker {
       return this.typed();
     }
     const value = this.value();
-    return value ? referenceLabel(value, this.transloco.activeLang()) : '';
+    return value ? this.labelOf()(value, this.transloco.activeLang()) : '';
   });
 
   constructor() {

@@ -8,6 +8,7 @@ import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { isReference, referenceLabel } from './entity-reference';
 import { countryName, releaseDateLabel, releasesInOrder } from './entity-release';
+import { STORY_POINT_TARGET, chapterLabel, chapterOf } from './entity-story-point';
 import { untitledOf } from './entity-title';
 import {
   isSubcategoryReference,
@@ -65,6 +66,8 @@ interface RelationChip {
   readonly label: string | null;
   /** Where the link leads - empty for a content whose section this app does not have. */
   readonly link: readonly string[];
+  /** A story point: the episode beside the chapter is not built yet, "coming soon". */
+  readonly episodeSoon?: true;
 }
 
 /**
@@ -139,16 +142,40 @@ export class EntityCard {
     };
   });
 
-  /** The contents this one points to, named in the language shown. */
+  /**
+   * The contents this one points to, named in the language shown - a story point by its
+   * chapter, "Cap. 1 — Romance Dawn".
+   */
   protected readonly relations = computed<RelationChip[]>(() => {
     const language = this.language() ?? this.transloco.activeLang();
-    return sharedFields(this.entity).flatMap((field) => {
+    this.transloco.activeLang();
+    return sharedFields(this.entity).flatMap<RelationChip>((field) => {
+      const name = `${field.key[0].toUpperCase()}${field.key.slice(1)}`;
+      if (field.kind === 'storyPoint') {
+        const chapter = chapterOf(this.body()[field.key]);
+        const target = entityOf(STORY_POINT_TARGET);
+        return [
+          {
+            field: field.key,
+            headingKey: `content.card.heading.${field.key}`,
+            emptyKey: `content.card.no${name}`,
+            label:
+              chapter &&
+              chapterLabel(
+                (key, params) => this.transloco.translate(key, params),
+                chapter,
+                language,
+              ),
+            link: chapter && target ? [target.route, chapter.id] : [],
+            episodeSoon: true,
+          },
+        ];
+      }
       if (field.kind !== 'relation') {
         return [];
       }
       const reference = this.body()[field.key];
       const target = entityOf(field.target);
-      const name = `${field.key[0].toUpperCase()}${field.key.slice(1)}`;
       return [
         {
           field: field.key,
@@ -210,7 +237,7 @@ export class EntityCard {
    */
   protected readonly subcategories = computed<RelationChip[]>(() => {
     const language = this.language() ?? this.transloco.activeLang();
-    return sharedFields(this.entity).flatMap((field) => {
+    return sharedFields(this.entity).flatMap<RelationChip>((field) => {
       const picked = this.body()[field.key];
       return field.kind === 'subcategory' && isSubcategoryReference(picked)
         ? [

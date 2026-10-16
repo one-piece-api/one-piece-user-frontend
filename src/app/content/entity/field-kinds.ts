@@ -10,6 +10,7 @@ import type { EntityField, FieldKindName } from './entity-definition';
 import { isImageDraft, isImageReference } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
 import { newReleaseKey, releasesOf, type ReleaseDraft } from './entity-release';
+import { chapterOf, chapterText } from './entity-story-point';
 import {
   SUBCATEGORY_PARTS,
   isSubcategoryReference,
@@ -249,6 +250,30 @@ const RELEASE_LIST_VALUE = {
 };
 
 /**
+ * A point on the reader's axis: the editor holds the chapter's reference whole, as for a
+ * relation, and the JSON sends `{ chapter: id }` - `null` where none is chosen. A comparison
+ * looks at the chapter's id and shows its number and title (`chapterText`), which the screen
+ * puts after "Cap.".
+ */
+const STORY_POINT_VALUE = {
+  draftValue: chapterOf,
+  savedValue: (draft: unknown) => (isReference(draft) ? { chapter: draft.id } : null),
+  isFilled: (value: unknown) => isReference(value) || chapterOf(value) !== null,
+  diff: <TField>(field: TField, before: unknown, after: unknown) => {
+    const was = chapterOf(before);
+    const is = chapterOf(after);
+    const diff = diffField(field, was?.id, is?.id);
+    return (
+      diff && {
+        ...diff,
+        before: was && chapterText(was, null),
+        after: is && chapterText(is, null),
+      }
+    );
+  },
+};
+
+/**
  * Whether review asks for a field: its kind is one review looks at, and the definition did
  * not mark it `optional` - an optional one is never "missing".
  */
@@ -265,4 +290,5 @@ export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
   subcategoryList: { localized: false, forReview: false, ...SUBCATEGORY_LIST_VALUE },
   subcategory: { localized: false, forReview: false, ...SUBCATEGORY_VALUE },
   releaseList: { localized: false, forReview: false, ...RELEASE_LIST_VALUE },
+  storyPoint: { localized: false, forReview: true, ...STORY_POINT_VALUE },
 };

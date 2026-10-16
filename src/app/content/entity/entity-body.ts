@@ -305,6 +305,14 @@ export function draftFieldKey(definition: EntityDefinition, field: string): stri
   if (sharedFields(definition).some(({ key }) => key === field)) {
     return field;
   }
+  // A story point is refused as a whole or by its chapter: `firstAppearance.chapter`.
+  const storyPoint = /^(\w+)\.chapter$/.exec(field)?.[1];
+  if (
+    storyPoint &&
+    definition.fields.some(({ key, kind }) => key === storyPoint && kind === 'storyPoint')
+  ) {
+    return storyPoint;
+  }
   const keys = localizedFields(definition).map(({ key }) => key);
   const translation = new RegExp(String.raw`^translations\[([^\]]+)\]\.(${keys.join('|')})$`).exec(
     field,

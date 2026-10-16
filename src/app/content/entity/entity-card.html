@@ -86,6 +86,16 @@
                     >{{ relation.emptyKey | transloco }}</span
                   >
                 }
+                @if (relation.episodeSoon) {
+                  <span
+                    class="mt-0.5 flex flex-wrap items-center gap-1.5 font-heading text-xs font-bold text-ocean-500"
+                    >{{ 'content.storyPoint.episode' | transloco }}
+                    <span
+                      class="rounded-md bg-parchment-200 px-1.5 py-px text-[10px] font-extrabold"
+                      >{{ 'content.storyPoint.comingSoon' | transloco }}</span
+                    ></span
+                  >
+                }
               </dd>
             </div>
           }

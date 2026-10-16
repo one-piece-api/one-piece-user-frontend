@@ -120,6 +120,18 @@ export interface ReleaseListField {
   readonly key: string;
 }
 
+/**
+ * A point on the reader's axis (plan timeline, T7): the chapter where the reader first meets
+ * a content, or learns of an event - `{ chapter }` in the JSON. Shared by every language.
+ * The episode is an open door: the editor shows it disabled, "coming soon".
+ */
+export interface StoryPointField {
+  readonly kind: 'storyPoint';
+  readonly key: string;
+  /** Never asked for by review, never "missing" - an extra the content may do without. */
+  readonly optional?: true;
+}
+
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
 export type EntityField =
   | TextField
@@ -129,7 +141,8 @@ export type EntityField =
   | ImageField
   | SubcategoryListField
   | SubcategoryField
-  | ReleaseListField;
+  | ReleaseListField
+  | StoryPointField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -230,6 +243,13 @@ export function subcategoryField(
 
 export function releaseListField(key: string): ReleaseListField {
   return { kind: 'releaseList', key };
+}
+
+export function storyPointField(
+  key: string,
+  options: Omit<StoryPointField, 'kind' | 'key'> = {},
+): StoryPointField {
+  return { kind: 'storyPoint', key, ...options };
 }
 
 export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {

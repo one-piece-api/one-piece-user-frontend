@@ -1,4 +1,5 @@
 import { NOTE, NOTE_IN_FOLDER, NOTE_WITH_PICTURE } from '../../testing/note-entity';
+import { storyPointField } from './entity-definition';
 import {
   imageField,
   localizedTextField,
@@ -70,6 +71,14 @@ describe('the body of any entity', () => {
     expect(draftFieldKey(NOTE, 'code')).toBe('code');
     expect(draftFieldKey(NOTE, 'translations[it].body')).toBe('it.body');
     expect(draftFieldKey(NOTE, 'translations[it].description')).toBeNull();
+  });
+
+  it('reads a story point refused by its chapter as the field itself', () => {
+    const timed = { ...NOTE, fields: [...NOTE.fields, storyPointField('firstAppearance')] };
+
+    expect(draftFieldKey(timed, 'firstAppearance.chapter')).toBe('firstAppearance');
+    expect(draftFieldKey(timed, 'firstAppearance')).toBe('firstAppearance');
+    expect(draftFieldKey(NOTE, 'firstAppearance.chapter')).toBeNull();
   });
 
   it('compares the fields in the order the definition lists them', () => {

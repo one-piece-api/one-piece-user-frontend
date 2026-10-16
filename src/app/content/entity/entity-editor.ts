@@ -44,7 +44,7 @@ import {
   type EntityDraft,
   type TranslationDraft,
 } from './entity-body';
-import type { ImageField, SubcategoryField } from './entity-definition';
+import type { EntityField, ImageField, SubcategoryField } from './entity-definition';
 import { isImageDraft, type ImageDraft } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
 import { COUNTRY_CODES, countryName, newReleaseKey, type ReleaseDraft } from './entity-release';
@@ -53,6 +53,7 @@ import { sentReleaseRows, textOf } from './field-kinds';
 import { ImagePicker } from './image-picker';
 import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
+import { STORY_POINT_TARGET, chapterLabel } from './entity-story-point';
 import {
   newSubcategoryKey,
   subcategoryChoices,
@@ -71,6 +72,17 @@ const SLUG_ALREADY_USED = 'CONTENT_SLUG_ALREADY_USED';
 const VALUE_INVALID = 'CONTENT_VALUE_INVALID';
 const VALIDATION_FAILED = 'VALIDATION_FAILED';
 const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
+
+/**
+ * The section a field's choices are asked of: the content a relation points to, the chapters
+ * for a story point - `null` for any other field, or where the app has no such section.
+ */
+function sourceOf(field: EntityField): string | null {
+  if (field.kind === 'relation') {
+    return entityOf(field.target)?.api ?? null;
+  }
+  return field.kind === 'storyPoint' ? (entityOf(STORY_POINT_TARGET)?.api ?? null) : null;
+}
 
 /** What is said under a relation the backend refused: the content chosen cannot be linked. */
 const RELATION_REFUSED_KEY = 'content.editor.error.notLinkable';
@@ -274,7 +286,7 @@ export class EntityEditor {
             field,
             value: textOf(chosen),
             reference: isReference(chosen) ? chosen : null,
-            source: field.kind === 'relation' ? (entityOf(field.target)?.api ?? null) : null,
+            source: sourceOf(field),
             choices:
               field.kind === 'subcategory'
                 ? subcategoryChoices(draft?.[field.of]).map((choice) => ({
@@ -525,7 +537,11 @@ export class EntityEditor {
     this.forgetRefusal(key);
   }
 
-  /** Chooses the content a relation points to - or none. */
+  /** How the chapter picker of a story point names a chapter: "Cap. 1 — Romance Dawn". */
+  protected readonly chapterPickLabel = (chapter: EntityReference, language: string): string =>
+    chapterLabel((key, params) => this.transloco.translate(key, params), chapter, language);
+
+  /** Chooses the content a relation or a story point points to - or none. */
   protected setRelation(key: string, reference: EntityReference | null): void {
     const before = this.draft()?.[key];
     const changed = (isReference(before) ? before.id : null) !== (reference?.id ?? null);
