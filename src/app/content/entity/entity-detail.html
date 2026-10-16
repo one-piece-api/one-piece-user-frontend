@@ -45,7 +45,9 @@
             <h1 class="mt-px font-display text-[26px] leading-tight font-bold text-ocean-950">
               {{ title() }}
             </h1>
-            <p class="font-heading text-sm font-bold text-ocean-500">{{ naturalKey() }}</p>
+            @if (naturalKey(); as naturalKey) {
+              <p class="font-heading text-sm font-bold text-ocean-500">{{ naturalKey }}</p>
+            }
           </div>
           @if (!loadingShown()) {
             <span class="flex-none"><app-status-badge prominent [status]="version.status" /></span>

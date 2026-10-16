@@ -3,6 +3,7 @@ import {
   NOTE_IN_FOLDER,
   NOTE_ON_TIMELINE,
   NOTE_WITH_PICTURE,
+  NOTE_WITHOUT_KEY,
 } from '../../testing/note-entity';
 import { storyPointField } from './entity-definition';
 import {
@@ -18,6 +19,7 @@ import {
   draftOf,
   isTranslationComplete,
   namesOf,
+  naturalKeyOf,
   readinessChecks,
   toBody,
   uploadOf,
@@ -84,6 +86,17 @@ describe('the body of any entity', () => {
     expect(draftFieldKey(timed, 'firstAppearance.chapter')).toBe('firstAppearance');
     expect(draftFieldKey(timed, 'firstAppearance')).toBe('firstAppearance');
     expect(draftFieldKey(NOTE, 'firstAppearance.chapter')).toBeNull();
+  });
+
+  it('starts and saves a content without a natural key, and names none', () => {
+    const draft = draftOf(NOTE_WITHOUT_KEY, null, ['en']);
+
+    expect(Object.keys(draft)).toEqual(['translations', 'code']);
+    expect(toBody(NOTE_WITHOUT_KEY, draft)).toEqual({
+      code: null,
+      translations: { en: { name: null, body: null } },
+    });
+    expect(naturalKeyOf(NOTE_WITHOUT_KEY, { code: 'N-1', translations: {} })).toBeNull();
   });
 
   it('reads a time refused by its chapter or its world date as the field itself', () => {

@@ -114,7 +114,8 @@ interface RelationChip {
 interface RowView {
   readonly id: string;
   readonly name: string;
-  readonly naturalKey: string;
+  /** `null` for an entity without one. */
+  readonly naturalKey: string | null;
   readonly versionTag: string;
   readonly otherOnlineVersion: number | null;
   readonly status: VersionStatus;
@@ -443,7 +444,10 @@ export class EntityList {
         naturalKey ??
         this.transloco.translate('content.list.unnamed'),
       naturalKey:
-        naturalKey ?? this.transloco.translate(`content.list.${this.entity.naturalKey}Missing`),
+        naturalKey ??
+        (this.entity.naturalKey === undefined
+          ? null
+          : this.transloco.translate(`content.list.${this.entity.naturalKey}Missing`)),
       versionTag: `v${row.versionNumber}`,
       otherOnlineVersion: otherOnlineVersion(row),
       status: row.status,

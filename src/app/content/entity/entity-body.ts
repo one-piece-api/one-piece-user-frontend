@@ -145,7 +145,7 @@ export function naturalKeyOf(
   definition: EntityDefinition,
   body: Readonly<Record<string, unknown>>,
 ): string | null {
-  const value = body[definition.naturalKey];
+  const value = definition.naturalKey === undefined ? null : body[definition.naturalKey];
   return value === null || value === undefined ? null : String(value);
 }
 
@@ -170,7 +170,10 @@ export function draftOf(
   body: EntityBody | null,
   languages: readonly string[],
 ): EntityDraft {
-  const draft: EntityDraft = { [definition.naturalKey]: '', translations: {} };
+  const draft: EntityDraft = {
+    ...(definition.naturalKey === undefined ? {} : { [definition.naturalKey]: '' }),
+    translations: {},
+  };
   for (const field of sharedFields(definition)) {
     draft[field.key] = kindOf(field).draftValue(body?.[field.key]);
   }
@@ -204,7 +207,11 @@ export function toBody(definition: EntityDefinition, draft: EntityDraft): Entity
       ]),
     );
   }
-  return { [definition.naturalKey]: null, ...body, translations };
+  return {
+    ...(definition.naturalKey === undefined ? {} : { [definition.naturalKey]: null }),
+    ...body,
+    translations,
+  };
 }
 
 /** A file saved beside the JSON of a version, in the request part named after its field. */

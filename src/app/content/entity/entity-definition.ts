@@ -201,9 +201,10 @@ export interface EntityDefinition {
   readonly labelField: string;
   /**
    * The key of the field - text or number kind - whose value is unique within the entity and
-   * is the source of its public slug: `romaji` for the Devil Fruit and its type.
+   * is the source of its public slug: `romaji` for the Devil Fruit and its type. Absent for
+   * an entity told apart by its id alone - an event, whose title need not be unique.
    */
-  readonly naturalKey: string;
+  readonly naturalKey?: string;
   /** Its fields, in the order they are read. */
   readonly fields: readonly EntityField[];
   /** Counts of other contents that point to it, as columns of its list. */

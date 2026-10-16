@@ -367,9 +367,10 @@ export class VersionActions {
     // A field shared by every language has words of its own where the catalog has them.
     const shared = `content.workflow.refused.field.${first}`;
     const worded = this.transloco.translate(shared);
-    return worded !== shared
-      ? worded
-      : this.transloco.translate(`content.workflow.refused.field.${entity.naturalKey}`);
+    if (worded !== shared || entity.naturalKey === undefined) {
+      return worded !== shared ? worded : first;
+    }
+    return this.transloco.translate(`content.workflow.refused.field.${entity.naturalKey}`);
   }
 }
 

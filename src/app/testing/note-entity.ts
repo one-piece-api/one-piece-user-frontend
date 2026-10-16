@@ -68,3 +68,10 @@ export const NOTE_ON_TIMELINE: EntityDefinition = {
 
 /** The same note, written in a dialog over the page it is opened from. */
 export const NOTE_IN_DIALOG: EntityDefinition = { ...NOTE, editor: 'dialog' };
+
+/** A note told apart by its id alone: no natural key, as an event. */
+export const NOTE_WITHOUT_KEY: EntityDefinition = {
+  ...NOTE,
+  naturalKey: undefined,
+  fields: NOTE.fields.filter(({ key }) => key !== 'romaji'),
+};

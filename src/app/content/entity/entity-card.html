@@ -20,9 +20,11 @@
           >
             {{ name() ?? (noNameKey | transloco) }}
           </p>
-          <p class="font-heading text-[13px] font-bold text-ocean-500 italic">
-            {{ naturalKey() ?? '—' }}
-          </p>
+          @if (hasNaturalKey) {
+            <p class="font-heading text-[13px] font-bold text-ocean-500 italic">
+              {{ naturalKey() ?? '—' }}
+            </p>
+          }
         </div>
         <div class="flex gap-1.5" role="tablist">
           @for (tab of tabs(); track tab.code) {

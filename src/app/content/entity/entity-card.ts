@@ -117,6 +117,8 @@ export class EntityCard {
   );
   /** What the card says where the language has no name: `content.card.noName`, `noTitle`. */
   protected readonly noNameKey = `content.card.no${this.entity.labelField[0].toUpperCase()}${this.entity.labelField.slice(1)}`;
+  /** Whether the entity has one: an event is told apart by its id alone. */
+  protected readonly hasNaturalKey = this.entity.naturalKey !== undefined;
   /** The natural key: the romaji, or "Chapter 12" for a numbered content. */
   protected readonly naturalKey = computed(() => {
     this.transloco.activeLang();

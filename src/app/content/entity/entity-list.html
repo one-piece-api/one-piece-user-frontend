@@ -165,7 +165,9 @@
               }
             </span>
             <span class="mt-px block truncate font-heading text-xs font-bold text-ocean-500">
-              <span [class]="numbered ? 'sm:hidden' : ''">{{ row.naturalKey }}</span>
+              @if (row.naturalKey !== null) {
+                <span [class]="numbered ? 'sm:hidden' : ''">{{ row.naturalKey }}</span>
+              }
               @for (cell of row.relations; track $index) {
                 @if (cell) {
                   <span class="sm:hidden"> · {{ cell.label }}</span>
