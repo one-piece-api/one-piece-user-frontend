@@ -16,7 +16,7 @@ che le pagine generiche dell'ADR-0003 non sapevano dire:
 ## Decisione
 
 - **Tipo di campo `relation`**, dichiarato come dato: `relationField('type', { target:
-  'DEVIL_FRUIT_TYPE' })`. `target` è il nome dell'entità, risolto con `entityOf` solo quando
+'DEVIL_FRUIT_TYPE' })`. `target` è il nome dell'entità, risolto con `entityOf` solo quando
   serve (rotta della chip, sezione da interrogare): le definizioni non si importano l'una
   con l'altra, perché Frutto verso Tipo e Tipo verso Frutti farebbero un giro.
 - **La bozza tiene il riferimento intero**, così l'editor mostra il Tipo scelto senza una

@@ -15,15 +15,15 @@ npm run build
 
 ## Map (`src/app`)
 
-| Folder | Holds |
-|---|---|
-| `content/entity` | Generic entity pages (ADR-0003): list, detail, editor, card, comparison, `field-kinds.ts`, relation/image pickers, `entity-routes.ts` |
-| `content/entity/entities.ts` | `ENTITIES`: the one switch for an entity's routes, menu entry and dashboard rows |
-| `content/<entity>/<entity>.model.ts` | One `EntityDefinition` per entity: type, natural key, route, API path, i18n prefix, icon, fields, sections |
-| `content/dashboard`, `content/block-words.ts` | Dashboard per status; wording of each backend `BlockReason` |
-| `shared/{ui,nav,mascot,i18n,http}` | Components, sidebar registry (`nav-items.ts`), Lumacofono, Transloco setup |
-| `identity`, `admin`, `config` | Current user and permissions, user/role admin, runtime config |
-| `public/i18n/{it,en}.json` | Translations: every key in both files |
+| Folder                                        | Holds                                                                                                                                 |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `content/entity`                              | Generic entity pages (ADR-0003): list, detail, editor, card, comparison, `field-kinds.ts`, relation/image pickers, `entity-routes.ts` |
+| `content/entity/entities.ts`                  | `ENTITIES`: the one switch for an entity's routes, menu entry and dashboard rows                                                      |
+| `content/<entity>/<entity>.model.ts`          | One `EntityDefinition` per entity: type, natural key, route, API path, i18n prefix, icon, fields, sections                            |
+| `content/dashboard`, `content/block-words.ts` | Dashboard per status; wording of each backend `BlockReason`                                                                           |
+| `shared/{ui,nav,mascot,i18n,http}`            | Components, sidebar registry (`nav-items.ts`), Lumacofono, Transloco setup                                                            |
+| `identity`, `admin`, `config`                 | Current user and permissions, user/role admin, runtime config                                                                         |
+| `public/i18n/{it,en}.json`                    | Translations: every key in both files                                                                                                 |
 
 ## Key ideas (ADRs in `docs/adr/`)
 

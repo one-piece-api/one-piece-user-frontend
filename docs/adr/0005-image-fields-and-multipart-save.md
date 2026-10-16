@@ -14,7 +14,7 @@ Finora ogni campo aveva un valore che finiva nel JSON: l'immagine no.
 
 - **Quarto tipo di campo, `image`**, con il suo profilo come dato:
   `imageField('image', { width, height, ratioTolerance, maxBytes, maxPixels,
-  minTransparentPercent })`, come `maxLength` per i testi. Un'entità futura avrà il suo.
+minTransparentPercent })`, come `maxLength` per i testi. Un'entità futura avrà il suo.
 - **Nella bozza** il valore è `{ saved }` (l'immagine salvata), `{ chosen: File, preview }` (un
   file scelto, mostrato da un object URL) o `null`. L'intenzione si ricava confrontando la bozza
   con la versione da cui è partita, in un solo punto, `uploadOf`: file scelto → parte `image`;
@@ -32,7 +32,7 @@ Finora ogni campo aveva un valore che finiva nel JSON: l'immagine no.
   rifiutato non entra nella bozza. Un salvataggio fallito lascia il file nella bozza per
   riprovare. Gli object URL si rilasciano quando il file cambia e quando si esce.
 - **Scheda e confronto** (`EntityImageFrame`): un `<img>` sull'URL del backend (stessa origine,
-  cookie di sessione, cache `immutable`), con il segnaposto "Immagine di *nome*" se manca o non
+  cookie di sessione, cache `immutable`), con il segnaposto "Immagine di _nome_" se manca o non
   si carica. Nel confronto le due immagini affiancate; cambiata o no si decide per id.
 
 ## Alternative scartate
