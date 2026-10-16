@@ -243,3 +243,46 @@ describe('which fields review asks for', () => {
     expect(FIELD_KINDS.relation.diff('f', null, arc)).toMatchObject({ after: '0' });
   });
 });
+
+describe('the storyPoint field kind', () => {
+  const strategy = FIELD_KINDS.storyPoint;
+  const chapter: EntityReference = { id: 'c1', number: 1, names: { en: 'Romance Dawn' } };
+  const other: EntityReference = { id: 'c2', number: 2, names: { en: 'They Call Him' } };
+
+  it('gives the editor the chapter of the API value, null for none', () => {
+    expect(strategy.draftValue({ chapter })).toBe(chapter);
+    expect(strategy.draftValue(null)).toBeNull();
+    expect(strategy.draftValue({})).toBeNull();
+  });
+
+  it('saves the chapter as its id, and no chapter as null', () => {
+    expect(strategy.savedValue(chapter)).toEqual({ chapter: 'c1' });
+    expect(strategy.savedValue(null)).toBeNull();
+  });
+
+  it('counts as filled with a chapter, held by the editor or read from the API', () => {
+    expect(strategy.isFilled(chapter)).toBe(true);
+    expect(strategy.isFilled({ chapter })).toBe(true);
+    expect(strategy.isFilled(null)).toBe(false);
+  });
+
+  it('is kept on the version and asked for by review unless marked optional', () => {
+    expect(strategy.localized).toBe(false);
+    expect(isAskedByReview({ kind: 'storyPoint', key: 'firstAppearance' })).toBe(true);
+    expect(isAskedByReview({ kind: 'storyPoint', key: 'revealedAt', optional: true })).toBe(false);
+  });
+
+  it('compares the chapters by id, showing their number and title', () => {
+    expect(strategy.diff('f', { chapter }, { chapter: other })).toEqual({
+      field: 'f',
+      before: '1 — Romance Dawn',
+      after: '2 — They Call Him',
+      change: 'MODIFIED',
+    });
+    expect(strategy.diff('f', null, { chapter })?.change).toBe('ADDED');
+    expect(strategy.diff('f', { chapter }, { chapter: { ...chapter, names: {} } })?.change).toBe(
+      'UNCHANGED',
+    );
+    expect(strategy.diff('f', null, {})).toBeNull();
+  });
+});
