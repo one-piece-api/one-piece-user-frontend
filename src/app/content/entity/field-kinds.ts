@@ -170,6 +170,46 @@ const STORY_POINT_VALUE = {
   },
 };
 
+/** The references a relation list holds - read from the API or held by the editor - in order. */
+export function referencesOf(value: unknown, part?: string): EntityReference[] {
+  const list = Array.isArray(value)
+    ? value
+    : part
+      ? (value as Record<string, unknown> | null)?.[part]
+      : null;
+  return Array.isArray(list) ? list.filter(isReference) : [];
+}
+
+/** What a reference is called in a comparison, not tied to a language: its romaji or number. */
+function comparedReferenceLabel(reference: EntityReference): string {
+  return (
+    reference.romaji ??
+    (typeof reference.number === 'number' ? String(reference.number) : null) ??
+    Object.values(reference.names).find(Boolean) ??
+    reference.id
+  );
+}
+
+/**
+ * Several contents pointed to at once: the editor holds the references chosen, the JSON
+ * their ids under the field's `part`. A comparison looks at who is in it, whatever the order.
+ */
+function relationListValue(part: string): FieldKind {
+  const compared = (value: unknown) =>
+    referencesOf(value, part)
+      .map(comparedReferenceLabel)
+      .sort((a, b) => a.localeCompare(b))
+      .join(', ');
+  return {
+    localized: false,
+    forReview: false,
+    draftValue: (saved) => referencesOf(saved, part),
+    savedValue: (draft) => ({ [part]: referencesOf(draft).map(({ id }) => id) }),
+    isFilled: (value) => referencesOf(value, part).length > 0,
+    diff: (field, before, after) => diffField(field, compared(before), compared(after)),
+  };
+}
+
 /**
  * When an event happens or ends: the editor holds the mode picked with what each mode was
  * given (`EventTimeDraft`), the JSON the chapter's id or the world date of the mode picked.
@@ -299,10 +339,18 @@ const RELEASE_LIST_VALUE = {
  * not mark it `optional` - an optional one is never "missing".
  */
 export function isAskedByReview(field: EntityField): boolean {
-  return FIELD_KINDS[field.kind].forReview && !('optional' in field && field.optional);
+  return kindOf(field).forReview && !('optional' in field && field.optional);
 }
 
-export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
+/**
+ * The kind of a field: one per kind name, but a relation list's depends on the group it is
+ * saved under (`devilFruits`), so it is made from the field.
+ */
+export function kindOf(field: EntityField): FieldKind {
+  return field.kind === 'relationList' ? relationListValue(field.part) : FIELD_KINDS[field.kind];
+}
+
+export const FIELD_KINDS: Record<Exclude<FieldKindName, 'relationList'>, FieldKind> = {
   text: { localized: false, forReview: true, ...TEXT_VALUE },
   number: { localized: false, forReview: true, ...NUMBER_VALUE },
   localizedText: { localized: true, forReview: true, ...TEXT_VALUE },

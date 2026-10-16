@@ -17,7 +17,7 @@ import {
   subcategoryLabel,
   subcategoryText,
 } from './entity-subcategory';
-import { textOf } from './field-kinds';
+import { referencesOf, textOf } from './field-kinds';
 
 /** One language tab of the card. */
 interface LanguageTab {
@@ -71,6 +71,12 @@ interface RelationChip {
   readonly link: readonly string[];
   /** A story point: the episode beside the chapter is not built yet, "coming soon". */
   readonly episodeSoon?: true;
+  /** A relation list: every content chosen, each a link - empty for none. */
+  readonly items?: readonly {
+    readonly id: string;
+    readonly label: string;
+    readonly link: readonly string[];
+  }[];
 }
 
 /**
@@ -194,6 +200,24 @@ export class EntityCard {
                 )
               : date && this.worldDateLabel(date),
             link: chapter && target ? [target.route, chapter.id] : [],
+          },
+        ];
+      }
+      if (field.kind === 'relationList') {
+        const target = entityOf(field.target);
+        const chosen = referencesOf(this.body()[field.key], field.part);
+        return [
+          {
+            field: field.key,
+            headingKey: `content.card.heading.${field.key}`,
+            emptyKey: `content.card.no${name}`,
+            label: null,
+            link: [],
+            items: chosen.map((reference) => ({
+              id: reference.id,
+              label: referenceLabel(reference, language),
+              link: target ? [target.route, reference.id] : [],
+            })),
           },
         ];
       }

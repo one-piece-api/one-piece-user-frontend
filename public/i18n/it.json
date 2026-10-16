@@ -1054,6 +1054,9 @@
         "error": "Ricerca non riuscita, riprova",
         "empty": "Nessun risultato"
       },
+      "relationList": {
+        "remove": "Togli {{name}}"
+      },
       "notLinkableMessage": "Arrr! Il Tipo scelto non si può collegare: serve un Tipo già approvato in revisione.",
       "imageRefusedMessage": "Arrr! L'immagine non va bene: il motivo è scritto sotto l'immagine.",
       "subcategoryRefusedMessage": "Arrr! Qualche sottocategoria non va: il motivo è scritto sotto.",

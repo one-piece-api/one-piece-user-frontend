@@ -14,7 +14,7 @@ import {
   type SavedSubcategory,
   type SubcategoryPart,
 } from './entity-subcategory';
-import { FIELD_KINDS, isAskedByReview } from './field-kinds';
+import { FIELD_KINDS, isAskedByReview, kindOf } from './field-kinds';
 
 /** What a version says in one language, by field key. */
 export type Translation = Record<string, unknown>;
@@ -64,10 +64,6 @@ export interface FieldEntry {
 /** One thing a version needs before it can go to review, and whether the draft has it. */
 export interface ReadinessCheck extends EntityFieldRef {
   readonly done: boolean;
-}
-
-function kindOf(field: EntityField) {
-  return FIELD_KINDS[field.kind];
 }
 
 /** The fields written once on the version, such as the natural key. */
@@ -319,6 +315,16 @@ export function draftFieldKey(definition: EntityDefinition, field: string): stri
   }
   if (sharedFields(definition).some(({ key }) => key === field)) {
     return field;
+  }
+  // A relation list is refused by its group, or by one of its entries: `participants.devilFruits[0]`.
+  const [, list, group] = /^(\w+)\.(\w+)(?:\[\d+\])?$/.exec(field) ?? [];
+  if (
+    definition.fields.some(
+      (candidate) =>
+        candidate.kind === 'relationList' && candidate.key === list && candidate.part === group,
+    )
+  ) {
+    return list;
   }
   // A story point is refused as a whole or by its chapter: `firstAppearance.chapter`; a time
   // by its chapter or its world date too: `occursAt.worldDate.yearTo`.

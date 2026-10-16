@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
-import { NOTE, NOTE_WITHOUT_KEY } from '../../testing/note-entity';
+import { NOTE, NOTE_WITH_PARTICIPANTS, NOTE_WITHOUT_KEY } from '../../testing/note-entity';
 import { ENTITY } from './entities';
 import type { EntityDefinition } from './entity-definition';
 import { EntityCard } from './entity-card';
@@ -35,5 +35,32 @@ describe('the card of any entity', () => {
 
     expect(card.querySelector('[data-testid="card-name"]')?.textContent?.trim()).toBe('Reverie');
     expect(card.querySelector('[data-testid="card-name"]')?.nextElementSibling).toBeNull();
+  });
+
+  it('shows every content of a list, each a link to its page', () => {
+    const card = render(NOTE_WITH_PARTICIPANTS, {
+      participants: {
+        devilFruits: [
+          { id: 'f1', romaji: 'Gomu Gomu no Mi', names: {} },
+          { id: 'f2', romaji: 'Mera Mera no Mi', names: {} },
+        ],
+      },
+    });
+
+    const links = Array.from(
+      card.querySelectorAll<HTMLAnchorElement>('[data-testid="card-participants"] a'),
+    );
+    expect(links.map((link) => link.textContent?.trim())).toEqual([
+      'Gomu Gomu no Mi',
+      'Mera Mera no Mi',
+    ]);
+    expect(links[0].getAttribute('href')).toBe('/content/devil-fruits/f1');
+  });
+
+  it('says so where the list has no content', () => {
+    const card = render(NOTE_WITH_PARTICIPANTS, { participants: { devilFruits: [] } });
+
+    expect(card.querySelector('[data-testid="card-participants"] a')).toBeNull();
+    expect(card.textContent).toContain('content.card.noParticipants');
   });
 });

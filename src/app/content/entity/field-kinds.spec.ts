@@ -1,5 +1,5 @@
 import type { EntityReference } from './entity-reference';
-import { FIELD_KINDS, isAskedByReview } from './field-kinds';
+import { FIELD_KINDS, isAskedByReview, kindOf } from './field-kinds';
 
 describe.each(['text', 'localizedText'] as const)('the %s field kind', (kind) => {
   const strategy = FIELD_KINDS[kind];
@@ -284,5 +284,46 @@ describe('the storyPoint field kind', () => {
       'UNCHANGED',
     );
     expect(strategy.diff('f', null, {})).toBeNull();
+  });
+});
+
+describe('the relationList field kind', () => {
+  const strategy = kindOf({
+    kind: 'relationList',
+    key: 'participants',
+    part: 'devilFruits',
+    target: 'DEVIL_FRUIT',
+  });
+  const gomu: EntityReference = { id: 'f1', romaji: 'Gomu Gomu no Mi', names: {} };
+  const mera: EntityReference = { id: 'f2', romaji: 'Mera Mera no Mi', names: {} };
+
+  it('holds the references of the part in the editor, and none for a value never written', () => {
+    expect(strategy.draftValue({ devilFruits: [gomu, mera] })).toEqual([gomu, mera]);
+    expect(strategy.draftValue(undefined)).toEqual([]);
+    expect(strategy.draftValue({ devilFruits: ['f1'] })).toEqual([]);
+  });
+
+  it('saves the ids under the part, an empty list for none', () => {
+    expect(strategy.savedValue([gomu, mera])).toEqual({ devilFruits: ['f1', 'f2'] });
+    expect(strategy.savedValue([])).toEqual({ devilFruits: [] });
+  });
+
+  it('counts as filled with one content at least, and is not asked by review', () => {
+    expect(strategy.isFilled([gomu])).toBe(true);
+    expect(strategy.isFilled([])).toBe(false);
+    expect(strategy.forReview).toBe(false);
+  });
+
+  it('compares the contents whatever their order', () => {
+    expect(
+      strategy.diff('participants', { devilFruits: [gomu, mera] }, { devilFruits: [mera, gomu] }),
+    ).toMatchObject({ change: 'UNCHANGED' });
+    expect(
+      strategy.diff('participants', { devilFruits: [gomu] }, { devilFruits: [gomu, mera] }),
+    ).toMatchObject({
+      change: 'MODIFIED',
+      before: 'Gomu Gomu no Mi',
+      after: 'Gomu Gomu no Mi, Mera Mera no Mi',
+    });
   });
 });

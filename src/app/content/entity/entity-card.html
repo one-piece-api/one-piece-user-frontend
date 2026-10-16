@@ -66,7 +66,28 @@
                 {{ relation.headingKey | transloco }}
               </dt>
               <dd>
-                @if (relation.label; as label) {
+                @if (relation.items?.length) {
+                  <ul
+                    class="flex flex-wrap gap-x-2 gap-y-0.5"
+                    [attr.data-testid]="'card-' + relation.field"
+                  >
+                    @for (item of relation.items; track item.id) {
+                      <li>
+                        @if (item.link.length) {
+                          <a
+                            [routerLink]="item.link"
+                            class="font-heading text-[15px] font-extrabold wrap-anywhere text-ocean-700 hover:text-ocean-800"
+                            >{{ item.label }}</a
+                          >
+                        } @else {
+                          <span class="font-heading text-[15px] font-extrabold text-ocean-950">{{
+                            item.label
+                          }}</span>
+                        }
+                      </li>
+                    }
+                  </ul>
+                } @else if (relation.label; as label) {
                   @if (relation.link.length) {
                     <a
                       [routerLink]="relation.link"

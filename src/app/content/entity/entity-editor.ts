@@ -47,10 +47,10 @@ import {
 } from './entity-body';
 import type { EntityField, ImageField, SubcategoryField } from './entity-definition';
 import { isImageDraft, type ImageDraft } from './entity-image';
-import { isReference, type EntityReference } from './entity-reference';
+import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 import { COUNTRY_CODES, countryName, newReleaseKey, type ReleaseDraft } from './entity-release';
 import { isNumbered, untitledOf } from './entity-title';
-import { sentReleaseRows, textOf } from './field-kinds';
+import { referencesOf, sentReleaseRows, textOf } from './field-kinds';
 import { ImagePicker } from './image-picker';
 import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
@@ -90,7 +90,7 @@ const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
  * for a story point - `null` for any other field, or where the app has no such section.
  */
 function sourceOf(field: EntityField): string | null {
-  if (field.kind === 'relation') {
+  if (field.kind === 'relation' || field.kind === 'relationList') {
     return entityOf(field.target)?.api ?? null;
   }
   return field.kind === 'storyPoint' || field.kind === 'eventTime'
@@ -331,6 +331,13 @@ export class EntityEditor {
                 : [],
             error: this.refusedFields()[field.key] ?? null,
             time: field.kind === 'eventTime' ? this.timeView(field.key, draft) : null,
+            chosen:
+              field.kind === 'relationList'
+                ? referencesOf(chosen).map((reference) => ({
+                    reference,
+                    label: referenceLabel(reference, language),
+                  }))
+                : [],
           };
         })
         // A subcategory is offered only when the content chosen has some.
@@ -632,6 +639,31 @@ export class EntityEditor {
         [key]: { ...(isEventTimeDraft(time) ? time : EMPTY_EVENT_TIME), ...change },
       };
     });
+    this.forgetRefusal(key);
+  }
+
+  /** Adds a content to a relation list - once: one chosen twice is still there once. */
+  protected addToList(key: string, reference: EntityReference | null): void {
+    if (!reference) {
+      return;
+    }
+    this.draft.update((draft) => {
+      const chosen = referencesOf(draft?.[key]);
+      return draft && chosen.every(({ id }) => id !== reference.id)
+        ? { ...draft, [key]: [...chosen, reference] }
+        : draft;
+    });
+    this.forgetRefusal(key);
+  }
+
+  protected removeFromList(key: string, id: string): void {
+    this.draft.update(
+      (draft) =>
+        draft && {
+          ...draft,
+          [key]: referencesOf(draft[key]).filter((reference) => reference.id !== id),
+        },
+    );
     this.forgetRefusal(key);
   }
 
@@ -951,7 +983,7 @@ export class EntityEditor {
    */
   private invalidValueKey(key: string): string | null {
     const field = this.entity.fields.find((candidate) => candidate.key === key);
-    if (field?.kind === 'relation') {
+    if (field?.kind === 'relation' || field?.kind === 'relationList') {
       return RELATION_REFUSED_KEY;
     }
     if (field?.kind === 'subcategory') {

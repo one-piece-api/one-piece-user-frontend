@@ -133,6 +133,18 @@ export interface StoryPointField {
 }
 
 /**
+ * Several contents pointed to at once - the fruits taking part in an event - grouped in the
+ * JSON under `part`: `{ devilFruits: [id…] }`, read back as references. Shared by every
+ * language; `target` is looked up in the registry, as for a relation.
+ */
+export interface RelationListField {
+  readonly kind: 'relationList';
+  readonly key: string;
+  readonly part: string;
+  readonly target: string;
+}
+
+/**
  * A point on the world's axis (plan timeline, T3-T4): when an event happens or ends - a
  * chapter, in the story, or a world date, before it. Shared by every language.
  */
@@ -156,7 +168,8 @@ export type EntityField =
   | SubcategoryField
   | ReleaseListField
   | StoryPointField
-  | EventTimeField;
+  | EventTimeField
+  | RelationListField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -270,6 +283,13 @@ export function storyPointField(
   options: Omit<StoryPointField, 'kind' | 'key'> = {},
 ): StoryPointField {
   return { kind: 'storyPoint', key, ...options };
+}
+
+export function relationListField(
+  key: string,
+  options: Omit<RelationListField, 'kind' | 'key'>,
+): RelationListField {
+  return { kind: 'relationList', key, ...options };
 }
 
 export function eventTimeField(

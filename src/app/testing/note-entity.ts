@@ -3,6 +3,7 @@ import {
   imageField,
   localizedTextField,
   relationField,
+  relationListField,
   textField,
   type EntityDefinition,
 } from '../content/entity/entity-definition';
@@ -74,4 +75,13 @@ export const NOTE_WITHOUT_KEY: EntityDefinition = {
   ...NOTE,
   naturalKey: undefined,
   fields: NOTE.fields.filter(({ key }) => key !== 'romaji'),
+};
+
+/** A note with the Devil Fruits it is about: a list of contents, sent as `{ devilFruits: [ids] }`. */
+export const NOTE_WITH_PARTICIPANTS: EntityDefinition = {
+  ...NOTE,
+  fields: [
+    ...NOTE.fields,
+    relationListField('participants', { part: 'devilFruits', target: 'DEVIL_FRUIT' }),
+  ],
 };

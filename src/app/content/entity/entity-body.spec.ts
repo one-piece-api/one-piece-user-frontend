@@ -2,6 +2,7 @@ import {
   NOTE,
   NOTE_IN_FOLDER,
   NOTE_ON_TIMELINE,
+  NOTE_WITH_PARTICIPANTS,
   NOTE_WITH_PICTURE,
   NOTE_WITHOUT_KEY,
 } from '../../testing/note-entity';
@@ -86,6 +87,14 @@ describe('the body of any entity', () => {
     expect(draftFieldKey(timed, 'firstAppearance.chapter')).toBe('firstAppearance');
     expect(draftFieldKey(timed, 'firstAppearance')).toBe('firstAppearance');
     expect(draftFieldKey(NOTE, 'firstAppearance.chapter')).toBeNull();
+  });
+
+  it('reads a list of contents refused as a whole or by one of them as the field itself', () => {
+    expect(draftFieldKey(NOTE_WITH_PARTICIPANTS, 'participants.devilFruits')).toBe('participants');
+    expect(draftFieldKey(NOTE_WITH_PARTICIPANTS, 'participants.devilFruits[1]')).toBe(
+      'participants',
+    );
+    expect(draftFieldKey(NOTE, 'participants.devilFruits')).toBeNull();
   });
 
   it('starts and saves a content without a natural key, and names none', () => {

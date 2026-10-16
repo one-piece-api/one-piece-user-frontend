@@ -1054,6 +1054,9 @@
         "error": "Search failed, try again",
         "empty": "No results"
       },
+      "relationList": {
+        "remove": "Remove {{name}}"
+      },
       "notLinkableMessage": "Arrr! The chosen type cannot be linked: it must be a type that has passed review.",
       "imageRefusedMessage": "Arrr! The image won't do: the reason is written under it.",
       "subcategoryRefusedMessage": "Arrr! Some subcategory is off course: the reason is written below it.",

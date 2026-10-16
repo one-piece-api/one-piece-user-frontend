@@ -168,6 +168,8 @@ export class RelationPicker {
       }
       case 'Escape':
         if (this.open()) {
+          // Inside a dialog, ESC closes the list, not the dialog around it.
+          event.preventDefault();
           event.stopPropagation();
           this.closeList();
         }
