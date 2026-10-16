@@ -10,6 +10,12 @@ import type { EntityField, FieldKindName } from './entity-definition';
 import { isImageDraft, isImageReference } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
 import { newReleaseKey, releasesOf, type ReleaseDraft } from './entity-release';
+import {
+  eventTimeDraftOf,
+  eventTimeSaved,
+  eventTimeText,
+  isEventTimeFilled,
+} from './entity-event-time';
 import { chapterOf, chapterText } from './entity-story-point';
 import {
   SUBCATEGORY_PARTS,
@@ -165,6 +171,19 @@ const STORY_POINT_VALUE = {
 };
 
 /**
+ * When an event happens or ends: the editor holds the mode picked with what each mode was
+ * given (`EventTimeDraft`), the JSON the chapter's id or the world date of the mode picked.
+ * A comparison looks at the labels, "908 — Reverie" or "c. 700–800".
+ */
+const EVENT_TIME_VALUE = {
+  draftValue: eventTimeDraftOf,
+  savedValue: eventTimeSaved,
+  isFilled: isEventTimeFilled,
+  diff: <TField>(field: TField, before: unknown, after: unknown) =>
+    diffField(field, eventTimeText(before), eventTimeText(after)),
+};
+
+/**
  * The subcategories a content defines: the editor holds each with a key of its own, the JSON
  * sends each with its id - left out for one just added, the backend gives it - and its texts,
  * trimmed, `null` where nothing was written. Not a value review asks for as a whole: each name
@@ -293,4 +312,5 @@ export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
   subcategory: { localized: false, forReview: false, ...SUBCATEGORY_VALUE },
   releaseList: { localized: false, forReview: false, ...RELEASE_LIST_VALUE },
   storyPoint: { localized: false, forReview: true, ...STORY_POINT_VALUE },
+  eventTime: { localized: false, forReview: true, ...EVENT_TIME_VALUE },
 };

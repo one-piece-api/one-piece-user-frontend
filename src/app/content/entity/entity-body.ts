@@ -313,13 +313,12 @@ export function draftFieldKey(definition: EntityDefinition, field: string): stri
   if (sharedFields(definition).some(({ key }) => key === field)) {
     return field;
   }
-  // A story point is refused as a whole or by its chapter: `firstAppearance.chapter`.
-  const storyPoint = /^(\w+)\.chapter$/.exec(field)?.[1];
-  if (
-    storyPoint &&
-    definition.fields.some(({ key, kind }) => key === storyPoint && kind === 'storyPoint')
-  ) {
-    return storyPoint;
+  // A story point is refused as a whole or by its chapter: `firstAppearance.chapter`; a time
+  // by its chapter or its world date too: `occursAt.worldDate.yearTo`.
+  const [, point, part] = /^(\w+)\.(chapter|worldDate(?:\.year(?:From|To))?)$/.exec(field) ?? [];
+  const kind = definition.fields.find(({ key }) => key === point)?.kind;
+  if (kind === 'eventTime' || (kind === 'storyPoint' && part === 'chapter')) {
+    return point;
   }
   const keys = localizedFields(definition).map(({ key }) => key);
   const translation = new RegExp(String.raw`^translations\[([^\]]+)\]\.(${keys.join('|')})$`).exec(

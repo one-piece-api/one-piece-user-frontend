@@ -55,6 +55,17 @@ import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
 import { STORY_POINT_TARGET, chapterLabel } from './entity-story-point';
 import {
+  EMPTY_EVENT_TIME,
+  eventTimeProblem,
+  eventTimeRefusal,
+  isEventTimeDraft,
+  worldDateOfDraft,
+  worldDateText,
+  yearsBeforeStory,
+  type EventTimeDraft,
+  type EventTimeMode,
+} from './entity-event-time';
+import {
   newSubcategoryKey,
   subcategoryChoices,
   subcategoryLabel,
@@ -81,7 +92,9 @@ function sourceOf(field: EntityField): string | null {
   if (field.kind === 'relation') {
     return entityOf(field.target)?.api ?? null;
   }
-  return field.kind === 'storyPoint' ? (entityOf(STORY_POINT_TARGET)?.api ?? null) : null;
+  return field.kind === 'storyPoint' || field.kind === 'eventTime'
+    ? (entityOf(STORY_POINT_TARGET)?.api ?? null)
+    : null;
 }
 
 /** What is said under a relation the backend refused: the content chosen cannot be linked. */
@@ -113,6 +126,15 @@ const SUBCATEGORY_REFUSED_KEY = {
 };
 const SUBCATEGORY_REFUSED_MESSAGE_KEY = 'content.editor.subcategoryRefusedMessage';
 
+/** What is said under a time the backend refused, by what is wrong, and the Lumacofono's word. */
+const EVENT_TIME_REFUSED_KEY: Record<string, string> = {
+  afterStoryStart: 'content.editor.error.eventTime.afterStoryStart',
+  yearsOutOfOrder: 'content.editor.error.eventTime.yearsOutOfOrder',
+  beforeStart: 'content.editor.error.eventTime.beforeStart',
+  notLinkable: RELATION_REFUSED_KEY,
+};
+const EVENT_TIME_REFUSED_MESSAGE_KEY = 'content.editor.eventTimeRefusedMessage';
+
 /** What the Lumacofono says for each of the specific texts above. */
 const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
   [RELATION_REFUSED_KEY]: RELATION_REFUSED_MESSAGE_KEY,
@@ -122,6 +144,9 @@ const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
   ...Object.fromEntries(
     Object.values(SUBCATEGORY_REFUSED_KEY).map((text) => [text, SUBCATEGORY_REFUSED_MESSAGE_KEY]),
   ),
+  [EVENT_TIME_REFUSED_KEY['afterStoryStart']]: EVENT_TIME_REFUSED_MESSAGE_KEY,
+  [EVENT_TIME_REFUSED_KEY['yearsOutOfOrder']]: EVENT_TIME_REFUSED_MESSAGE_KEY,
+  [EVENT_TIME_REFUSED_KEY['beforeStart']]: EVENT_TIME_REFUSED_MESSAGE_KEY,
 };
 
 /** What the Lumacofono says when the image was refused - the reason is under the image. */
@@ -295,6 +320,7 @@ export class EntityEditor {
                   }))
                 : [],
             error: this.refusedFields()[field.key] ?? null,
+            time: field.kind === 'eventTime' ? this.timeView(field.key, draft) : null,
           };
         })
         // A subcategory is offered only when the content chosen has some.
@@ -536,6 +562,66 @@ export class EntityEditor {
   /** Writes a field shared by every language. */
   protected setShared(key: string, value: string): void {
     this.draft.update((draft) => draft && { ...draft, [key]: value });
+    this.forgetRefusal(key);
+  }
+
+  /**
+   * A time as the editor shows it: the mode, what each mode holds, the date "c. 700–800" with
+   * how long before the story it is, and what is wrong before the backend is asked.
+   */
+  private timeView(key: string, draft: EntityDraft | null) {
+    const field = this.entity.fields.find((candidate) => candidate.key === key);
+    const value = draft?.[key];
+    const time = isEventTimeDraft(value) ? value : EMPTY_EVENT_TIME;
+    const date = time.mode === 'year' ? worldDateOfDraft(time) : null;
+    const start =
+      field?.kind === 'eventTime' && field.notBefore ? draft?.[field.notBefore] : undefined;
+    const problem = eventTimeProblem(time, start);
+    const years = date && yearsBeforeStory(date);
+    return {
+      ...time,
+      date: date && worldDateText(date),
+      yearsBefore:
+        years &&
+        this.transloco.translate(
+          `content.eventTime.${time.approximate ? 'yearsBeforeApproximate' : 'yearsBefore'}`,
+          { years },
+        ),
+      problem: problem && this.transloco.translate(`content.editor.error.eventTime.${problem}`),
+    };
+  }
+
+  protected readonly eventTimeModes: readonly EventTimeMode[] = ['chapter', 'year'];
+  protected readonly yearParts = ['yearFrom', 'yearTo'] as const;
+
+  /** Switches a time between a chapter and a year before the story, keeping what each holds. */
+  protected setEventTimeMode(key: string, mode: EventTimeMode): void {
+    this.updateEventTime(key, { mode });
+  }
+
+  protected setEventTimeChapter(key: string, chapter: EntityReference | null): void {
+    this.updateEventTime(key, { chapter });
+  }
+
+  protected setEventTimeYear(key: string, part: 'yearFrom' | 'yearTo', year: string): void {
+    this.updateEventTime(key, { [part]: year });
+  }
+
+  protected setEventTimeApproximate(key: string, approximate: boolean): void {
+    this.updateEventTime(key, { approximate });
+  }
+
+  private updateEventTime(key: string, change: Partial<EventTimeDraft>): void {
+    this.draft.update((draft) => {
+      if (!draft) {
+        return draft;
+      }
+      const time = draft[key];
+      return {
+        ...draft,
+        [key]: { ...(isEventTimeDraft(time) ? time : EMPTY_EVENT_TIME), ...change },
+      };
+    });
     this.forgetRefusal(key);
   }
 
@@ -798,7 +884,7 @@ export class EntityEditor {
           const key = draft ? this.releaseRowOf(named, draft) : named;
           // A number, a release, a relation or a subcategory is refused for being invalid:
           // not for a slug, which says the same code.
-          const specific = this.specificRefusalKey(key, errorCode);
+          const specific = this.specificRefusalKey(key, errorCode, violation.field);
           if (specific) {
             refusedTexts.push(specific);
           }
@@ -824,10 +910,18 @@ export class EntityEditor {
   /**
    * What is said under a field the backend refused for what it is, not for its code's general
    * meaning: a number that is not one, a release that is no country or has no day, or - when
-   * invalid - a relation or subcategory (`invalidValueKey`). `null` for any other field.
+   * invalid - a relation or subcategory (`invalidValueKey`), or a time, by the part of it the
+   * backend names (`path`). `null` for any other field.
    */
-  private specificRefusalKey(key: string, errorCode: string): string | null {
+  private specificRefusalKey(key: string, errorCode: string, path: string): string | null {
     const field = this.entity.fields.find((candidate) => candidate.key === key);
+    if (field?.kind === 'eventTime') {
+      const refusal = eventTimeRefusal(path, key);
+      // Named whole, a time is refused as invalid for its order, or as malformed otherwise.
+      return refusal && (refusal !== 'beforeStart' || errorCode === VALUE_INVALID)
+        ? EVENT_TIME_REFUSED_KEY[refusal]
+        : null;
+    }
     if (field?.kind === 'number' && errorCode !== VALUE_ALREADY_USED) {
       return NUMBER_REFUSED_KEY;
     }

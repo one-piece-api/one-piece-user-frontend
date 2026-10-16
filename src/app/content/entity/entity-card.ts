@@ -9,6 +9,7 @@ import { isImageReference } from './entity-image';
 import { isReference, referenceLabel } from './entity-reference';
 import { countryName, releaseDateLabel, releasesInOrder } from './entity-release';
 import { STORY_POINT_TARGET, chapterLabel, chapterOf } from './entity-story-point';
+import { worldDateOf, worldDateText, yearsBeforeStory, type WorldDate } from './entity-event-time';
 import { untitledOf } from './entity-title';
 import {
   isSubcategoryReference,
@@ -173,6 +174,27 @@ export class EntityCard {
           },
         ];
       }
+      if (field.kind === 'eventTime') {
+        const value = this.body()[field.key];
+        const chapter = chapterOf(value);
+        const date = worldDateOf(value);
+        const target = entityOf(STORY_POINT_TARGET);
+        return [
+          {
+            field: field.key,
+            headingKey: `content.card.heading.${field.key}`,
+            emptyKey: `content.card.no${name}`,
+            label: chapter
+              ? chapterLabel(
+                  (key, params) => this.transloco.translate(key, params),
+                  chapter,
+                  language,
+                )
+              : date && this.worldDateLabel(date),
+            link: chapter && target ? [target.route, chapter.id] : [],
+          },
+        ];
+      }
       if (field.kind !== 'relation') {
         return [];
       }
@@ -189,6 +211,18 @@ export class EntityCard {
       ];
     });
   });
+
+  /** A world date with how long before the story it is: "c. 1500 · 22 years before the story begins". */
+  private worldDateLabel(date: WorldDate): string {
+    const years = yearsBeforeStory(date);
+    const before =
+      years &&
+      this.transloco.translate(
+        `content.eventTime.${date.approximate ? 'yearsBeforeApproximate' : 'yearsBefore'}`,
+        { years },
+      );
+    return before ? `${worldDateText(date)} · ${before}` : worldDateText(date);
+  }
 
   /** The texts and numbers besides the natural key that the version filled in, in the order of the definition. */
   protected readonly facts = computed<Fact[]>(() =>

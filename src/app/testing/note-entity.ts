@@ -1,4 +1,5 @@
 import {
+  eventTimeField,
   imageField,
   localizedTextField,
   relationField,
@@ -49,5 +50,18 @@ export const NOTE_WITH_PICTURE: EntityDefinition = {
       maxPixels: 10_000,
       minTransparentPercent: 10,
     }),
+  ],
+};
+
+/**
+ * The same note on the world's axis: when it happens and, for a long one, until when - the
+ * end never before the start.
+ */
+export const NOTE_ON_TIMELINE: EntityDefinition = {
+  ...NOTE,
+  fields: [
+    ...NOTE.fields,
+    eventTimeField('occursAt'),
+    eventTimeField('endsAt', { optional: true, notBefore: 'occursAt' }),
   ],
 };

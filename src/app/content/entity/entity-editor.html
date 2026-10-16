@@ -205,6 +205,129 @@
                         </div>
                       }
                     }
+                    @case ('eventTime') {
+                      @if (view.time; as time) {
+                        <div
+                          class="grid gap-2 rounded-[14px] bg-parchment-200 px-4 py-3.5"
+                          [attr.data-testid]="'event-time-' + view.field.key"
+                        >
+                          <div class="flex items-center justify-between gap-2.5">
+                            <span
+                              [id]="'draft-' + view.field.key + '-label'"
+                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                              >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</span
+                            >
+                            <span
+                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
+                            >
+                          </div>
+                          <div
+                            role="radiogroup"
+                            [attr.aria-labelledby]="'draft-' + view.field.key + '-label'"
+                            class="flex flex-wrap gap-1 rounded-xl bg-parchment-100 p-1"
+                          >
+                            @for (mode of eventTimeModes; track mode) {
+                              <button
+                                type="button"
+                                role="radio"
+                                class="flex-[1_1_160px] cursor-pointer rounded-[9px] px-2.5 py-1.75 font-heading text-[13px] font-extrabold"
+                                [class]="
+                                  time.mode === mode
+                                    ? 'bg-ocean-900 text-white'
+                                    : 'bg-transparent text-ocean-800'
+                                "
+                                [attr.aria-checked]="time.mode === mode"
+                                [attr.data-testid]="'event-time-mode-' + mode"
+                                (click)="setEventTimeMode(view.field.key, mode)"
+                              >
+                                {{ 'content.eventTime.mode.' + mode | transloco }}
+                              </button>
+                            }
+                          </div>
+                          @if (time.mode === 'chapter') {
+                            @if (view.source; as source) {
+                              <app-relation-picker
+                                [inputId]="'draft-' + view.field.key"
+                                [source]="source"
+                                [value]="time.chapter"
+                                [labelOf]="chapterPickLabel"
+                                [placeholder]="'content.storyPoint.placeholder' | transloco"
+                                [invalid]="!!(view.error || time.problem)"
+                                (picked)="setEventTimeChapter(view.field.key, $event)"
+                              />
+                            }
+                          } @else {
+                            <div
+                              class="grid grid-cols-[repeat(auto-fit,minmax(110px,1fr))] items-end gap-2"
+                            >
+                              @for (part of yearParts; track part) {
+                                <label
+                                  class="font-heading text-[11px] font-extrabold text-ocean-500"
+                                  >{{ 'content.eventTime.' + part | transloco }}
+                                  <input
+                                    [id]="'draft-' + view.field.key + '-' + part"
+                                    type="text"
+                                    inputmode="numeric"
+                                    class="mt-1 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                                    [class]="
+                                      view.error || time.problem
+                                        ? 'border-flag-600'
+                                        : 'border-ocean-800/20'
+                                    "
+                                    [value]="time[part]"
+                                    (input)="
+                                      setEventTimeYear(
+                                        view.field.key,
+                                        part,
+                                        $any($event.target).value
+                                      )
+                                    "
+                                  />
+                                </label>
+                              }
+                              <label
+                                class="flex cursor-pointer items-center gap-2 pb-3 font-heading text-sm font-extrabold text-ocean-950"
+                              >
+                                <input
+                                  [id]="'draft-' + view.field.key + '-approximate'"
+                                  type="checkbox"
+                                  class="size-4.5 accent-ocean-900"
+                                  [checked]="time.approximate"
+                                  (change)="
+                                    setEventTimeApproximate(
+                                      view.field.key,
+                                      $any($event.target).checked
+                                    )
+                                  "
+                                />
+                                {{ 'content.eventTime.approximate' | transloco }}
+                              </label>
+                            </div>
+                            @if (time.date; as date) {
+                              <p
+                                class="flex flex-wrap items-center gap-2 font-heading text-[13px] font-bold text-ocean-500"
+                                data-testid="event-time-preview"
+                              >
+                                <span
+                                  class="rounded-lg bg-ocean-900 px-2.5 py-0.5 font-extrabold text-white"
+                                  >{{ date }}</span
+                                >
+                                {{ time.yearsBefore }}
+                              </p>
+                            }
+                          }
+                          @if (view.error ?? time.problem; as error) {
+                            <p
+                              class="font-heading text-sm font-bold text-flag-700"
+                              data-testid="field-error"
+                            >
+                              {{ error }}
+                            </p>
+                          }
+                        </div>
+                      }
+                    }
                     @case ('subcategory') {
                       <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
                         <div class="flex items-center justify-between gap-2.5">

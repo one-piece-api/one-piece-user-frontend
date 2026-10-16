@@ -1,4 +1,9 @@
-import { NOTE, NOTE_IN_FOLDER, NOTE_WITH_PICTURE } from '../../testing/note-entity';
+import {
+  NOTE,
+  NOTE_IN_FOLDER,
+  NOTE_ON_TIMELINE,
+  NOTE_WITH_PICTURE,
+} from '../../testing/note-entity';
 import { storyPointField } from './entity-definition';
 import {
   imageField,
@@ -79,6 +84,24 @@ describe('the body of any entity', () => {
     expect(draftFieldKey(timed, 'firstAppearance.chapter')).toBe('firstAppearance');
     expect(draftFieldKey(timed, 'firstAppearance')).toBe('firstAppearance');
     expect(draftFieldKey(NOTE, 'firstAppearance.chapter')).toBeNull();
+  });
+
+  it('reads a time refused by its chapter or its world date as the field itself', () => {
+    expect(draftFieldKey(NOTE_ON_TIMELINE, 'occursAt.chapter')).toBe('occursAt');
+    expect(draftFieldKey(NOTE_ON_TIMELINE, 'occursAt.worldDate.yearFrom')).toBe('occursAt');
+    expect(draftFieldKey(NOTE_ON_TIMELINE, 'endsAt.worldDate')).toBe('endsAt');
+    expect(draftFieldKey(NOTE_ON_TIMELINE, 'endsAt')).toBe('endsAt');
+    expect(draftFieldKey(NOTE, 'occursAt.worldDate')).toBeNull();
+  });
+
+  it('asks review for when it happens, never for an end', () => {
+    const draft = draftOf(NOTE_ON_TIMELINE, null, ['en']);
+
+    expect(
+      readinessChecks(NOTE_ON_TIMELINE, draft, ['en'])
+        .filter(({ language }) => language === null)
+        .map(({ field }) => field),
+    ).toEqual(['romaji', 'code', 'occursAt']);
   });
 
   it('compares the fields in the order the definition lists them', () => {

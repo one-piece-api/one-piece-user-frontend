@@ -1010,7 +1010,13 @@
         "subcategoryNameTaken": "già il nome di un'altra sottocategoria",
         "numberInvalid": "dev'essere un numero intero, non sotto il minimo",
         "releaseCountry": "scegli un paese valido, con una sola data per paese",
-        "releaseDate": "scegli una data valida"
+        "releaseDate": "scegli una data valida",
+        "eventTime": {
+          "yearsOutOfOrder": "L’anno finale viene prima di quello iniziale.",
+          "afterStoryStart": "Un anno prima della storia non può superare quello in cui la storia inizia.",
+          "beforeStart": "Questa data viene prima di «Quando accade».",
+          "yearAfterChapter": "Non si può: inizio in un capitolo e fine in un anno prima della storia."
+        }
       },
       "takenNumberMessage": "Arrr! Un altro contenuto ha già lo stesso numero: dev'essere unico.",
       "numberRefusedMessage": "Arrr! Un numero non va: dev'essere un numero intero, non sotto il minimo.",
@@ -1070,7 +1076,8 @@
       "firstAppearance": {
         "label": "Prima apparizione",
         "hint": "serve per l'invio · dove il lettore lo incontra la prima volta"
-      }
+      },
+      "eventTimeRefusedMessage": "Acque agitate, matey! Una data non torna: controlla i campi segnati."
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1352,6 +1359,17 @@
       "episode": "Episodio",
       "comingSoon": "in arrivo",
       "placeholder": "Cerca per numero o titolo"
+    },
+    "eventTime": {
+      "mode": {
+        "chapter": "Nella storia (capitolo)",
+        "year": "Prima della storia (anno)"
+      },
+      "yearFrom": "Anno da",
+      "yearTo": "Anno a (facoltativo)",
+      "approximate": "circa",
+      "yearsBefore": "{{years}} anni prima dell’inizio della storia",
+      "yearsBeforeApproximate": "circa {{years}} anni prima dell’inizio della storia"
     }
   }
 }

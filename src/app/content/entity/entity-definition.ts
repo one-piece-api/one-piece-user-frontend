@@ -132,6 +132,19 @@ export interface StoryPointField {
   readonly optional?: true;
 }
 
+/**
+ * A point on the world's axis (plan timeline, T3-T4): when an event happens or ends - a
+ * chapter, in the story, or a world date, before it. Shared by every language.
+ */
+export interface EventTimeField {
+  readonly kind: 'eventTime';
+  readonly key: string;
+  /** Never asked for by review, never "missing": an end, only for long events. */
+  readonly optional?: true;
+  /** The time field this one must not come before: an end, after its start. */
+  readonly notBefore?: string;
+}
+
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
 export type EntityField =
   | TextField
@@ -142,7 +155,8 @@ export type EntityField =
   | SubcategoryListField
   | SubcategoryField
   | ReleaseListField
-  | StoryPointField;
+  | StoryPointField
+  | EventTimeField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -250,6 +264,13 @@ export function storyPointField(
   options: Omit<StoryPointField, 'kind' | 'key'> = {},
 ): StoryPointField {
   return { kind: 'storyPoint', key, ...options };
+}
+
+export function eventTimeField(
+  key: string,
+  options: Omit<EventTimeField, 'kind' | 'key'> = {},
+): EventTimeField {
+  return { kind: 'eventTime', key, ...options };
 }
 
 export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {

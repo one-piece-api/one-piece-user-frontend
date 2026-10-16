@@ -1010,7 +1010,13 @@
         "subcategoryNameTaken": "already the name of another subcategory",
         "numberInvalid": "must be a whole number, not below the minimum",
         "releaseCountry": "pick a valid country, with one date per country",
-        "releaseDate": "pick a valid date"
+        "releaseDate": "pick a valid date",
+        "eventTime": {
+          "yearsOutOfOrder": "The last year comes before the first.",
+          "afterStoryStart": "A year before the story cannot be later than the year the story begins.",
+          "beforeStart": "This date comes before “When it happens”.",
+          "yearAfterChapter": "Not allowed: a start in a chapter and an end in a year before the story."
+        }
       },
       "takenNumberMessage": "Arrr! Another content already has the same number: it must be unique.",
       "numberRefusedMessage": "Arrr! A number is off course: it must be a whole number, not below the minimum.",
@@ -1070,7 +1076,8 @@
       "firstAppearance": {
         "label": "First appearance",
         "hint": "needed to submit · where the reader first meets it"
-      }
+      },
+      "eventTimeRefusedMessage": "Rough waters, matey! A date does not add up: check the marked fields."
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1352,6 +1359,17 @@
       "episode": "Episode",
       "comingSoon": "coming soon",
       "placeholder": "Search by number or title"
+    },
+    "eventTime": {
+      "mode": {
+        "chapter": "In the story (chapter)",
+        "year": "Before the story (year)"
+      },
+      "yearFrom": "Year from",
+      "yearTo": "Year to (optional)",
+      "approximate": "approx.",
+      "yearsBefore": "{{years}} years before the story begins",
+      "yearsBeforeApproximate": "about {{years}} years before the story begins"
     }
   }
 }
