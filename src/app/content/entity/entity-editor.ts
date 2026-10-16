@@ -6,6 +6,7 @@ import {
   inject,
   input,
   linkedSignal,
+  output,
   signal,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
@@ -229,6 +230,15 @@ export class EntityEditor {
   /** Bound by the router: the path's id - absent when a new content is being written. */
   readonly id = input<string>();
 
+  /**
+   * Shown inside a dialog rather than as a page (`EntityEditorDialog`): no breadcrumb, and
+   * "Cancel" closes it - `finished` says the dialog may go, after a save, a discard or a cancel.
+   */
+  readonly embedded = input(false);
+  /** What a new content starts with besides nothing: the fruit an event is opened from. */
+  readonly preset = input<Partial<EntityDraft>>({});
+  readonly finished = output<void>();
+
   protected readonly isNew = computed(() => this.id() === undefined);
 
   private readonly content = httpResource<Content>(() => {
@@ -256,7 +266,7 @@ export class EntityEditor {
       return null;
     }
     if (this.isNew()) {
-      return draftOf(this.entity, null, this.languageCodes());
+      return { ...draftOf(this.entity, null, this.languageCodes()), ...this.preset() };
     }
     return this.version.hasValue()
       ? draftOf(this.entity, this.version.value().body, this.languageCodes())
@@ -791,6 +801,7 @@ export class EntityEditor {
         this.mascot.show(this.transloco.translate('content.editor.created'), 'success');
         await this.router.navigate([this.entity.route, created.id]);
       }
+      this.finished.emit();
     } catch (error) {
       this.onSaveRefused(error);
     } finally {
@@ -833,6 +844,7 @@ export class EntityEditor {
       const leftRoute =
         versionLeftAfterDiscard(number) === null ? this.entity.route : this.backRoute();
       await this.router.navigate([leftRoute]);
+      this.finished.emit();
     } catch (error) {
       this.onDiscardRefused(error);
     } finally {

@@ -21,7 +21,18 @@
       </p>
     </div>
     @if (canWrite()) {
-      <a routerLink="new" [class]="newButtonClasses">{{ entity.i18n + '.new' | transloco }}</a>
+      @if (entity.editor === 'dialog') {
+        <button
+          type="button"
+          [class]="newButtonClasses"
+          data-testid="new-content"
+          (click)="openNewInDialog()"
+        >
+          {{ entity.i18n + '.new' | transloco }}
+        </button>
+      } @else {
+        <a routerLink="new" [class]="newButtonClasses">{{ entity.i18n + '.new' | transloco }}</a>
+      }
     }
   </div>
 

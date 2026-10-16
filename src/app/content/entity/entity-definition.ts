@@ -210,6 +210,11 @@ export interface EntityDefinition {
   readonly counts?: readonly CountColumn[];
   /** What its card shows besides its fields. */
   readonly sections?: readonly EntitySection[];
+  /**
+   * Where it is written: a page of its own (the default), or a dialog over the page it is
+   * opened from - an event, created from its list or from a fruit (`EditorDialogs`).
+   */
+  readonly editor?: 'page' | 'dialog';
 }
 
 export function textField(key: string, options: Omit<TextField, 'kind' | 'key'>): TextField {

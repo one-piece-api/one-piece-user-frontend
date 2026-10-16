@@ -65,3 +65,6 @@ export const NOTE_ON_TIMELINE: EntityDefinition = {
     eventTimeField('endsAt', { optional: true, notBefore: 'occursAt' }),
   ],
 };
+
+/** The same note, written in a dialog over the page it is opened from. */
+export const NOTE_IN_DIALOG: EntityDefinition = { ...NOTE, editor: 'dialog' };

@@ -1,5 +1,7 @@
-<div class="flex w-full max-w-5xl flex-col gap-3.5">
-  <app-breadcrumb [crumbs]="crumbs()" />
+<div class="@container flex w-full max-w-5xl flex-col gap-3.5">
+  @if (!embedded()) {
+    <app-breadcrumb [crumbs]="crumbs()" />
+  }
 
   @switch (state()) {
     @case ('loading') {
@@ -72,7 +74,7 @@
 
         <div class="my-4.5 h-px bg-parchment-200"></div>
 
-        <div class="grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,290px)]">
+        <div class="grid items-start gap-4 @3xl:grid-cols-[minmax(0,1fr)_minmax(0,290px)]">
           <div class="grid min-w-0 gap-3.5">
             @if (toFix(); as toFix) {
               <p
@@ -857,11 +859,22 @@
               ✕ {{ 'content.editor.discard.button' | transloco }}
             </button>
           }
-          <a
-            [routerLink]="backRoute()"
-            class="cursor-pointer rounded-[13px] bg-parchment-200 px-5 py-3 font-heading text-sm font-extrabold text-ocean-500"
-            >{{ 'common.cancel' | transloco }}</a
-          >
+          @if (embedded()) {
+            <button
+              type="button"
+              class="cursor-pointer rounded-[13px] bg-parchment-200 px-5 py-3 font-heading text-sm font-extrabold text-ocean-500"
+              data-testid="editor-cancel"
+              (click)="finished.emit()"
+            >
+              {{ 'common.cancel' | transloco }}
+            </button>
+          } @else {
+            <a
+              [routerLink]="backRoute()"
+              class="cursor-pointer rounded-[13px] bg-parchment-200 px-5 py-3 font-heading text-sm font-extrabold text-ocean-500"
+              >{{ 'common.cancel' | transloco }}</a
+            >
+          }
           <button
             type="submit"
             class="cursor-pointer rounded-[13px] bg-treasure-500 px-5 py-3 font-display text-[15px] font-bold text-ocean-950 shadow-[0_3px_0_var(--color-treasure-600)] hover:bg-treasure-400 disabled:pointer-events-none disabled:opacity-50"

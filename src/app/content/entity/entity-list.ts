@@ -29,6 +29,7 @@ import { formatSort, nextSort, parseSort, type ListSort } from '../list-sort';
 import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { ENTITY, entityOf } from './entities';
+import { EditorDialogs } from './entity-editor-dialog';
 import { naturalKeyOf } from './entity-body';
 import { isNumbered, type RelationField } from './entity-definition';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
@@ -157,6 +158,7 @@ export class EntityList {
   private readonly transloco = inject(TranslocoService);
   private readonly mascot = inject(MascotService);
   private readonly currentUser = inject(CurrentUserService);
+  private readonly editorDialogs = inject(EditorDialogs);
 
   private readonly params = toSignal(this.route.queryParamMap, { requireSync: true });
 
@@ -309,6 +311,11 @@ export class EntityList {
   });
 
   protected readonly newButtonClasses = buttonClasses('primary');
+
+  /** A new content of an entity written in a dialog: over the list, not on a page. */
+  protected openNewInDialog(): void {
+    this.editorDialogs.open({ entity: this.entity });
+  }
 
   constructor() {
     this.typedSearches

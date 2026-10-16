@@ -11,6 +11,7 @@ import { blockWords } from './block-words';
 import { draftFieldKey } from './entity/entity-body';
 import { entityLabelKey } from './entity/entities';
 import type { EntityDefinition } from './entity/entity-definition';
+import { EditorDialogs } from './entity/entity-editor-dialog';
 import { discardConfirmation, discardDoneMessage } from './discard-draft';
 import { RejectDialog } from './reject-dialog';
 import {
@@ -58,6 +59,7 @@ export interface ActionTarget {
 })
 export class VersionActions {
   private readonly http = inject(HttpClient);
+  private readonly editorDialogs = inject(EditorDialogs);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
   private readonly mascot = inject(MascotService);
@@ -316,8 +318,16 @@ export class VersionActions {
     }
   }
 
-  /** The editor of the content's draft - the caller's own, the one they may edit. */
+  /**
+   * The editor of the content's draft - the caller's own, the one they may edit: its page, or
+   * a dialog over this one for an entity written in a dialog.
+   */
   private openEditor(target: ActionTarget): void {
+    if (target.entity.editor === 'dialog') {
+      const id = target.contentRoute.slice(target.entity.route.length + 1);
+      this.editorDialogs.open({ entity: target.entity, id });
+      return;
+    }
     void this.router.navigateByUrl(`${target.contentRoute}/edit`);
   }
 
