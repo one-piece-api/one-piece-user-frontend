@@ -4,6 +4,7 @@ import { CHAPTER } from '../chapters/chapter.model';
 import { DEVIL_FRUIT_TYPE } from '../devil-fruit-types/devil-fruit-type.model';
 import { DEVIL_FRUIT } from '../devil-fruits/devil-fruit.model';
 import { EPISODE } from '../episodes/episode.model';
+import { EVENT } from '../events/event.model';
 import { SAGA } from '../sagas/saga.model';
 import { VOLUME } from '../volumes/volume.model';
 import type { EntityDefinition } from './entity-definition';
@@ -20,6 +21,7 @@ export const ENTITIES: readonly EntityDefinition[] = [
   VOLUME,
   CHAPTER,
   EPISODE,
+  EVENT,
 ];
 
 /** The definition of the entity a page belongs to, given by its route. */

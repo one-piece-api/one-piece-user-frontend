@@ -599,7 +599,11 @@
           "disadvantages": "disadvantages {{language}}",
           "subcategories": "subcategories {{language}}",
           "firstAppearance": "first appearance",
-          "type": "type"
+          "type": "type",
+          "occursAt": "when it happens",
+          "endsAt": "until",
+          "revealedAt": "revealed to the reader",
+          "participants": "participants"
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
         "blockedUnknown": "the content does not allow it right now."
@@ -766,7 +770,8 @@
         "number": "No.",
         "saga": "Saga",
         "arc": "Arc",
-        "volume": "Volume"
+        "volume": "Volume",
+        "occursAt": "When it happens"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji to be defined",
@@ -848,9 +853,17 @@
         "disadvantages": "Disadvantages",
         "subcategories": "Subcategories",
         "subcategory": "Subcategory",
-        "firstAppearance": "First appearance"
+        "firstAppearance": "First appearance",
+        "occursAt": "When it happens",
+        "endsAt": "Until",
+        "revealedAt": "Revealed to the reader",
+        "participants": "Participants"
       },
-      "noFirstAppearance": "Not set"
+      "noFirstAppearance": "Not set",
+      "noOccursAt": "Not set",
+      "noEndsAt": "A single moment",
+      "noRevealedAt": "In the chapter it happens in",
+      "noParticipants": "No Devil Fruits"
     },
     "comparison": {
       "title": "Compare versions",
@@ -901,7 +914,11 @@
         },
         "unnamedEntry": "no. {{position}}",
         "subcategory": "Subcategory",
-        "firstAppearance": "First appearance"
+        "firstAppearance": "First appearance",
+        "occursAt": "When it happens",
+        "endsAt": "Until",
+        "revealedAt": "Revealed to the reader",
+        "participants": "Participants"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -993,7 +1010,8 @@
           "name": "Subcategory {{position}} · name · {{language}}",
           "description": "Subcategory {{position}} · description · {{language}}"
         },
-        "firstAppearance": "First appearance"
+        "firstAppearance": "First appearance",
+        "occursAt": "When it happens"
       },
       "save": "Save draft",
       "saving": "Saving…",
@@ -1080,7 +1098,23 @@
         "label": "First appearance",
         "hint": "needed to submit · where the reader first meets it"
       },
-      "eventTimeRefusedMessage": "Rough waters, matey! A date does not add up: check the marked fields."
+      "eventTimeRefusedMessage": "Rough waters, matey! A date does not add up: check the marked fields.",
+      "occursAt": {
+        "label": "When it happens",
+        "hint": "the moment in the world"
+      },
+      "endsAt": {
+        "label": "Until",
+        "hint": "optional · long events only: wars, Reverie"
+      },
+      "revealedAt": {
+        "label": "Revealed to the reader",
+        "hint": "the chapter where the reader learns of it · defaults to “When it happens”"
+      },
+      "participants": {
+        "label": "Participants",
+        "hint": "optional · the Devil Fruits involved"
+      }
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1373,6 +1407,20 @@
       "approximate": "approx.",
       "yearsBefore": "{{years}} years before the story begins",
       "yearsBeforeApproximate": "about {{years}} years before the story begins"
+    },
+    "events": {
+      "kicker": "Content · Story · /events",
+      "title": "Events",
+      "lead": "What happens in the One Piece world, and when the reader finds out.",
+      "new": "+ New event",
+      "one": "Event",
+      "newTitle": "New event",
+      "placeholder": {
+        "title": "title in the selected language",
+        "description": "description in the selected language · optional",
+        "participants": "search and add a Devil Fruit"
+      },
+      "hintMissing": "Review needs when it happens and, in every language, the title. Meanwhile the draft saves even if incomplete."
     }
   }
 }

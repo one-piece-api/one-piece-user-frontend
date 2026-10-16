@@ -599,7 +599,11 @@
           "disadvantages": "svantaggi {{language}}",
           "subcategories": "sottocategorie {{language}}",
           "firstAppearance": "prima apparizione",
-          "type": "tipo"
+          "type": "tipo",
+          "occursAt": "quando accade",
+          "endsAt": "fino a",
+          "revealedAt": "rivelato al lettore",
+          "participants": "partecipanti"
         },
         "blocked": "Arrr! Non si può: {{reason}}",
         "blockedUnknown": "il contenuto non lo consente in questo momento."
@@ -766,7 +770,8 @@
         "number": "N.",
         "saga": "Saga",
         "arc": "Arco",
-        "volume": "Volume"
+        "volume": "Volume",
+        "occursAt": "Quando accade"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
@@ -848,9 +853,17 @@
         "disadvantages": "Svantaggi",
         "subcategories": "Sottocategorie",
         "subcategory": "Sottocategoria",
-        "firstAppearance": "Prima apparizione"
+        "firstAppearance": "Prima apparizione",
+        "occursAt": "Quando accade",
+        "endsAt": "Fino a",
+        "revealedAt": "Rivelato al lettore",
+        "participants": "Partecipanti"
       },
-      "noFirstAppearance": "Non indicata"
+      "noFirstAppearance": "Non indicata",
+      "noOccursAt": "Non indicato",
+      "noEndsAt": "Un solo momento",
+      "noRevealedAt": "Nel capitolo in cui accade",
+      "noParticipants": "Nessun Frutto del Diavolo"
     },
     "comparison": {
       "title": "Confronto versioni",
@@ -901,7 +914,11 @@
         },
         "unnamedEntry": "n. {{position}}",
         "subcategory": "Sottocategoria",
-        "firstAppearance": "Prima apparizione"
+        "firstAppearance": "Prima apparizione",
+        "occursAt": "Quando accade",
+        "endsAt": "Fino a",
+        "revealedAt": "Rivelato al lettore",
+        "participants": "Partecipanti"
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -993,7 +1010,8 @@
           "name": "Sottocategoria {{position}} · nome · {{language}}",
           "description": "Sottocategoria {{position}} · descrizione · {{language}}"
         },
-        "firstAppearance": "Prima apparizione"
+        "firstAppearance": "Prima apparizione",
+        "occursAt": "Quando accade"
       },
       "save": "Salva bozza",
       "saving": "Salvataggio…",
@@ -1080,7 +1098,23 @@
         "label": "Prima apparizione",
         "hint": "serve per l'invio · dove il lettore lo incontra la prima volta"
       },
-      "eventTimeRefusedMessage": "Acque agitate, matey! Una data non torna: controlla i campi segnati."
+      "eventTimeRefusedMessage": "Acque agitate, matey! Una data non torna: controlla i campi segnati.",
+      "occursAt": {
+        "label": "Quando accade",
+        "hint": "il momento nel mondo"
+      },
+      "endsAt": {
+        "label": "Fino a",
+        "hint": "facoltativo · solo eventi lunghi: guerre, Reverie"
+      },
+      "revealedAt": {
+        "label": "Rivelato al lettore",
+        "hint": "il capitolo in cui il lettore lo scopre · di default coincide con «Quando accade»"
+      },
+      "participants": {
+        "label": "Partecipanti",
+        "hint": "facoltativi · i Frutti del Diavolo coinvolti"
+      }
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1373,6 +1407,20 @@
       "approximate": "circa",
       "yearsBefore": "{{years}} anni prima dell’inizio della storia",
       "yearsBeforeApproximate": "circa {{years}} anni prima dell’inizio della storia"
+    },
+    "events": {
+      "kicker": "Contenuti · Storia · /events",
+      "title": "Eventi",
+      "lead": "Ciò che accade nel mondo di One Piece, e quando il lettore lo scopre.",
+      "new": "+ Nuovo evento",
+      "one": "Evento",
+      "newTitle": "Nuovo evento",
+      "placeholder": {
+        "title": "titolo nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata · facoltativa",
+        "participants": "cerca e aggiungi un Frutto del Diavolo"
+      },
+      "hintMissing": "Per la revisione servono quando accade e, in ogni lingua, il titolo. Intanto la bozza si salva anche incompleta."
     }
   }
 }

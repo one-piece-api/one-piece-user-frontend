@@ -130,6 +130,11 @@ export interface StoryPointField {
   readonly key: string;
   /** Never asked for by review, never "missing" - an extra the content may do without. */
   readonly optional?: true;
+  /**
+   * The key of a time whose chapter it starts from - an event is revealed, unless told
+   * otherwise, in the chapter it occurs in. The editor fills it in while it is left alone.
+   */
+  readonly defaultsTo?: string;
 }
 
 /**

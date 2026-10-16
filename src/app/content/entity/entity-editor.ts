@@ -616,7 +616,21 @@ export class EntityEditor {
     this.updateEventTime(key, { mode });
   }
 
+  /**
+   * Sets the chapter of a time, and with it each story point that starts from it - as long as
+   * it is empty or still says the chapter the time said before: one picked apart is left alone.
+   */
   protected setEventTimeChapter(key: string, chapter: EntityReference | null): void {
+    const before = this.draft()?.[key];
+    const previous = isEventTimeDraft(before) ? (before.chapter?.id ?? null) : null;
+    for (const field of this.entity.fields) {
+      const followed = field.kind === 'storyPoint' && field.defaultsTo === key;
+      const current = this.draft()?.[field.key];
+      const untouched = !isReference(current) || current.id === previous;
+      if (followed && untouched && chapter) {
+        this.setRelation(field.key, chapter);
+      }
+    }
     this.updateEventTime(key, { chapter });
   }
 

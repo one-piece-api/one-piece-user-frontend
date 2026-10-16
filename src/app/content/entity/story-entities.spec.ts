@@ -13,7 +13,7 @@ describe('the story entities', () => {
   const story = [SAGA, ARC, VOLUME, CHAPTER, EPISODE];
 
   it('are registered after the Devil Fruit ones, in story order', () => {
-    expect(ENTITIES.slice(2)).toEqual(story);
+    expect(ENTITIES.slice(2, 2 + story.length)).toEqual(story);
     expect(entityOf('EPISODE')).toBe(EPISODE);
   });
 
@@ -30,7 +30,10 @@ describe('the story entities', () => {
       .filter(isSubgroup)
       .find(({ labelKey }) => labelKey === 'shell.nav.story');
 
-    expect(subgroup?.items.map(({ route }) => route)).toEqual(story.map(({ route }) => route));
+    expect(subgroup?.items.map(({ route }) => route)).toEqual([
+      ...story.map(({ route }) => route),
+      '/content/events',
+    ]);
   });
 
   it('ask review for the relation they require and not for the optional extras', () => {

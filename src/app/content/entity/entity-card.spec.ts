@@ -61,6 +61,6 @@ describe('the card of any entity', () => {
     const card = render(NOTE_WITH_PARTICIPANTS, { participants: { devilFruits: [] } });
 
     expect(card.querySelector('[data-testid="card-participants"] a')).toBeNull();
-    expect(card.textContent).toContain('content.card.noParticipants');
+    expect(card.textContent).toContain('No Devil Fruits');
   });
 });

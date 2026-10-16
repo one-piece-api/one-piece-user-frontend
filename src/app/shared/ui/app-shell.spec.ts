@@ -188,7 +188,7 @@ describe('AppShell', () => {
       button.textContent?.trim().replace(/\s*›$/, ''),
     );
     expect(subgroups).toEqual(['Devil Fruits', 'Crews and characters', 'Story']);
-    expect(panel?.textContent).toContain('7 sections open');
+    expect(panel?.textContent).toContain('8 sections open');
     expect(subgroupFlyout(root)).toBeNull();
 
     hoverSubgroup(root, 'Devil Fruits');
@@ -211,7 +211,7 @@ describe('AppShell', () => {
 
     hoverSubgroup(root, 'Story');
     fixture.detectChanges();
-    expect(hrefsIn(subgroupFlyout(root))).toHaveLength(5);
+    expect(hrefsIn(subgroupFlyout(root))).toHaveLength(6);
   });
 
   it('hides the content section from who lacks content:read', async () => {

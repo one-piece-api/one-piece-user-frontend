@@ -4,6 +4,7 @@ import {
   localizedTextField,
   relationField,
   relationListField,
+  storyPointField,
   textField,
   type EntityDefinition,
 } from '../content/entity/entity-definition';
@@ -83,5 +84,14 @@ export const NOTE_WITH_PARTICIPANTS: EntityDefinition = {
   fields: [
     ...NOTE.fields,
     relationListField('participants', { part: 'devilFruits', target: 'DEVIL_FRUIT' }),
+  ],
+};
+
+/** A note on the timeline, revealed by default in the chapter it occurs in, as an event. */
+export const NOTE_REVEALED: EntityDefinition = {
+  ...NOTE_ON_TIMELINE,
+  fields: [
+    ...NOTE_ON_TIMELINE.fields,
+    storyPointField('revealedAt', { optional: true, defaultsTo: 'occursAt' }),
   ],
 };

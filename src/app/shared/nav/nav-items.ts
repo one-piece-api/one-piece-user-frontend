@@ -3,6 +3,7 @@ import { CHAPTER } from '../../content/chapters/chapter.model';
 import { DEVIL_FRUIT_TYPE } from '../../content/devil-fruit-types/devil-fruit-type.model';
 import { DEVIL_FRUIT } from '../../content/devil-fruits/devil-fruit.model';
 import { EPISODE } from '../../content/episodes/episode.model';
+import { EVENT } from '../../content/events/event.model';
 import { SAGA } from '../../content/sagas/saga.model';
 import { VOLUME } from '../../content/volumes/volume.model';
 import type { EntityDefinition } from '../../content/entity/entity-definition';
@@ -140,7 +141,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         id: 'story',
         labelKey: 'shell.nav.story',
         icon: 'assets/story.webp',
-        items: [SAGA, ARC, VOLUME, CHAPTER, EPISODE].map((entity) => entityNavItem(entity)),
+        items: [SAGA, ARC, VOLUME, CHAPTER, EPISODE, EVENT].map((entity) => entityNavItem(entity)),
       },
     ],
   },

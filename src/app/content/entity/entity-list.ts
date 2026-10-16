@@ -31,7 +31,9 @@ import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { ENTITY, entityOf } from './entities';
 import { EditorDialogs } from './entity-editor-dialog';
 import { naturalKeyOf } from './entity-body';
-import { isNumbered, type RelationField } from './entity-definition';
+import { isNumbered, type EventTimeField, type RelationField } from './entity-definition';
+import { worldDateOf, worldDateText } from './entity-event-time';
+import { chapterLabel, chapterOf } from './entity-story-point';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 
 /** How long the search box waits after the last keystroke before filtering. */
@@ -69,11 +71,12 @@ const COLUMNS = {
   },
 } as const;
 
-/** The columns the list can be sorted by, named as the backend names them. */
+/**
+ * The columns the list can be sorted by, named as the backend names them; a numbered entity can
+ * also be sorted by its number, an entity in time by when its contents occur.
+ */
 const SORT_FIELDS = ['name', 'status', 'author', 'updatedAt'] as const;
-/** A numbered entity can also be sorted by its number. */
-const NUMBERED_SORT_FIELDS = [...SORT_FIELDS, 'number'] as const;
-type SortField = (typeof NUMBERED_SORT_FIELDS)[number];
+type SortField = string;
 
 /** Last update, newest first: what the backend does when no sort is asked for. */
 const LATEST_FIRST: ListSort<SortField> = { field: 'updatedAt', direction: 'desc' };
@@ -128,6 +131,8 @@ interface RowView {
   readonly relations: readonly (RelationCell | null)[];
   /** How many contents point to the row - `null` for an entity with no such column. */
   readonly count: CountCell | null;
+  /** When the content occurs - `null` for an entity not in time, or a time not written yet. */
+  readonly time: string | null;
 }
 
 /**
@@ -177,10 +182,23 @@ export class EntityList {
   private readonly sort = computed(() => parseSort(this.params().get(PARAM.sort), this.sortFields));
   /** Whether the contents have a number - a chapter - to sort and look them up by. */
   protected readonly numbered = isNumbered(this.entity);
-  private readonly sortFields: readonly SortField[] = this.numbered
-    ? NUMBERED_SORT_FIELDS
-    : SORT_FIELDS;
-  private readonly defaultSort = this.numbered ? BY_NUMBER : LATEST_FIRST;
+  /**
+   * When each content occurs - an event - shown as a column and sorted by: the order of the
+   * world, what the list shows when no sort is asked for. Only a time every content must have.
+   */
+  protected readonly timeField = this.entity.fields.find(
+    (field): field is EventTimeField => field.kind === 'eventTime' && !field.optional,
+  );
+  private readonly sortFields: readonly SortField[] = [
+    ...SORT_FIELDS,
+    ...(this.numbered ? ['number'] : []),
+    ...(this.timeField ? [this.timeField.key] : []),
+  ];
+  private readonly defaultSort: ListSort<SortField> = this.timeField
+    ? { field: this.timeField.key, direction: 'asc' }
+    : this.numbered
+      ? BY_NUMBER
+      : LATEST_FIRST;
   /**
    * The relations the list shows a column for and can be narrowed by - a chapter has two. The
    * key of each is the query parameter of its filter, here and in the backend alike.
@@ -383,7 +401,7 @@ export class EntityList {
     if (this.relationFields.length > 1) {
       return columns.twoRelations;
     }
-    if (this.relationFields.length === 1) {
+    if (this.relationFields.length === 1 || this.timeField) {
       return columns.oneRelation;
     }
     return this.countColumn ? columns.count : columns.none;
@@ -458,7 +476,22 @@ export class EntityList {
       updated: momentLabel(this.transloco, row.updatedAt),
       relations: this.relationFields.map((field) => this.relationCell(row, field, language)),
       count: this.countCell(row),
+      time: this.timeField ? this.timeLabel(row.body[this.timeField.key], language) : null,
     };
+  }
+
+  /** When a content occurs: "Cap. 908 — Reverie", or "c. 1500". */
+  private timeLabel(value: unknown, language: string): string | null {
+    const chapter = chapterOf(value);
+    if (chapter) {
+      return chapterLabel(
+        (key, params) => this.transloco.translate(key, params),
+        chapter,
+        language,
+      );
+    }
+    const date = worldDateOf(value);
+    return date && worldDateText(date);
   }
 
   private countCell(row: ContentSummary<RowNames>): CountCell | null {

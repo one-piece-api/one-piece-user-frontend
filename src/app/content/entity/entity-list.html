@@ -110,10 +110,17 @@
             [direction]="sortDirectionOf('name')"
             (toggled)="sortBy('name')"
           />
+          @if (timeField; as time) {
+            <app-sort-header
+              [label]="'content.list.column.' + time.key | transloco"
+              [direction]="sortDirectionOf(time.key)"
+              (toggled)="sortBy(time.key)"
+            />
+          }
           @for (relation of relationFields; track relation.key) {
             <span>{{ 'content.list.column.' + relation.key | transloco }}</span>
           } @empty {
-            @if (countColumn; as counted) {
+            @if (!timeField && countColumn; as counted) {
               <span>{{ 'content.list.column.' + counted.field | transloco }}</span>
             }
           }
@@ -168,6 +175,9 @@
               @if (row.naturalKey !== null) {
                 <span [class]="numbered ? 'sm:hidden' : ''">{{ row.naturalKey }}</span>
               }
+              @if (row.time; as time) {
+                <span class="sm:hidden"> · {{ time }}</span>
+              }
               @for (cell of row.relations; track $index) {
                 @if (cell) {
                   <span class="sm:hidden"> · {{ cell.label }}</span>
@@ -184,6 +194,15 @@
             <span class="mt-1.5 block sm:hidden"><app-status-badge [status]="row.status" /></span>
           </a>
 
+          @if (timeField) {
+            <div class="hidden min-w-0 sm:block" data-testid="time-cell">
+              <span
+                class="block truncate font-heading text-[13px] font-bold"
+                [class]="row.time ? 'text-ocean-950' : 'text-ocean-500/60'"
+                >{{ row.time ?? '—' }}</span
+              >
+            </div>
+          }
           @for (cell of row.relations; track $index) {
             <div class="hidden min-w-0 sm:block" data-testid="relation-cell">
               @if (cell) {
@@ -204,7 +223,7 @@
             </div>
           }
 
-          @if (countColumn && relationFields.length === 0) {
+          @if (countColumn && relationFields.length === 0 && !timeField) {
             <div class="hidden sm:block" data-testid="count-cell">
               @if (row.count; as cell) {
                 @if (cell.link; as link) {
