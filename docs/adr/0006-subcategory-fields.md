@@ -13,10 +13,10 @@ altro campo.
 Due nuovi tipi di campo in `EntityDefinition`, ognuno con la sua strategia in `field-kinds.ts`
 (ADR-0003) e un `@case` in scheda, editor e confronto:
 
-| Tipo | Sul | Valore nell'editor → JSON | Revisione | Confronto |
-|---|---|---|---|---|
-| `subcategoryList` | Tipo | `[{ id \| null, key, translations }]` → `[{ id?, translations }]`; senza `id` per una nuova, l'id lo assegna il backend | nome e descrizione di ogni sottocategoria in ogni lingua, ognuno un controllo (`entry` in `EntityFieldRef`) | abbinate per id: aggiunte, rimosse, rinominate, per testo e lingua |
-| `subcategory` | Frutto | il riferimento `{ id, names }` → `id` | non richiesta | per id, mostrata con i nomi |
+| Tipo              | Sul    | Valore nell'editor → JSON                                                                                               | Revisione                                                                                                   | Confronto                                                          |
+| ----------------- | ------ | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `subcategoryList` | Tipo   | `[{ id \| null, key, translations }]` → `[{ id?, translations }]`; senza `id` per una nuova, l'id lo assegna il backend | nome e descrizione di ogni sottocategoria in ogni lingua, ognuno un controllo (`entry` in `EntityFieldRef`) | abbinate per id: aggiunte, rimosse, rinominate, per testo e lingua |
+| `subcategory`     | Frutto | il riferimento `{ id, names }` → `id`                                                                                   | non richiesta                                                                                               | per id, mostrata con i nomi                                        |
 
 - **`of`:** il campo `subcategory` nomina la relazione (`type`) da cui prende le scelte, cioè
   `subcategories` del `TypeReferenceResponse` già caricato (nessuna richiesta in più). Il select

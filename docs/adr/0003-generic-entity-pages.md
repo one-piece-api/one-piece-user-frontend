@@ -15,12 +15,12 @@ Le pagine sono scritte una volta, in `content/entity/`, e leggono tutto ciò che
 da un **`EntityDefinition`**: un oggetto di soli dati con `entityType`, `route`, `api`,
 prefisso delle traduzioni (`i18n`), icona e campi.
 
-| Parte | Generica, una volta | Per entità |
-|---|---|---|
-| Modello | `entity-body.ts`: `draftOf`, `toBody`, `readinessChecks`, `draftFieldKey`, `diffBodies`, `namesOf`, completezza | la definizione (`devil-fruit-type.model.ts`) |
-| Tipi di campo | `field-kinds.ts`: una strategia per tipo (`text`, `localizedText`) | quali campi, in che ordine, con che limiti e disposizione |
-| Pagine | `EntityList`, `EntityDetail`, `EntityEditor`, `EntityComparison`, `EntityCard` | i testi sotto il prefisso: `title`, `one`, `lead`, `kicker`, `new`, `newTitle`, `placeholder.<campo>` |
-| Navigazione | `ENTITIES` (registro), `entityRoutes`, `entityNavItem`, `entityOf` | una riga nel registro e una nel menu |
+| Parte         | Generica, una volta                                                                                             | Per entità                                                                                            |
+| ------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Modello       | `entity-body.ts`: `draftOf`, `toBody`, `readinessChecks`, `draftFieldKey`, `diffBodies`, `namesOf`, completezza | la definizione (`devil-fruit-type.model.ts`)                                                          |
+| Tipi di campo | `field-kinds.ts`: una strategia per tipo (`text`, `localizedText`)                                              | quali campi, in che ordine, con che limiti e disposizione                                             |
+| Pagine        | `EntityList`, `EntityDetail`, `EntityEditor`, `EntityComparison`, `EntityCard`                                  | i testi sotto il prefisso: `title`, `one`, `lead`, `kicker`, `new`, `newTitle`, `placeholder.<campo>` |
+| Navigazione   | `ENTITIES` (registro), `entityRoutes`, `entityNavItem`, `entityOf`                                              | una riga nel registro e una nel menu                                                                  |
 
 - **Pattern Strategy:** ogni tipo di campo sa come si prepara per l'editor, come si salva,
   quando è compilato e come si confronta; le funzioni generiche scorrono i campi e delegano.
