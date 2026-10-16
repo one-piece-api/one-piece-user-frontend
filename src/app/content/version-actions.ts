@@ -348,11 +348,17 @@ export class VersionActions {
 
   /** "romaji", "nome EN": a field named as the backend names it, in words. */
   private fieldLabel(entity: EntityDefinition, field: string): string {
-    const [language, name] = (draftFieldKey(entity, field) ?? field).split('.');
-    return name
-      ? this.transloco.translate(`content.workflow.refused.field.${name}`, {
-          language: language.toUpperCase(),
-        })
+    const [first, name] = (draftFieldKey(entity, field) ?? field).split('.');
+    if (name) {
+      return this.transloco.translate(`content.workflow.refused.field.${name}`, {
+        language: first.toUpperCase(),
+      });
+    }
+    // A field shared by every language has words of its own where the catalog has them.
+    const shared = `content.workflow.refused.field.${first}`;
+    const worded = this.transloco.translate(shared);
+    return worded !== shared
+      ? worded
       : this.transloco.translate(`content.workflow.refused.field.${entity.naturalKey}`);
   }
 }

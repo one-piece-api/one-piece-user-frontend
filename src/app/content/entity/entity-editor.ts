@@ -392,6 +392,8 @@ export class EntityEditor {
             nameError: refused[`${language}.${field.key}.${index}.name`] ?? null,
             descriptionError: refused[`${language}.${field.key}.${index}.description`] ?? null,
             error: refused[`${field.key}.${index}`] ?? null,
+            firstAppearance: subcategory.firstAppearance ?? null,
+            firstAppearanceError: refused[`${field.key}.${index}.firstAppearance`] ?? null,
           })),
         },
       ];
@@ -537,6 +539,9 @@ export class EntityEditor {
     this.forgetRefusal(key);
   }
 
+  /** Where the chapters a first appearance may name are asked for. */
+  protected readonly chapterSource = entityOf(STORY_POINT_TARGET)?.api ?? null;
+
   /** How the chapter picker of a story point names a chapter: "Cap. 1 — Romance Dawn". */
   protected readonly chapterPickLabel = (chapter: EntityReference, language: string): string =>
     chapterLabel((key, params) => this.transloco.translate(key, params), chapter, language);
@@ -587,6 +592,21 @@ export class EntityEditor {
     [entries[index], entries[target]] = [entries[target], entries[index]];
     this.writeSubcategories(key, entries);
     this.forgetRefusalsOf(key);
+  }
+
+  /** Chooses the chapter where the reader first meets a subcategory - or none. */
+  protected setSubcategoryFirstAppearance(
+    key: string,
+    index: number,
+    chapter: EntityReference | null,
+  ): void {
+    this.writeSubcategories(
+      key,
+      this.subcategoriesIn(key).map((subcategory, position) =>
+        position === index ? { ...subcategory, firstAppearance: chapter } : subcategory,
+      ),
+    );
+    this.forgetRefusal(`${key}.${index}.firstAppearance`);
   }
 
   /** Writes a subcategory's name or description, in the language on screen. */

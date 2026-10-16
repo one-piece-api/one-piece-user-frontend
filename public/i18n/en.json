@@ -597,7 +597,9 @@
           "description": "description {{language}}",
           "advantages": "advantages {{language}}",
           "disadvantages": "disadvantages {{language}}",
-          "subcategories": "subcategories {{language}}"
+          "subcategories": "subcategories {{language}}",
+          "firstAppearance": "first appearance",
+          "type": "type"
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
         "blockedUnknown": "the content does not allow it right now."
@@ -660,13 +662,17 @@
           "RELATED_NOT_ONLINE": {
             "saga": "Saga not online",
             "arc": "Arc not online",
-            "volume": "Volume not online"
+            "volume": "Volume not online",
+            "firstAppearanceChapter": "First appearance chapter not online"
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arcs online: {{count}}",
             "chapters": "Chapters online: {{count}}",
-            "episodes": "Episodes online: {{count}}"
-          }
+            "episodes": "Episodes online: {{count}}",
+            "fruits": "Fruits online: {{count}}",
+            "types": "Types online: {{count}}"
+          },
+          "FIRST_APPEARANCE_MISSING": "First appearance missing"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "This fruit's type is not online. Republish the type first.",
@@ -676,13 +682,17 @@
           "RELATED_NOT_ONLINE": {
             "saga": "Arrr! The saga this one belongs to is not online yet, matey. Publish the saga first.",
             "arc": "Arrr! The arc this one belongs to is not online yet, matey. Publish the arc first.",
-            "volume": "Arrr! The volume this one is collected in is not online yet, matey. Publish the volume first."
+            "volume": "Arrr! The volume this one is collected in is not online yet, matey. Publish the volume first.",
+            "firstAppearanceChapter": "Arrr! The first appearance chapter is not online yet, matey. Publish the chapter first."
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arrr! Arcs are still online under this saga, matey. Retire them first:",
             "chapters": "Arrr! Chapters are still online with this one, matey. Retire them first:",
-            "episodes": "Arrr! Episodes are still online with this arc, matey. Retire them first:"
-          }
+            "episodes": "Arrr! Episodes are still online with this arc, matey. Retire them first:",
+            "fruits": "Arrr! Online Fruits first appear in this chapter, matey. Retire them first:",
+            "types": "Arrr! Online Types (or their subcategories) first appear in this chapter, matey. Retire them first:"
+          },
+          "FIRST_APPEARANCE_MISSING": "Arrr! The first appearance is missing, matey: set the chapter where the reader first meets it."
         },
         "andMore": "and {{count}} more"
       }
@@ -837,8 +847,10 @@
         "advantages": "Advantages",
         "disadvantages": "Disadvantages",
         "subcategories": "Subcategories",
-        "subcategory": "Subcategory"
-      }
+        "subcategory": "Subcategory",
+        "firstAppearance": "First appearance"
+      },
+      "noFirstAppearance": "Not set"
     },
     "comparison": {
       "title": "Compare versions",
@@ -884,10 +896,12 @@
         "broadcasts": "Broadcasts",
         "subcategories": {
           "name": "Subcategory {{subcategory}} · Name · {{language}}",
-          "description": "Subcategory {{subcategory}} · Description · {{language}}"
+          "description": "Subcategory {{subcategory}} · Description · {{language}}",
+          "firstAppearance": "Subcategory {{subcategory}} · First appearance"
         },
         "unnamedEntry": "no. {{position}}",
-        "subcategory": "Subcategory"
+        "subcategory": "Subcategory",
+        "firstAppearance": "First appearance"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -978,7 +992,8 @@
         "subcategories": {
           "name": "Subcategory {{position}} · name · {{language}}",
           "description": "Subcategory {{position}} · description · {{language}}"
-        }
+        },
+        "firstAppearance": "First appearance"
       },
       "save": "Save draft",
       "saving": "Saving…",
@@ -1044,12 +1059,17 @@
         "down": "Move down",
         "remove": "Remove",
         "add": "Add subcategory",
-        "empty": "No subcategories."
+        "empty": "No subcategories.",
+        "firstAppearance": "First appearance · optional"
       },
       "subcategory": {
         "label": "Subcategory",
         "hint": "optional · one of the Type's",
         "none": "— none —"
+      },
+      "firstAppearance": {
+        "label": "First appearance",
+        "hint": "needed to submit · where the reader first meets it"
       }
     },
     "dashboard": {

@@ -9,7 +9,9 @@ import { chosenFileOf, isImageDraft, isImageReference } from './entity-image';
 import {
   SUBCATEGORY_PARTS,
   subcategoriesOf,
+  subcategoryNames,
   subcategoryText,
+  type SavedSubcategory,
   type SubcategoryPart,
 } from './entity-subcategory';
 import { FIELD_KINDS, isAskedByReview } from './field-kinds';
@@ -46,12 +48,15 @@ export interface EntityFieldRef {
   readonly entry?: FieldEntry;
 }
 
-/** One text of one entry of a list field: which entry, where it stands, how it is called. */
+/**
+ * One value of one entry of a list field - a text in one language, or the entry's first
+ * appearance: which entry, where it stands, how it is called.
+ */
 export interface FieldEntry {
   readonly id: string;
   /** Its place in the list, from 1. */
   readonly position: number;
-  readonly part: SubcategoryPart;
+  readonly part: SubcategoryPart | 'firstAppearance';
   /** Its name in the language of the reference, `null` where it has none. */
   readonly name: string | null;
 }
@@ -289,10 +294,13 @@ function releaseListFields(definition: EntityDefinition): EntityField[] {
 export function draftFieldKey(definition: EntityDefinition, field: string): string | null {
   const lists = subcategoryListFields(definition).map(({ key }) => key);
   const entry = new RegExp(
-    String.raw`^(${lists.join('|')})\[(\d+)\](?:\.translations\[([^\]]+)\]\.(name|description)|\.id)?$`,
+    String.raw`^(${lists.join('|')})\[(\d+)\](?:\.translations\[([^\]]+)\]\.(name|description)|\.(firstAppearance)(?:\.chapter)?|\.id)?$`,
   ).exec(field);
   if (lists.length && entry) {
-    const [, list, index, language, part] = entry;
+    const [, list, index, language, part, firstAppearance] = entry;
+    if (firstAppearance) {
+      return `${list}.${index}.${firstAppearance}`;
+    }
     return language ? `${language}.${list}.${index}.${part}` : `${list}.${index}`;
   }
   const releases = releaseListFields(definition).map(({ key }) => key);
@@ -374,7 +382,7 @@ function diffSubcategories(
     const old = was.find(({ id }) => id === subcategory.id);
     const now = is.find(({ id }) => id === subcategory.id);
     const position = (now ? is.indexOf(now) : was.indexOf(subcategory)) + 1;
-    return languages.flatMap((language) => {
+    const texts = languages.flatMap((language) => {
       const name =
         (now && subcategoryText(now, language, 'name').trim()) ||
         (old && subcategoryText(old, language, 'name').trim()) ||
@@ -387,6 +395,24 @@ function diffSubcategories(
         ),
       );
     });
+    // Not translated: compared once, named by whatever name the subcategory has.
+    const anyName = (side?: SavedSubcategory) =>
+      side ? (Object.values(subcategoryNames(side))[0] ?? null) : null;
+    const firstAppearance = FIELD_KINDS.storyPoint.diff<EntityFieldRef>(
+      {
+        field: key,
+        language: null,
+        entry: {
+          id: subcategory.id,
+          position,
+          part: 'firstAppearance',
+          name: anyName(now) ?? anyName(old),
+        },
+      },
+      old && { chapter: old.firstAppearance },
+      now && { chapter: now.firstAppearance },
+    );
+    return [...texts, firstAppearance];
   });
 }
 

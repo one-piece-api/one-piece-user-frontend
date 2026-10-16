@@ -321,9 +321,11 @@ export class EntityComparison {
     const image = this.entity.fields.find(
       (candidate) => candidate.key === field && candidate.kind === 'image',
     );
-    const storyPoint = this.entity.fields.some(
-      (candidate) => candidate.key === field && candidate.kind === 'storyPoint',
-    );
+    const storyPoint = entry
+      ? entry.part === 'firstAppearance'
+      : this.entity.fields.some(
+          (candidate) => candidate.key === field && candidate.kind === 'storyPoint',
+        );
     return {
       key: entry
         ? `${field}.${entry.id}.${entry.part}.${language ?? ''}`

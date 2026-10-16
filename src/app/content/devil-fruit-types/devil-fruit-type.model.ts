@@ -2,6 +2,7 @@ import {
   countColumn,
   localizedTextField,
   relatedList,
+  storyPointField,
   subcategoryListField,
   textField,
   type EntityDefinition,
@@ -23,6 +24,7 @@ export const DEVIL_FRUIT_TYPE: EntityDefinition = {
   labelField: 'name',
   fields: [
     textField('romaji', { maxLength: 100 }),
+    storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
     localizedTextField('description', { maxLength: 2000, rows: 8 }),
     localizedTextField('advantages', { maxLength: 2000, rows: 5 }),

@@ -21,6 +21,7 @@ describe('the Devil Fruit entity', () => {
       'image:image',
       'type:relation',
       'subcategory:subcategory',
+      'firstAppearance:storyPoint',
       'name:localizedText',
       'description:localizedText',
       'advantages:localizedText',

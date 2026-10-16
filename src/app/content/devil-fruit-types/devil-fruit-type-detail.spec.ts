@@ -600,6 +600,7 @@ describe('DevilFruitTypeDetail', () => {
           errorCode: 'CONTENT_VERSION_INCOMPLETE',
           errors: [
             { field: 'romaji', message: 'is required for review' },
+            { field: 'firstAppearance.chapter', message: 'is required for review' },
             { field: 'translations[en].description', message: 'is required for review' },
             { field: 'translations[it].disadvantages', message: 'is required for review' },
           ],
@@ -610,7 +611,7 @@ describe('DevilFruitTypeDetail', () => {
       await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
 
       expect(mascotSays()).toBe(
-        'Arrr! Still missing before review: romaji, description EN, disadvantages IT.',
+        'Arrr! Still missing before review: romaji, first appearance, description EN, disadvantages IT.',
       );
     });
 

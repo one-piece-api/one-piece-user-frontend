@@ -141,6 +141,30 @@ const IMAGE_VALUE = {
 };
 
 /**
+ * A point on the reader's axis: the editor holds the chapter's reference whole, as for a
+ * relation, and the JSON sends `{ chapter: id }` - `null` where none is chosen. A comparison
+ * looks at the chapter's id and shows its number and title (`chapterText`), which the screen
+ * puts after "Cap.".
+ */
+const STORY_POINT_VALUE = {
+  draftValue: chapterOf,
+  savedValue: (draft: unknown) => (isReference(draft) ? { chapter: draft.id } : null),
+  isFilled: (value: unknown) => isReference(value) || chapterOf(value) !== null,
+  diff: <TField>(field: TField, before: unknown, after: unknown) => {
+    const was = chapterOf(before);
+    const is = chapterOf(after);
+    const diff = diffField(field, was?.id, is?.id);
+    return (
+      diff && {
+        ...diff,
+        before: was && chapterText(was, null),
+        after: is && chapterText(is, null),
+      }
+    );
+  },
+};
+
+/**
  * The subcategories a content defines: the editor holds each with a key of its own, the JSON
  * sends each with its id - left out for one just added, the backend gives it - and its texts,
  * trimmed, `null` where nothing was written. Not a value review asks for as a whole: each name
@@ -149,9 +173,10 @@ const IMAGE_VALUE = {
  */
 const SUBCATEGORY_LIST_VALUE = {
   draftValue: (saved: unknown): SubcategoryDraft[] =>
-    subcategoriesOf(saved).map(({ id, translations }) => ({
+    subcategoriesOf(saved).map(({ id, translations, firstAppearance }) => ({
       id,
       key: newSubcategoryKey(),
+      firstAppearance,
       translations: Object.fromEntries(
         Object.entries(translations).map(([language, texts]) => [
           language,
@@ -162,6 +187,7 @@ const SUBCATEGORY_LIST_VALUE = {
   savedValue: (draft: unknown) =>
     (Array.isArray(draft) ? (draft as SubcategoryDraft[]) : []).map((subcategory) => ({
       ...(subcategory.id ? { id: subcategory.id } : {}),
+      firstAppearance: STORY_POINT_VALUE.savedValue(subcategory.firstAppearance),
       translations: Object.fromEntries(
         Object.keys(subcategory.translations).map((language) => [
           language,
@@ -246,30 +272,6 @@ const RELEASE_LIST_VALUE = {
     const written = (value: unknown) =>
       completeReleases(releasesOf(value)).map(releaseText).join('\n');
     return diffField(field, written(before), written(after));
-  },
-};
-
-/**
- * A point on the reader's axis: the editor holds the chapter's reference whole, as for a
- * relation, and the JSON sends `{ chapter: id }` - `null` where none is chosen. A comparison
- * looks at the chapter's id and shows its number and title (`chapterText`), which the screen
- * puts after "Cap.".
- */
-const STORY_POINT_VALUE = {
-  draftValue: chapterOf,
-  savedValue: (draft: unknown) => (isReference(draft) ? { chapter: draft.id } : null),
-  isFilled: (value: unknown) => isReference(value) || chapterOf(value) !== null,
-  diff: <TField>(field: TField, before: unknown, after: unknown) => {
-    const was = chapterOf(before);
-    const is = chapterOf(after);
-    const diff = diffField(field, was?.id, is?.id);
-    return (
-      diff && {
-        ...diff,
-        before: was && chapterText(was, null),
-        after: is && chapterText(is, null),
-      }
-    );
   },
 };
 
