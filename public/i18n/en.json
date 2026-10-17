@@ -1484,7 +1484,14 @@
         "value": "Value not accepted: check it",
         "tooLong": "Text too long"
       },
-      "refusedMessage": "Arrr! Some reveals don’t add up: open the Reveals tab and look at the entries in red."
+      "refusedMessage": "Arrr! Some reveals don’t add up: open the Reveals tab and look at the entries in red.",
+      "reader": {
+        "title": "How the reader sees it",
+        "truth": "Current truth",
+        "hidden": "Later reveals are hidden",
+        "previous": "Previous reveal",
+        "next": "Next reveal"
+      }
     }
   }
 }

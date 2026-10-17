@@ -18,11 +18,23 @@
             [class]="name() ? 'text-ocean-950' : 'text-treasure-700'"
             data-testid="card-name"
           >
-            {{ name() ?? (noNameKey | transloco) }}
+            @if (name(); as name) {
+              {{ name }}
+            } @else if (nameUnknown()) {
+              <em class="text-ocean-500/80">{{ 'content.reveals.unknown' | transloco }}</em>
+            } @else {
+              {{ noNameKey | transloco }}
+            }
           </p>
           @if (hasNaturalKey) {
             <p class="font-heading text-[13px] font-bold text-ocean-500 italic">
-              {{ naturalKey() ?? '—' }}
+              @if (naturalKey(); as naturalKey) {
+                {{ naturalKey }}
+              } @else if (naturalKeyUnknown()) {
+                {{ 'content.reveals.unknown' | transloco }}
+              } @else {
+                —
+              }
             </p>
           }
         </div>
@@ -102,6 +114,12 @@
                       >{{ label }}</span
                     >
                   }
+                } @else if (relation.unknown) {
+                  <em
+                    class="font-heading text-[13px] font-bold text-ocean-500/80"
+                    [attr.data-testid]="'card-' + relation.field"
+                    >{{ 'content.reveals.unknown' | transloco }}</em
+                  >
                 } @else {
                   <span
                     class="font-heading text-[13px] font-bold text-ocean-500/50"
@@ -165,10 +183,21 @@
           </h3>
           <p
             class="font-heading text-[15px] leading-relaxed font-semibold text-pretty whitespace-pre-line"
-            [class]="longText.text ? 'text-ocean-500' : 'text-treasure-700'"
+            [class]="
+              longText.text
+                ? 'text-ocean-500'
+                : longText.unknown
+                  ? 'text-ocean-500/80 italic'
+                  : 'text-treasure-700'
+            "
             [attr.data-testid]="'card-' + longText.field"
           >
-            {{ longText.text ?? (longText.emptyKey | transloco) }}
+            {{
+              longText.text ??
+                (longText.unknown
+                  ? ('content.reveals.unknown' | transloco)
+                  : (longText.emptyKey | transloco))
+            }}
           </p>
         </div>
       }

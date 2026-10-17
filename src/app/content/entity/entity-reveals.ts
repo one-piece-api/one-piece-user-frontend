@@ -10,6 +10,7 @@
  * subcategory goes with the relation it belongs to (`type` stands for the subcategory too).
  * No Angular in here.
  */
+import type { EntityBody } from './entity-body';
 import type { EntityDefinition, EntityField } from './entity-definition';
 import { isReference, type EntityReference } from './entity-reference';
 import { chapterOf } from './entity-story-point';
@@ -455,4 +456,86 @@ export function withRevealedField(
   return previous
     ? withReveal(named, previous.key, (reveal) => ({ ...reveal, values: seeded }))
     : { ...named, initial: seeded };
+}
+
+/** What the reader knows at a point of the timeline, as the card shows it. */
+export interface ReaderView {
+  /** The body of the version with the values the reader knows there. */
+  readonly body: EntityBody;
+  /** The fields the reader does not know yet there: no value to show. */
+  readonly unrevealed: readonly string[];
+}
+
+/**
+ * The version as the reader sees it at a point of the timeline (T13): `0` at the first
+ * appearance, `n` after the n-th reveal in chapter order - after the last one, the truth.
+ * A field no reveal names is the truth; before its first reveal, the initial knowledge;
+ * after a reveal that is not its last, the value learned there; after its last, the truth.
+ * Only the revealed fields change: relations not revealed yet are not hidden (public API, TL6).
+ */
+export function readerViewAt(
+  definition: EntityDefinition,
+  body: EntityBody,
+  truth: Belief,
+  draft: RevealsDraft,
+  point: number,
+): ReaderView {
+  const ordered = orderedReveals(draft.reveals);
+  const seen = ordered.slice(0, point);
+  let belief: Belief = truth;
+  const unrevealed: string[] = [];
+  for (const field of revealedFields(definition, ordered)) {
+    const latest = seen.map(({ fields }) => fields.includes(field)).lastIndexOf(true);
+    if (latest >= 0 && isLastMention(ordered, latest, field)) {
+      continue;
+    }
+    const source = latest >= 0 ? seen[latest].values : draft.initial;
+    belief = withValuesOf(definition, belief, source, field);
+    if (!knows(definition, source, field)) {
+      unrevealed.push(field);
+    }
+  }
+  return { body: bodyWith(definition, body, belief), unrevealed };
+}
+
+/** The body with the values of the revealable fields taken from `belief`. */
+function bodyWith(definition: EntityDefinition, body: EntityBody, belief: Belief): EntityBody {
+  const fields = revealableFields(definition).flatMap(({ key }) => valueFieldsOf(definition, key));
+  const shared = fields.filter((field) => !kindOf(field).localized);
+  const localized = fields.filter((field) => kindOf(field).localized);
+  return {
+    ...body,
+    ...Object.fromEntries(shared.map(({ key }) => [key, belief[key] ?? null])),
+    translations: Object.fromEntries(
+      Object.entries(body.translations).map(([language, translation]) => [
+        language,
+        {
+          ...translation,
+          ...Object.fromEntries(
+            localized.map(({ key }) => [key, belief.translations[language]?.[key] ?? null]),
+          ),
+        },
+      ]),
+    ),
+  };
+}
+
+/** The number of a reveal's chapter as the timeline shows it: `?` where it has none. */
+export function chapterNumberOf(chapter: EntityReference): string {
+  return typeof chapter.number === 'number' ? String(chapter.number) : '?';
+}
+
+/** A reveal's title in `language`; while a draft lacks it, "Reveal at ch. N" or "New reveal". */
+export function revealTitleOf(
+  translate: (key: string, params?: Record<string, string>) => string,
+  reveal: RevealDraft,
+  language: string,
+): string {
+  const title = reveal.titles[language]?.trim();
+  if (title) {
+    return title;
+  }
+  return reveal.chapter
+    ? translate('content.reveals.untitled', { chapter: chapterNumberOf(reveal.chapter) })
+    : translate('content.reveals.new');
 }

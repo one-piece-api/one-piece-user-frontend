@@ -34,6 +34,8 @@ interface LongText {
   readonly text: string | null;
   /** What the card says where the language has no such text yet: `content.card.noDescription`. */
   readonly emptyKey: string;
+  /** Not known yet to the reader of the preview (`unrevealed`): no value to show. */
+  readonly unknown: boolean;
 }
 
 /** A text or a number of the content that is not its natural key: japanese title, page count. */
@@ -69,6 +71,8 @@ interface RelationChip {
   readonly label: string | null;
   /** Where the link leads - empty for a content whose section this app does not have. */
   readonly link: readonly string[];
+  /** Not known yet to the reader of the preview (`unrevealed`): no value to show. */
+  readonly unknown?: boolean;
   /** A story point: the episode beside the chapter is not built yet, "coming soon". */
   readonly episodeSoon?: true;
   /** A relation list: every content chosen, each a link - empty for none. */
@@ -97,6 +101,11 @@ export class EntityCard {
 
   readonly body = input.required<EntityBody>();
   readonly languages = input.required<readonly LanguageEntry[]>();
+  /**
+   * The fields the reader does not know yet, in the reader preview (`readerViewAt`): they
+   * read "Not revealed yet" instead of what a version lacking them says.
+   */
+  readonly unrevealed = input<readonly string[]>([]);
 
   /** The language shown: the UI's own when the catalog has it, until the reader picks another. */
   protected readonly language = linkedSignal<string | null>(() => {
@@ -122,10 +131,16 @@ export class EntityCard {
     () => textOf(this.translation()?.[this.entity.labelField]).trim() || null,
   );
   /** What the card says where the language has no name: `content.card.noName`, `noTitle`. */
+  protected readonly nameUnknown = computed(() =>
+    this.unrevealed().includes(this.entity.labelField),
+  );
   protected readonly noNameKey = `content.card.no${this.entity.labelField[0].toUpperCase()}${this.entity.labelField.slice(1)}`;
   /** Whether the entity has one: an event is told apart by its id alone. */
   protected readonly hasNaturalKey = this.entity.naturalKey !== undefined;
   /** The natural key: the romaji, or "Chapter 12" for a numbered content. */
+  protected readonly naturalKeyUnknown = computed(
+    () => !!this.entity.naturalKey && this.unrevealed().includes(this.entity.naturalKey),
+  );
   protected readonly naturalKey = computed(() => {
     this.transloco.activeLang();
     return (untitledOf(this.transloco, this.entity, this.body()) ?? '').trim() || null;
@@ -233,6 +248,7 @@ export class EntityCard {
           emptyKey: `content.card.no${name}`,
           label: isReference(reference) ? referenceLabel(reference, language) : null,
           link: isReference(reference) && target ? [target.route, reference.id] : [],
+          unknown: this.unrevealed().includes(field.key),
         },
       ];
     });
@@ -355,6 +371,7 @@ export class EntityCard {
               field: field.key,
               text: textOf(this.translation()?.[field.key]).trim() || null,
               emptyKey: `content.card.no${field.key[0].toUpperCase()}${field.key.slice(1)}`,
+              unknown: this.unrevealed().includes(field.key),
             },
           ]
         : [],

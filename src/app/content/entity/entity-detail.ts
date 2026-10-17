@@ -34,7 +34,8 @@ import { ENTITY } from './entities';
 import { EntityCard } from './entity-card';
 import { EntityComparison } from './entity-comparison';
 import { RelatedList } from './related-list';
-import { revealsOfDraft, type Belief } from './entity-reveals';
+import { forwardTimeline, readerViewAt, revealsOfDraft, type Belief } from './entity-reveals';
+import { ReaderPointPicker } from './reader-point-picker';
 import { RevealsPanel } from './reveals-panel';
 
 /** The query parameters this page keeps its view in, so a link reopens the same version. */
@@ -68,6 +69,7 @@ const NOT_FOUND_STATUSES = [400, 404];
   templateUrl: './entity-detail.html',
   imports: [
     RevealsPanel,
+    ReaderPointPicker,
     Breadcrumb,
     ContentSerial,
     Icon,
@@ -257,6 +259,31 @@ export class EntityDetail {
       firstAppearance: truth['firstAppearance'] ?? null,
       languages: codes,
     };
+  });
+
+  /** The timeline read forward, for the reader preview of the Overview: none without reveals. */
+  protected readonly readerNodes = computed(() => {
+    const view = this.revealsView();
+    if (!view?.reveals.reveals.length) {
+      return [];
+    }
+    return forwardTimeline(this.entity, view.truth, view.reveals, view.firstAppearance);
+  });
+
+  /** The point of the timeline the Overview shows: the current truth, for each version shown. */
+  protected readonly readerPoint = linkedSignal(() => Math.max(0, this.readerNodes().length - 1));
+
+  /** The card of the Overview: as the reader sees it at the point picked, the truth otherwise. */
+  protected readonly overview = computed(() => {
+    const version = this.shown();
+    const view = this.revealsView();
+    if (!version) {
+      return null;
+    }
+    if (!view || !this.readerNodes().length) {
+      return { body: version.body, unrevealed: [] as readonly string[] };
+    }
+    return readerViewAt(this.entity, version.body, view.truth, view.reveals, this.readerPoint());
   });
 
   /** The version being compared with an earlier one, `null` while the panel is closed. */

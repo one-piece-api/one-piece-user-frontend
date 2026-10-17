@@ -1,0 +1,103 @@
+@if (current(); as current) {
+  <div
+    class="mb-3.5 grid gap-x-4 gap-y-2 border-b border-card-line pb-3 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)] md:items-center"
+    data-testid="reader-preview"
+  >
+    <div class="min-w-0">
+      <p class="font-heading text-[11px] font-extrabold tracking-widest text-ocean-500 uppercase">
+        {{ 'content.reveals.reader.title' | transloco }} · {{ point() + 1 }}/{{ points().length }}
+      </p>
+      <p class="font-heading text-[13px] leading-snug font-extrabold text-ocean-950">
+        {{ 'content.reveals.chapterShort' | transloco: { chapter: current.chapter } }} ·
+        {{ current.label }}
+      </p>
+      @if (point() === last()) {
+        <p class="font-heading text-xs font-bold text-success-600" data-testid="reader-truth">
+          {{ 'content.reveals.reader.truth' | transloco }}
+        </p>
+      } @else {
+        <p class="font-heading text-xs font-bold text-flag-600" data-testid="reader-hidden">
+          {{ 'content.reveals.reader.hidden' | transloco }}
+        </p>
+      }
+    </div>
+    <div class="flex min-w-0 items-center gap-1.5">
+      <button
+        type="button"
+        class="grid size-7.5 flex-none cursor-pointer place-items-center rounded-full bg-white font-display text-base font-bold text-ocean-900 ring-2 ring-ocean-100 ring-inset disabled:cursor-default disabled:opacity-35"
+        [attr.aria-label]="'content.reveals.reader.previous' | transloco"
+        [disabled]="point() === 0"
+        (click)="go(point() - 1)"
+      >
+        ‹
+      </button>
+      <ol
+        class="flex min-w-0 flex-1 overflow-x-auto py-1"
+        role="radiogroup"
+        [attr.aria-label]="'content.reveals.reader.title' | transloco"
+      >
+        @for (entry of points(); track $index) {
+          @let on = $index === point();
+          @let done = $index < point();
+          <li class="relative flex w-18 flex-none justify-center">
+            @if (!$last) {
+              <span
+                class="absolute top-3 left-1/2 h-0.5 w-full rounded-sm"
+                [class]="done ? 'bg-ocean-900' : 'bg-ocean-100'"
+                aria-hidden="true"
+              ></span>
+            }
+            <button
+              type="button"
+              role="radio"
+              class="relative grid cursor-pointer justify-items-center gap-1 px-1.5 py-1"
+              [attr.aria-checked]="on"
+              [attr.aria-label]="
+                ('content.reveals.chapterShort' | transloco: { chapter: entry.chapter }) +
+                ' — ' +
+                entry.label
+              "
+              [title]="entry.label"
+              [tabindex]="on ? 0 : -1"
+              (click)="go($index)"
+              (keydown.arrowRight)="$event.preventDefault(); go(point() + 1)"
+              (keydown.arrowLeft)="$event.preventDefault(); go(point() - 1)"
+            >
+              <span
+                class="rounded-full border-2 transition-all"
+                [class]="
+                  on
+                    ? 'size-4 border-ocean-900 bg-treasure-500'
+                    : done
+                      ? 'mt-0.75 size-2.5 border-ocean-900 bg-ocean-900'
+                      : 'mt-0.75 size-2.5 border-ocean-500 bg-white'
+                "
+                aria-hidden="true"
+              ></span>
+              <span
+                class="font-heading text-xs whitespace-nowrap"
+                [class]="
+                  on
+                    ? 'font-black text-ocean-900'
+                    : done
+                      ? 'font-bold text-ocean-800'
+                      : 'font-bold text-ocean-500'
+                "
+                >{{ entry.chapter }}</span
+              >
+            </button>
+          </li>
+        }
+      </ol>
+      <button
+        type="button"
+        class="grid size-7.5 flex-none cursor-pointer place-items-center rounded-full bg-white font-display text-base font-bold text-ocean-900 ring-2 ring-ocean-100 ring-inset disabled:cursor-default disabled:opacity-35"
+        [attr.aria-label]="'content.reveals.reader.next' | transloco"
+        [disabled]="point() === last()"
+        (click)="go(point() + 1)"
+      >
+        ›
+      </button>
+    </div>
+  </div>
+}

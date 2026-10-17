@@ -5,6 +5,7 @@ import {
   INITIAL_NODE,
   isLastMention,
   orderedReveals,
+  readerViewAt,
   revealRefusalOf,
   revealsDraftOf,
   revealsOfDraft,
@@ -242,6 +243,57 @@ describe('the reveals of a content, read forward', () => {
       expect(description?.after).toBe(truth);
       // Not known before: the initial knowledge has no value for it.
       expect(disadvantages?.before.translations['en']['disadvantages']).toBe('');
+    });
+  });
+
+  describe('the reader view', () => {
+    const at = (point: number) => {
+      const fruit = draftOf(DEVIL_FRUIT, GOMU_GOMU as never, LANGUAGES);
+      return readerViewAt(
+        DEVIL_FRUIT,
+        GOMU_GOMU as never,
+        fruit as unknown as Belief,
+        revealsOfDraft(fruit),
+        point,
+      );
+    };
+
+    it('shows the initial knowledge at the first appearance', () => {
+      const { body, unrevealed } = at(0);
+
+      expect(body['romaji']).toBe('Gomu Gomu no Mi');
+      expect(body['type']).toEqual(PARAMECIA);
+      expect(body['subcategory']).toBeNull();
+      expect(body.translations['it']['name']).toBe('Frutto Gom Gom');
+      expect(body.translations['en']['description']).toBe('Rubber, nothing more');
+      // Never revealed: the truth from the start.
+      expect(body.translations['en']['advantages']).toBe('Frees its eater');
+      // Revealed later, not known at first: nothing to show yet.
+      expect(body.translations['en']['disadvantages']).toBe('');
+      expect(unrevealed).toEqual(['disadvantages']);
+    });
+
+    it('shows the value learned at an intermediate reveal, the rest as before', () => {
+      const { body, unrevealed } = at(1);
+
+      expect(body.translations['en']['description']).toBe('A body of rubber');
+      expect(body['romaji']).toBe('Gomu Gomu no Mi');
+      expect(unrevealed).toEqual(['disadvantages']);
+    });
+
+    it('shows the truth after the last reveal', () => {
+      const { body, unrevealed } = at(2);
+
+      expect(body['romaji']).toBe('Hito Hito no Mi, Model: Nika');
+      expect(body['type']).toEqual(ZOAN);
+      expect(body['subcategory']).toEqual(MYTHICAL);
+      expect(body.translations['en']['description']).toBe('The fruit of the sun god');
+      expect(body.translations['en']['disadvantages']).toBe('Tiring');
+      expect(unrevealed).toEqual([]);
+    });
+
+    it('keeps what is not revealed as it is', () => {
+      expect(at(0).body['firstAppearance']).toEqual(GOMU_GOMU.firstAppearance);
     });
   });
 

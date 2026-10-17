@@ -169,7 +169,14 @@
           @if (loadingShown()) {
             <app-loading-placeholder [label]="'content.detail.loadingVersion' | transloco" />
           } @else if (openTab() === 'overview') {
-            <app-entity-card [body]="version.body" [languages]="languages()">
+            @if (readerNodes().length) {
+              <app-reader-point-picker [nodes]="readerNodes()" [(point)]="readerPoint" />
+            }
+            <app-entity-card
+              [body]="overview()?.body ?? version.body"
+              [unrevealed]="overview()?.unrevealed ?? []"
+              [languages]="languages()"
+            >
               <ng-container ngProjectAs="[cardSide]">
                 @if (isCurrent()) {
                   @for (section of entity.sections ?? []; track section.of) {

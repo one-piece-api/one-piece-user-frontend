@@ -17,6 +17,8 @@ import {
   type RevealsDraft,
   type TimelineNode,
   type TimelineRow,
+  chapterNumberOf,
+  revealTitleOf,
 } from './entity-reveals';
 import { STORY_POINT_TARGET, chapterLabel } from './entity-story-point';
 import { isSubcategoryReference, subcategoryChoices, subcategoryLabel } from './entity-subcategory';
@@ -103,7 +105,7 @@ export class RevealsPanel {
           return {
             key,
             kind: node.kind,
-            chapter: node.chapter ? this.chapterNumber(node.chapter) : null,
+            chapter: node.chapter ? chapterNumberOf(node.chapter) : null,
             label: this.transloco.translate('content.reveals.firstAppearance'),
             count: node.fields.length,
             refused: this.isRefused(key),
@@ -112,7 +114,7 @@ export class RevealsPanel {
           return {
             key,
             kind: node.kind,
-            chapter: node.reveal.chapter ? this.chapterNumber(node.reveal.chapter) : null,
+            chapter: node.reveal.chapter ? chapterNumberOf(node.reveal.chapter) : null,
             label: this.revealTitle(node.reveal),
             count: node.reveal.fields.length,
             refused: this.isRefused(key),
@@ -173,10 +175,6 @@ export class RevealsPanel {
     return Object.keys(this.refusals()[node] ?? {}).length > 0;
   }
 
-  private chapterNumber(chapter: EntityReference): string {
-    return typeof chapter.number === 'number' ? String(chapter.number) : '?';
-  }
-
   protected chapterText(chapter: EntityReference | null): string {
     return chapter
       ? chapterLabel(
@@ -192,15 +190,11 @@ export class RevealsPanel {
 
   /** Its title in the UI's language; while a draft lacks it, "Reveal at ch. N". */
   protected revealTitle(reveal: RevealDraft): string {
-    const title = reveal.titles[this.uiLanguage()]?.trim();
-    if (title) {
-      return title;
-    }
-    return reveal.chapter
-      ? this.transloco.translate('content.reveals.untitled', {
-          chapter: this.chapterNumber(reveal.chapter),
-        })
-      : this.transloco.translate('content.reveals.new');
+    return revealTitleOf(
+      (key, params) => this.transloco.translate(key, params),
+      reveal,
+      this.uiLanguage(),
+    );
   }
 
   private nodeName(node: NodeView): string {
@@ -287,7 +281,7 @@ export class RevealsPanel {
     const reveal = this.reveals().reveals.find(({ values }) => values === belief);
     return reveal?.chapter
       ? this.transloco.translate('content.reveals.fromReveal', {
-          chapter: this.chapterNumber(reveal.chapter),
+          chapter: chapterNumberOf(reveal.chapter),
         })
       : this.transloco.translate('content.reveals.fromFirstAppearance');
   }

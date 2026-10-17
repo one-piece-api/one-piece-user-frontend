@@ -1484,7 +1484,14 @@
         "value": "Valore non accettato: controllalo",
         "tooLong": "Testo troppo lungo"
       },
-      "refusedMessage": "Arrr! Qualche rivelazione non torna: apri la scheda Rivelazioni e guarda le voci in rosso."
+      "refusedMessage": "Arrr! Qualche rivelazione non torna: apri la scheda Rivelazioni e guarda le voci in rosso.",
+      "reader": {
+        "title": "Come lo vede il lettore",
+        "truth": "Verità attuale",
+        "hidden": "Le rivelazioni successive sono nascoste",
+        "previous": "Rivelazione precedente",
+        "next": "Rivelazione successiva"
+      }
     }
   }
 }

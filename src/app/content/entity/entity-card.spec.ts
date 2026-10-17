@@ -2,13 +2,18 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { NOTE, NOTE_WITH_PARTICIPANTS, NOTE_WITHOUT_KEY } from '../../testing/note-entity';
+import { DEVIL_FRUIT } from '../devil-fruits/devil-fruit.model';
 import { ENTITY } from './entities';
 import type { EntityDefinition } from './entity-definition';
 import { EntityCard } from './entity-card';
 
 /** The card of any entity, run with entities that exist only in the specs. */
 describe('the card of any entity', () => {
-  function render(entity: EntityDefinition, body: Record<string, unknown>): HTMLElement {
+  function render(
+    entity: EntityDefinition,
+    body: Record<string, unknown>,
+    unrevealed: string[] = [],
+  ): HTMLElement {
     TestBed.configureTestingModule({
       imports: [provideTranslocoTesting()],
       providers: [provideRouter([]), { provide: ENTITY, useValue: entity }],
@@ -16,9 +21,33 @@ describe('the card of any entity', () => {
     const fixture = TestBed.createComponent(EntityCard);
     fixture.componentRef.setInput('body', { translations: {}, ...body });
     fixture.componentRef.setInput('languages', [{ code: 'en', name: 'English' }]);
+    fixture.componentRef.setInput('unrevealed', unrevealed);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   }
+
+  it('says "Not revealed yet" where the reader of the preview does not know a field', () => {
+    const card = render(
+      DEVIL_FRUIT,
+      {
+        romaji: null,
+        type: null,
+        translations: { en: { name: null, description: null, disadvantages: null } },
+      },
+      ['romaji', 'type', 'name', 'disadvantages'],
+    );
+    const text = (testId: string) =>
+      card.querySelector(`[data-testid="card-${testId}"]`)?.textContent?.trim();
+
+    expect(text('name')).toBe('Not revealed yet');
+    expect(
+      card.querySelector('[data-testid="card-name"]')?.nextElementSibling?.textContent?.trim(),
+    ).toBe('Not revealed yet');
+    expect(text('type')).toBe('Not revealed yet');
+    expect(text('disadvantages')).toBe('Not revealed yet');
+    // Known to the reader, only not written: the card says so as usual.
+    expect(text('description')).not.toBe('Not revealed yet');
+  });
 
   it('shows the natural key under the name, or a dash while it has none', () => {
     const card = render(NOTE, { romaji: null });
