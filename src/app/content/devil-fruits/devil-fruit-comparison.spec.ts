@@ -29,7 +29,7 @@ function summary(number: number, status: VersionStatus) {
   };
 }
 
-function version(number: number, image: object | null) {
+function version(number: number, image: object | null, extra: object = {}) {
   return {
     ...summary(number, number === 1 ? 'PUBLISHED' : 'DRAFT'),
     blockedActions: [],
@@ -39,6 +39,7 @@ function version(number: number, image: object | null) {
       type: null,
       image,
       translations: { en: { name: 'Flame-Flame', description: 'Fire.' } },
+      ...extra,
     },
   };
 }
@@ -63,8 +64,12 @@ describe('the comparison of two versions of a Devil Fruit', () => {
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
-  /** Opens v2 against v1, each with the image given. */
-  async function compare(before: object | null, after: object | null): Promise<void> {
+  /** Opens v2 against v1, each with the image given and anything else in its body. */
+  async function compare(
+    before: object | null,
+    after: object | null,
+    extra: { before?: object; after?: object } = {},
+  ): Promise<void> {
     fixture = TestBed.createComponent(EntityComparison);
     fixture.componentRef.setInput('versionsUrl', VERSIONS);
     fixture.componentRef.setInput('versions', [summary(1, 'PUBLISHED'), summary(2, 'DRAFT')]);
@@ -73,8 +78,8 @@ describe('the comparison of two versions of a Devil Fruit', () => {
     fixture.componentRef.setInput('target', 2);
     fixture.detectChanges();
     httpTesting.match('/api/me').forEach((request) => request.flush({ username: 'nami' }));
-    httpTesting.expectOne(`${VERSIONS}/2`).flush(version(2, after));
-    httpTesting.expectOne(`${VERSIONS}/1`).flush(version(1, before));
+    httpTesting.expectOne(`${VERSIONS}/2`).flush(version(2, after, extra.after));
+    httpTesting.expectOne(`${VERSIONS}/1`).flush(version(1, before, extra.before));
     for (let round = 0; round < 2; round++) {
       await new Promise((resolve) => setTimeout(resolve));
       fixture.detectChanges();
@@ -121,5 +126,70 @@ describe('the comparison of two versions of a Devil Fruit', () => {
 
     expect(imageRow()).toBeUndefined();
     expect(root.querySelector('[data-testid="comparison-images"]')).toBeNull();
+  });
+
+  describe('the reveals', () => {
+    const CHAPTER_1 = { id: 'c1', number: 1, names: { en: 'Romance Dawn' } };
+    const CHAPTER_100 = { id: 'c100', number: 100, names: { en: 'Legend begins' } };
+    const known = (name: string) => ({
+      romaji: null,
+      type: null,
+      subcategory: null,
+      translations: { en: { name } },
+    });
+    const reveal = (chapter: object, title: string) => ({
+      revealedAt: { chapter },
+      fields: ['name'],
+      titles: { en: title },
+      translations: {},
+    });
+    const texts = (testid: string) =>
+      Array.from(root.querySelectorAll(`[data-testid="${testid}"]`)).map((element) =>
+        element.textContent?.replace(/\s+/g, ' ').trim(),
+      );
+
+    it('compares the main fields as the reader meets them at the first appearance', async () => {
+      await compare(null, null, {
+        before: { initialKnowledge: known('Flame'), reveals: [reveal(CHAPTER_1, 'A fire')] },
+        after: { initialKnowledge: known('Fire'), reveals: [reveal(CHAPTER_1, 'A fire')] },
+      });
+
+      const rows = texts('comparison-row');
+      expect(rows).toEqual(['Name · EN~ modified −v1Flame~v2Fire']);
+      expect(texts('comparison-reveal')).toEqual([]);
+    });
+
+    it('lists the reveals added, removed and changed apart from the main fields', async () => {
+      await compare(null, null, {
+        before: {
+          initialKnowledge: known('Flame'),
+          reveals: [reveal(CHAPTER_1, 'A fire'), reveal(CHAPTER_100, 'Old')],
+        },
+        after: {
+          initialKnowledge: known('Fire'),
+          reveals: [reveal(CHAPTER_100, 'New')],
+        },
+      });
+
+      const headings = Array.from(
+        root.querySelectorAll('[data-testid="comparison-reveal"] > p'),
+      ).map((heading) => Array.from(heading.children, (part) => part.textContent?.trim()));
+      expect(headings).toEqual([
+        ['− Reveal removed', 'Ch. 1 — A fire'],
+        ['~ Reveal changed', 'Ch. 100 — New'],
+      ]);
+      expect(texts('comparison-reveal')[1]).toContain('Title · EN~ modified');
+      expect(texts('comparison-reveal-count')).toEqual(['Reveals: 2 differences']);
+      expect(root.querySelector('[data-testid="comparison-no-changes"]')).toBeNull();
+    });
+
+    it('says so when the reveals did not change', async () => {
+      const same = { initialKnowledge: known('Fire'), reveals: [reveal(CHAPTER_1, 'A fire')] };
+      await compare(null, null, { before: same, after: same });
+
+      expect(texts('comparison-reveal')).toEqual([]);
+      expect(texts('comparison-reveals')[0]).toContain('no differences');
+      expect(texts('comparison-reveal-count')).toEqual([]);
+    });
   });
 });

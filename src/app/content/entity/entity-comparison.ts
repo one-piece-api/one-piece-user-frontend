@@ -10,6 +10,7 @@ import {
   output,
   viewChild,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CurrentUserService } from '../../identity/current-user';
 import { CloseButton } from '../../shared/ui/close-button';
@@ -28,6 +29,7 @@ import {
   countChanges,
   defaultBase,
   earlierVersions,
+  diffField,
   type FieldChange,
   type FieldDiff,
 } from '../version-comparison';
@@ -35,6 +37,13 @@ import { EntityCard } from './entity-card';
 import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityImageFrame } from './entity-image-frame';
+import {
+  chapterNumberOf,
+  diffReveals,
+  firstAppearanceBody,
+  revealTitleOf,
+  type RevealDiff,
+} from './entity-reveals';
 import { STORY_POINT_CHAPTER_KEY } from './entity-story-point';
 import { untitledOf } from './entity-title';
 
@@ -47,10 +56,18 @@ const MODES: readonly Mode[] = ['changes', 'card'];
 /** How each change is painted - literal class names, so Tailwind keeps them. */
 const CHANGE_CLASSES: Record<
   FieldChange,
-  { chip: string; before: string; after: string; beforeSign: string; afterSign: string }
+  {
+    chip: string;
+    accent: string;
+    before: string;
+    after: string;
+    beforeSign: string;
+    afterSign: string;
+  }
 > = {
   ADDED: {
     chip: 'bg-success-100 text-success-700',
+    accent: 'border-success-700',
     before: 'bg-parchment-200/50 text-ocean-500/40',
     after: 'bg-success-100 text-success-700',
     beforeSign: '',
@@ -58,6 +75,7 @@ const CHANGE_CLASSES: Record<
   },
   REMOVED: {
     chip: 'bg-flag-100 text-flag-700',
+    accent: 'border-flag-700',
     before: 'bg-flag-100 text-flag-700',
     after: 'bg-parchment-200/50 text-ocean-500/40',
     beforeSign: '−',
@@ -65,6 +83,7 @@ const CHANGE_CLASSES: Record<
   },
   MODIFIED: {
     chip: 'bg-treasure-100 text-treasure-700',
+    accent: 'border-treasure-700',
     before: 'bg-flag-100 text-flag-700',
     after: 'bg-treasure-100 text-treasure-700',
     beforeSign: '−',
@@ -72,6 +91,7 @@ const CHANGE_CLASSES: Record<
   },
   UNCHANGED: {
     chip: 'bg-status-draft-soft text-status-draft-ink',
+    accent: 'border-status-draft-ink',
     before: '',
     after: '',
     beforeSign: '',
@@ -85,6 +105,15 @@ const CHANGE_SIGN: Record<FieldChange, string> = {
   MODIFIED: '~',
   UNCHANGED: '=',
 };
+
+/** A reveal of the comparison, ready to render: "Cap. 100 — A body of rubber" and its rows. */
+interface RevealCard {
+  readonly key: string;
+  readonly heading: string;
+  readonly changeKey: string;
+  readonly classes: (typeof CHANGE_CLASSES)[FieldChange];
+  readonly rows: readonly DiffRow[];
+}
 
 /** A field of the comparison, ready to render. */
 interface DiffRow {
@@ -118,6 +147,7 @@ interface DiffRow {
     EntityCard,
     EntityImageFrame,
     LoadingPlaceholder,
+    NgTemplateOutlet,
     TranslocoPipe,
     VersionChain,
   ],
@@ -187,11 +217,42 @@ export class EntityComparison {
     return this.pair() ? 'ready' : 'loading';
   });
 
+  /**
+   * The main fields compared. With reveals, as the reader meets each version at its first
+   * appearance: what a reveal changes later - the truth included - is in the reveals below.
+   */
   private readonly diffs = computed<FieldDiff<EntityFieldRef>[]>(() => {
     const pair = this.pair();
+    if (!pair) {
+      return [];
+    }
     const order = this.languages().map((language) => language.code);
-    return pair ? diffBodies(this.entity, pair.base?.body ?? null, pair.shown.body, order) : [];
+    const met = (body: EntityBody) =>
+      this.entity.reveals ? firstAppearanceBody(this.entity, body, order) : body;
+    return diffBodies(this.entity, pair.base && met(pair.base.body), met(pair.shown.body), order);
   });
+
+  /** The reveals compared, for an entity that has them; `null` for one that has none. */
+  private readonly revealDiffs = computed(() => {
+    const pair = this.pair();
+    if (!pair || !this.entity.reveals) {
+      return null;
+    }
+    const order = this.languages().map((language) => language.code);
+    return diffReveals(this.entity, pair.base?.body ?? null, pair.shown.body, order);
+  });
+
+  /** Whether the entity has reveals: their block is shown, empty or not. */
+  protected readonly hasReveals = computed(() => this.revealDiffs() !== null);
+
+  /** One card per reveal added, removed or changed, in the order the reader meets them. */
+  protected readonly revealCards = computed(() => {
+    this.transloco.activeLang();
+    return (this.revealDiffs() ?? []).map((diff, index) => this.toRevealCard(diff, index));
+  });
+
+  /** The reveals that changed: the chip beside the summary of the main fields. */
+  protected readonly revealCount = computed(() => this.revealCards().length);
 
   protected readonly changedRows = computed(() => {
     this.transloco.activeLang();
@@ -295,6 +356,14 @@ export class EntityComparison {
     });
   }
 
+  /** "2 differences", "1 difference" or "no differences": the head of the reveals. */
+  protected differencesKey(count: number): string {
+    if (!count) {
+      return 'content.comparison.noDifferences';
+    }
+    return `content.comparison.differences.${count === 1 ? 'one' : 'many'}`;
+  }
+
   protected show(number: number): void {
     this.shownNumber.set(number);
   }
@@ -351,6 +420,33 @@ export class EntityComparison {
       struck: diff.change === 'REMOVED',
       changeKey: `content.comparison.change.${diff.change}`,
       classes: CHANGE_CLASSES[diff.change],
+    };
+  }
+
+  private toRevealCard(diff: RevealDiff, index: number): RevealCard {
+    const translate = (key: string, params?: Record<string, string>) =>
+      this.transloco.translate(key, params);
+    const chapter = diff.reveal.chapter
+      ? translate('content.reveals.chapterShort', {
+          chapter: chapterNumberOf(diff.reveal.chapter),
+        })
+      : translate('content.reveals.noChapter');
+    const title = revealTitleOf(translate, diff.reveal, this.transloco.activeLang());
+    const labels = (fields: readonly string[]) =>
+      fields.map((field) => translate(`content.reveals.field.${field}`)).join(', ');
+    const named =
+      diff.named &&
+      diffField<EntityFieldRef>(
+        { field: 'revealedFields', language: null },
+        labels(diff.named.before),
+        labels(diff.named.after),
+      );
+    return {
+      key: `${diff.change}.${diff.reveal.chapter?.id ?? index}`,
+      heading: `${chapter} — ${title}`,
+      changeKey: `content.comparison.reveal.${diff.change}`,
+      classes: CHANGE_CLASSES[diff.change],
+      rows: [...(named ? [named] : []), ...diff.rows].map((row) => this.toRow(row)),
     };
   }
 

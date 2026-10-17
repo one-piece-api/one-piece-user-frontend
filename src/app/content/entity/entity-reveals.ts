@@ -10,7 +10,8 @@
  * subcategory goes with the relation it belongs to (`type` stands for the subcategory too).
  * No Angular in here.
  */
-import type { EntityBody } from './entity-body';
+import type { EntityBody, EntityFieldRef } from './entity-body';
+import { diffField, type FieldDiff } from '../version-comparison';
 import type { EntityDefinition, EntityField } from './entity-definition';
 import { isReference, type EntityReference } from './entity-reference';
 import { chapterOf } from './entity-story-point';
@@ -538,4 +539,155 @@ export function revealTitleOf(
   return reveal.chapter
     ? translate('content.reveals.untitled', { chapter: chapterNumberOf(reveal.chapter) })
     : translate('content.reveals.new');
+}
+
+/** How a reveal changed between two versions. */
+export type RevealChange = 'ADDED' | 'REMOVED' | 'MODIFIED';
+
+/** One reveal of the comparison, with what changed in it. */
+export interface RevealDiff {
+  readonly change: RevealChange;
+  /** The reveal as the version compared shows it - as the base did, where it was removed. */
+  readonly reveal: RevealDraft;
+  /** The fields it names, where they changed: in the definition's order. */
+  readonly named: { readonly before: readonly string[]; readonly after: readonly string[] } | null;
+  /** Its titles and the values learned there that changed. */
+  readonly rows: readonly FieldDiff<EntityFieldRef>[];
+}
+
+/**
+ * The version as the reader meets it at its first appearance: the main fields, those a reveal
+ * changes with what the reader knows there. What a comparison starts with (TL4.8).
+ */
+export function firstAppearanceBody(
+  definition: EntityDefinition,
+  body: EntityBody,
+  languages: readonly string[],
+): EntityBody {
+  const truth = beliefOf(definition, body, languages);
+  return readerViewAt(definition, body, truth, revealsDraftOf(definition, body, languages), 0).body;
+}
+
+/**
+ * The reveals in chapter order, each with the values the reader learns there: on the last
+ * mention of a field, the truth - so a truth corrected shows on the reveal that reveals it.
+ */
+function revealsLearned(
+  definition: EntityDefinition,
+  body: Readonly<Record<string, unknown>> | null,
+  languages: readonly string[],
+): RevealDraft[] {
+  if (!body) {
+    return [];
+  }
+  const truth = beliefOf(definition, body, languages);
+  const ordered = orderedReveals(revealsDraftOf(definition, body, languages).reveals);
+  return ordered.map((reveal, index) => ({
+    ...reveal,
+    values: reveal.fields
+      .filter((field) => isLastMention(ordered, index, field))
+      .reduce((values, field) => withValuesOf(definition, values, truth, field), reveal.values),
+  }));
+}
+
+/** The values of two beliefs compared field by field, each by its kind; unchanged ones too. */
+function diffBeliefs(
+  definition: EntityDefinition,
+  before: Belief | null,
+  after: Belief | null,
+  languages: readonly string[],
+): FieldDiff<EntityFieldRef>[] {
+  const fields = revealableFields(definition).flatMap(({ key }) => valueFieldsOf(definition, key));
+  return fields
+    .flatMap((field) =>
+      kindOf(field).localized
+        ? languages.map((language) =>
+            kindOf(field).diff<EntityFieldRef>(
+              { field: field.key, language },
+              before?.translations[language]?.[field.key],
+              after?.translations[language]?.[field.key],
+            ),
+          )
+        : [
+            kindOf(field).diff<EntityFieldRef>(
+              { field: field.key, language: null },
+              before?.[field.key],
+              after?.[field.key],
+            ),
+          ],
+    )
+    .filter((diff) => diff !== null);
+}
+
+/** One reveal against the one it matches - `null` for none: its titles, then its values. */
+function diffReveal(
+  definition: EntityDefinition,
+  before: RevealDraft | null,
+  after: RevealDraft | null,
+  languages: readonly string[],
+): RevealDiff | null {
+  const rows = [
+    ...languages
+      .map((language) =>
+        diffField<EntityFieldRef>(
+          { field: 'title', language },
+          before?.titles[language],
+          after?.titles[language],
+        ),
+      )
+      .filter((diff) => diff !== null),
+    ...diffBeliefs(definition, before?.values ?? null, after?.values ?? null, languages),
+  ].filter((diff) => diff.change !== 'UNCHANGED');
+  const was = before?.fields ?? [];
+  const is = after?.fields ?? [];
+  const named = was.join() === is.join() ? null : { before: was, after: is };
+  if (before && after && !named && !rows.length) {
+    return null;
+  }
+  return {
+    change: !before ? 'ADDED' : !after ? 'REMOVED' : 'MODIFIED',
+    reveal: (after ?? before) as RevealDraft,
+    named,
+    rows,
+  };
+}
+
+/**
+ * The reveals of two versions compared (TL4.8): each reveal added, removed or changed, with
+ * what the reader learns there. Reveals have no identity across versions; a chapter
+ * holds one reveal at most in a version, so they are matched by chapter - one moved reads
+ * removed and added - and those without a chapter, drafts, by position among themselves.
+ * Listed in the order the reader meets them, a removed one where its chapter stood.
+ */
+export function diffReveals(
+  definition: EntityDefinition,
+  base: Readonly<Record<string, unknown>> | null,
+  target: Readonly<Record<string, unknown>>,
+  languages: readonly string[],
+): RevealDiff[] {
+  const before = revealsLearned(definition, base, languages);
+  const after = revealsLearned(definition, target, languages);
+  const unplaced = (reveals: readonly RevealDraft[]) => reveals.filter(({ chapter }) => !chapter);
+  const matchOf = (
+    reveal: RevealDraft,
+    others: readonly RevealDraft[],
+    own: readonly RevealDraft[],
+  ) =>
+    reveal.chapter
+      ? (others.find(({ chapter }) => chapter?.id === reveal.chapter?.id) ?? null)
+      : (unplaced(others)[unplaced(own).indexOf(reveal)] ?? null);
+  const pairs = [
+    ...after.map((reveal) => [matchOf(reveal, before, after), reveal] as const),
+    ...before
+      .filter((reveal) => !matchOf(reveal, after, before))
+      .map((reveal) => [reveal, null] as const),
+  ];
+  const chapterOrder = ([old, now]: readonly [RevealDraft | null, RevealDraft | null]) => {
+    const number = (now ?? old)?.chapter?.number;
+    return typeof number === 'number' ? number : Number.POSITIVE_INFINITY;
+  };
+  return pairs
+    .sort((a, b) => chapterOrder(a) - chapterOrder(b))
+    .map(([old, now]) => diffReveal(definition, old, now, languages))
+    .filter((diff) => diff !== null);
 }

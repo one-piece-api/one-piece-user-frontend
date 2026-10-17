@@ -922,7 +922,8 @@
         "occursAt": "Quando accade",
         "endsAt": "Fino a",
         "revealedAt": "Rivelato al lettore",
-        "participants": "Partecipanti"
+        "participants": "Partecipanti",
+        "revealedFields": "Campi rivelati"
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -938,6 +939,18 @@
       "hideUnchanged": {
         "one": "Nascondi 1 campo invariato",
         "many": "Nascondi {{count}} campi invariati"
+      },
+      "reveals": "Rivelazioni",
+      "differences": { "one": "1 differenza", "many": "{{count}} differenze" },
+      "noDifferences": "nessuna differenza",
+      "revealCount": {
+        "one": "Rivelazioni: 1 differenza",
+        "many": "Rivelazioni: {{count}} differenze"
+      },
+      "reveal": {
+        "ADDED": "+ Rivelazione aggiunta",
+        "REMOVED": "− Rivelazione rimossa",
+        "MODIFIED": "~ Rivelazione modificata"
       },
       "frozen": "Contenuto congelato in questa versione.",
       "noImage": "Nessuna immagine"

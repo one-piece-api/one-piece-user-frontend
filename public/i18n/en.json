@@ -922,7 +922,8 @@
         "occursAt": "When it happens",
         "endsAt": "Until",
         "revealedAt": "Revealed to the reader",
-        "participants": "Participants"
+        "participants": "Participants",
+        "revealedFields": "Fields revealed"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -938,6 +939,15 @@
       "hideUnchanged": {
         "one": "Hide 1 unchanged field",
         "many": "Hide {{count}} unchanged fields"
+      },
+      "reveals": "Reveals",
+      "differences": { "one": "1 difference", "many": "{{count}} differences" },
+      "noDifferences": "no differences",
+      "revealCount": { "one": "Reveals: 1 difference", "many": "Reveals: {{count}} differences" },
+      "reveal": {
+        "ADDED": "+ Reveal added",
+        "REMOVED": "− Reveal removed",
+        "MODIFIED": "~ Reveal changed"
       },
       "frozen": "Content frozen in this version.",
       "noImage": "No image"

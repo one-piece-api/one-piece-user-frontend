@@ -1,6 +1,8 @@
 import { DEVIL_FRUIT } from '../devil-fruits/devil-fruit.model';
 import { draftOf, toBody } from './entity-body';
 import {
+  diffReveals,
+  firstAppearanceBody,
   forwardTimeline,
   INITIAL_NODE,
   isLastMention,
@@ -388,6 +390,149 @@ describe('the reveals of a content, read forward', () => {
     it('is not one of the reveals otherwise', () => {
       expect(revealRefusalOf('reveals[5].fields', sent)).toBeNull();
       expect(revealRefusalOf('romaji', sent)).toBeNull();
+    });
+  });
+
+  describe('two versions compared', () => {
+    const compare = (base: unknown, target: unknown) =>
+      diffReveals(DEVIL_FRUIT, base as never, target as never, LANGUAGES);
+    const withReveals = (reveals: unknown[], extra: Record<string, unknown> = {}) => ({
+      ...GOMU_GOMU,
+      ...extra,
+      reveals,
+    });
+    const [nika, rubber] = GOMU_GOMU.reveals;
+    const changed = (diffs: ReturnType<typeof compare>) =>
+      diffs.map(({ change, reveal }) => [change, reveal.chapter?.number]);
+
+    it('starts from the version as the reader meets it at its first appearance', () => {
+      const met = firstAppearanceBody(DEVIL_FRUIT, GOMU_GOMU as never, LANGUAGES);
+
+      expect(met['romaji']).toBe('Gomu Gomu no Mi');
+      expect(met['type']).toEqual(PARAMECIA);
+      expect(met.translations['en']['name']).toBe('Gum-Gum Fruit');
+      // Never revealed: the truth from the start.
+      expect(met.translations['en']['advantages']).toBe('Frees its eater');
+    });
+
+    it('finds no difference between a version and itself', () => {
+      expect(compare(GOMU_GOMU, GOMU_GOMU)).toEqual([]);
+    });
+
+    it('shows every reveal as added against an empty content, in chapter order', () => {
+      const reveals = compare(null, GOMU_GOMU);
+
+      expect(changed(reveals)).toEqual([
+        ['ADDED', 100],
+        ['ADDED', 1044],
+      ]);
+      expect(reveals[0].named).toEqual({ before: [], after: ['description'] });
+      expect(reveals[0].rows.map(({ field }) => [field.field, field.language])).toEqual([
+        ['title', 'it'],
+        ['title', 'en'],
+        ['description', 'it'],
+        ['description', 'en'],
+      ]);
+    });
+
+    it('shows the truth on the reveal that reveals it', () => {
+      const [, final] = compare(null, GOMU_GOMU);
+
+      expect(final.rows.find(({ field }) => field.field === 'romaji')?.after).toBe(
+        'Hito Hito no Mi, Model: Nika',
+      );
+    });
+
+    it('shows a truth corrected on the reveal that reveals it', () => {
+      const corrected = { ...GOMU_GOMU, romaji: 'Hito Hito no Mi' };
+      const [diff] = compare(GOMU_GOMU, corrected);
+
+      expect(diff.change).toBe('MODIFIED');
+      expect(diff.reveal.chapter?.number).toBe(1044);
+      expect(diff.rows).toEqual([
+        {
+          field: { field: 'romaji', language: null },
+          before: 'Hito Hito no Mi, Model: Nika',
+          after: 'Hito Hito no Mi',
+          change: 'MODIFIED',
+        },
+      ]);
+    });
+
+    it('leaves out a truth no reveal names: it is in the main fields', () => {
+      const corrected = {
+        ...GOMU_GOMU,
+        translations: {
+          ...GOMU_GOMU.translations,
+          en: { ...GOMU_GOMU.translations.en, advantages: 'Frees everyone' },
+        },
+      };
+
+      expect(compare(GOMU_GOMU, corrected)).toEqual([]);
+    });
+
+    it('matches reveals by chapter and lists only what changed in them', () => {
+      const retold = {
+        ...rubber,
+        titles: { ...rubber.titles, en: 'Rubber body' },
+        translations: { ...rubber.translations, en: { description: 'Rubber all over' } },
+      };
+      const [diff] = compare(GOMU_GOMU, withReveals([nika, retold]));
+
+      expect(diff.change).toBe('MODIFIED');
+      expect(diff.named).toBeNull();
+      expect(diff.rows).toEqual([
+        {
+          field: { field: 'title', language: 'en' },
+          before: 'A body of rubber',
+          after: 'Rubber body',
+          change: 'MODIFIED',
+        },
+        {
+          field: { field: 'description', language: 'en' },
+          before: 'A body of rubber',
+          after: 'Rubber all over',
+          change: 'MODIFIED',
+        },
+      ]);
+    });
+
+    it('reads a reveal moved to another chapter as removed and added', () => {
+      const moved = { ...rubber, revealedAt: { chapter: chapter(200, 'Altrove') } };
+      const reveals = compare(GOMU_GOMU, withReveals([nika, moved]));
+
+      expect(changed(reveals)).toEqual([
+        ['REMOVED', 100],
+        ['ADDED', 200],
+      ]);
+      expect(reveals[0].rows.every(({ change }) => change === 'REMOVED')).toBe(true);
+    });
+
+    it('shows the fields a reveal names when they change', () => {
+      const wider = {
+        ...rubber,
+        fields: ['description', 'advantages'],
+        translations: {
+          it: { ...rubber.translations.it, advantages: 'Rimbalza' },
+          en: { ...rubber.translations.en, advantages: 'Bounces' },
+        },
+      };
+      const [diff] = compare(GOMU_GOMU, withReveals([nika, wider]));
+
+      expect(diff.named).toEqual({ before: ['description'], after: ['description', 'advantages'] });
+    });
+
+    it('matches reveals without a chapter by position among themselves', () => {
+      const draftOne = { ...rubber, revealedAt: null, titles: { it: 'Prima', en: 'First' } };
+      const draftTwo = { ...rubber, revealedAt: null, titles: { it: 'Seconda', en: 'Second' } };
+      const renamed = { ...draftTwo, titles: { it: 'Seconda bis', en: 'Second' } };
+      const reveals = compare(
+        withReveals([nika, draftOne, draftTwo]),
+        withReveals([nika, draftOne, renamed]),
+      );
+
+      expect(reveals.map(({ change }) => change)).toEqual(['MODIFIED']);
+      expect(reveals[0].rows.map(({ after }) => after)).toEqual(['Seconda bis']);
     });
   });
 });
