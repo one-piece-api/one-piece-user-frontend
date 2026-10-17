@@ -791,7 +791,10 @@
       "loading": "Unrolling the encyclopedia…",
       "error": "Lost the encyclopedia. Could not load the contents.",
       "loadError": "Arrr! Could not load the contents — try again in a moment.",
-      "removeFilter": "Remove the filter"
+      "removeFilter": "Remove the filter",
+      "filter": {
+        "devilFruit": "Participant"
+      }
     },
     "detail": {
       "crumb": "Card",
@@ -1266,7 +1269,15 @@
         "advantages": "what this fruit gives whoever eats it, in the selected language",
         "disadvantages": "what it costs whoever eats it, in the selected language"
       },
-      "hintMissing": "Review takes a romaji, a type and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete."
+      "hintMissing": "Review takes a romaji, a type and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete.",
+      "related": {
+        "EVENT": {
+          "title": "Events of this fruit",
+          "empty": "No event with this fruit.",
+          "viewAll": "See all ({{count}})",
+          "create": "New event with this fruit"
+        }
+      }
     },
     "image": {
       "media": "Media",

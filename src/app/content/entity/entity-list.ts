@@ -20,9 +20,11 @@ import {
   contentSerial,
   localizedName,
   otherOnlineVersion,
+  type Content,
   type ContentListSummary,
   type ContentSummary,
   type ContentUser,
+  type Version,
   type VersionStatus,
 } from '../content.model';
 import { formatSort, nextSort, parseSort, type ListSort } from '../list-sort';
@@ -30,8 +32,13 @@ import { momentLabel } from '../moment-label';
 import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
 import { ENTITY, entityOf } from './entities';
 import { EditorDialogs } from './entity-editor-dialog';
-import { naturalKeyOf } from './entity-body';
-import { isNumbered, type EventTimeField, type RelationField } from './entity-definition';
+import { naturalKeyOf, namesOf, type EntityBody } from './entity-body';
+import {
+  isNumbered,
+  type EventTimeField,
+  type RelationField,
+  type RelationListField,
+} from './entity-definition';
 import { worldDateOf, worldDateText } from './entity-event-time';
 import { chapterLabel, chapterOf } from './entity-story-point';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
@@ -219,6 +226,35 @@ export class EntityList {
       return id ? [{ field, id }] : [];
     }),
   );
+  /**
+   * The id each relation list is narrowed to in the URL - the participants of an event, by
+   * its own parameter (`devilFruit`) - only those that are.
+   */
+  protected readonly listFilters = computed(() =>
+    this.entity.fields.flatMap((field) => {
+      const id = field.kind === 'relationList' && field.filter && this.params().get(field.filter);
+      return id ? [{ field: field as RelationListField & { filter: string }, id }] : [];
+    }),
+  );
+
+  /**
+   * The content a relation list is narrowed to, named as its most recent version: the rows do
+   * not carry the list, so it cannot be read from them. Only the first such filter is named.
+   */
+  private readonly listFilterContent = httpResource<Content>(() => {
+    const filter = this.listFilters()[0];
+    const target = filter && entityOf(filter.field.target);
+    return target ? `${target.api}/${filter.id}` : undefined;
+  });
+  private readonly listFilterVersion = httpResource<Version<EntityBody>>(() => {
+    const filter = this.listFilters()[0];
+    const target = filter && entityOf(filter.field.target);
+    const latest = this.listFilterContent.hasValue()
+      ? this.listFilterContent.value().versions.at(-1)
+      : undefined;
+    return target && latest ? `${target.api}/${filter.id}/versions/${latest.number}` : undefined;
+  });
+
   /** Which column the rows are actually sorted by, and how - the default included. */
   protected readonly shownSort = computed(() => this.sort() ?? this.defaultSort);
 
@@ -261,7 +297,7 @@ export class EntityList {
    * One chip per relation filter: the name of the content filtered by, taken from a row that
    * points to it - none does when nothing matches - else its short serial.
    */
-  protected readonly relationChips = computed<RelationChip[]>(() => {
+  private readonly singleRelationChips = computed<RelationChip[]>(() => {
     const language = this.transloco.activeLang();
     const rows = this.rows.hasValue() ? this.rows.value().content : [];
     return this.relationFilters().map(({ field, id }) => {
@@ -277,6 +313,32 @@ export class EntityList {
         name: reference ? referenceLabel(reference, language) : contentSerial(id),
       };
     });
+  });
+
+  /** The chips of the filters: of the relations, then of the relation lists. */
+  protected readonly relationChips = computed<RelationChip[]>(() => {
+    const language = this.transloco.activeLang();
+    const version = this.listFilterVersion.hasValue() ? this.listFilterVersion.value() : null;
+    const listChips = this.listFilters().map(({ field, id }, index) => {
+      const target = entityOf(field.target);
+      const named =
+        index === 0 && version && target
+          ? referenceLabel(
+              {
+                id,
+                names: namesOf(target, version.body),
+                romaji: naturalKeyOf(target, version.body),
+              },
+              language,
+            )
+          : null;
+      return {
+        key: field.filter,
+        labelKey: `content.list.filter.${field.filter}`,
+        name: named && named !== id ? named : contentSerial(id),
+      };
+    });
+    return [...this.singleRelationChips(), ...listChips];
   });
 
   /** "20 of 24 entries · 5 yours", or the note about drafts for who cannot write. */
@@ -437,6 +499,9 @@ export class EntityList {
     }
     for (const { field, id } of this.relationFilters()) {
       search.set(field.key, id);
+    }
+    for (const { field, id } of this.listFilters()) {
+      search.set(field.filter, id);
     }
     const days = this.updatedWithinDays();
     if (days !== null) {

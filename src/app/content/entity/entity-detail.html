@@ -180,7 +180,13 @@
               <ng-container ngProjectAs="[cardSide]">
                 @if (isCurrent()) {
                   @for (section of entity.sections ?? []; track section.of) {
-                    <app-related-list class="block" [section]="section" [contentId]="id()" />
+                    <app-related-list
+                      class="block"
+                      [section]="section"
+                      [contentId]="id()"
+                      [content]="asReference()"
+                      [writable]="writable()"
+                    />
                   }
                 }
               </ng-container>

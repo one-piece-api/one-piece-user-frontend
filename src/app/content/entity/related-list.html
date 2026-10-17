@@ -39,9 +39,16 @@
                 [title]="item.statusKey | transloco"
               >
                 <span class="size-1.75 flex-none rounded-full" [class]="item.dotClass"></span>
-                <span class="min-w-0 wrap-anywhere" data-testid="related-name">{{
-                  item.name
-                }}</span>
+                <span class="grid min-w-0">
+                  <span class="wrap-anywhere" data-testid="related-name">{{ item.name }}</span>
+                  @if (item.when) {
+                    <span
+                      class="font-heading text-xs font-bold text-ocean-500"
+                      data-testid="related-when"
+                      >{{ item.when }}</span
+                    >
+                  }
+                </span>
                 <span class="sr-only">({{ item.statusKey | transloco }})</span>
               </a>
             </li>
@@ -55,6 +62,16 @@
           >{{ i18n + '.related.' + section().of + '.viewAll' | transloco: { count: total() } }}</a
         >
       }
+    }
+    @if (canCreate()) {
+      <button
+        type="button"
+        class="mt-2.5 block cursor-pointer rounded-[10px] border-2 border-dashed border-ocean-100 bg-white px-2.75 py-1 font-heading text-xs font-extrabold text-ocean-800"
+        data-testid="related-create"
+        (click)="create()"
+      >
+        {{ i18n + '.related.' + section().of + '.create' | transloco }}
+      </button>
     }
   </section>
 }

@@ -6,6 +6,7 @@ import {
   subcategoryField,
   textField,
   type EntityDefinition,
+  relatedList,
 } from '../entity/entity-definition';
 
 /**
@@ -52,4 +53,7 @@ export const DEVIL_FRUIT: EntityDefinition = {
   reveals: {
     fields: ['name', 'romaji', 'type', 'description', 'advantages', 'disadvantages'],
   },
+  sections: [
+    relatedList({ of: 'EVENT', by: 'devilFruit', when: 'occursAt', createWith: 'participants' }),
+  ],
 };

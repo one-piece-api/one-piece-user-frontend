@@ -147,6 +147,8 @@ export interface RelationListField {
   readonly key: string;
   readonly part: string;
   readonly target: string;
+  /** The query parameter that narrows the list to the contents listing one - `devilFruit`. */
+  readonly filter?: string;
 }
 
 /**
@@ -201,6 +203,13 @@ export interface RelatedListSection {
   readonly of: string;
   /** The key of its relation to this entity, also the filter that narrows its list. */
   readonly by: string;
+  /** A time of its list rows shown under the name - an event's `occursAt`. */
+  readonly when?: string;
+  /**
+   * The field of the listed entity this content is put in, to write a new one with it -
+   * "New event with this fruit". Only for an entity written in a dialog (`editor: 'dialog'`).
+   */
+  readonly createWith?: string;
 }
 
 export type EntitySection = RelatedListSection;

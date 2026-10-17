@@ -791,7 +791,10 @@
       "loading": "Srotoliamo l'enciclopedia…",
       "error": "Enciclopedia dispersa. Impossibile caricare i contenuti.",
       "loadError": "Arrr! Impossibile caricare i contenuti — riprova tra un momento.",
-      "removeFilter": "Togli il filtro"
+      "removeFilter": "Togli il filtro",
+      "filter": {
+        "devilFruit": "Partecipante"
+      }
     },
     "detail": {
       "crumb": "Scheda",
@@ -1266,7 +1269,15 @@
         "advantages": "cosa dà questo frutto a chi lo mangia, nella lingua selezionata",
         "disadvantages": "cosa costa a chi lo mangia, nella lingua selezionata"
       },
-      "hintMissing": "Per la revisione servono il romaji, il Tipo e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta."
+      "hintMissing": "Per la revisione servono il romaji, il Tipo e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta.",
+      "related": {
+        "EVENT": {
+          "title": "Eventi di questo frutto",
+          "empty": "Nessun evento con questo frutto.",
+          "viewAll": "Vedi tutti ({{count}})",
+          "create": "Nuovo evento con questo frutto"
+        }
+      }
     },
     "image": {
       "media": "Media",

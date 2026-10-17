@@ -5,9 +5,12 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { PageResponse } from '../../shared/http/page-response';
 import { STATUS_LABEL_KEY, type ContentSummary, type VersionStatus } from '../content.model';
 import { STATUS_DOT_CLASS } from '../status-badge';
+import { chapterLabel, chapterOf } from './entity-story-point';
+import { worldDateOf, worldDateText } from './entity-event-time';
+import { EditorDialogs } from './entity-editor-dialog';
 import { ENTITY, entityOf } from './entities';
 import type { RelatedListSection } from './entity-definition';
-import { referenceLabel } from './entity-reference';
+import { referenceLabel, type EntityReference } from './entity-reference';
 
 /** How many contents are listed at most; the rest is one link away. */
 const LISTED = 12;
@@ -17,12 +20,15 @@ interface RowNames {
   readonly names: Record<string, string>;
   readonly romaji?: string | null;
   readonly number?: number | null;
+  readonly [time: string]: unknown;
 }
 
 /** One content in the section, ready to render. */
 interface ItemView {
   readonly id: string;
   readonly name: string;
+  /** When it happens, for a section that shows it: "Ch. 1000 — …", "c. 1500". */
+  readonly when: string | null;
   readonly status: VersionStatus;
   readonly dotClass: string;
   readonly statusKey: string;
@@ -44,9 +50,15 @@ export class RelatedList {
   private readonly transloco = inject(TranslocoService);
   protected readonly i18n = inject(ENTITY).i18n;
 
+  private readonly editorDialogs = inject(EditorDialogs);
+
   readonly section = input.required<RelatedListSection>();
   /** The content the listed ones point to. */
   readonly contentId = input.required<string>();
+  /** It as a new content is given it (`createWith`): named as it is now. */
+  readonly content = input<EntityReference | null>(null);
+  /** Whether the caller may write contents (`content:write`). */
+  readonly writable = input(false);
 
   /** The entity listed - `null` where the app has no section for it. */
   protected readonly listed = computed(() => entityOf(this.section().of));
@@ -84,6 +96,7 @@ export class RelatedList {
     return rows.map((row) => ({
       id: row.id,
       name: this.nameOf(row, language),
+      when: this.whenOf(row, language),
       status: row.status,
       dotClass: STATUS_DOT_CLASS[row.status],
       statusKey: STATUS_LABEL_KEY[row.status],
@@ -95,6 +108,46 @@ export class RelatedList {
   private nameOf(row: ContentSummary<RowNames>, language: string): string {
     const label = referenceLabel({ id: row.id, ...row.body }, language);
     return label === row.id ? this.transloco.translate('content.list.unnamed') : label;
+  }
+
+  /** "New event with this fruit": for who may write, where the listed entity is written in a dialog. */
+  protected readonly canCreate = computed(
+    () =>
+      !!this.section().createWith &&
+      this.listed()?.editor === 'dialog' &&
+      !!this.content() &&
+      this.writable(),
+  );
+
+  protected create(): void {
+    const listed = this.listed();
+    const field = listed?.fields.find(({ key }) => key === this.section().createWith);
+    const content = this.content();
+    if (!listed || !field || !content) {
+      return;
+    }
+    this.editorDialogs.open({
+      entity: listed,
+      preset: { [field.key]: field.kind === 'relationList' ? [content] : content },
+    });
+  }
+
+  private whenOf(row: ContentSummary<RowNames>, language: string): string | null {
+    const field = this.section().when;
+    if (!field) {
+      return null;
+    }
+    const value = row.body[field];
+    const chapter = chapterOf(value);
+    if (chapter) {
+      return chapterLabel(
+        (key, params) => this.transloco.translate(key, params),
+        chapter,
+        language,
+      );
+    }
+    const date = worldDateOf(value);
+    return date && worldDateText(date);
   }
 
   /** The listed entity's list, narrowed to the contents that point to this one. */

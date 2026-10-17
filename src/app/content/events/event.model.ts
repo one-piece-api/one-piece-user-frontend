@@ -25,7 +25,11 @@ export const EVENT: EntityDefinition = {
     eventTimeField('occursAt'),
     eventTimeField('endsAt', { optional: true, notBefore: 'occursAt' }),
     storyPointField('revealedAt', { optional: true, defaultsTo: 'occursAt' }),
-    relationListField('participants', { part: 'devilFruits', target: 'DEVIL_FRUIT' }),
+    relationListField('participants', {
+      part: 'devilFruits',
+      target: 'DEVIL_FRUIT',
+      filter: 'devilFruit',
+    }),
     localizedTextField('title', { maxLength: 200 }),
     localizedTextField('description', { maxLength: 2000, rows: 6, optional: true }),
   ],

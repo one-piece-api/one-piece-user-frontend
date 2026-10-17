@@ -206,6 +206,20 @@ export class EntityDetail {
     return crumbs;
   });
 
+  /** This content as the sections beside the card give it to a new one: named as it is now. */
+  protected readonly asReference = computed(() => {
+    const version = this.shown();
+    return version
+      ? {
+          id: this.id(),
+          names: namesOf(this.entity, version.body),
+          romaji: naturalKeyOf(this.entity, version.body),
+        }
+      : null;
+  });
+
+  protected readonly writable = computed(() => this.currentUser.hasPermission('content:write'));
+
   /** "3 versions": how many the caller may see. */
   protected readonly versionCount = computed(() => {
     this.transloco.activeLang();
