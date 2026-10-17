@@ -810,7 +810,8 @@
       "mostRecentVisible": "the most recent visible to your role",
       "tab": {
         "overview": "Overview",
-        "workflow": "Workflow"
+        "workflow": "Workflow",
+        "reveals": "Reveals"
       },
       "loading": "Fetching the card…",
       "loadingVersion": "Fetching this version…",
@@ -1421,6 +1422,69 @@
         "participants": "search and add a Devil Fruit"
       },
       "hintMissing": "Review needs when it happens and, in every language, the title. Meanwhile the draft saves even if incomplete."
+    },
+    "reveals": {
+      "tab": "Reveals",
+      "mainTab": "First appearance",
+      "lead": "The reveals in chapter order, as the reader discovers them. Pick one to see its details.",
+      "leadEdit": "The reveals in chapter order, as the reader discovers them. In each reveal write what the reader learns in that chapter; the last one of a field reveals the truth of the main fields.",
+      "firstAppearance": "First appearance",
+      "chapterShort": "Ch. {{chapter}}",
+      "chapterUnknown": "Ch. ?",
+      "noChapter": "Chapter to pick",
+      "untitled": "Reveal at ch. {{chapter}}",
+      "new": "New reveal",
+      "fieldCountOne": "{{count}} field",
+      "fieldCountMany": "{{count}} fields",
+      "add": "Add reveal",
+      "remove": "Remove reveal",
+      "close": "Close",
+      "readOnly": "Read only: reveals can be edited in a draft only.",
+      "chapter": "Reveal chapter",
+      "title": "Short title",
+      "titlePlaceholder": "e.g. The fruit is Nika",
+      "noField": "This reveal does not name any field yet.",
+      "addField": "Add field",
+      "removeField": "Remove field",
+      "changedFields": "Fields that change",
+      "textLanguage": "Language of the texts",
+      "before": "Previous value · read only",
+      "after": "New value · what the reader learns",
+      "fromFirstAppearance": "from the first appearance",
+      "fromReveal": "from the reveal at ch. {{chapter}}",
+      "isTruth": "This is the current truth",
+      "isTruthEdit": "This is the current truth: it changes the main fields too",
+      "unknown": "Not revealed yet",
+      "summary": "Can’t set sail: {{count}} issues in the reveals",
+      "field": {
+        "name": "Name",
+        "romaji": "Romaji",
+        "type": "Type and subcategory",
+        "description": "Description",
+        "advantages": "Advantages",
+        "disadvantages": "Disadvantages"
+      },
+      "target": {
+        "chapter": "chapter",
+        "fields": "fields",
+        "title": "title",
+        "name": "name",
+        "romaji": "romaji",
+        "type": "type",
+        "subcategory": "subcategory",
+        "description": "description",
+        "advantages": "advantages",
+        "disadvantages": "disadvantages"
+      },
+      "error": {
+        "chapter": "Pick a chapter after the first appearance and after the previous reveal",
+        "fields": "Write what the reader learns: a later reveal changes this field again",
+        "node": "Name at least one field",
+        "initial": "The name the reader knows at the first appearance is needed",
+        "value": "Value not accepted: check it",
+        "tooLong": "Text too long"
+      },
+      "refusedMessage": "Arrr! Some reveals don’t add up: open the Reveals tab and look at the entries in red."
     }
   }
 }

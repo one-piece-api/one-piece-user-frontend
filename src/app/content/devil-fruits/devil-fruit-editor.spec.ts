@@ -567,4 +567,95 @@ describe('the editor of a Devil Fruit', () => {
       });
     });
   });
+  describe('the reveals', () => {
+    const CHAPTER_100 = { id: 'c100', number: 100, names: {} };
+
+    beforeEach(async () => {
+      await open(`${SECTION}/${ID}/edit`);
+      httpTesting.expectOne(`${ENDPOINT}/${ID}`).flush({
+        id: ID,
+        onlineVersionNumber: null,
+        versions: [
+          {
+            number: 1,
+            status: 'DRAFT',
+            author: NAMI,
+            basedOn: null,
+            claimant: null,
+            everPublished: false,
+            allowedActions: ['EDIT', 'DELETE', 'SUBMIT'],
+            overrideActions: [],
+            createdAt: '2026-10-01T08:00:00Z',
+            updatedAt: '2026-10-01T08:00:00Z',
+          },
+        ],
+      });
+      await settle();
+      httpTesting.expectOne(`${ENDPOINT}/${ID}/versions/1`).flush({
+        number: 1,
+        status: 'DRAFT',
+        author: NAMI,
+        basedOn: null,
+        claimant: null,
+        everPublished: false,
+        allowedActions: ['EDIT', 'DELETE', 'SUBMIT'],
+        overrideActions: [],
+        blockedActions: [],
+        createdAt: '2026-10-01T08:00:00Z',
+        updatedAt: '2026-10-01T08:00:00Z',
+        rejectionReason: null,
+        body: {
+          romaji: 'Hito Hito no Mi',
+          type: ZOAN,
+          translations: {},
+          initialKnowledge: { romaji: 'Gomu Gomu no Mi', translations: {} },
+          reveals: [
+            {
+              revealedAt: { chapter: CHAPTER_100 },
+              fields: ['romaji'],
+              titles: { it: 'Nika', en: 'Nika' },
+            },
+          ],
+        },
+      });
+      await settle();
+    });
+
+    it('keeps them on a save made from the main fields', async () => {
+      await save();
+
+      const request = httpTesting.expectOne(`${ENDPOINT}/${ID}/versions/1`);
+      expect(request.request.body).toMatchObject({
+        initialKnowledge: { romaji: 'Gomu Gomu no Mi' },
+        reveals: [{ revealedAt: { chapter: 'c100' }, fields: ['romaji'], titles: { it: 'Nika' } }],
+      });
+      request.flush({ number: 1 });
+      await settle();
+    });
+
+    it('opens the Reveals tab beside the main fields', async () => {
+      root.querySelector<HTMLButtonElement>('[data-testid="section-reveals"]')!.click();
+      await settle();
+
+      expect(root.querySelector('[data-testid="reveals-panel"]')).not.toBeNull();
+      expect(typeBox().closest('[hidden]')).not.toBeNull();
+    });
+
+    it('counts the refusals of the reveals on the tab and says where to look', async () => {
+      await save();
+      httpTesting.expectOne(`${ENDPOINT}/${ID}/versions/1`).flush(
+        {
+          errorCode: 'CONTENT_VALUE_INVALID',
+          errors: [{ field: 'reveals[0].revealedAt.chapter', message: 'must come after' }],
+        },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await settle();
+
+      expect(root.querySelector('[data-testid="reveals-refused-count"]')?.textContent?.trim()).toBe(
+        '1',
+      );
+      expect(mascotSays()).toContain('Reveals tab');
+    });
+  });
 });

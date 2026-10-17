@@ -420,6 +420,15 @@ describe('DevilFruitTypeDetail', () => {
     );
   });
 
+  it('has no Reveals tab, nor opens one from the URL: nothing of a type is revealed later', async () => {
+    await open(`${PAGE}?tab=reveals`, 'nami', EDITOR);
+    await answerContent([V1, V2, V3], 2);
+    await answerVersion(V3, body('Logia draft'), [CREATED]);
+
+    expect(tab('Reveals')).toBeUndefined();
+    expect(tab('Overview')?.getAttribute('aria-selected')).toBe('true');
+  });
+
   it('opens the Workflow tab from the URL and goes back to the overview', async () => {
     await open(`${PAGE}?tab=workflow`, 'nami', EDITOR);
     await answerContent([V1, V2, V3], 2);

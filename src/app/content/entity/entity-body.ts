@@ -14,6 +14,7 @@ import {
   type SavedSubcategory,
   type SubcategoryPart,
 } from './entity-subcategory';
+import { REVEALS_DRAFT_KEY, revealsDraftOf, revealsOfDraft, revealsSaved } from './entity-reveals';
 import { FIELD_KINDS, isAskedByReview, kindOf } from './field-kinds';
 
 /** What a version says in one language, by field key. */
@@ -182,6 +183,9 @@ export function draftOf(
       ]),
     );
   }
+  if (definition.reveals) {
+    draft[REVEALS_DRAFT_KEY] = revealsDraftOf(definition, body, languages);
+  }
   return draft;
 }
 
@@ -206,6 +210,7 @@ export function toBody(definition: EntityDefinition, draft: EntityDraft): Entity
   return {
     ...(definition.naturalKey === undefined ? {} : { [definition.naturalKey]: null }),
     ...body,
+    ...(definition.reveals ? revealsSaved(definition, revealsOfDraft(draft)) : {}),
     translations,
   };
 }

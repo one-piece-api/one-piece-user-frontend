@@ -810,7 +810,8 @@
       "mostRecentVisible": "la più recente visibile al tuo ruolo",
       "tab": {
         "overview": "Panoramica",
-        "workflow": "Workflow"
+        "workflow": "Workflow",
+        "reveals": "Rivelazioni"
       },
       "loading": "Recuperiamo la scheda…",
       "loadingVersion": "Recuperiamo questa versione…",
@@ -1421,6 +1422,69 @@
         "participants": "cerca e aggiungi un Frutto del Diavolo"
       },
       "hintMissing": "Per la revisione servono quando accade e, in ogni lingua, il titolo. Intanto la bozza si salva anche incompleta."
+    },
+    "reveals": {
+      "tab": "Rivelazioni",
+      "mainTab": "Prima apparizione",
+      "lead": "Le rivelazioni in ordine di capitolo, come le scopre il lettore. Scegline una per vederne i dettagli.",
+      "leadEdit": "Le rivelazioni in ordine di capitolo, come le scopre il lettore. In ogni rivelazione scrivi cosa scopre il lettore in quel capitolo; l’ultima di un campo rivela la verità dei campi principali.",
+      "firstAppearance": "Prima apparizione",
+      "chapterShort": "Cap. {{chapter}}",
+      "chapterUnknown": "Cap. ?",
+      "noChapter": "Capitolo da scegliere",
+      "untitled": "Rivelazione al cap. {{chapter}}",
+      "new": "Nuova rivelazione",
+      "fieldCountOne": "{{count}} campo",
+      "fieldCountMany": "{{count}} campi",
+      "add": "Aggiungi rivelazione",
+      "remove": "Rimuovi rivelazione",
+      "close": "Chiudi",
+      "readOnly": "Sola lettura: le rivelazioni si modificano solo in bozza.",
+      "chapter": "Capitolo della rivelazione",
+      "title": "Titolo breve",
+      "titlePlaceholder": "es. Il frutto è Nika",
+      "noField": "Questa rivelazione non nomina ancora nessun campo.",
+      "addField": "Aggiungi campo",
+      "removeField": "Togli campo",
+      "changedFields": "Campi che cambiano",
+      "textLanguage": "Lingua dei testi",
+      "before": "Valore precedente · sola lettura",
+      "after": "Nuovo valore · cosa scopre il lettore",
+      "fromFirstAppearance": "dalla prima apparizione",
+      "fromReveal": "dalla rivelazione al cap. {{chapter}}",
+      "isTruth": "È la verità attuale",
+      "isTruthEdit": "È la verità attuale: cambia anche i campi principali",
+      "unknown": "Non ancora rivelato",
+      "summary": "Non si salpa: {{count}} problemi nelle rivelazioni",
+      "field": {
+        "name": "Nome",
+        "romaji": "Romaji",
+        "type": "Tipo e sottocategoria",
+        "description": "Descrizione",
+        "advantages": "Vantaggi",
+        "disadvantages": "Svantaggi"
+      },
+      "target": {
+        "chapter": "capitolo",
+        "fields": "campi",
+        "title": "titolo",
+        "name": "nome",
+        "romaji": "romaji",
+        "type": "tipo",
+        "subcategory": "sottocategoria",
+        "description": "descrizione",
+        "advantages": "vantaggi",
+        "disadvantages": "svantaggi"
+      },
+      "error": {
+        "chapter": "Scegli un capitolo dopo la prima apparizione e dopo la rivelazione precedente",
+        "fields": "Scrivi cosa scopre il lettore: una rivelazione successiva cambia di nuovo questo campo",
+        "node": "Nomina almeno un campo",
+        "initial": "Serve il nome che il lettore conosce alla prima apparizione",
+        "value": "Valore non accettato: controllalo",
+        "tooLong": "Testo troppo lungo"
+      },
+      "refusedMessage": "Arrr! Qualche rivelazione non torna: apri la scheda Rivelazioni e guarda le voci in rosso."
     }
   }
 }

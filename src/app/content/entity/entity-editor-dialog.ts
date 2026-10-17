@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { CloseButton } from '../../shared/ui/close-button';
+import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import { ENTITY } from './entities';
 import type { EntityDraft } from './entity-body';
 import type { EntityDefinition } from './entity-definition';
@@ -63,16 +64,21 @@ export class EditorDialogs {
         <app-close-button [label]="'ui.modal.close' | transloco" (click)="dialog.close()" />
       </div>
       <div class="px-3 pb-3">
-        <app-entity-editor
-          [id]="request().id"
-          [preset]="request().preset ?? {}"
-          [embedded]="true"
-          (finished)="dialog.close()"
-        />
+        <!-- Loaded on first open: the dialog sits in the app shell, the editor need not. -->
+        @defer {
+          <app-entity-editor
+            [id]="request().id"
+            [preset]="request().preset ?? {}"
+            [embedded]="true"
+            (finished)="dialog.close()"
+          />
+        } @loading {
+          <app-loading-placeholder [label]="'content.editor.loading' | transloco" />
+        }
       </div>
     </dialog>
   `,
-  imports: [CloseButton, EntityEditor, TranslocoPipe],
+  imports: [CloseButton, EntityEditor, LoadingPlaceholder, TranslocoPipe],
   // The editor reads its entity from ENTITY, as on its page: here, the one asked for - read
   // from the service, as a provider is made before the inputs of its component are set.
   viewProviders: [{ provide: ENTITY, useFactory: () => inject(EditorDialogs).request()?.entity }],

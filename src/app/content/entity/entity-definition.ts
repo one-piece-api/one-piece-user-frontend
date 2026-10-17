@@ -205,6 +205,16 @@ export interface RelatedListSection {
 
 export type EntitySection = RelatedListSection;
 
+/**
+ * What the reader learns of a content over time (plan timeline, T13): the fields a reveal
+ * may name - a subcategory goes with the relation it belongs to. Its editor and its card
+ * get a "Reveals" tab beside the main fields (`entity-reveals.ts`).
+ */
+export interface RevealsCapability {
+  /** The keys of the fields a reveal may name, among the definition's fields. */
+  readonly fields: readonly string[];
+}
+
 export interface EntityDefinition {
   /** The kind of content, as the API names it. */
   readonly entityType: string;
@@ -227,6 +237,8 @@ export interface EntityDefinition {
   readonly fields: readonly EntityField[];
   /** Counts of other contents that point to it, as columns of its list. */
   readonly counts?: readonly CountColumn[];
+  /** What the reader learns of it over time; absent where nothing is revealed. */
+  readonly reveals?: RevealsCapability;
   /** What its card shows besides its fields. */
   readonly sections?: readonly EntitySection[];
   /**

@@ -178,6 +178,16 @@
                 }
               </ng-container>
             </app-entity-card>
+          } @else if (openTab() === 'reveals') {
+            @if (revealsView(); as view) {
+              <app-reveals-panel
+                [entity]="entity"
+                [reveals]="view.reveals"
+                [truth]="view.truth"
+                [firstAppearance]="view.firstAppearance"
+                [languages]="view.languages"
+              />
+            }
           } @else {
             <app-version-workflow
               [version]="version"

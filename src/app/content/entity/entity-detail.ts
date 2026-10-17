@@ -28,12 +28,14 @@ import { defaultBase } from '../version-comparison';
 import { REJECTED_ACTION } from '../version-event';
 import { VersionActions } from '../version-actions';
 import { VersionWorkflow } from '../version-workflow';
-import { naturalKeyOf, namesOf, type EntityBody } from '../entity/entity-body';
+import { draftOf, naturalKeyOf, namesOf, type EntityBody } from '../entity/entity-body';
 import { untitledOf } from './entity-title';
 import { ENTITY } from './entities';
 import { EntityCard } from './entity-card';
 import { EntityComparison } from './entity-comparison';
 import { RelatedList } from './related-list';
+import { revealsOfDraft, type Belief } from './entity-reveals';
+import { RevealsPanel } from './reveals-panel';
 
 /** The query parameters this page keeps its view in, so a link reopens the same version. */
 const PARAM = { version: 'v', tab: 'tab' } as const;
@@ -41,6 +43,7 @@ const PARAM = { version: 'v', tab: 'tab' } as const;
 const TABS = [
   // The overview is drawn with the entity's own icon.
   { id: 'overview', labelKey: 'content.detail.tab.overview', icon: null },
+  { id: 'reveals', labelKey: 'content.detail.tab.reveals', icon: '✦' },
   { id: 'workflow', labelKey: 'content.detail.tab.workflow', icon: '⚓' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
@@ -64,6 +67,7 @@ const NOT_FOUND_STATUSES = [400, 404];
   selector: 'app-entity-detail',
   templateUrl: './entity-detail.html',
   imports: [
+    RevealsPanel,
     Breadcrumb,
     ContentSerial,
     Icon,
@@ -231,10 +235,29 @@ export class EntityDetail {
     return { title: `v${version.number} · ${status}`, line: parts.join(' · '), compareLabel };
   });
 
-  protected readonly tabs = TABS.map((tab) => ({ ...tab, icon: tab.icon ?? this.entity.icon }));
-  protected readonly openTab = computed<TabId>(() =>
-    this.tab() === 'workflow' ? 'workflow' : 'overview',
+  /** The tabs of this entity: "Reveals" only where its contents have reveals. */
+  protected readonly tabs = TABS.filter(({ id }) => id !== 'reveals' || !!this.entity.reveals).map(
+    (tab) => ({ ...tab, icon: tab.icon ?? this.entity.icon }),
   );
+  protected readonly openTab = computed<TabId>(
+    () => this.tabs.find(({ id }) => id === this.tab())?.id ?? 'overview',
+  );
+
+  /** What the Reveals tab shows of the version on screen: read with the editor's own shapes. */
+  protected readonly revealsView = computed(() => {
+    const version = this.shown();
+    if (!version || !this.entity.reveals) {
+      return null;
+    }
+    const codes = this.languages().map(({ code }) => code);
+    const truth = draftOf(this.entity, version.body, codes);
+    return {
+      reveals: revealsOfDraft(truth),
+      truth: truth as Belief,
+      firstAppearance: truth['firstAppearance'] ?? null,
+      languages: codes,
+    };
+  });
 
   /** The version being compared with an earlier one, `null` while the panel is closed. */
   protected readonly comparing = signal<number | null>(null);

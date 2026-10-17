@@ -54,6 +54,16 @@ import { referencesOf, sentReleaseRows, textOf } from './field-kinds';
 import { ImagePicker } from './image-picker';
 import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
+import {
+  REVEALS_DRAFT_KEY,
+  orderedReveals,
+  revealRefusalKey,
+  revealRefusalOf,
+  revealsOfDraft,
+  type Belief,
+  type RevealsDraft,
+} from './entity-reveals';
+import { RevealsPanel } from './reveals-panel';
 import { STORY_POINT_TARGET, chapterLabel } from './entity-story-point';
 import {
   EMPTY_EVENT_TIME,
@@ -205,6 +215,7 @@ interface CheckView {
   templateUrl: './entity-editor.html',
   imports: [
     Breadcrumb,
+    RevealsPanel,
     ConfirmDialog,
     Icon,
     ImagePicker,
@@ -258,7 +269,7 @@ export class EntityEditor {
   private readonly version = httpResource<Version<EntityBody>>(() => this.versionUrl());
 
   protected readonly languages = computed(() => this.languageCatalog.languages.value() ?? []);
-  private readonly languageCodes = computed(() => this.languages().map(({ code }) => code));
+  protected readonly languageCodes = computed(() => this.languages().map(({ code }) => code));
 
   /** What the editor starts from, once everything it needs has arrived. */
   private readonly saved = computed<EntityDraft | null>(() => {
@@ -298,6 +309,52 @@ export class EntityEditor {
 
   /** The fields the backend refused at the last save, by key (`romaji`, `it.name`), with why. */
   private readonly refusedFields = signal<Record<string, string>>({});
+
+  /** The tab on screen, for an entity with reveals: its main fields or its reveals. */
+  protected readonly section = signal<'main' | 'reveals'>('main');
+
+  /** What the backend refused in the reveals at the last save, by node then target. */
+  protected readonly revealRefusals = signal<Record<string, Record<string, string>>>({});
+  protected readonly revealRefusalCount = computed(
+    () => Object.values(this.revealRefusals()).flatMap((targets) => Object.keys(targets)).length,
+  );
+
+  /** The keys of the reveals in the order the last save sent them: how the backend names them. */
+  private sentRevealKeys: readonly string[] = [];
+
+  /** What the Reveals tab works on: the reveals, and the main fields as the truth. */
+  protected readonly revealsView = computed(() => {
+    const draft = this.draft();
+    if (!draft || !this.entity.reveals) {
+      return null;
+    }
+    return {
+      reveals: revealsOfDraft(draft),
+      truth: draft as Belief,
+      firstAppearance: draft['firstAppearance'] ?? null,
+    };
+  });
+
+  /**
+   * The reveals as the tab changed them. Marks of the last save go when a chapter changes:
+   * the backend named the reveals by their order, which a chapter may change.
+   */
+  protected setReveals(reveals: RevealsDraft): void {
+    const before = this.revealsView()?.reveals.reveals ?? [];
+    const order = (list: RevealsDraft['reveals']) =>
+      orderedReveals(list)
+        .map(({ key, chapter }) => `${key}:${chapter?.id ?? ''}`)
+        .join();
+    if (order(before) !== order(reveals.reveals)) {
+      this.revealRefusals.set({});
+    }
+    this.draft.update((draft) => draft && { ...draft, [REVEALS_DRAFT_KEY]: reveals });
+  }
+
+  /** The main fields as the last reveal of a field wrote them in the Reveals tab. */
+  protected setTruth(truth: Belief): void {
+    this.draft.update((draft) => draft && { ...draft, ...truth });
+  }
 
   /**
    * The fields shared by every language, each with its value and why the backend refused it.
@@ -835,6 +892,8 @@ export class EntityEditor {
     }
     this.saving.set(true);
     this.refusedFields.set({});
+    this.revealRefusals.set({});
+    this.sentRevealKeys = orderedReveals(revealsOfDraft(draft).reveals).map(({ key }) => key);
     try {
       const request = this.requestOf(draft);
       const url = this.versionUrl();
@@ -933,10 +992,24 @@ export class EntityEditor {
     const errorCode = apiError?.errorCode ?? '';
     const fieldErrorKey = FIELD_ERROR_KEY[errorCode];
     const refusedTexts: string[] = [];
+    let revealsOnly = false;
     if (fieldErrorKey) {
       const refused: Record<string, string> = {};
+      const revealRefused: Record<string, Record<string, string>> = {};
       const draft = this.draft();
       for (const violation of apiError?.errors ?? []) {
+        const reveal = this.entity.reveals
+          ? revealRefusalOf(violation.field, this.sentRevealKeys)
+          : null;
+        if (reveal) {
+          revealRefused[reveal.node] = {
+            ...revealRefused[reveal.node],
+            [reveal.target]: this.transloco.translate(
+              revealRefusalKey(reveal, errorCode === VALIDATION_FAILED),
+            ),
+          };
+          continue;
+        }
         const named = draftFieldKey(this.entity, violation.field);
         if (named) {
           const key = draft ? this.releaseRowOf(named, draft) : named;
@@ -950,6 +1023,12 @@ export class EntityEditor {
         }
       }
       this.refusedFields.set(refused);
+      this.revealRefusals.set(revealRefused);
+      revealsOnly = Object.keys(revealRefused).length > 0 && Object.keys(refused).length === 0;
+    }
+    if (revealsOnly) {
+      this.mascot.show(this.transloco.translate('content.reveals.refusedMessage'), 'error');
+      return;
     }
     const messageKey =
       refusedTexts.map((text) => SPECIFIC_MESSAGE_KEY[text]).find(Boolean) ??

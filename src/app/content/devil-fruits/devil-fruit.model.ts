@@ -27,7 +27,8 @@ const DEVIL_FRUIT_IMAGE = {
  * The Devil Fruit: one romaji, the type it belongs to, and a name, a description, advantages
  * and disadvantages per language - the longest each may be is what the backend accepts.
  * The type is a relation: a draft may not have chosen one, but review asks for it. The
- * subcategory, one of the type's, is optional, and so is the image.
+ * subcategory, one of the type's, is optional, and so is the image. Every field but the
+ * image may be revealed later than the first appearance (plan timeline, T13).
  */
 export const DEVIL_FRUIT: EntityDefinition = {
   entityType: 'DEVIL_FRUIT',
@@ -48,4 +49,7 @@ export const DEVIL_FRUIT: EntityDefinition = {
     localizedTextField('advantages', { maxLength: 2000, rows: 5 }),
     localizedTextField('disadvantages', { maxLength: 2000, rows: 5 }),
   ],
+  reveals: {
+    fields: ['name', 'romaji', 'type', 'description', 'advantages', 'disadvantages'],
+  },
 };
