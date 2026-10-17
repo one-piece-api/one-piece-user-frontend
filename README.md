@@ -2,7 +2,8 @@
 
 Frontend Angular di One Piece API: account/profilo, gestione utenti e ruoli, e il workflow
 editoriale dei contenuti (dashboard con pagine per stato, una sezione per entità con bozze,
-revisione, pubblicazione e confronto tra versioni). `/` porta alla dashboard chi ha
+revisione, pubblicazione e confronto tra versioni; prima apparizione, eventi e scheda
+"Rivelazioni" del frutto letta in avanti, ADR-0007). `/` porta alla dashboard chi ha
 `content:read`, al profilo (`/profile`) tutti gli altri. Vive dietro `oauth2-proxy` in ogni
 ambiente — vedi `docs/adr/` per le decisioni specifiche di questo repo e
 `onepiece-infrastructure/docs/adr/0001-local-auth-stack.md` per lo stack di autenticazione.
