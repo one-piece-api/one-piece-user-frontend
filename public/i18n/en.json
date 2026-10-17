@@ -132,6 +132,26 @@
           "text": "A fruit goes online only after its type, and a type stays online while any of its fruits is: publish the type first, retire the fruits first.",
           "code": "type → fruit · publish order"
         }
+      },
+      "events": {
+        "tip1": {
+          "text": "Arrr, matey! “When it happens” is the moment in the world, “Revealed to the reader” is the chapter where you find out. Mixing them up is the fastest way to spoil the crew.",
+          "code": "when it happens ≠ revealed to the reader"
+        },
+        "tip2": {
+          "text": "An event from before the story is dated in years, not chapters: tick “approx.” when the crew’s historians are not sure.",
+          "code": "before the story · years"
+        }
+      },
+      "reveals": {
+        "tip1": {
+          "text": "Arrr, matey! Each entry is a plot twist: open it and write what the crew learns in that chapter.",
+          "code": "one reveal = one chapter"
+        },
+        "tip2": {
+          "text": "The last reveal of a field uncovers the truth: change it there and the main fields change with it.",
+          "code": "last reveal → truth"
+        }
       }
     }
   },
@@ -941,9 +961,15 @@
         "many": "Hide {{count}} unchanged fields"
       },
       "reveals": "Reveals",
-      "differences": { "one": "1 difference", "many": "{{count}} differences" },
+      "differences": {
+        "one": "1 difference",
+        "many": "{{count}} differences"
+      },
       "noDifferences": "no differences",
-      "revealCount": { "one": "Reveals: 1 difference", "many": "Reveals: {{count}} differences" },
+      "revealCount": {
+        "one": "Reveals: 1 difference",
+        "many": "Reveals: {{count}} differences"
+      },
       "reveal": {
         "ADDED": "+ Reveal added",
         "REMOVED": "− Reveal removed",

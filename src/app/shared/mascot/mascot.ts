@@ -4,6 +4,18 @@ import { TranslocoService } from '@jsverse/transloco';
 /** `tip` is the mascot's own contextual hint; the others answer something the user did. */
 export type MascotTone = 'tip' | 'info' | 'success' | 'error';
 
+/** What a page is about, for the mascot's own tips. */
+export type TipTopic =
+  | 'profile'
+  | 'users'
+  | 'roles'
+  | 'audit'
+  | 'languages'
+  | 'dashboard'
+  | 'content'
+  | 'events'
+  | 'reveals';
+
 export interface MascotMessage {
   readonly tone: MascotTone;
   readonly title: string;
@@ -38,6 +50,12 @@ export class MascotService {
   private dismissTimer?: ReturnType<typeof setTimeout>;
 
   readonly open = signal(false);
+
+  /**
+   * What part of the page is open, where the route does not say it - a tab such as "Reveals":
+   * the tips are about it while it is set. Set by the part shown, cleared when it goes.
+   */
+  readonly tipTopic = signal<TipTopic | null>(null);
 
   /** `null` until the first `show()` - the idle greeting is computed lazily (not snapshotted
    * at construction) so it always reads whichever catalog is loaded by the time something

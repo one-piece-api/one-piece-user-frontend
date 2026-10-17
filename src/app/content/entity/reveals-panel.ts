@@ -1,6 +1,16 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+} from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { MascotService } from '../../shared/mascot/mascot';
 import { entityOf } from './entities';
 import type { EntityDefinition, EntityField } from './entity-definition';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
@@ -57,6 +67,7 @@ interface SummaryItem {
 })
 export class RevealsPanel {
   private readonly transloco = inject(TranslocoService);
+  private readonly mascot = inject(MascotService);
 
   readonly entity = input.required<EntityDefinition>();
   readonly reveals = input.required<RevealsDraft>();
@@ -68,6 +79,12 @@ export class RevealsPanel {
   readonly editable = input(false);
   /** What the backend refused at the last save, by node then target (`revealRefusalOf`). */
   readonly refusals = input<Readonly<Record<string, Readonly<Record<string, string>>>>>({});
+
+  constructor() {
+    // While the tab is open, the Lumacofono's tips are about reveals.
+    this.mascot.tipTopic.set('reveals');
+    inject(DestroyRef).onDestroy(() => this.mascot.tipTopic.set(null));
+  }
 
   readonly changed = output<RevealsDraft>();
   /** The main fields as a reveal reaching the truth wrote them: what the reader learns. */

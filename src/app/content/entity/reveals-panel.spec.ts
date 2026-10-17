@@ -6,6 +6,7 @@ import { DEVIL_FRUIT } from '../devil-fruits/devil-fruit.model';
 import { draftOf } from './entity-body';
 import { revealsOfDraft, type Belief, type RevealsDraft } from './entity-reveals';
 import { RevealsPanel } from './reveals-panel';
+import { MascotService } from '../../shared/mascot/mascot';
 
 const LANGUAGES = ['it', 'en'];
 const chapter = (number: number) => ({ id: `chapter-${number}`, number, names: {} });
@@ -70,6 +71,15 @@ describe('the Reveals tab', () => {
     fixture.detectChanges();
     root = fixture.nativeElement as HTMLElement;
   }
+
+  it('turns the Lumacofono tips to reveals while it is open', () => {
+    render(false);
+    const mascot = TestBed.inject(MascotService);
+
+    expect(mascot.tipTopic()).toBe('reveals');
+    fixture.destroy();
+    expect(mascot.tipTopic()).toBeNull();
+  });
 
   const nodes = () =>
     Array.from(root.querySelectorAll<HTMLButtonElement>('[data-testid="reveal-node"]'));

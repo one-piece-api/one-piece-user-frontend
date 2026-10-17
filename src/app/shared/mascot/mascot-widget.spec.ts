@@ -188,6 +188,29 @@ describe('MascotWidget', () => {
     expect(mascotService.message().code).toBe('content:review → content:publish');
   });
 
+  it('pipes up with a tip on events, not the generic content one', async () => {
+    vi.useFakeTimers();
+    const fixture = await createAt('/content/events');
+    const mascotService = TestBed.inject(MascotService);
+
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
+    fixture.detectChanges();
+
+    expect(mascotService.message().code).toBe('when it happens ≠ revealed to the reader');
+  });
+
+  it('pipes up about the part of the page open, where the route does not say it', async () => {
+    vi.useFakeTimers();
+    const fixture = await createAt('/content/devil-fruits/f1');
+    const mascotService = TestBed.inject(MascotService);
+    mascotService.tipTopic.set('reveals');
+
+    vi.advanceTimersByTime(TIP_INTERVAL_MS);
+    fixture.detectChanges();
+
+    expect(mascotService.message().code).toBe('one reveal = one chapter');
+  });
+
   it('keeps an error on screen when the next tip is due', async () => {
     vi.useFakeTimers();
     const fixture = await createAt('/users');

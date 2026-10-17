@@ -1,9 +1,7 @@
 import { Component, DestroyRef, ElementRef, effect, inject, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { MascotService, type MascotTone } from './mascot';
-
-type TipTopic = 'profile' | 'users' | 'roles' | 'audit' | 'languages' | 'dashboard' | 'content';
+import { MascotService, type MascotTone, type TipTopic } from './mascot';
 
 interface Tip {
   readonly text: string;
@@ -25,6 +23,8 @@ const TIPS: Record<TipTopic, readonly string[]> = {
     'mascot.tips.content.tip3',
     'mascot.tips.content.tip4',
   ],
+  events: ['mascot.tips.events.tip1', 'mascot.tips.events.tip2'],
+  reveals: ['mascot.tips.reveals.tip1', 'mascot.tips.reveals.tip2'],
 };
 
 /** Sparse enough that a tip stays a nudge, not the thing the eye learns to skip. */
@@ -37,6 +37,7 @@ function topicForUrl(url: string): TipTopic | null {
   if (url.startsWith('/languages')) return 'languages';
   if (url.startsWith('/profile')) return 'profile';
   if (url.startsWith('/dashboard')) return 'dashboard';
+  if (url.startsWith('/content/events')) return 'events';
   if (url.startsWith('/content')) return 'content';
   return null;
 }
@@ -125,7 +126,7 @@ export class MascotWidget {
   }
 
   private showNextTip(): void {
-    const topic = topicForUrl(this.router.url);
+    const topic = this.mascotService.tipTopic() ?? topicForUrl(this.router.url);
     if (!topic) {
       return;
     }

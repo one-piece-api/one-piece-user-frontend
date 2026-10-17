@@ -132,6 +132,26 @@
           "text": "Un frutto va online solo dopo il suo tipo, e un tipo resta online finché lo è uno dei suoi frutti: pubblica prima il tipo, ritira prima i frutti.",
           "code": "tipo → frutto · ordine di pubblicazione"
         }
+      },
+      "events": {
+        "tip1": {
+          "text": "Arrr, matey! «Quando accade» è il momento nel mondo, «Rivelato al lettore» è il capitolo in cui lo scopri. Confonderli è il modo più rapido per spoilerare la ciurma.",
+          "code": "quando accade ≠ rivelato al lettore"
+        },
+        "tip2": {
+          "text": "Un evento di prima della storia si data in anni, non in capitoli: segna «circa» se gli storici della ciurma non sono sicuri.",
+          "code": "prima della storia · anni"
+        }
+      },
+      "reveals": {
+        "tip1": {
+          "text": "Arrr, matey! Ogni voce è un colpo di scena: aprila e scrivi cosa scopre la ciurma in quel capitolo.",
+          "code": "una rivelazione = un capitolo"
+        },
+        "tip2": {
+          "text": "L’ultima rivelazione di un campo svela la verità: se la cambi lì, cambiano anche i campi principali.",
+          "code": "ultima rivelazione → verità"
+        }
       }
     }
   },
@@ -941,7 +961,10 @@
         "many": "Nascondi {{count}} campi invariati"
       },
       "reveals": "Rivelazioni",
-      "differences": { "one": "1 differenza", "many": "{{count}} differenze" },
+      "differences": {
+        "one": "1 differenza",
+        "many": "{{count}} differenze"
+      },
       "noDifferences": "nessuna differenza",
       "revealCount": {
         "one": "Rivelazioni: 1 differenza",
