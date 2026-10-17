@@ -11,6 +11,7 @@ import { pixels, pngFile } from '../../testing/png-file';
 import { CHAPTER } from '../chapters/chapter.model';
 import type { VersionStatus } from '../content.model';
 import { EPISODE } from '../episodes/episode.model';
+import { EVENT } from '../events/event.model';
 import { VOLUME } from '../volumes/volume.model';
 import { ENTITY } from './entities';
 import { diffBodies, type EntityBody } from './entity-body';
@@ -777,6 +778,51 @@ describe('the comparison of two volumes', () => {
     ]);
     const label = root.querySelector('[data-testid="comparison-row"]')?.firstElementChild;
     expect(label?.textContent?.replace(/\s+/g, ' ').trim()).toContain('Cover');
+    httpTesting.verify();
+  });
+
+  it('names the chapter of an event as a chapter, not a year', async () => {
+    const EVENTS = '/api/content/events/e1/versions';
+    const REVERIE = { id: 'c908', number: 908, names: { en: 'The Reverie' } };
+    const event = (number: number, occursAt: object) => ({
+      ...summary(number, number === 1 ? 'PUBLISHED' : 'DRAFT'),
+      blockedActions: [],
+      rejectionReason: null,
+      body: { occursAt, participants: [], translations: { en: { title: 'Reverie' } } },
+    });
+    TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ENTITY, useValue: EVENT },
+      ],
+    });
+    const httpTesting = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(EntityComparison as Type<EntityComparison>);
+    fixture.componentRef.setInput('versionsUrl', EVENTS);
+    fixture.componentRef.setInput('versions', [summary(1, 'PUBLISHED'), summary(2, 'DRAFT')]);
+    fixture.componentRef.setInput('onlineVersionNumber', 1);
+    fixture.componentRef.setInput('languages', [{ code: 'en', name: 'English' }]);
+    fixture.componentRef.setInput('target', 2);
+    fixture.detectChanges();
+    httpTesting.match('/api/me').forEach((request) => request.flush({ username: 'nami' }));
+    httpTesting.expectOne(`${EVENTS}/2`).flush(event(2, { chapter: REVERIE }));
+    httpTesting
+      .expectOne(`${EVENTS}/1`)
+      .flush(event(1, { worldDate: { yearFrom: 1498, yearTo: null, approximate: false } }));
+    for (let round = 0; round < 2; round++) {
+      await new Promise((resolve) => setTimeout(resolve));
+      fixture.detectChanges();
+    }
+    const rows = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('[data-testid="comparison-row"]'),
+    ).map((row) => row.textContent?.replace(/\s+/g, ' ').trim() ?? '');
+
+    const occurs = rows.find((row) => row.includes('Ch. 908 — The Reverie'));
+    expect(occurs).toContain('1498');
+    expect(occurs).not.toContain('Ch. 1498');
     httpTesting.verify();
   });
 });

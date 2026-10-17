@@ -411,8 +411,8 @@ export class EntityComparison {
         : this.transloco.translate(`content.comparison.field.${field}`, {
             language: language?.toUpperCase(),
           }),
-      before: storyPoint ? this.chapterNamed(diff.before) : diff.before,
-      after: storyPoint ? this.chapterNamed(diff.after) : diff.after,
+      before: storyPoint || diff.chapter?.before ? this.chapterNamed(diff.before) : diff.before,
+      after: storyPoint || diff.chapter?.after ? this.chapterNamed(diff.after) : diff.after,
       image: image !== undefined,
       ratio:
         image?.kind === 'image' ? image.profile.width / image.profile.height : DEFAULT_IMAGE_RATIO,

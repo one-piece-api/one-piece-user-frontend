@@ -14,6 +14,7 @@ import {
   eventTimeDraftOf,
   eventTimeSaved,
   eventTimeText,
+  isChapterTime,
   isEventTimeFilled,
 } from './entity-event-time';
 import { chapterOf, chapterText } from './entity-story-point';
@@ -213,14 +214,22 @@ function relationListValue(part: string): FieldKind {
 /**
  * When an event happens or ends: the editor holds the mode picked with what each mode was
  * given (`EventTimeDraft`), the JSON the chapter's id or the world date of the mode picked.
- * A comparison looks at the labels, "908 — Reverie" or "c. 700–800".
+ * A comparison looks at the labels, "908 — Reverie" or "c. 700–800", and says which sides
+ * are chapters, for the screen to name them "Cap. 908 — Reverie".
  */
 const EVENT_TIME_VALUE = {
   draftValue: eventTimeDraftOf,
   savedValue: eventTimeSaved,
   isFilled: isEventTimeFilled,
-  diff: <TField>(field: TField, before: unknown, after: unknown) =>
-    diffField(field, eventTimeText(before), eventTimeText(after)),
+  diff: <TField>(field: TField, before: unknown, after: unknown) => {
+    const diff = diffField(field, eventTimeText(before), eventTimeText(after));
+    return (
+      diff && {
+        ...diff,
+        chapter: { before: isChapterTime(before), after: isChapterTime(after) },
+      }
+    );
+  },
 };
 
 /**

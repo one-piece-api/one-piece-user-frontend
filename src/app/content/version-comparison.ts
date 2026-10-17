@@ -17,6 +17,8 @@ export interface FieldDiff<TField> {
   readonly before: string | null;
   readonly after: string | null;
   readonly change: FieldChange;
+  /** Which sides name a chapter, where only some values of the field do: an event's time. */
+  readonly chapter?: { readonly before: boolean; readonly after: boolean };
 }
 
 /**

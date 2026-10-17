@@ -149,6 +149,12 @@ export function eventTimeText(value: unknown): string | null {
   return date && worldDateText(date);
 }
 
+/** Whether a time - saved, or a draft that would be saved - is a chapter, in the story. */
+export function isChapterTime(value: unknown): boolean {
+  const saved = isEventTimeDraft(value) ? eventTimeSaved(value) && savedShape(value) : value;
+  return chapterOf(saved) !== null;
+}
+
 /** A draft in the API's shape, with the chapter whole, so it is named like a saved one. */
 function savedShape(draft: EventTimeDraft): unknown {
   return draft.mode === 'chapter'

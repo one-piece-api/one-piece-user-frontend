@@ -5,6 +5,7 @@ import {
   eventTimeRefusal,
   eventTimeSaved,
   eventTimeText,
+  isChapterTime,
   isEventTimeFilled,
   worldDateText,
   yearsBeforeStory,
@@ -81,6 +82,16 @@ describe('an event time', () => {
     expect(eventTimeText(years('1498'))).toBe('1498');
     expect(eventTimeText(EMPTY_EVENT_TIME)).toBeNull();
     expect(eventTimeText(null)).toBeNull();
+  });
+
+  it('tells a chapter from a year, saved or drafted', () => {
+    expect(isChapterTime({ chapter: REVERIE })).toBe(true);
+    expect(isChapterTime(eventTimeDraftOf({ chapter: REVERIE }))).toBe(true);
+    expect(isChapterTime({ worldDate: { yearFrom: 1498, yearTo: null, approximate: false } })).toBe(
+      false,
+    );
+    expect(isChapterTime(years('1498'))).toBe(false);
+    expect(isChapterTime(EMPTY_EVENT_TIME)).toBe(false);
   });
 
   describe('checked before saving', () => {
