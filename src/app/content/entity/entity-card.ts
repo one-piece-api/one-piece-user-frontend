@@ -8,7 +8,12 @@ import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { isReference, referenceLabel } from './entity-reference';
 import { countryName, releaseDateLabel, releasesInOrder } from './entity-release';
-import { STORY_POINT_TARGET, chapterLabel, chapterOf } from './entity-story-point';
+import {
+  STORY_POINT_PARTS,
+  STORY_POINT_TARGETS,
+  storyItemLabel,
+  storyPointOf,
+} from './entity-story-point';
 import { untitledOf } from './entity-title';
 import {
   isSubcategoryReference,
@@ -54,8 +59,15 @@ interface SubcategoryEntry {
   readonly id: string;
   readonly name: string | null;
   readonly description: string | null;
-  /** Its first appearance, "Cap. 1 — Romance Dawn", and the chapter's page; `null` for none. */
-  readonly firstAppearance: { readonly label: string; readonly link: readonly string[] } | null;
+  /** Its first appearance, "Cap. 1 — Romance Dawn", a chapter and an episode; none for none. */
+  readonly firstAppearance: readonly StoryItemLink[];
+}
+
+/** A chapter or an episode of a first appearance: "Cap. 1 — Romance Dawn", and its page. */
+interface StoryItemLink {
+  readonly label: string;
+  /** Empty for a content whose section this app does not have. */
+  readonly link: readonly string[];
 }
 
 /** A content this one points to, as the card shows it: a link to its page under a heading. */
@@ -68,8 +80,8 @@ interface RelationChip {
   readonly label: string | null;
   /** Where the link leads - empty for a content whose section this app does not have. */
   readonly link: readonly string[];
-  /** A story point: the episode beside the chapter is not built yet, "coming soon". */
-  readonly episodeSoon?: true;
+  /** A first appearance in both media: the episode, shown under the chapter. */
+  readonly also?: StoryItemLink;
 }
 
 /**
@@ -154,22 +166,15 @@ export class EntityCard {
     return sharedFields(this.entity).flatMap<RelationChip>((field) => {
       const name = `${field.key[0].toUpperCase()}${field.key.slice(1)}`;
       if (field.kind === 'storyPoint') {
-        const chapter = chapterOf(this.body()[field.key]);
-        const target = entityOf(STORY_POINT_TARGET);
+        const [first, also] = this.storyItemLinks(this.body()[field.key], language);
         return [
           {
             field: field.key,
             headingKey: `content.card.heading.${field.key}`,
             emptyKey: `content.card.no${name}`,
-            label:
-              chapter &&
-              chapterLabel(
-                (key, params) => this.transloco.translate(key, params),
-                chapter,
-                language,
-              ),
-            link: chapter && target ? [target.route, chapter.id] : [],
-            episodeSoon: true,
+            label: first?.label ?? null,
+            link: first?.link ?? [],
+            ...(also ? { also } : {}),
           },
         ];
       }
@@ -255,11 +260,32 @@ export class EntityCard {
     });
   });
 
+  /** The chapter and the episode a first appearance names, in that order, as the card links them. */
+  private storyItemLinks(value: unknown, language: string): StoryItemLink[] {
+    const point = storyPointOf(value);
+    return STORY_POINT_PARTS.flatMap((part) => {
+      const item = point[part];
+      const route = entityOf(STORY_POINT_TARGETS[part])?.route;
+      return item
+        ? [
+            {
+              label: storyItemLabel(
+                (key, params) => this.transloco.translate(key, params),
+                part,
+                item,
+                language,
+              ),
+              link: route ? [route, item.id] : [],
+            },
+          ]
+        : [];
+    });
+  }
+
   /** The lists of subcategories the content defines, in their order, each a section. */
   protected readonly subcategoryLists = computed(() => {
     const language = this.language() ?? '';
     this.transloco.activeLang();
-    const chapterRoute = entityOf(STORY_POINT_TARGET)?.route;
     return this.entity.fields.flatMap((field) =>
       field.kind === 'subcategoryList'
         ? [
@@ -270,14 +296,7 @@ export class EntityCard {
                   id: subcategory.id,
                   name: subcategoryText(subcategory, language, 'name').trim() || null,
                   description: subcategoryText(subcategory, language, 'description').trim() || null,
-                  firstAppearance: subcategory.firstAppearance && {
-                    label: chapterLabel(
-                      (key, params) => this.transloco.translate(key, params),
-                      subcategory.firstAppearance,
-                      language,
-                    ),
-                    link: chapterRoute ? [chapterRoute, subcategory.firstAppearance.id] : [],
-                  },
+                  firstAppearance: this.storyItemLinks(subcategory.firstAppearance, language),
                 }),
               ),
             },

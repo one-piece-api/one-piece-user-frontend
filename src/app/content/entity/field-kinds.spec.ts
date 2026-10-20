@@ -249,37 +249,49 @@ describe('the storyPoint field kind', () => {
   const chapter: EntityReference = { id: 'c1', number: 1, names: { en: 'Romance Dawn' } };
   const other: EntityReference = { id: 'c2', number: 2, names: { en: 'They Call Him' } };
 
-  it('gives the editor the chapter of the API value, null for none', () => {
-    expect(strategy.draftValue({ chapter })).toBe(chapter);
-    expect(strategy.draftValue(null)).toBeNull();
-    expect(strategy.draftValue({})).toBeNull();
+  const episode: EntityReference = { id: 'e4', number: 4, names: { en: 'Luffy’s Past' } };
+
+  it('gives the editor the chapter and the episode of the API value, none for none', () => {
+    expect(strategy.draftValue({ chapter, episode })).toEqual({ chapter, episode });
+    expect(strategy.draftValue({ chapter })).toEqual({ chapter, episode: null });
+    expect(strategy.draftValue(null)).toEqual({ chapter: null, episode: null });
   });
 
-  it('saves the chapter as its id, and no chapter as null', () => {
-    expect(strategy.savedValue(chapter)).toEqual({ chapter: 'c1' });
+  it('saves each part as its id, a part not chosen as null, and nothing chosen as null', () => {
+    expect(strategy.savedValue({ chapter, episode: null })).toEqual({
+      chapter: 'c1',
+      episode: null,
+    });
+    expect(strategy.savedValue({ chapter: null, episode })).toEqual({
+      chapter: null,
+      episode: 'e4',
+    });
+    expect(strategy.savedValue({ chapter: null, episode: null })).toBeNull();
     expect(strategy.savedValue(null)).toBeNull();
   });
 
-  it('counts as filled with a chapter, held by the editor or read from the API', () => {
-    expect(strategy.isFilled(chapter)).toBe(true);
-    expect(strategy.isFilled({ chapter })).toBe(true);
+  it('counts as filled with a chapter or an episode', () => {
+    expect(strategy.isFilled({ chapter, episode: null })).toBe(true);
+    expect(strategy.isFilled({ episode })).toBe(true);
+    expect(strategy.isFilled({ chapter: null, episode: null })).toBe(false);
     expect(strategy.isFilled(null)).toBe(false);
   });
 
   it('is kept on the version and asked for by review unless marked optional', () => {
     expect(strategy.localized).toBe(false);
     expect(isAskedByReview({ kind: 'storyPoint', key: 'firstAppearance' })).toBe(true);
-    expect(isAskedByReview({ kind: 'storyPoint', key: 'revealedAt', optional: true })).toBe(false);
+    expect(isAskedByReview({ kind: 'storyPoint', key: 'lastSeen', optional: true })).toBe(false);
   });
 
-  it('compares the chapters by id, showing their number and title', () => {
-    expect(strategy.diff('f', { chapter }, { chapter: other })).toEqual({
-      field: 'f',
-      before: '1 — Romance Dawn',
-      after: '2 — They Call Him',
-      change: 'MODIFIED',
-    });
-    expect(strategy.diff('f', null, { chapter })?.change).toBe('ADDED');
+  it('compares both parts by id, carrying their numbers and titles', () => {
+    const diff = strategy.diff('f', { chapter }, { chapter: other, episode });
+
+    expect(diff?.change).toBe('MODIFIED');
+    expect(diff?.before).toBe(JSON.stringify({ chapter: '1 — Romance Dawn' }));
+    expect(diff?.after).toBe(
+      JSON.stringify({ chapter: '2 — They Call Him', episode: '4 — Luffy’s Past' }),
+    );
+    expect(strategy.diff('f', null, { episode })?.change).toBe('ADDED');
     expect(strategy.diff('f', { chapter }, { chapter: { ...chapter, names: {} } })?.change).toBe(
       'UNCHANGED',
     );

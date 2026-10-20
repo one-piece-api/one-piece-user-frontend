@@ -10,7 +10,12 @@ import type { EntityField, FieldKindName } from './entity-definition';
 import { isImageDraft, isImageReference } from './entity-image';
 import { isReference, type EntityReference } from './entity-reference';
 import { newReleaseKey, releasesOf, type ReleaseDraft } from './entity-release';
-import { chapterOf, chapterText } from './entity-story-point';
+import {
+  comparedStoryPoint,
+  isStoryPointFilled,
+  storyPointOf,
+  type StoryPointDraft,
+} from './entity-story-point';
 import {
   SUBCATEGORY_PARTS,
   isSubcategoryReference,
@@ -141,25 +146,26 @@ const IMAGE_VALUE = {
 };
 
 /**
- * A point on the reader's axis: the editor holds the chapter's reference whole, as for a
- * relation, and the JSON sends `{ chapter: id }` - `null` where none is chosen. A comparison
- * looks at the chapter's id and shows its number and title (`chapterText`), which the screen
- * puts after "Cap.".
+ * A first appearance: the editor holds the chapter's and the episode's references whole, as
+ * for a relation, and the JSON sends `{ chapter: id, episode: id }` - `null` for a part not
+ * chosen, `null` as a whole where neither is. Filled with either part. A comparison looks at
+ * both ids and carries each part's number and title (`comparedStoryPoint`).
  */
 const STORY_POINT_VALUE = {
-  draftValue: chapterOf,
-  savedValue: (draft: unknown) => (isReference(draft) ? { chapter: draft.id } : null),
-  isFilled: (value: unknown) => isReference(value) || chapterOf(value) !== null,
+  draftValue: storyPointOf,
+  savedValue: (draft: unknown) => {
+    const { chapter, episode } = storyPointOf(draft);
+    return chapter || episode
+      ? { chapter: chapter?.id ?? null, episode: episode?.id ?? null }
+      : null;
+  },
+  isFilled: isStoryPointFilled,
   diff: <TField>(field: TField, before: unknown, after: unknown) => {
-    const was = chapterOf(before);
-    const is = chapterOf(after);
-    const diff = diffField(field, was?.id, is?.id);
+    const idsOf = ({ chapter, episode }: StoryPointDraft) =>
+      chapter || episode ? `${chapter?.id ?? ''}|${episode?.id ?? ''}` : null;
+    const diff = diffField(field, idsOf(storyPointOf(before)), idsOf(storyPointOf(after)));
     return (
-      diff && {
-        ...diff,
-        before: was && chapterText(was, null),
-        after: is && chapterText(is, null),
-      }
+      diff && { ...diff, before: comparedStoryPoint(before), after: comparedStoryPoint(after) }
     );
   },
 };

@@ -142,7 +142,7 @@ export type BlockCause =
         Partial<Record<KeyedItems, KeyedItem[]>>;
     }
   | {
-      /** A fruit or type cannot go online without a first appearance (T7). */
+      /** A fruit or type cannot go online without a first appearance. */
       reason: 'FIRST_APPEARANCE_MISSING';
       detail: Record<string, never>;
     };

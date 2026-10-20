@@ -294,7 +294,7 @@ function releaseListFields(definition: EntityDefinition): EntityField[] {
 export function draftFieldKey(definition: EntityDefinition, field: string): string | null {
   const lists = subcategoryListFields(definition).map(({ key }) => key);
   const entry = new RegExp(
-    String.raw`^(${lists.join('|')})\[(\d+)\](?:\.translations\[([^\]]+)\]\.(name|description)|\.(firstAppearance)(?:\.chapter)?|\.id)?$`,
+    String.raw`^(${lists.join('|')})\[(\d+)\](?:\.translations\[([^\]]+)\]\.(name|description)|\.(firstAppearance)(?:\.(?:chapter|episode))?|\.id)?$`,
   ).exec(field);
   if (lists.length && entry) {
     const [, list, index, language, part, firstAppearance] = entry;
@@ -313,8 +313,8 @@ export function draftFieldKey(definition: EntityDefinition, field: string): stri
   if (sharedFields(definition).some(({ key }) => key === field)) {
     return field;
   }
-  // A story point is refused as a whole or by its chapter: `firstAppearance.chapter`.
-  const storyPoint = /^(\w+)\.chapter$/.exec(field)?.[1];
+  // A story point is refused as a whole or by a part: `firstAppearance.episode`.
+  const storyPoint = /^(\w+)\.(?:chapter|episode)$/.exec(field)?.[1];
   if (
     storyPoint &&
     definition.fields.some(({ key, kind }) => key === storyPoint && kind === 'storyPoint')
@@ -409,8 +409,8 @@ function diffSubcategories(
           name: anyName(now) ?? anyName(old),
         },
       },
-      old && { chapter: old.firstAppearance },
-      now && { chapter: now.firstAppearance },
+      old?.firstAppearance,
+      now?.firstAppearance,
     );
     return [...texts, firstAppearance];
   });

@@ -156,4 +156,36 @@ describe('DevilFruitTypeCard, the first appearances', () => {
     expect(subcategoryChapters).toHaveLength(1);
     expect(subcategoryChapters[0].textContent?.trim()).toBe('Ch. 1 — Romance Dawn');
   });
+
+  it('names the episode beside the chapter, and a subcategory seen only in the anime', () => {
+    const EPISODE_4 = { id: 'e4', number: 4, names: { en: 'Luffy’s Past' } };
+    TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [provideRouter([]), { provide: ENTITY, useValue: DEVIL_FRUIT_TYPE }],
+    });
+    const fixture = TestBed.createComponent(EntityCard);
+    fixture.componentRef.setInput('body', {
+      ...LOGIA,
+      firstAppearance: { chapter: ROMANCE_DAWN, episode: EPISODE_4 },
+      subcategories: [
+        {
+          id: 's1',
+          translations: { en: { name: 'Ancient', description: 'Extinct.' } },
+          firstAppearance: { chapter: null, episode: EPISODE_4 },
+        },
+      ],
+    });
+    fixture.componentRef.setInput('languages', [ENGLISH]);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+
+    const typeEpisode = root.querySelector<HTMLAnchorElement>(
+      '[data-testid="card-firstAppearance-also"]',
+    );
+    const subcategory = root.querySelectorAll('[data-testid="card-subcategory-firstAppearance"]');
+    expect(typeEpisode?.textContent?.trim()).toBe('Ep. 4 — Luffy’s Past');
+    expect(typeEpisode?.getAttribute('href')).toBe('/content/episodes/e4');
+    expect(subcategory).toHaveLength(1);
+    expect(subcategory[0].textContent?.trim()).toBe('Ep. 4 — Luffy’s Past');
+  });
 });

@@ -121,9 +121,8 @@ export interface ReleaseListField {
 }
 
 /**
- * A point on the reader's axis (plan timeline, T7): the chapter where the reader first meets
- * a content, or learns of an event - `{ chapter }` in the JSON. Shared by every language.
- * The episode is an open door: the editor shows it disabled, "coming soon".
+ * A first appearance: the chapter, the episode, or both where the reader first meets a
+ * content - `{ chapter, episode }` in the JSON, filled with either. Shared by every language.
  */
 export interface StoryPointField {
   readonly kind: 'storyPoint';

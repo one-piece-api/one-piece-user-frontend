@@ -235,6 +235,47 @@ describe('the editor of a Devil Fruit', () => {
     });
   });
 
+  describe('the first appearance', () => {
+    const EPISODES = '/api/content/episodes/linkable?size=20';
+    const EPISODE_4 = { id: 'e4', number: 4, names: { en: 'Luffy’s Past' } };
+
+    beforeEach(async () => {
+      await open(`${SECTION}/new`);
+    });
+
+    it('offers a chapter and an episode, side by side', () => {
+      expect(root.querySelector('#draft-firstAppearance')?.getAttribute('role')).toBe('combobox');
+      expect(root.querySelector('#draft-firstAppearance-episode')?.getAttribute('role')).toBe(
+        'combobox',
+      );
+    });
+
+    it('is complete with an episode alone, and saves it with no chapter', async () => {
+      const episodeBox = root.querySelector<HTMLInputElement>('#draft-firstAppearance-episode')!;
+      episodeBox.dispatchEvent(new Event('focus'));
+      harness.detectChanges();
+      httpTesting.expectOne(EPISODES).flush({
+        content: [EPISODE_4],
+        page: 0,
+        size: 20,
+        totalElements: 1,
+        totalPages: 1,
+      });
+      await settle();
+      await choose(0);
+
+      expect(episodeBox.value).toBe('Ep. 4 — Luffy’s Past');
+      expect(checks()[2]).toBe('✓ First appearance complete');
+      await save();
+      const request = httpTesting.expectOne(ENDPOINT);
+      expect(request.request.body).toMatchObject({
+        firstAppearance: { chapter: null, episode: 'e4' },
+      });
+      request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
+      await settle();
+    });
+  });
+
   describe('a draft that has a type', () => {
     beforeEach(async () => {
       await open(`${SECTION}/${ID}/edit`);

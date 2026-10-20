@@ -86,15 +86,21 @@
                     >{{ relation.emptyKey | transloco }}</span
                   >
                 }
-                @if (relation.episodeSoon) {
-                  <span
-                    class="mt-0.5 flex flex-wrap items-center gap-1.5 font-heading text-xs font-bold text-ocean-500"
-                    >{{ 'content.storyPoint.episode' | transloco }}
+                @if (relation.also; as also) {
+                  @if (also.link.length) {
+                    <a
+                      [routerLink]="also.link"
+                      [attr.data-testid]="'card-' + relation.field + '-also'"
+                      class="block font-heading text-[15px] font-extrabold wrap-anywhere text-ocean-700 hover:text-ocean-800"
+                      >{{ also.label }}</a
+                    >
+                  } @else {
                     <span
-                      class="rounded-md bg-parchment-200 px-1.5 py-px text-[10px] font-extrabold"
-                      >{{ 'content.storyPoint.comingSoon' | transloco }}</span
-                    ></span
-                  >
+                      class="block font-heading text-[15px] font-extrabold wrap-anywhere text-ocean-950"
+                      [attr.data-testid]="'card-' + relation.field + '-also'"
+                      >{{ also.label }}</span
+                    >
+                  }
                 }
               </dd>
             </div>
@@ -197,20 +203,23 @@
                   >
                     {{ entry.description ?? ('content.card.noDescription' | transloco) }}
                   </p>
-                  @if (entry.firstAppearance; as firstAppearance) {
+                  @if (entry.firstAppearance.length) {
                     <p class="mt-1 font-heading text-xs font-bold text-ocean-500">
                       {{ 'content.card.heading.firstAppearance' | transloco }}:
-                      @if (firstAppearance.link.length) {
-                        <a
-                          [routerLink]="firstAppearance.link"
-                          class="font-extrabold text-ocean-700 hover:text-ocean-800"
-                          data-testid="card-subcategory-firstAppearance"
-                          >{{ firstAppearance.label }}</a
-                        >
-                      } @else {
-                        <span class="font-extrabold text-ocean-950">{{
-                          firstAppearance.label
-                        }}</span>
+                      @for (item of entry.firstAppearance; track item.label; let last = $last) {
+                        @if (item.link.length) {
+                          <a
+                            [routerLink]="item.link"
+                            class="font-extrabold text-ocean-700 hover:text-ocean-800"
+                            data-testid="card-subcategory-firstAppearance"
+                            >{{ item.label }}</a
+                          >
+                        } @else {
+                          <span class="font-extrabold text-ocean-950">{{ item.label }}</span>
+                        }
+                        @if (!last) {
+                          ·
+                        }
                       }
                     </p>
                   }

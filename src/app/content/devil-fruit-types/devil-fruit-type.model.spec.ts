@@ -68,7 +68,7 @@ describe('draftOf', () => {
   it('starts a new content from nothing, with a translation for every language', () => {
     expect(draftOf(DEVIL_FRUIT_TYPE, null, ['it', 'en'])).toEqual({
       romaji: '',
-      firstAppearance: null,
+      firstAppearance: { chapter: null, episode: null },
       subcategories: [],
       translations: { it: typed({}), en: typed({}) },
     });
@@ -89,7 +89,7 @@ describe('draftOf', () => {
 
     expect(draft).toEqual({
       romaji: 'Shizen-kei',
-      firstAppearance: null,
+      firstAppearance: { chapter: null, episode: null },
       subcategories: [],
       translations: { it: typed({ name: 'Rogia', advantages: 'Intangibile.' }), en: typed({}) },
     });
@@ -358,7 +358,7 @@ describe('the subcategories of a type', () => {
       (toBody(DEVIL_FRUIT_TYPE, draft)['subcategories'] as { firstAppearance: unknown }[]).map(
         ({ firstAppearance }) => firstAppearance,
       ),
-    ).toEqual([{ chapter: 'c1' }, null]);
+    ).toEqual([{ chapter: 'c1', episode: null }, null]);
   });
 
   it('compare the first appearance of a subcategory, once for every language', () => {

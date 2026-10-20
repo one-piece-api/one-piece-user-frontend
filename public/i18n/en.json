@@ -1346,12 +1346,11 @@
       "hintMissing": "Review takes a number and, in every language, a title and a description. Meanwhile the draft can be saved incomplete."
     },
     "storyPoint": {
-      "chapter": "Ch. {{chapter}}",
+      "chapter": "Ch. {{item}}",
       "chapterMedium": "Chapter (manga)",
       "episodeMedium": "Episode (anime)",
-      "episode": "Episode",
-      "comingSoon": "coming soon",
-      "placeholder": "Search by number or title"
+      "placeholder": "Search by number or title",
+      "episodeNumbered": "Ep. {{item}}"
     }
   }
 }

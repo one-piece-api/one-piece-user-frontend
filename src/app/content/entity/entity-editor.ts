@@ -53,7 +53,12 @@ import { sentReleaseRows, textOf } from './field-kinds';
 import { ImagePicker } from './image-picker';
 import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
-import { STORY_POINT_TARGET, chapterLabel } from './entity-story-point';
+import {
+  STORY_POINT_TARGETS,
+  storyItemLabel,
+  storyPointOf,
+  type StoryPointPart,
+} from './entity-story-point';
 import {
   newSubcategoryKey,
   subcategoryChoices,
@@ -74,14 +79,11 @@ const VALIDATION_FAILED = 'VALIDATION_FAILED';
 const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
 
 /**
- * The section a field's choices are asked of: the content a relation points to, the chapters
- * for a story point - `null` for any other field, or where the app has no such section.
+ * The section a field's choices are asked of: the content a relation points to - `null` for
+ * any other field, or where the app has no such section.
  */
 function sourceOf(field: EntityField): string | null {
-  if (field.kind === 'relation') {
-    return entityOf(field.target)?.api ?? null;
-  }
-  return field.kind === 'storyPoint' ? (entityOf(STORY_POINT_TARGET)?.api ?? null) : null;
+  return field.kind === 'relation' ? (entityOf(field.target)?.api ?? null) : null;
 }
 
 /** What is said under a relation the backend refused: the content chosen cannot be linked. */
@@ -286,6 +288,7 @@ export class EntityEditor {
             field,
             value: textOf(chosen),
             reference: isReference(chosen) ? chosen : null,
+            storyPoint: field.kind === 'storyPoint' ? storyPointOf(chosen) : null,
             source: sourceOf(field),
             choices:
               field.kind === 'subcategory'
@@ -392,7 +395,7 @@ export class EntityEditor {
             nameError: refused[`${language}.${field.key}.${index}.name`] ?? null,
             descriptionError: refused[`${language}.${field.key}.${index}.description`] ?? null,
             error: refused[`${field.key}.${index}`] ?? null,
-            firstAppearance: subcategory.firstAppearance ?? null,
+            firstAppearance: storyPointOf(subcategory.firstAppearance),
             firstAppearanceError: refused[`${field.key}.${index}.firstAppearance`] ?? null,
           })),
         },
@@ -539,12 +542,32 @@ export class EntityEditor {
     this.forgetRefusal(key);
   }
 
-  /** Where the chapters a first appearance may name are asked for. */
-  protected readonly chapterSource = entityOf(STORY_POINT_TARGET)?.api ?? null;
+  /**
+   * The parts of a first appearance the app can pick: where each one's choices are asked for,
+   * and how its picker names a choice ("Cap. 1 — Romance Dawn").
+   */
+  protected readonly storyPointParts = (Object.keys(STORY_POINT_TARGETS) as StoryPointPart[])
+    .map((part) => ({ part, source: entityOf(STORY_POINT_TARGETS[part])?.api ?? null }))
+    .filter((entry): entry is { part: StoryPointPart; source: string } => entry.source !== null)
+    .map(({ part, source }) => ({
+      part,
+      source,
+      labelOf: (item: EntityReference, language: string): string =>
+        storyItemLabel(
+          (key, params) => this.transloco.translate(key, params),
+          part,
+          item,
+          language,
+        ),
+    }));
 
-  /** How the chapter picker of a story point names a chapter: "Cap. 1 — Romance Dawn". */
-  protected readonly chapterPickLabel = (chapter: EntityReference, language: string): string =>
-    chapterLabel((key, params) => this.transloco.translate(key, params), chapter, language);
+  /** Chooses the chapter or the episode of a first appearance - or none. */
+  protected setStoryPoint(key: string, part: StoryPointPart, item: EntityReference | null): void {
+    this.draft.update(
+      (draft) => draft && { ...draft, [key]: { ...storyPointOf(draft[key]), [part]: item } },
+    );
+    this.forgetRefusal(key);
+  }
 
   /** Chooses the content a relation or a story point points to - or none. */
   protected setRelation(key: string, reference: EntityReference | null): void {
@@ -598,12 +621,18 @@ export class EntityEditor {
   protected setSubcategoryFirstAppearance(
     key: string,
     index: number,
-    chapter: EntityReference | null,
+    part: StoryPointPart,
+    item: EntityReference | null,
   ): void {
     this.writeSubcategories(
       key,
       this.subcategoriesIn(key).map((subcategory, position) =>
-        position === index ? { ...subcategory, firstAppearance: chapter } : subcategory,
+        position === index
+          ? {
+              ...subcategory,
+              firstAppearance: { ...storyPointOf(subcategory.firstAppearance), [part]: item },
+            }
+          : subcategory,
       ),
     );
     this.forgetRefusal(`${key}.${index}.firstAppearance`);

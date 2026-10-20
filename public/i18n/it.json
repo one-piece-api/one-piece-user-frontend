@@ -1346,12 +1346,11 @@
       "hintMissing": "Per la revisione servono il numero e, in ogni lingua, titolo e descrizione. Intanto la bozza si salva anche incompleta."
     },
     "storyPoint": {
-      "chapter": "Cap. {{chapter}}",
+      "chapter": "Cap. {{item}}",
       "chapterMedium": "Capitolo (manga)",
       "episodeMedium": "Episodio (anime)",
-      "episode": "Episodio",
-      "comingSoon": "in arrivo",
-      "placeholder": "Cerca per numero o titolo"
+      "placeholder": "Cerca per numero o titolo",
+      "episodeNumbered": "Ep. {{item}}"
     }
   }
 }
