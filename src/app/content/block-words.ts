@@ -4,6 +4,7 @@ import {
   STORY_ITEMS,
   STORY_RELATIONS,
   type BlockCause,
+  type KeyedItem,
   type KeyedItems,
   type StoryItems,
 } from './content.model';
@@ -11,6 +12,8 @@ import { entityOf } from './entity/entities';
 
 /** The section a fruit lives in - what a type that cannot be retired points to. */
 const FRUIT_ENTITY = 'DEVIL_FRUIT';
+/** The section a bounty lives in - what an already replaced previous bounty points to. */
+const BOUNTY_ENTITY = 'BOUNTY';
 
 /** The section each kind of story item lives in - what a content that cannot be retired points to. */
 const STORY_ITEM_ENTITY: Record<StoryItems | KeyedItems, string> = {
@@ -19,7 +22,13 @@ const STORY_ITEM_ENTITY: Record<StoryItems | KeyedItems, string> = {
   episodes: 'EPISODE',
   fruits: 'DEVIL_FRUIT',
   types: 'DEVIL_FRUIT_TYPE',
+  bounties: BOUNTY_ENTITY,
 };
+
+/** A keyed content as a block names it: its romaji or key, else its id. */
+function keyedLabel(item: KeyedItem): string {
+  return item.romaji ?? item.key ?? item.id;
+}
 
 /** A content that stands in the way, named and leading to its page. */
 export interface BlockLink {
@@ -86,7 +95,7 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
       const items = keyed ?? STORY_ITEMS.find((candidate) => candidate in cause.detail) ?? 'arcs';
       const route = entityOf(STORY_ITEM_ENTITY[items])?.route;
       const named = keyed
-        ? (cause.detail[keyed] ?? []).map(({ id, romaji }) => ({ id, label: romaji ?? id }))
+        ? (cause.detail[keyed] ?? []).map((item) => ({ id: item.id, label: keyedLabel(item) }))
         : (cause.detail[items as StoryItems] ?? []).map(({ id, number }) => ({
             id,
             label: String(number),
@@ -115,6 +124,32 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
         route: route ? `${route}/${fruit.id}` : '',
       }));
       return linkedWords(transloco, cause, cause.reason, links);
+    }
+    case 'PREVIOUS_ALREADY_REPLACED': {
+      const route = entityOf(BOUNTY_ENTITY)?.route;
+      const { replacedBy } = cause.detail;
+      const link = {
+        label: keyedLabel(replacedBy),
+        route: route ? `${route}/${replacedBy.id}` : '',
+      };
+      const sentence = text('sentence.PREVIOUS_ALREADY_REPLACED');
+      return {
+        note: text('note.PREVIOUS_ALREADY_REPLACED'),
+        sentence,
+        links: [link],
+        more: 0,
+        titled: `${sentence} ${link.label}`,
+      };
+    }
+    case 'BOUNTY_CHAIN_CYCLE': {
+      const sentence = text('sentence.BOUNTY_CHAIN_CYCLE');
+      return {
+        note: text('note.BOUNTY_CHAIN_CYCLE'),
+        sentence,
+        links: [],
+        more: 0,
+        titled: sentence,
+      };
     }
   }
 }

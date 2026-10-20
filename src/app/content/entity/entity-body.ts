@@ -4,7 +4,7 @@
  * kind (`field-kinds.ts`). No Angular in here, so each one is testable on its own.
  */
 import { diffField, type FieldDiff } from '../version-comparison';
-import type { EntityDefinition, EntityField } from './entity-definition';
+import { naturalKeyParts, type EntityDefinition, type EntityField } from './entity-definition';
 import { chosenFileOf, isImageDraft, isImageReference } from './entity-image';
 import {
   SUBCATEGORY_PARTS,
@@ -140,20 +140,34 @@ function entriesOf(
   return Array.isArray(value) ? value : [];
 }
 
-/** The natural key of a version - its romaji, a chapter number - as text; `null` where unset. */
+/**
+ * The natural key of a version - its romaji, a chapter number - as text; the parts of a
+ * composite one joined by a space, as the backend writes it (`Monkey D. Luffy 3000000000`);
+ * `null` where none is set.
+ */
 export function naturalKeyOf(
   definition: EntityDefinition,
   body: Readonly<Record<string, unknown>>,
 ): string | null {
-  const value = body[definition.naturalKey];
-  return value === null || value === undefined ? null : String(value);
+  const parts = naturalKeyParts(definition)
+    .map((key) => body[key])
+    .filter((value) => value !== null && value !== undefined && value !== '')
+    .map(String);
+  return parts.length ? parts.join(' ') : null;
 }
 
-/** The names of a version per language code - its `labelField` - for the languages that have one. */
+/**
+ * The names of a version per language code - its `labelField` - for the languages that have
+ * one; none for an entity without a localized name.
+ */
 export function namesOf(definition: EntityDefinition, body: EntityBody): Record<string, string> {
   const names: Record<string, string> = {};
+  const { labelField } = definition;
+  if (!labelField) {
+    return names;
+  }
   for (const [language, translation] of Object.entries(body.translations)) {
-    const name = translation[definition.labelField];
+    const name = translation[labelField];
     if (typeof name === 'string' && name) {
       names[language] = name;
     }
@@ -170,7 +184,10 @@ export function draftOf(
   body: EntityBody | null,
   languages: readonly string[],
 ): EntityDraft {
-  const draft: EntityDraft = { [definition.naturalKey]: '', translations: {} };
+  const draft: EntityDraft = {
+    ...Object.fromEntries(naturalKeyParts(definition).map((key) => [key, ''])),
+    translations: {},
+  };
   for (const field of sharedFields(definition)) {
     draft[field.key] = kindOf(field).draftValue(body?.[field.key]);
   }
@@ -204,7 +221,11 @@ export function toBody(definition: EntityDefinition, draft: EntityDraft): Entity
       ]),
     );
   }
-  return { [definition.naturalKey]: null, ...body, translations };
+  return {
+    ...Object.fromEntries(naturalKeyParts(definition).map((key) => [key, null])),
+    ...body,
+    translations,
+  };
 }
 
 /** A file saved beside the JSON of a version, in the request part named after its field. */

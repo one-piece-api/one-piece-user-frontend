@@ -10,7 +10,7 @@ import type { VersionAction, VersionSummary } from './content.model';
 import { blockWords } from './block-words';
 import { draftFieldKey } from './entity/entity-body';
 import { entityLabelKey } from './entity/entities';
-import type { EntityDefinition } from './entity/entity-definition';
+import { naturalKeyParts, type EntityDefinition } from './entity/entity-definition';
 import { discardConfirmation, discardDoneMessage } from './discard-draft';
 import { RejectDialog } from './reject-dialog';
 import {
@@ -359,7 +359,9 @@ export class VersionActions {
     const worded = this.transloco.translate(shared);
     return worded !== shared
       ? worded
-      : this.transloco.translate(`content.workflow.refused.field.${entity.naturalKey}`);
+      : naturalKeyParts(entity)
+          .map((key) => this.transloco.translate(`content.workflow.refused.field.${key}`))
+          .join(', ');
   }
 }
 

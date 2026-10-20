@@ -35,10 +35,12 @@
     [myUsername]="myUsername()"
     [resultLine]="resultLine()"
     [searchPlaceholderKey]="searchPlaceholderKey"
+    [choiceFilters]="choiceFilters()"
     (queryChange)="onSearchTyped($event)"
     (statusChange)="setStatus($event)"
     (authorChange)="setAuthor($event)"
     (updatedWithinDaysChange)="setUpdatedWithinDays($event)"
+    (choiceFilterChange)="setChoiceFilter($event.key, $event.value)"
     (cleared)="clearFilters()"
   />
 
@@ -106,6 +108,17 @@
               <span>{{ 'content.list.column.' + counted.field | transloco }}</span>
             }
           }
+          @for (column of listColumns; track column.field) {
+            @if (column.kind === 'berry' && column.sortable) {
+              <app-sort-header
+                [label]="'content.list.column.' + column.field | transloco"
+                [direction]="sortDirectionOf(column.field)"
+                (toggled)="sortBy(column.field)"
+              />
+            } @else {
+              <span>{{ 'content.list.column.' + column.field | transloco }}</span>
+            }
+          }
           <app-sort-header
             [label]="'content.list.column.status' | transloco"
             [direction]="sortDirectionOf('status')"
@@ -154,10 +167,19 @@
               }
             </span>
             <span class="mt-px block truncate font-heading text-xs font-bold text-ocean-500">
-              <span [class]="numbered ? 'sm:hidden' : ''">{{ row.naturalKey }}</span>
+              @if (row.naturalKey !== null) {
+                <span [class]="numbered ? 'sm:hidden' : ''">{{ row.naturalKey }}</span>
+              }
               @for (cell of row.relations; track $index) {
                 @if (cell) {
                   <span class="sm:hidden"> · {{ cell.label }}</span>
+                }
+              }
+              @for (cell of row.cells; track $index) {
+                @if (cell) {
+                  <span class="sm:hidden">
+                    · {{ cell.kind === 'text' ? cell.text : cell.label }}</span
+                  >
                 }
               }
               @if (countColumn && row.count; as cell) {
@@ -206,6 +228,28 @@
                     cell.count
                   }}</span>
                 }
+              }
+            </div>
+          }
+
+          @for (cell of row.cells; track $index) {
+            <div class="hidden min-w-0 sm:block" data-testid="list-cell">
+              @if (cell) {
+                @if (cell.kind === 'text') {
+                  <span
+                    class="block truncate font-heading text-[13px] font-extrabold text-ocean-950 tabular-nums"
+                    >{{ cell.text }}</span
+                  >
+                } @else {
+                  <span
+                    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-heading text-[11px] font-extrabold whitespace-nowrap"
+                    [class]="cell.classes"
+                    ><span class="size-1.5 rounded-full" [class]="cell.dotClass"></span
+                    >{{ cell.label }}</span
+                  >
+                }
+              } @else {
+                <span class="font-heading text-[13px] font-bold text-ocean-500/60">—</span>
               }
             </div>
           }

@@ -88,17 +88,18 @@ function idOf(value: unknown): string | null {
 
 /**
  * What a reference is called in a comparison, not tied to a language: a numbered one is
- * "12 · Name" with the first name it has, else its number; otherwise the romaji, else the id.
+ * "12 · Name" with the first name it has, else its number; otherwise the romaji or the key
+ * text, else the id.
  */
 function comparedLabel(value: unknown): string | null {
   if (!isReference(value)) {
     return null;
   }
   if (typeof value.number === 'number') {
-    const name = Object.values(value.names).find(Boolean);
+    const name = Object.values(value.names ?? {}).find(Boolean);
     return name ? `${value.number} · ${name}` : String(value.number);
   }
-  return value.romaji || value.id;
+  return value.romaji || value.key || value.id;
 }
 
 /**
@@ -282,6 +283,45 @@ const RELEASE_LIST_VALUE = {
 };
 
 /**
+ * One value of a closed set: the editor holds it as the select's value - `''` for none - and
+ * the JSON sends it, `null` for none. Compared by value; the screens name it.
+ */
+const CHOICE_VALUE = {
+  draftValue: textOf,
+  savedValue: (draft: unknown) => textOf(draft) || null,
+  isFilled: (value: unknown) => !!textOf(value),
+  diff: <TField>(field: TField, before: unknown, after: unknown) =>
+    diffField(field, textOf(before), textOf(after)),
+};
+
+/**
+ * A yes or no, never missing: anything but `true` is no. Compared as `true`/`false`; a side
+ * without a version at all (before the first one) is empty.
+ */
+const BOOLEAN_VALUE = {
+  draftValue: (saved: unknown) => saved === true,
+  savedValue: (draft: unknown) => draft === true,
+  isFilled: () => true,
+  diff: <TField>(field: TField, before: unknown, after: unknown) =>
+    diffField(field, booleanText(before), booleanText(after)),
+};
+
+function booleanText(value: unknown): string | null {
+  return value === undefined ? null : String(value === true);
+}
+
+/**
+ * A value the backend works out and sends with the version: read only - the editor holds
+ * nothing, the JSON never sends it, a comparison never shows it (it is not part of the version).
+ */
+const BADGE_VALUE = {
+  draftValue: () => undefined,
+  savedValue: () => undefined,
+  isFilled: () => true,
+  diff: () => null,
+};
+
+/**
  * Whether review asks for a field: its kind is one review looks at, and the definition did
  * not mark it `optional` - an optional one is never "missing".
  */
@@ -299,4 +339,7 @@ export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
   subcategory: { localized: false, forReview: false, ...SUBCATEGORY_VALUE },
   releaseList: { localized: false, forReview: false, ...RELEASE_LIST_VALUE },
   storyPoint: { localized: false, forReview: true, ...STORY_POINT_VALUE },
+  choice: { localized: false, forReview: true, ...CHOICE_VALUE },
+  boolean: { localized: false, forReview: false, ...BOOLEAN_VALUE },
+  badge: { localized: false, forReview: false, ...BADGE_VALUE },
 };

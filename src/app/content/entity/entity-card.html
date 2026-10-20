@@ -20,9 +20,25 @@
           >
             {{ name() ?? (noNameKey | transloco) }}
           </p>
-          <p class="font-heading text-[13px] font-bold text-ocean-500 italic">
-            {{ naturalKey() ?? '—' }}
-          </p>
+          @if (showsNaturalKey) {
+            <p class="font-heading text-[13px] font-bold text-ocean-500 italic">
+              {{ naturalKey() ?? '—' }}
+            </p>
+          }
+          @if (badges().length) {
+            <p class="mt-1 flex flex-wrap gap-1.5">
+              @for (badge of badges(); track badge.field) {
+                <span
+                  class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-heading text-xs font-extrabold"
+                  [class]="badge.classes"
+                  [attr.data-testid]="'card-' + badge.field"
+                >
+                  <span class="size-2 rounded-full" [class]="badge.dotClass"></span
+                  >{{ badge.label }}
+                </span>
+              }
+            </p>
+          }
         </div>
         <div class="flex gap-1.5" role="tablist">
           @for (tab of tabs(); track tab.code) {

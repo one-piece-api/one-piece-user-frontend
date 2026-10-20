@@ -3,6 +3,7 @@
  * called and which fields it has. The entity pages are written once and read everything
  * specific from here (frontend ADR-0003).
  */
+import type { VersionStatus } from '../content.model';
 
 /** A text shared by every language, such as the romaji. */
 export interface TextField {
@@ -54,6 +55,43 @@ export interface RelationField {
   readonly target: string;
   /** Never asked for by review, never "missing" - an extra the content may do without. */
   readonly optional?: true;
+  /** `false`: no column and no filter in the list - its rows do not carry it. */
+  readonly listed?: false;
+}
+
+/**
+ * One value among a closed set, shared by every language - the condition of a bounty. The
+ * labels are `<i18n>.options.<key>.<VALUE>`; the JSON sends the value, `null` for none.
+ */
+export interface ChoiceField {
+  readonly kind: 'choice';
+  readonly key: string;
+  readonly options: readonly string[];
+}
+
+/** A yes or no shared by every language - a bounty made inactive. Never missing: false by default. */
+export interface BooleanField {
+  readonly kind: 'boolean';
+  readonly key: string;
+  /**
+   * `false` leaves the flag out of the card, where a badge already shows what it leads to (a
+   * bounty marked withdrawn is "Inactive"); the editor and the comparison still show it.
+   */
+  readonly inCard?: false;
+}
+
+/** What each value of a badge looks like: the colors of an editorial status. */
+export type BadgeTone = VersionStatus;
+
+/**
+ * A value the backend works out and sends with the version - the validity of a bounty - shown
+ * as a pill: never written, never sent, never compared. Labels as for a choice.
+ */
+export interface BadgeField {
+  readonly kind: 'badge';
+  readonly key: string;
+  readonly options: readonly string[];
+  readonly tones: Readonly<Record<string, BadgeTone>>;
 }
 
 /**
@@ -141,7 +179,10 @@ export type EntityField =
   | SubcategoryListField
   | SubcategoryField
   | ReleaseListField
-  | StoryPointField;
+  | StoryPointField
+  | ChoiceField
+  | BooleanField
+  | BadgeField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -170,7 +211,55 @@ export interface RelatedListSection {
   readonly by: string;
 }
 
-export type EntitySection = RelatedListSection;
+/**
+ * A section of the card listing the contents of the same entity a version is linked with, as
+ * the backend sends them under `field` - the chain of a bounty, newest first, itself included.
+ * Each entry leads to its content; the one on screen is marked. Hidden when it lists only that one.
+ */
+export interface ChainSection {
+  readonly kind: 'chain';
+  readonly field: string;
+}
+
+export type EntitySection = RelatedListSection | ChainSection;
+
+/** A column of the list showing an amount in Berry, formatted for the reader. */
+export interface BerryColumn {
+  readonly kind: 'berry';
+  readonly field: string;
+  /** Whether the backend sorts by it (`sort=<field>`). */
+  readonly sortable?: true;
+}
+
+/** A column of the list showing a badge field of the row (`BadgeField`). */
+export interface BadgeColumn {
+  readonly kind: 'badge';
+  readonly field: string;
+}
+
+export type ListColumn = BerryColumn | BadgeColumn;
+
+/**
+ * A filter of the list by one value of a closed set, sent as `<key>=<VALUE>`; labelled as the
+ * field of the same key (`<i18n>.options.<key>.<VALUE>`).
+ */
+export interface ChoiceFilter {
+  readonly key: string;
+  readonly options: readonly string[];
+}
+
+/** What the list of an entity shows besides what every list shows. */
+export interface ListDefinition {
+  /** The value of the row its name is: the localized name or the natural key where absent. */
+  readonly nameField?: string;
+  /**
+   * Whether the search box hints with the entity's own words (`<i18n>.searchPlaceholder`):
+   * for a search that is neither by name and romaji nor by number - a bounty's name and amount.
+   */
+  readonly ownSearchPlaceholder?: boolean;
+  readonly columns?: readonly ListColumn[];
+  readonly filters?: readonly ChoiceFilter[];
+}
 
 export interface EntityDefinition {
   /** The kind of content, as the API names it. */
@@ -182,19 +271,27 @@ export interface EntityDefinition {
   /** The prefix of its own translation keys: `title`, `one`… below it. */
   readonly i18n: string;
   readonly icon: string;
-  /** The key of the localized text that names a content: `name`, `title`. */
-  readonly labelField: string;
+  /** The key of the localized text that names a content: `name`, `title`. Absent for one without. */
+  readonly labelField?: string;
+  /**
+   * What a content without a localized name is called - its own body, or a reference to it,
+   * which carries the same fields - in the interface's language; `null` while nothing names it.
+   */
+  readonly label?: (body: Readonly<Record<string, unknown>>, language: string) => string | null;
   /**
    * The key of the field - text or number kind - whose value is unique within the entity and
-   * is the source of its public slug: `romaji` for the Devil Fruit and its type.
+   * is the source of its public slug: `romaji` for the Devil Fruit and its type. Several keys
+   * for a composite one, unique together: the poster name and the amount of a bounty.
    */
-  readonly naturalKey: string;
+  readonly naturalKey: string | readonly string[];
   /** Its fields, in the order they are read. */
   readonly fields: readonly EntityField[];
   /** Counts of other contents that point to it, as columns of its list. */
   readonly counts?: readonly CountColumn[];
   /** What its card shows besides its fields. */
   readonly sections?: readonly EntitySection[];
+  /** What its list shows besides what every list shows. */
+  readonly list?: ListDefinition;
 }
 
 export function textField(key: string, options: Omit<TextField, 'kind' | 'key'>): TextField {
@@ -251,6 +348,21 @@ export function storyPointField(
   return { kind: 'storyPoint', key, ...options };
 }
 
+export function choiceField(key: string, options: Omit<ChoiceField, 'kind' | 'key'>): ChoiceField {
+  return { kind: 'choice', key, ...options };
+}
+
+export function booleanField(
+  key: string,
+  options: Omit<BooleanField, 'kind' | 'key'> = {},
+): BooleanField {
+  return { kind: 'boolean', key, ...options };
+}
+
+export function badgeField(key: string, options: Omit<BadgeField, 'kind' | 'key'>): BadgeField {
+  return { kind: 'badge', key, ...options };
+}
+
 export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {
   return { field, ...options };
 }
@@ -259,9 +371,40 @@ export function relatedList(options: Omit<RelatedListSection, 'kind'>): RelatedL
   return { kind: 'relatedList', ...options };
 }
 
-/** Whether the contents are numbered - a saga, a chapter - rather than known by a text key. */
+export function chainSection(field: string): ChainSection {
+  return { kind: 'chain', field };
+}
+
+export function berryColumn(
+  field: string,
+  options: Omit<BerryColumn, 'kind' | 'field'> = {},
+): BerryColumn {
+  return { kind: 'berry', field, ...options };
+}
+
+export function badgeColumn(field: string): BadgeColumn {
+  return { kind: 'badge', field };
+}
+
+export function choiceFilter(key: string, options: readonly string[]): ChoiceFilter {
+  return { key, options };
+}
+
+/** The keys of the natural key, one for most entities, several for a composite one. */
+export function naturalKeyParts(definition: EntityDefinition): readonly string[] {
+  return typeof definition.naturalKey === 'string'
+    ? [definition.naturalKey]
+    : definition.naturalKey;
+}
+
+/**
+ * Whether the contents are numbered - a saga, a chapter - rather than known by a text key. A
+ * composite key is never a number alone, even with a number in it (a bounty's amount).
+ */
 export function isNumbered(definition: EntityDefinition): boolean {
-  return definition.fields.some(
-    (field) => field.key === definition.naturalKey && field.kind === 'number',
+  const { naturalKey } = definition;
+  return (
+    typeof naturalKey === 'string' &&
+    definition.fields.some((field) => field.key === naturalKey && field.kind === 'number')
   );
 }

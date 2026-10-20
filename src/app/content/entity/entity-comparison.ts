@@ -342,8 +342,8 @@ export class EntityComparison {
         : this.transloco.translate(`content.comparison.field.${field}`, {
             language: language?.toUpperCase(),
           }),
-      before: storyPoint ? this.storyPointNamed(diff.before) : diff.before,
-      after: storyPoint ? this.storyPointNamed(diff.after) : diff.after,
+      before: storyPoint ? this.storyPointNamed(diff.before) : this.valueNamed(field, diff.before),
+      after: storyPoint ? this.storyPointNamed(diff.after) : this.valueNamed(field, diff.after),
       image: image !== undefined,
       ratio:
         image?.kind === 'image' ? image.profile.width / image.profile.height : DEFAULT_IMAGE_RATIO,
@@ -352,6 +352,21 @@ export class EntityComparison {
       changeKey: `content.comparison.change.${diff.change}`,
       classes: CHANGE_CLASSES[diff.change],
     };
+  }
+
+  /** A value of a closed set, or a yes or no, in words; any other value as compared. */
+  private valueNamed(key: string, compared: string | null): string | null {
+    const kind = this.entity.fields.find((candidate) => candidate.key === key)?.kind;
+    if (compared === null) {
+      return null;
+    }
+    if (kind === 'choice') {
+      return this.transloco.translate(`${this.entity.i18n}.options.${key}.${compared}`);
+    }
+    if (kind === 'boolean') {
+      return this.transloco.translate(compared === 'true' ? 'content.card.yes' : 'content.card.no');
+    }
+    return compared;
   }
 
   /** A first appearance compared, as every screen names it: "Cap. 1 — Romance Dawn". */

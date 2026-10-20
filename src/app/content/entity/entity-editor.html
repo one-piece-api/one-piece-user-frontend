@@ -123,6 +123,7 @@
                               [inputId]="'draft-' + view.field.key"
                               [source]="source"
                               [value]="view.reference"
+                              [labelOf]="view.labelOf"
                               [placeholder]="
                                 entity.i18n + '.placeholder.' + view.field.key | transloco
                               "
@@ -302,6 +303,78 @@
                           [attr.aria-invalid]="view.error ? true : null"
                           (input)="setShared(view.field.key, sharedInput.value)"
                         />
+                        @if (view.error; as error) {
+                          <p
+                            class="mt-1 font-heading text-sm font-bold text-flag-700"
+                            data-testid="field-error"
+                          >
+                            {{ error }}
+                          </p>
+                        }
+                      </div>
+                    }
+                    @case ('choice') {
+                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                        <div class="flex items-center justify-between gap-2.5">
+                          <label
+                            [for]="'draft-' + view.field.key"
+                            class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                            >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
+                          >
+                          <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                            'content.editor.' + view.field.key + '.hint' | transloco
+                          }}</span>
+                        </div>
+                        <select
+                          #choiceInput
+                          [id]="'draft-' + view.field.key"
+                          class="mt-2 w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                          [attr.aria-invalid]="view.error ? true : null"
+                          (change)="setShared(view.field.key, choiceInput.value)"
+                        >
+                          <option value="" [selected]="!view.value">
+                            {{ 'content.editor.choiceNone' | transloco }}
+                          </option>
+                          @for (option of view.options; track option.value) {
+                            <option [value]="option.value" [selected]="option.value === view.value">
+                              {{ option.labelKey | transloco }}
+                            </option>
+                          }
+                        </select>
+                        @if (view.error; as error) {
+                          <p
+                            class="mt-1 font-heading text-sm font-bold text-flag-700"
+                            data-testid="field-error"
+                          >
+                            {{ error }}
+                          </p>
+                        }
+                      </div>
+                    }
+                    @case ('boolean') {
+                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                        <label class="flex cursor-pointer items-start gap-3">
+                          <input
+                            #flagInput
+                            [id]="'draft-' + view.field.key"
+                            type="checkbox"
+                            class="mt-0.5 size-5 flex-none cursor-pointer accent-ocean-700"
+                            [checked]="view.checked"
+                            [attr.aria-invalid]="view.error ? true : null"
+                            (change)="setShared(view.field.key, flagInput.checked)"
+                          />
+                          <span>
+                            <span
+                              class="block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                              >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</span
+                            >
+                            <span
+                              class="block font-heading text-[11px] font-extrabold text-ocean-500/60"
+                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
+                            >
+                          </span>
+                        </label>
                         @if (view.error; as error) {
                           <p
                             class="mt-1 font-heading text-sm font-bold text-flag-700"

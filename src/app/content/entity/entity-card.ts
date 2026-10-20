@@ -3,7 +3,9 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import type { LanguageEntry } from '../language-catalog';
 import { ENTITY, entityOf } from './entities';
+import { STATUS_DOT_CLASS, STATUS_SOFT_CLASS } from '../status-badge';
 import { isLanguageComplete, localizedFields, sharedFields, type EntityBody } from './entity-body';
+import { naturalKeyParts } from './entity-definition';
 import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { isReference, referenceLabel } from './entity-reference';
@@ -123,11 +125,23 @@ export class EntityCard {
   protected readonly languageLabel = computed(() => this.language()?.toUpperCase() ?? '');
 
   private readonly translation = computed(() => this.body().translations[this.language() ?? '']);
-  protected readonly name = computed(
-    () => textOf(this.translation()?.[this.entity.labelField]).trim() || null,
-  );
+  /**
+   * Its name in the language shown - or, for an entity without a localized name, what its
+   * definition calls it (a bounty: "Monkey D. Luffy — 3.000.000.000 ฿").
+   */
+  protected readonly name = computed(() => {
+    const { labelField, label } = this.entity;
+    if (labelField) {
+      return textOf(this.translation()?.[labelField]).trim() || null;
+    }
+    return label?.(this.body(), this.transloco.activeLang()) ?? null;
+  });
   /** What the card says where the language has no name: `content.card.noName`, `noTitle`. */
-  protected readonly noNameKey = `content.card.no${this.entity.labelField[0].toUpperCase()}${this.entity.labelField.slice(1)}`;
+  protected readonly noNameKey = this.entity.labelField
+    ? `content.card.no${this.entity.labelField[0].toUpperCase()}${this.entity.labelField.slice(1)}`
+    : 'content.list.unnamed';
+  /** Whether the natural key goes under the name: not where the name is made of it. */
+  protected readonly showsNaturalKey = !this.entity.label;
   /** The natural key: the romaji, or "Chapter 12" for a numbered content. */
   protected readonly naturalKey = computed(() => {
     this.transloco.activeLang();
@@ -188,23 +202,61 @@ export class EntityCard {
           field: field.key,
           headingKey: `content.card.heading.${field.key}`,
           emptyKey: `content.card.no${name}`,
-          label: isReference(reference) ? referenceLabel(reference, language) : null,
+          label: isReference(reference) ? referenceLabel(reference, language, target) : null,
           link: isReference(reference) && target ? [target.route, reference.id] : [],
         },
       ];
     });
   });
 
-  /** The texts and numbers besides the natural key that the version filled in, in the order of the definition. */
-  protected readonly facts = computed<Fact[]>(() =>
-    sharedFields(this.entity).flatMap((field) => {
-      if (
-        (field.kind !== 'text' && field.kind !== 'number') ||
-        field.key === this.entity.naturalKey
-      ) {
+  /**
+   * The values the backend works out (a bounty's validity), each a pill beside the name in
+   * the colors of its tone; none where the version has no such value.
+   */
+  protected readonly badges = computed(() => {
+    this.transloco.activeLang();
+    return this.entity.fields.flatMap((field) => {
+      const value = this.body()[field.key];
+      if (field.kind !== 'badge' || typeof value !== 'string' || !field.tones[value]) {
         return [];
       }
+      const tone = field.tones[value];
+      return [
+        {
+          field: field.key,
+          label: this.transloco.translate(`${this.entity.i18n}.options.${field.key}.${value}`),
+          classes: STATUS_SOFT_CLASS[tone],
+          dotClass: STATUS_DOT_CLASS[tone],
+        },
+      ];
+    });
+  });
+
+  /**
+   * The texts, numbers, choices and yes-or-no values besides the natural key that the version
+   * filled in, in the order of the definition - a choice by its label, a yes or no in words.
+   */
+  protected readonly facts = computed<Fact[]>(() => {
+    this.transloco.activeLang();
+    const keyParts = naturalKeyParts(this.entity);
+    return sharedFields(this.entity).flatMap((field) => {
       const value = this.body()[field.key];
+      if (field.kind === 'choice' && typeof value === 'string' && value) {
+        const label = this.transloco.translate(`${this.entity.i18n}.options.${field.key}.${value}`);
+        return [{ field: field.key, value: label, lang: null }];
+      }
+      if (field.kind === 'boolean') {
+        if (field.inCard === false) {
+          return [];
+        }
+        const label = this.transloco.translate(
+          value === true ? 'content.card.yes' : 'content.card.no',
+        );
+        return [{ field: field.key, value: label, lang: null }];
+      }
+      if ((field.kind !== 'text' && field.kind !== 'number') || keyParts.includes(field.key)) {
+        return [];
+      }
       const written = (typeof value === 'number' ? String(value) : textOf(value)).trim();
       return written
         ? [
@@ -215,8 +267,8 @@ export class EntityCard {
             },
           ]
         : [];
-    }),
-  );
+    });
+  });
 
   /** The releases or broadcasts, a section each, by day: the country named in the interface's language. */
   protected readonly releaseLists = computed(() => {

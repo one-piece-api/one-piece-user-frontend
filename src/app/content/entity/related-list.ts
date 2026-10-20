@@ -93,7 +93,7 @@ export class RelatedList {
 
   /** "1044 · Title" for a numbered content, its name or romaji otherwise, else "unnamed". */
   private nameOf(row: ContentSummary<RowNames>, language: string): string {
-    const label = referenceLabel({ id: row.id, ...row.body }, language);
+    const label = referenceLabel({ id: row.id, ...row.body }, language, this.listed());
     return label === row.id ? this.transloco.translate('content.list.unnamed') : label;
   }
 

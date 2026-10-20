@@ -58,3 +58,28 @@ prefisso delle traduzioni (`i18n`), icona e campi.
 - Introdotte senza cambiamenti visibili: le spec del Tipo verificano le stesse cose (cambiano
   solo import, nomi e il provider di `ENTITY`); le parti generiche hanno le loro spec, su
   un'entità che esiste solo nei test (`testing/note-entity.ts`).
+
+## Addendum - Taglia (B4): chiave composta, etichetta e campi chiusi
+
+La Taglia non ha un nome tradotto né un numero: si riconosce da nome sul manifesto e importo
+insieme, e la sua validità la calcola il backend. Resta una riga di `EntityDefinition`, con
+queste estensioni generiche:
+
+- `naturalKey` può essere una lista di campi (`['posterName', 'amount']`): la chiave è il loro
+  testo unito da uno spazio, come la manda il backend. `naturalKeyParts()` la legge per tutti.
+- `label(body, lingua)` sostituisce `labelField` quando il nome si compone da più campi
+  ("Monkey D. Luffy — 3.000.000.000 ฿", importo con `Intl.NumberFormat`); vale per versione,
+  riferimenti (`referenceLabel(ref, lingua, target)`) e titoli. `labelField` diventa facoltativo.
+- Tipi di campo `choice` (select su un insieme chiuso, testi in `<prefisso>.options.<campo>.<VALORE>`),
+  `boolean` (checkbox, sempre compilato; `inCard: false` la toglie dalla scheda quando un badge
+  ne mostra già l'effetto) e `badge` (sola lettura: pillola accanto al nome, nei
+  colori di uno stato; l'editor non lo tiene, il JSON non lo manda, il confronto lo ignora).
+- Blocco `list` della definizione: `nameField` (il nome della riga), colonne dichiarate
+  (`berryColumn`, anche ordinabile; `badgeColumn`) e filtri `choiceFilter` nella toolbar, tenuti
+  nell'URL come i filtri di relazione. `relationField(..., { listed: false })` toglie una
+  relazione da colonne e filtri.
+- Sezione `chain`: la catena che il backend manda con la versione (`body.chain`), nella colonna
+  laterale della scheda, per ogni versione; nascosta se contiene solo la voce stessa.
+
+Compromessi: il confronto mostra l'importo come numero grezzo (il tipo `number` è generico);
+le colonne dichiarate sono al massimo due prima che la riga della lista diventi stretta.

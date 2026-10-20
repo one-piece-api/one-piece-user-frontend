@@ -165,3 +165,82 @@ describe('blockWords of the story contents', () => {
     expect(words.titled).toBe(words.sentence);
   });
 });
+
+describe('blockWords of the bounties', () => {
+  let transloco: TranslocoService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+    transloco = TestBed.inject(TranslocoService);
+  });
+
+  it('tells a bounty that the one it replaces is not online', () => {
+    const words = blockWords(transloco, {
+      reason: 'RELATED_NOT_ONLINE',
+      detail: { previousId: 'b0', previousKey: 'Monkey D. Luffy 30000000' },
+    });
+
+    expect(words.note).toBe('Previous bounty not online');
+    expect(words.sentence).toContain('The bounty this one replaces is not online yet');
+    expect(words.links).toEqual([]);
+  });
+
+  it('tells a content that the episode of its first appearance is not online', () => {
+    const words = blockWords(transloco, {
+      reason: 'RELATED_NOT_ONLINE',
+      detail: { firstAppearanceEpisodeId: 'e1', firstAppearanceEpisodeNumber: 1 },
+    });
+
+    expect(words.note).toBe('First appearance episode not online');
+    expect(words.sentence).toContain('episode');
+  });
+
+  it('names, by key, the online bounties that keep a bounty from being retired', () => {
+    const words = blockWords(transloco, {
+      reason: 'ONLINE_ITEMS_LINKED',
+      detail: { count: 2, bounties: [{ id: 'b2', key: 'Monkey D. Luffy 100000000' }] },
+    });
+
+    expect(words.note).toBe('Bounties online: 2');
+    expect(words.links).toEqual([
+      { label: 'Monkey D. Luffy 100000000', route: '/content/bounties/b2' },
+    ]);
+    expect(words.more).toBe(1);
+  });
+
+  it('leads to the bounty that already replaces the previous one', () => {
+    const words = blockWords(transloco, {
+      reason: 'PREVIOUS_ALREADY_REPLACED',
+      detail: { previousId: 'b0', replacedBy: { id: 'b9', key: 'Monkey D. Luffy 100000000' } },
+    });
+
+    expect(words.note).toBe('Previous bounty already replaced');
+    expect(words.links).toEqual([
+      { label: 'Monkey D. Luffy 100000000', route: '/content/bounties/b9' },
+    ]);
+    expect(words.titled).toBe(`${words.sentence} Monkey D. Luffy 100000000`);
+  });
+
+  it('tells a bounty that its previous one would close the chain on itself', () => {
+    const words = blockWords(transloco, {
+      reason: 'BOUNTY_CHAIN_CYCLE',
+      detail: { previousId: 'b0' },
+    });
+
+    expect(words.note).toBe('Circular bounty chain');
+    expect(words.links).toEqual([]);
+    expect(words.titled).toBe(words.sentence);
+  });
+
+  it('words every new reason in Italian too', () => {
+    transloco.setActiveLang('it');
+
+    const cycle = blockWords(transloco, {
+      reason: 'BOUNTY_CHAIN_CYCLE',
+      detail: { previousId: 'b0' },
+    });
+
+    expect(cycle.note).toBe('Catena di taglie circolare');
+    expect(cycle.sentence).toContain('compare');
+  });
+});

@@ -188,7 +188,7 @@ describe('AppShell', () => {
       button.textContent?.trim().replace(/\s*›$/, ''),
     );
     expect(subgroups).toEqual(['Devil Fruits', 'Crews and characters', 'Story']);
-    expect(panel?.textContent).toContain('7 sections open');
+    expect(panel?.textContent).toContain('8 sections open');
     expect(subgroupFlyout(root)).toBeNull();
 
     hoverSubgroup(root, 'Devil Fruits');
@@ -207,6 +207,7 @@ describe('AppShell', () => {
           .map((part) => part.textContent?.trim())
           .join(' '),
     );
+    expect(hrefsIn(subgroupFlyout(root))).toEqual(['/content/bounties']);
     expect(announced).toEqual(['Characters coming soon', 'Crews coming soon']);
 
     hoverSubgroup(root, 'Story');

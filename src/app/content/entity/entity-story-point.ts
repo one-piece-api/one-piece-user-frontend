@@ -61,7 +61,8 @@ export function isStoryPointFilled(value: unknown): boolean {
  * number.
  */
 export function storyItemText(item: EntityReference, language: string | null): string {
-  const title = (language ? item.names[language] : null) || Object.values(item.names).find(Boolean);
+  const names = item.names ?? {};
+  const title = (language ? names[language] : null) || Object.values(names).find(Boolean);
   const number = typeof item.number === 'number' ? String(item.number) : item.id;
   return title ? `${number} — ${title}` : number;
 }

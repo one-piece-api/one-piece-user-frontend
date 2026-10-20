@@ -123,19 +123,23 @@ export type BlockCause =
       /**
        * A story content cannot go online while the one it points to is not: the relation
        * names the keys - `{ sagaId, sagaNumber }`, `{ arcId, arcNumber }`,
-       * `{ volumeId, volumeNumber }` or, for a first appearance (of a subcategory too,
-       * with its `subcategoryId`), `{ firstAppearanceChapterId, firstAppearanceChapterNumber }`.
+       * `{ volumeId, volumeNumber }`, for a first appearance (of a subcategory too, with its
+       * `subcategoryId`) `{ firstAppearanceChapterId, firstAppearanceChapterNumber }` or
+       * `{ firstAppearanceEpisodeId, firstAppearanceEpisodeNumber }` and, for the bounty a
+       * bounty replaces, `{ previousId, previousKey }`.
        */
       reason: 'RELATED_NOT_ONLINE';
       detail: Partial<Record<`${StoryRelation}Id`, string>> &
-        Partial<Record<`${StoryRelation}Number`, number>>;
+        Partial<Record<`${StoryRelation}Number`, number>> & { previousKey?: string };
     }
   | {
       /**
        * A story content's version cannot go online while it leaves out one that online items
        * point to: the count, and the first few as `{ id, number }` - under `arcs`,
        * `chapters` or `episodes`, whichever points to it - or, for a chapter that fruits or
-       * types first appear in, as `{ id, romaji }` under `fruits` or `types`.
+       * types first appear in, as `{ id, romaji }` under `fruits` or `types`. A bounty
+       * shown first there, or replaced by online bounties, names them as `{ id, key }` under
+       * `bounties`.
        */
       reason: 'ONLINE_ITEMS_LINKED';
       detail: { count: number } & Partial<Record<StoryItems, NumberedItem[]>> &
@@ -145,24 +149,51 @@ export type BlockCause =
       /** A fruit or type cannot go online without a first appearance. */
       reason: 'FIRST_APPEARANCE_MISSING';
       detail: Record<string, never>;
+    }
+  | {
+      /**
+       * A bounty cannot go online while another online bounty already replaces the same
+       * previous one: that previous, and the bounty replacing it.
+       */
+      reason: 'PREVIOUS_ALREADY_REPLACED';
+      detail: { previousId: string; replacedBy: KeyedItem };
+    }
+  | {
+      /** A bounty cannot go online when its previous one leads back to it, through the online chain. */
+      reason: 'BOUNTY_CHAIN_CYCLE';
+      detail: { previousId: string };
     };
 
-/** The relations a block can name: a saga, an arc, a volume, the chapter of a first appearance. */
-export const STORY_RELATIONS = ['saga', 'arc', 'volume', 'firstAppearanceChapter'] as const;
+/**
+ * The relations a block can name: a saga, an arc, a volume, the chapter or episode of a first
+ * appearance, the bounty a bounty replaces.
+ */
+export const STORY_RELATIONS = [
+  'saga',
+  'arc',
+  'volume',
+  'firstAppearanceChapter',
+  'firstAppearanceEpisode',
+  'previous',
+] as const;
 export type StoryRelation = (typeof STORY_RELATIONS)[number];
 
 /** The story contents that point to another, as a block names them. */
 export const STORY_ITEMS = ['arcs', 'chapters', 'episodes'] as const;
 export type StoryItems = (typeof STORY_ITEMS)[number];
 
-/** The contents known by their romaji that point to a chapter they first appear in. */
-export const KEYED_ITEMS = ['fruits', 'types'] as const;
+/**
+ * The contents known by a name rather than a number that stand in the way: fruits and types by
+ * their romaji, bounties by their natural key.
+ */
+export const KEYED_ITEMS = ['fruits', 'types', 'bounties'] as const;
 export type KeyedItems = (typeof KEYED_ITEMS)[number];
 
-/** A content known by its romaji that stands in the way. */
+/** A content known by its romaji - or, for a bounty, its key - that stands in the way. */
 export interface KeyedItem {
   id: string;
-  romaji: string | null;
+  romaji?: string | null;
+  key?: string | null;
 }
 
 /** A story content that stands in the way: its id and its number. */

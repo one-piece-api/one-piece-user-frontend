@@ -1,0 +1,31 @@
+@if (entries().length > 1) {
+  <section class="min-w-0" data-testid="chain-list">
+    <h2
+      class="mb-2.5 font-display text-[13px] font-bold tracking-[0.08em] text-ocean-900 uppercase"
+    >
+      {{ entity.i18n + '.chain.' + section().field + '.title' | transloco }}
+    </h2>
+    <ol class="grid gap-2.25">
+      @for (entry of entries(); track entry.id) {
+        <li data-testid="chain-item">
+          @if (entry.current) {
+            <span
+              class="flex items-center gap-2 rounded-lg bg-treasure-100 px-2 py-1 font-heading text-sm font-extrabold text-ocean-950"
+              aria-current="page"
+              data-testid="chain-current"
+            >
+              <span class="size-2 flex-none rounded-full bg-treasure-500"></span>{{ entry.label }}
+            </span>
+          } @else {
+            <a
+              [routerLink]="entry.link"
+              class="flex items-center gap-2 px-2 font-heading text-sm font-extrabold text-ocean-700 hover:text-ocean-800"
+            >
+              <span class="size-2 flex-none rounded-full bg-ocean-500/40"></span>{{ entry.label }}
+            </a>
+          }
+        </li>
+      }
+    </ol>
+  </section>
+}

@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   STATUS_LABEL_KEY,
@@ -11,7 +11,34 @@ import {
 const NO_FILTER = '';
 
 /**
- * The filter bar of an entity list - search, status, author, last update, reset - and the
+ * The columns of the bar from the large breakpoint up, by how many filters by a value the
+ * entity adds after the status - literal, so Tailwind keeps them.
+ */
+const GRID_COLUMNS = [
+  'lg:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))_auto]',
+  'lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))_auto]',
+  'lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1.2fr)_repeat(4,minmax(0,0.9fr))_auto]',
+] as const;
+
+/** A filter by one value of a closed set an entity declares (a bounty's validity), ready to show. */
+export interface ChoiceFilterView {
+  /** The query parameter it lives in, here and in the backend alike. */
+  readonly key: string;
+  readonly labelKey: string;
+  readonly options: readonly { readonly value: string; readonly labelKey: string }[];
+  /** The value chosen, or `null` for every one. */
+  readonly value: string | null;
+}
+
+/** A filter by a value changed in the bar: `null` lifts it. */
+export interface ChoiceFilterChange {
+  readonly key: string;
+  readonly value: string | null;
+}
+
+/**
+ * The filter bar of an entity list - search, status, the entity's own filters by a value,
+ * author, last update, reset - and the
  * result line under it. The same for every kind of content. It holds no state: the page
  * owns the filters (they live in the URL) and this only shows them and reports changes.
  */
@@ -34,16 +61,22 @@ export class ContentListToolbar {
   readonly resultLine = input.required<string>();
   /** What the search box hints at: the key differs for numbered contents, found by number too. */
   readonly searchPlaceholderKey = input('content.list.searchPlaceholder');
+  /** The filters by a value the entity declares - none for most. */
+  readonly choiceFilters = input<readonly ChoiceFilterView[]>([]);
 
   readonly queryChange = output<string>();
   readonly statusChange = output<VersionStatus | null>();
   readonly authorChange = output<string | null>();
   readonly updatedWithinDaysChange = output<number | null>();
+  readonly choiceFilterChange = output<ChoiceFilterChange>();
   readonly cleared = output<void>();
 
   protected readonly noFilter = NO_FILTER;
   protected readonly statusLabelKey = STATUS_LABEL_KEY;
   protected readonly updatedOptions = UPDATED_WITHIN_OPTIONS;
+  protected readonly gridColumns = computed(
+    () => GRID_COLUMNS[Math.min(this.choiceFilters().length, GRID_COLUMNS.length - 1)],
+  );
 
   /** Shared by the search box and the three selects. */
   protected readonly fieldClasses =
@@ -61,6 +94,11 @@ export class ContentListToolbar {
   protected onAuthorChange(event: Event): void {
     const value = selectedValue(event);
     this.authorChange.emit(value === NO_FILTER ? null : value);
+  }
+
+  protected onChoiceChange(key: string, event: Event): void {
+    const value = selectedValue(event);
+    this.choiceFilterChange.emit({ key, value: value === NO_FILTER ? null : value });
   }
 
   protected onUpdatedChange(event: Event): void {

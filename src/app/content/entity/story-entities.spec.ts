@@ -13,7 +13,7 @@ describe('the story entities', () => {
   const story = [SAGA, ARC, VOLUME, CHAPTER, EPISODE];
 
   it('are registered after the Devil Fruit ones, in story order', () => {
-    expect(ENTITIES.slice(2)).toEqual(story);
+    expect(ENTITIES.slice(2, 2 + story.length)).toEqual(story);
     expect(entityOf('EPISODE')).toBe(EPISODE);
   });
 

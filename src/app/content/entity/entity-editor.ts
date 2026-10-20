@@ -46,7 +46,7 @@ import {
 } from './entity-body';
 import type { EntityField, ImageField, SubcategoryField } from './entity-definition';
 import { isImageDraft, type ImageDraft } from './entity-image';
-import { isReference, type EntityReference } from './entity-reference';
+import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 import { COUNTRY_CODES, countryName, newReleaseKey, type ReleaseDraft } from './entity-release';
 import { isNumbered, untitledOf } from './entity-title';
 import { sentReleaseRows, textOf } from './field-kinds';
@@ -84,6 +84,17 @@ const NOT_A_DRAFT = 'CONTENT_VERSION_ACTION_CONFLICT';
  */
 function sourceOf(field: EntityField): string | null {
   return field.kind === 'relation' ? (entityOf(field.target)?.api ?? null) : null;
+}
+
+/**
+ * How a relation's choices are named: as the entity pointed to names its contents - a
+ * bounty by poster name and amount - else by name, romaji or number.
+ */
+function labelOfTarget(
+  field: EntityField,
+): (reference: EntityReference, language: string) => string {
+  const target = field.kind === 'relation' ? entityOf(field.target) : null;
+  return (reference, language) => referenceLabel(reference, language, target);
 }
 
 /** What is said under a relation the backend refused: the content chosen cannot be linked. */
@@ -280,14 +291,24 @@ export class EntityEditor {
           (field) =>
             field.kind !== 'image' &&
             field.kind !== 'subcategoryList' &&
-            field.kind !== 'releaseList',
+            field.kind !== 'releaseList' &&
+            field.kind !== 'badge',
         )
         .map((field) => {
           const chosen = draft?.[field.key];
           return {
             field,
             value: textOf(chosen),
+            checked: chosen === true,
             reference: isReference(chosen) ? chosen : null,
+            labelOf: labelOfTarget(field),
+            options:
+              field.kind === 'choice'
+                ? field.options.map((option) => ({
+                    value: option,
+                    labelKey: `${this.entity.i18n}.options.${field.key}.${option}`,
+                  }))
+                : [],
             storyPoint: field.kind === 'storyPoint' ? storyPointOf(chosen) : null,
             source: sourceOf(field),
             choices:
@@ -536,8 +557,8 @@ export class EntityEditor {
 
   protected readonly backButtonClasses = buttonClasses('secondary');
   protected readonly listRoute = this.entity.route;
-  /** Writes a field shared by every language. */
-  protected setShared(key: string, value: string): void {
+  /** Writes a field shared by every language: a text as typed, a yes or no as ticked. */
+  protected setShared(key: string, value: string | boolean): void {
     this.draft.update((draft) => draft && { ...draft, [key]: value });
     this.forgetRefusal(key);
   }

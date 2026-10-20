@@ -1,4 +1,5 @@
 import { ARC } from '../../content/arcs/arc.model';
+import { BOUNTY } from '../../content/bounties/bounty.model';
 import { CHAPTER } from '../../content/chapters/chapter.model';
 import { DEVIL_FRUIT_TYPE } from '../../content/devil-fruit-types/devil-fruit-type.model';
 import { DEVIL_FRUIT } from '../../content/devil-fruits/devil-fruit.model';
@@ -120,6 +121,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         labelKey: 'shell.nav.crewsAndCharacters',
         icon: 'assets/characters.webp',
         items: [
+          entityNavItem(BOUNTY),
           {
             id: 'characters',
             label: 'shell.nav.characters',

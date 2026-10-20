@@ -1,5 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { ARC } from '../arcs/arc.model';
+import { BOUNTY } from '../bounties/bounty.model';
 import { CHAPTER } from '../chapters/chapter.model';
 import { DEVIL_FRUIT_TYPE } from '../devil-fruit-types/devil-fruit-type.model';
 import { DEVIL_FRUIT } from '../devil-fruits/devil-fruit.model';
@@ -20,6 +21,7 @@ export const ENTITIES: readonly EntityDefinition[] = [
   VOLUME,
   CHAPTER,
   EPISODE,
+  BOUNTY,
 ];
 
 /** The definition of the entity a page belongs to, given by its route. */

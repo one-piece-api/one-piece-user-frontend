@@ -298,3 +298,63 @@ describe('the storyPoint field kind', () => {
     expect(strategy.diff('f', null, {})).toBeNull();
   });
 });
+
+describe('the choice field kind', () => {
+  const strategy = FIELD_KINDS.choice;
+
+  it('gives the editor an empty choice for none, and saves none as null', () => {
+    expect(strategy.draftValue(undefined)).toBe('');
+    expect(strategy.draftValue('ONLY_ALIVE')).toBe('ONLY_ALIVE');
+    expect(strategy.savedValue('')).toBeNull();
+    expect(strategy.savedValue('ONLY_ALIVE')).toBe('ONLY_ALIVE');
+  });
+
+  it('counts as filled once a value is chosen, and review asks for it', () => {
+    expect(strategy.isFilled('')).toBe(false);
+    expect(strategy.isFilled('DEAD_OR_ALIVE')).toBe(true);
+    expect(isAskedByReview({ kind: 'choice', key: 'condition', options: ['A'] })).toBe(true);
+  });
+
+  it('compares the values chosen', () => {
+    expect(strategy.diff('f', 'DEAD_OR_ALIVE', 'ONLY_ALIVE')?.change).toBe('MODIFIED');
+    expect(strategy.diff('f', null, 'ONLY_ALIVE')?.change).toBe('ADDED');
+  });
+});
+
+describe('the boolean field kind', () => {
+  const strategy = FIELD_KINDS.boolean;
+
+  it('is ticked only for true, and always saved as true or false', () => {
+    expect(strategy.draftValue(undefined)).toBe(false);
+    expect(strategy.draftValue(true)).toBe(true);
+    expect(strategy.savedValue(true)).toBe(true);
+    expect(strategy.savedValue(undefined)).toBe(false);
+  });
+
+  it('is always filled, so review never asks for it', () => {
+    expect(strategy.isFilled(false)).toBe(true);
+    expect(isAskedByReview({ kind: 'boolean', key: 'inactive' })).toBe(false);
+  });
+
+  it('compares the flag in both directions, but not a value never sent', () => {
+    expect(strategy.diff('f', false, true)?.change).toBe('MODIFIED');
+    expect(strategy.diff('f', undefined, undefined)).toBeNull();
+  });
+});
+
+describe('the badge field kind', () => {
+  const strategy = FIELD_KINDS.badge;
+
+  it('holds nothing in the editor and sends nothing, as the backend works it out', () => {
+    expect(strategy.draftValue('ACTIVE')).toBeUndefined();
+    expect(strategy.savedValue('ACTIVE')).toBeUndefined();
+    expect(strategy.diff('f', 'ACTIVE', 'SUPERSEDED')).toBeNull();
+    expect(isAskedByReview({ kind: 'badge', key: 'validity', options: [], tones: {} })).toBe(false);
+  });
+});
+
+describe('the number field kind with an amount in Berry', () => {
+  it('keeps an amount past the 32-bit range whole', () => {
+    expect(FIELD_KINDS.number.savedValue('5564800000')).toBe(5564800000);
+  });
+});

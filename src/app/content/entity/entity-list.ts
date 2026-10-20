@@ -15,7 +15,7 @@ import { LoadingPlaceholder } from '../../shared/ui/loading-placeholder';
 import { Pagination } from '../../shared/ui/pagination';
 import { SortHeader, type SortDirection } from '../../shared/ui/sort-header';
 import { contentsCrumb } from '../content-crumbs';
-import { ContentListToolbar } from '../content-list-toolbar';
+import { ContentListToolbar, type ChoiceFilterView } from '../content-list-toolbar';
 import {
   contentSerial,
   localizedName,
@@ -27,10 +27,22 @@ import {
 } from '../content.model';
 import { formatSort, nextSort, parseSort, type ListSort } from '../list-sort';
 import { momentLabel } from '../moment-label';
-import { STATUS_BORDER_CLASS, StatusBadge } from '../status-badge';
+import { formatBerry } from '../berry';
+import {
+  STATUS_BORDER_CLASS,
+  STATUS_DOT_CLASS,
+  STATUS_SOFT_CLASS,
+  StatusBadge,
+} from '../status-badge';
 import { ENTITY, entityOf } from './entities';
 import { naturalKeyOf } from './entity-body';
-import { isNumbered, type RelationField } from './entity-definition';
+import {
+  isNumbered,
+  naturalKeyParts,
+  type ListColumn,
+  type RelationField,
+} from './entity-definition';
+import { textOf } from './field-kinds';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 
 /** How long the search box waits after the last keystroke before filtering. */
@@ -48,8 +60,8 @@ const PARAM = {
 
 /**
  * The columns of a list row from the small breakpoint up, by what sits between the name and the
- * status: nothing, a count, one relation or two - literal, so Tailwind keeps them. A numbered
- * entity has a narrow number column in front.
+ * status: nothing, a count, one column (a relation, an amount, a badge) or two - literal, so
+ * Tailwind keeps them. A numbered entity has a narrow number column in front.
  */
 const COLUMNS = {
   plain: {
@@ -68,11 +80,12 @@ const COLUMNS = {
   },
 } as const;
 
-/** The columns the list can be sorted by, named as the backend names them. */
+/** The columns every list can be sorted by, named as the backend names them. */
 const SORT_FIELDS = ['name', 'status', 'author', 'updatedAt'] as const;
 /** A numbered entity can also be sorted by its number. */
-const NUMBERED_SORT_FIELDS = [...SORT_FIELDS, 'number'] as const;
-type SortField = (typeof NUMBERED_SORT_FIELDS)[number];
+const NUMBER_SORT_FIELD = 'number';
+/** A column the list sorts by: one of the above, or a sortable column the entity declares. */
+type SortField = string;
 
 /** Last update, newest first: what the backend does when no sort is asked for. */
 const LATEST_FIRST: ListSort<SortField> = { field: 'updatedAt', direction: 'desc' };
@@ -85,7 +98,8 @@ const BY_NUMBER: ListSort<SortField> = { field: 'number', direction: 'asc' };
  */
 interface RowNames {
   readonly [field: string]: unknown;
-  names: Record<string, string>;
+  /** Absent for an entity without localized names (a bounty). */
+  names?: Record<string, string>;
 }
 
 /** The content a row points to, named for the column and leading to its page. */
@@ -109,11 +123,22 @@ interface RelationChip {
   readonly name: string;
 }
 
+/** A declared column of a row (`ListColumn`): an amount as written, or a badge. */
+type ListCell =
+  | { readonly kind: 'text'; readonly text: string }
+  | {
+      readonly kind: 'badge';
+      readonly label: string;
+      readonly classes: string;
+      readonly dotClass: string;
+    };
+
 /** One row, ready to render: every decision already taken, the template only lays it out. */
 interface RowView {
   readonly id: string;
   readonly name: string;
-  readonly naturalKey: string;
+  /** Under the name - `null` when the name is already part of it (`list.nameField`). */
+  readonly naturalKey: string | null;
   readonly versionTag: string;
   readonly otherOnlineVersion: number | null;
   readonly status: VersionStatus;
@@ -126,6 +151,8 @@ interface RowView {
   readonly relations: readonly (RelationCell | null)[];
   /** How many contents point to the row - `null` for an entity with no such column. */
   readonly count: CountCell | null;
+  /** The columns the entity declares, in their order - `null` where the row has no value. */
+  readonly cells: readonly (ListCell | null)[];
 }
 
 /**
@@ -174,23 +201,44 @@ export class EntityList {
   private readonly sort = computed(() => parseSort(this.params().get(PARAM.sort), this.sortFields));
   /** Whether the contents have a number - a chapter - to sort and look them up by. */
   protected readonly numbered = isNumbered(this.entity);
-  private readonly sortFields: readonly SortField[] = this.numbered
-    ? NUMBERED_SORT_FIELDS
-    : SORT_FIELDS;
+  /** The columns the entity declares besides the common ones - an amount, a badge. */
+  protected readonly listColumns = this.entity.list?.columns ?? [];
+  private readonly sortFields: readonly SortField[] = [
+    ...SORT_FIELDS,
+    ...(this.numbered ? [NUMBER_SORT_FIELD] : []),
+    ...this.listColumns.flatMap((column) =>
+      column.kind === 'berry' && column.sortable ? [column.field] : [],
+    ),
+  ];
   private readonly defaultSort = this.numbered ? BY_NUMBER : LATEST_FIRST;
   /**
-   * The relations the list shows a column for and can be narrowed by - a chapter has two. The
-   * key of each is the query parameter of its filter, here and in the backend alike.
+   * The relations the list shows a column for and can be narrowed by - a chapter has two - but
+   * not one marked `listed: false`. The key of each is the query parameter of its filter, here
+   * and in the backend alike.
    */
   protected readonly relationFields = this.entity.fields.filter(
-    (field): field is RelationField => field.kind === 'relation',
+    (field): field is RelationField => field.kind === 'relation' && field.listed !== false,
+  );
+  /** The filters by a value of a closed set the entity declares, as the URL has them now. */
+  protected readonly choiceFilters = computed<ChoiceFilterView[]>(() =>
+    (this.entity.list?.filters ?? []).map(({ key, options }) => ({
+      key,
+      labelKey: `content.list.column.${key}`,
+      options: options.map((value) => ({
+        value,
+        labelKey: `${this.entity.i18n}.options.${key}.${value}`,
+      })),
+      value: this.params().get(key),
+    })),
   );
   /** The count of other contents pointing to each row, when the entity has one. */
   protected readonly countColumn = this.entity.counts?.[0];
   protected readonly columns = this.columnsOf();
-  protected readonly searchPlaceholderKey = this.numbered
-    ? 'content.list.searchPlaceholderNumbered'
-    : 'content.list.searchPlaceholder';
+  protected readonly searchPlaceholderKey = this.entity.list?.ownSearchPlaceholder
+    ? `${this.entity.i18n}.searchPlaceholder`
+    : this.numbered
+      ? 'content.list.searchPlaceholderNumbered'
+      : 'content.list.searchPlaceholder';
   /** The id each relation is narrowed to in the URL - only the relations that are. */
   protected readonly relationFilters = computed(() =>
     this.relationFields.flatMap((field) => {
@@ -253,7 +301,9 @@ export class EntityList {
       return {
         key: field.key,
         labelKey: `content.list.column.${field.key}`,
-        name: reference ? referenceLabel(reference, language) : contentSerial(id),
+        name: reference
+          ? referenceLabel(reference, language, entityOf(field.target))
+          : contentSerial(id),
       };
     });
   });
@@ -339,6 +389,10 @@ export class EntityList {
     this.applyFilters({ [PARAM.updated]: days });
   }
 
+  protected setChoiceFilter(key: string, value: string | null): void {
+    this.applyFilters({ [key]: value });
+  }
+
   /** Ascending, then descending, then back to the default; like a filter, back to page one. */
   protected sortBy(field: SortField): void {
     const next = nextSort(this.sort(), field, this.defaultSort);
@@ -358,6 +412,7 @@ export class EntityList {
       [PARAM.author]: null,
       [PARAM.updated]: null,
       ...Object.fromEntries(this.relationFields.map(({ key }) => [key, null])),
+      ...Object.fromEntries(this.choiceFilters().map(({ key }) => [key, null])),
     });
   }
 
@@ -372,10 +427,11 @@ export class EntityList {
 
   private columnsOf(): string {
     const columns = this.numbered ? COLUMNS.numbered : COLUMNS.plain;
-    if (this.relationFields.length > 1) {
+    const middle = this.relationFields.length + this.listColumns.length;
+    if (middle > 1) {
       return columns.twoRelations;
     }
-    if (this.relationFields.length === 1) {
+    if (middle === 1) {
       return columns.oneRelation;
     }
     return this.countColumn ? columns.count : columns.none;
@@ -412,6 +468,11 @@ export class EntityList {
     for (const { field, id } of this.relationFilters()) {
       search.set(field.key, id);
     }
+    for (const { key, value } of this.choiceFilters()) {
+      if (value) {
+        search.set(key, value);
+      }
+    }
     const days = this.updatedWithinDays();
     if (days !== null) {
       search.set('updatedWithinDays', String(days));
@@ -425,18 +486,20 @@ export class EntityList {
   }
 
   private toRowView(row: ContentSummary<RowNames>, language: string): RowView {
-    const { names } = row.body;
     const naturalKey = naturalKeyOf(this.entity, row.body);
     const authoredByMe = row.author.username === this.myUsername();
     const you = this.transloco.translate('content.list.you');
+    const unnamed = this.transloco.translate('content.list.unnamed');
+    const nameField = this.entity.list?.nameField;
     return {
       id: row.id,
-      name:
-        localizedName(names, language) ??
-        naturalKey ??
-        this.transloco.translate('content.list.unnamed'),
-      naturalKey:
-        naturalKey ?? this.transloco.translate(`content.list.${this.entity.naturalKey}Missing`),
+      name: nameField
+        ? textOf(row.body[nameField]).trim() || unnamed
+        : (localizedName(row.body.names ?? {}, language) ?? naturalKey ?? unnamed),
+      naturalKey: nameField
+        ? null
+        : (naturalKey ??
+          this.transloco.translate(`content.list.${naturalKeyParts(this.entity)[0]}Missing`)),
       versionTag: `v${row.versionNumber}`,
       otherOnlineVersion: otherOnlineVersion(row),
       status: row.status,
@@ -447,6 +510,32 @@ export class EntityList {
       updated: momentLabel(this.transloco, row.updatedAt),
       relations: this.relationFields.map((field) => this.relationCell(row, field, language)),
       count: this.countCell(row),
+      cells: this.listColumns.map((column) => this.listCell(row, column, language)),
+    };
+  }
+
+  /** An amount in Berry for the reader, or the badge of a value the backend worked out. */
+  private listCell(
+    row: ContentSummary<RowNames>,
+    column: ListColumn,
+    language: string,
+  ): ListCell | null {
+    const value = row.body[column.field];
+    if (column.kind === 'berry') {
+      return typeof value === 'number'
+        ? { kind: 'text', text: formatBerry(value, language) }
+        : null;
+    }
+    const field = this.entity.fields.find((candidate) => candidate.key === column.field);
+    const tone = field?.kind === 'badge' && typeof value === 'string' ? field.tones[value] : null;
+    if (!tone) {
+      return null;
+    }
+    return {
+      kind: 'badge',
+      label: this.transloco.translate(`${this.entity.i18n}.options.${column.field}.${value}`),
+      classes: STATUS_SOFT_CLASS[tone],
+      dotClass: STATUS_DOT_CLASS[tone],
     };
   }
 
@@ -474,7 +563,7 @@ export class EntityList {
       return null;
     }
     return {
-      label: referenceLabel(reference, language),
+      label: referenceLabel(reference, language, target),
       link: target ? [target.route, reference.id] : [],
     };
   }

@@ -599,7 +599,11 @@
           "disadvantages": "svantaggi {{language}}",
           "subcategories": "sottocategorie {{language}}",
           "firstAppearance": "prima apparizione",
-          "type": "tipo"
+          "type": "tipo",
+          "posterName": "nome sul manifesto",
+          "amount": "importo",
+          "condition": "condizione",
+          "previous": "taglia precedente"
         },
         "blocked": "Arrr! Non si può: {{reason}}",
         "blockedUnknown": "il contenuto non lo consente in questo momento."
@@ -663,16 +667,21 @@
             "saga": "Saga non online",
             "arc": "Arco non online",
             "volume": "Volume non online",
-            "firstAppearanceChapter": "Capitolo della prima apparizione non online"
+            "firstAppearanceChapter": "Capitolo della prima apparizione non online",
+            "firstAppearanceEpisode": "Episodio della prima apparizione non online",
+            "previous": "Taglia precedente non online"
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Archi online: {{count}}",
             "chapters": "Capitoli online: {{count}}",
             "episodes": "Episodi online: {{count}}",
             "fruits": "Frutti online: {{count}}",
-            "types": "Tipi online: {{count}}"
+            "types": "Tipi online: {{count}}",
+            "bounties": "Taglie online: {{count}}"
           },
-          "FIRST_APPEARANCE_MISSING": "Prima apparizione mancante"
+          "FIRST_APPEARANCE_MISSING": "Prima apparizione mancante",
+          "PREVIOUS_ALREADY_REPLACED": "Taglia precedente già sostituita",
+          "BOUNTY_CHAIN_CYCLE": "Catena di taglie circolare"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "Il Tipo di questo Frutto non è online. Ripubblica prima il Tipo.",
@@ -683,16 +692,21 @@
             "saga": "Arrr! La saga a cui appartiene non è ancora online, compare. Pubblica prima la saga.",
             "arc": "Arrr! L'arco a cui appartiene non è ancora online, compare. Pubblica prima l'arco.",
             "volume": "Arrr! Il volume che lo raccoglie non è ancora online, compare. Pubblica prima il volume.",
-            "firstAppearanceChapter": "Arrr! Il capitolo della prima apparizione non è ancora online, compare. Pubblica prima il capitolo."
+            "firstAppearanceChapter": "Arrr! Il capitolo della prima apparizione non è ancora online, compare. Pubblica prima il capitolo.",
+            "firstAppearanceEpisode": "Arrr! L'episodio della prima apparizione non è ancora online, compare. Pubblica prima l'episodio.",
+            "previous": "Arrr! La taglia che questa sostituisce non è ancora online, compare. Pubblica prima quella."
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arrr! Ci sono ancora archi online sotto questa saga, compare. Ritirali prima:",
             "chapters": "Arrr! Ci sono ancora capitoli online collegati, compare. Ritirali prima:",
             "episodes": "Arrr! Ci sono ancora episodi online collegati a questo arco, compare. Ritirali prima:",
             "fruits": "Arrr! Ci sono Frutti online che appaiono per la prima volta in questo capitolo, compare. Ritirali prima:",
-            "types": "Arrr! Ci sono Tipi online (o loro sottocategorie) che appaiono per la prima volta in questo capitolo, compare. Ritirali prima:"
+            "types": "Arrr! Ci sono Tipi online (o loro sottocategorie) che appaiono per la prima volta in questo capitolo, compare. Ritirali prima:",
+            "bounties": "Arrr! Ci sono ancora taglie online collegate, compare. Ritirale prima:"
           },
-          "FIRST_APPEARANCE_MISSING": "Arrr! Manca la prima apparizione, compare: indica il capitolo in cui il lettore lo incontra la prima volta."
+          "FIRST_APPEARANCE_MISSING": "Arrr! Manca la prima apparizione, compare: indica il capitolo in cui il lettore lo incontra la prima volta.",
+          "PREVIOUS_ALREADY_REPLACED": "Arrr! La taglia precedente è già sostituita da un'altra online, compare: ogni taglia può essere sostituita da una sola. Ritira prima quella, o scegli un'altra taglia precedente:",
+          "BOUNTY_CHAIN_CYCLE": "Arrr! Con questa taglia precedente la catena tornerebbe su sé stessa, compare. Scegline un'altra."
         },
         "andMore": "e altri {{count}}"
       }
@@ -766,7 +780,10 @@
         "number": "N.",
         "saga": "Saga",
         "arc": "Arco",
-        "volume": "Volume"
+        "volume": "Volume",
+        "amount": "Importo",
+        "validity": "Validità",
+        "condition": "Condizione"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
@@ -786,7 +803,8 @@
       "loading": "Srotoliamo l'enciclopedia…",
       "error": "Enciclopedia dispersa. Impossibile caricare i contenuti.",
       "loadError": "Arrr! Impossibile caricare i contenuti — riprova tra un momento.",
-      "removeFilter": "Togli il filtro"
+      "removeFilter": "Togli il filtro",
+      "allValues": "Tutte"
     },
     "detail": {
       "crumb": "Scheda",
@@ -848,9 +866,14 @@
         "disadvantages": "Svantaggi",
         "subcategories": "Sottocategorie",
         "subcategory": "Sottocategoria",
-        "firstAppearance": "Prima apparizione"
+        "firstAppearance": "Prima apparizione",
+        "condition": "Condizione",
+        "previous": "Taglia precedente"
       },
-      "noFirstAppearance": "Non indicata"
+      "noFirstAppearance": "Non indicata",
+      "noPrevious": "nessuna, è la prima",
+      "yes": "Sì",
+      "no": "No"
     },
     "comparison": {
       "title": "Confronto versioni",
@@ -901,7 +924,12 @@
         },
         "unnamedEntry": "n. {{position}}",
         "subcategory": "Sottocategoria",
-        "firstAppearance": "Prima apparizione"
+        "firstAppearance": "Prima apparizione",
+        "posterName": "nome sul manifesto",
+        "amount": "importo",
+        "condition": "condizione",
+        "inactive": "taglia ritirata",
+        "previous": "taglia precedente"
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -993,7 +1021,10 @@
           "name": "Sottocategoria {{position}} · nome · {{language}}",
           "description": "Sottocategoria {{position}} · descrizione · {{language}}"
         },
-        "firstAppearance": "Prima apparizione"
+        "firstAppearance": "Prima apparizione",
+        "posterName": "Nome sul manifesto",
+        "amount": "Importo",
+        "condition": "Condizione"
       },
       "save": "Salva bozza",
       "saving": "Salvataggio…",
@@ -1070,7 +1101,28 @@
       "firstAppearance": {
         "label": "Prima apparizione",
         "hint": "serve per l'invio · dove il lettore lo incontra la prima volta"
-      }
+      },
+      "posterName": {
+        "label": "Nome sul manifesto",
+        "hint": "come è scritto sul manifesto · con l'importo forma la chiave unica"
+      },
+      "amount": {
+        "label": "Importo",
+        "hint": "in Berry · numero intero, senza punti"
+      },
+      "condition": {
+        "label": "Condizione",
+        "hint": "come va consegnato il ricercato, secondo il manifesto"
+      },
+      "inactive": {
+        "label": "Taglia ritirata",
+        "hint": "revocata, sospesa o ricercato morto · la rende Inattiva"
+      },
+      "previous": {
+        "label": "Taglia precedente",
+        "hint": "facoltativo · la taglia che questa sostituisce"
+      },
+      "choiceNone": "— scegli —"
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1351,6 +1403,38 @@
       "episodeMedium": "Episodio (anime)",
       "placeholder": "Cerca per numero o titolo",
       "episodeNumbered": "Ep. {{item}}"
+    },
+    "bounties": {
+      "kicker": "Contenuti · /bounties",
+      "title": "Taglie",
+      "lead": "Le taglie dei manifesti WANTED: ogni nuova taglia sostituisce la precedente.",
+      "new": "+ Nuova taglia",
+      "one": "Taglia",
+      "newTitle": "Nuova taglia",
+      "searchPlaceholder": "nome o importo…",
+      "placeholder": {
+        "posterName": "es. Monkey D. Luffy",
+        "amount": "es. 3000000000",
+        "previous": "cerca e scegli la taglia precedente",
+        "description": "descrizione nella lingua selezionata"
+      },
+      "hintMissing": "Per la revisione servono il nome sul manifesto, l'importo, la condizione, la prima apparizione e, in ogni lingua, la descrizione. Intanto la bozza si salva anche incompleta.",
+      "options": {
+        "condition": {
+          "DEAD_OR_ALIVE": "Vivo o morto",
+          "ONLY_ALIVE": "Solo vivo"
+        },
+        "validity": {
+          "ACTIVE": "Attiva",
+          "SUPERSEDED": "Aggiornata",
+          "INACTIVE": "Inattiva"
+        }
+      },
+      "chain": {
+        "chain": {
+          "title": "Storia delle taglie"
+        }
+      }
     }
   }
 }

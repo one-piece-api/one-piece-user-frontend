@@ -169,9 +169,21 @@
           } @else if (openTab() === 'overview') {
             <app-entity-card [body]="version.body" [languages]="languages()">
               <ng-container ngProjectAs="[cardSide]">
-                @if (isCurrent()) {
-                  @for (section of entity.sections ?? []; track section.of) {
-                    <app-related-list class="block" [section]="section" [contentId]="id()" />
+                @for (section of entity.sections ?? []; track $index) {
+                  @switch (section.kind) {
+                    @case ('relatedList') {
+                      @if (isCurrent()) {
+                        <app-related-list class="block" [section]="section" [contentId]="id()" />
+                      }
+                    }
+                    @case ('chain') {
+                      <app-chain-list
+                        class="block"
+                        [section]="section"
+                        [body]="version.body"
+                        [contentId]="id()"
+                      />
+                    }
                   }
                 }
               </ng-container>

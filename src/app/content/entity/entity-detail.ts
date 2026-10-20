@@ -33,6 +33,7 @@ import { untitledOf } from './entity-title';
 import { ENTITY } from './entities';
 import { EntityCard } from './entity-card';
 import { EntityComparison } from './entity-comparison';
+import { ChainList } from './chain-list';
 import { RelatedList } from './related-list';
 
 /** The query parameters this page keeps its view in, so a link reopens the same version. */
@@ -70,6 +71,7 @@ const NOT_FOUND_STATUSES = [400, 404];
     EntityCard,
     EntityComparison,
     LoadingPlaceholder,
+    ChainList,
     RelatedList,
     RouterLink,
     StatusBadge,
@@ -164,9 +166,10 @@ export class EntityDetail {
 
   protected readonly languages = computed(() => this.languageCatalog.languages.value() ?? []);
 
+  /** The natural key under the title - not where the title is made of it (`label`). */
   protected readonly naturalKey = computed(() => {
     const version = this.shown();
-    return version ? naturalKeyOf(this.entity, version.body) : null;
+    return version && !this.entity.label ? naturalKeyOf(this.entity, version.body) : null;
   });
 
   protected readonly title = computed(() => {
