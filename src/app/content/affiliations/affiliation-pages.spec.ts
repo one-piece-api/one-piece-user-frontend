@@ -57,6 +57,20 @@ describe('the affiliation definition', () => {
     ).toEqual({ en: 'Straw Hat Pirates' });
   });
 
+  it('asks for its kind among five, before the first appearance', () => {
+    expect(AFFILIATION.fields.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
+      'romaji:text',
+      'kind:choice',
+      'image:image',
+      'firstAppearance:storyPoint',
+      'name:localizedText',
+      'description:localizedText',
+    ]);
+    expect(AFFILIATION.fields.find(({ key }) => key === 'kind')).toMatchObject({
+      options: ['PIRATE_CREW', 'NAVY', 'WORLD_GOVERNMENT', 'REVOLUTIONARY_ARMY', 'OTHER'],
+    });
+  });
+
   it('takes a square emblem with a transparent background, as the backend profile', () => {
     const image = AFFILIATION.fields.find((field) => field.kind === 'image');
 
@@ -205,6 +219,36 @@ describe('the list of affiliations', () => {
     expect(root.querySelector('[data-testid="relation-cell"]')).toBeNull();
     expect(root.querySelector('h1')?.textContent).toContain('Affiliations');
   });
+
+  it('filters by kind, worded as the field', async () => {
+    harness = await RouterTestingHarness.create('/content/affiliations?kind=NAVY');
+    harness.detectChanges();
+    httpTesting.expectOne('/api/me').flush({
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      roles: [],
+      permissions: ['content:read'],
+    });
+    httpTesting.expectOne(`${API}/summary`).flush({ total: 1, mine: 0, statuses: ['PUBLISHED'] });
+    httpTesting.expectOne(`${API}/authors`).flush([]);
+    httpTesting
+      .expectOne(`${API}?page=0&kind=NAVY`)
+      .flush({ content: ROWS, page: 0, size: 20, totalElements: 1, totalPages: 1 });
+    await settle();
+    root = harness.routeNativeElement as HTMLElement;
+
+    const filter = root.querySelector<HTMLSelectElement>('[data-testid="filter-kind"]')!;
+    expect(filter.closest('label')?.textContent).toContain('Kind of group');
+    expect(Array.from(filter.options).map((option) => option.textContent?.trim())).toEqual([
+      expect.any(String),
+      'Pirate crew',
+      'Navy',
+      'World Government',
+      'Revolutionary Army',
+      'Other',
+    ]);
+    expect(filter.value).toBe('NAVY');
+  });
 });
 
 describe('the editor of an affiliation', () => {
@@ -253,10 +297,10 @@ describe('the editor of an affiliation', () => {
     );
   }
 
-  it('asks review for the romaji, the first appearance, a name and a description, not the emblem', () => {
+  it('asks review for the romaji, the kind, the first appearance, a name and a description, not the emblem', () => {
     const labels = checkLabels().join(' | ');
 
-    expect(labels).toMatch(/Romaji.*First appearance/);
+    expect(labels).toMatch(/Romaji.*Kind of group.*First appearance/);
     expect(labels).toMatch(/Name/);
     expect(labels).toMatch(/Description/);
     expect(labels).not.toMatch(/Image|Media/);

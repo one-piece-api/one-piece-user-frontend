@@ -601,6 +601,7 @@
           "posterName": "name on the poster",
           "amount": "amount",
           "condition": "condition",
+          "kind": "kind of group",
           "previous": "previous bounty",
           "status": "status",
           "gender": "gender",
@@ -805,6 +806,7 @@
         "amount": "Amount",
         "validity": "Validity",
         "condition": "Condition",
+        "kind": "Kind of group",
         "characterStatus": "Alive or dead",
         "species": "Species",
         "holder": "Holder",
@@ -893,6 +895,7 @@
         "subcategory": "Subcategory",
         "firstAppearance": "First appearance",
         "condition": "Condition",
+        "kind": "Kind of group",
         "previous": "Previous bounty",
         "japaneseName": "Japanese name",
         "status": "Status",
@@ -962,6 +965,7 @@
         "posterName": "name on the poster",
         "amount": "amount",
         "condition": "condition",
+        "kind": "kind of group",
         "inactive": "bounty withdrawn",
         "previous": "previous bounty",
         "japaneseName": "Japanese name",
@@ -1076,6 +1080,7 @@
         "posterName": "Name on the poster",
         "amount": "Amount",
         "condition": "Condition",
+        "kind": "Kind of group",
         "status": "Status",
         "gender": "Gender",
         "epithets": {
@@ -1171,6 +1176,10 @@
       "condition": {
         "label": "Condition",
         "hint": "how the wanted person is to be handed over, as the poster says"
+      },
+      "kind": {
+        "label": "Kind of group",
+        "hint": "decides whether a member can hold a Navy rank"
       },
       "inactive": {
         "label": "Bounty withdrawn",
@@ -1562,8 +1571,17 @@
         "name": "name in the selected language",
         "description": "description in the selected language"
       },
-      "hintMissing": "Review takes a romaji, the first appearance and, in every language, a name and a description. Meanwhile the draft can be saved incomplete.",
-      "imageHint": "The group's emblem or Jolly Roger."
+      "hintMissing": "Review takes a romaji, a kind, the first appearance and, in every language, a name and a description. Meanwhile the draft can be saved incomplete.",
+      "imageHint": "The group's emblem or Jolly Roger.",
+      "options": {
+        "kind": {
+          "PIRATE_CREW": "Pirate crew",
+          "NAVY": "Navy",
+          "WORLD_GOVERNMENT": "World Government",
+          "REVOLUTIONARY_ARMY": "Revolutionary Army",
+          "OTHER": "Other"
+        }
+      }
     },
     "species": {
       "kicker": "Contents · /species",

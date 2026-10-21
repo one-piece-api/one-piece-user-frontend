@@ -601,6 +601,7 @@
           "posterName": "nome sul manifesto",
           "amount": "importo",
           "condition": "condizione",
+          "kind": "tipo di gruppo",
           "previous": "taglia precedente",
           "status": "stato",
           "gender": "genere",
@@ -805,6 +806,7 @@
         "amount": "Importo",
         "validity": "Validità",
         "condition": "Condizione",
+        "kind": "Tipo di gruppo",
         "characterStatus": "Stato in vita",
         "species": "Specie",
         "holder": "Titolare",
@@ -893,6 +895,7 @@
         "subcategory": "Sottocategoria",
         "firstAppearance": "Prima apparizione",
         "condition": "Condizione",
+        "kind": "Tipo di gruppo",
         "previous": "Taglia precedente",
         "japaneseName": "Nome giapponese",
         "status": "Stato",
@@ -962,6 +965,7 @@
         "posterName": "nome sul manifesto",
         "amount": "importo",
         "condition": "condizione",
+        "kind": "tipo di gruppo",
         "inactive": "taglia ritirata",
         "previous": "taglia precedente",
         "japaneseName": "Nome giapponese",
@@ -1076,6 +1080,7 @@
         "posterName": "Nome sul manifesto",
         "amount": "Importo",
         "condition": "Condizione",
+        "kind": "Tipo di gruppo",
         "status": "Stato",
         "gender": "Genere",
         "epithets": {
@@ -1171,6 +1176,10 @@
       "condition": {
         "label": "Condizione",
         "hint": "come va consegnato il ricercato, secondo il manifesto"
+      },
+      "kind": {
+        "label": "Tipo di gruppo",
+        "hint": "decide se un membro può avere un grado della Marina"
       },
       "inactive": {
         "label": "Taglia ritirata",
@@ -1562,8 +1571,17 @@
         "name": "nome nella lingua selezionata",
         "description": "descrizione nella lingua selezionata"
       },
-      "hintMissing": "Per la revisione servono il romaji, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
-      "imageHint": "L'emblema o il Jolly Roger del gruppo."
+      "hintMissing": "Per la revisione servono il romaji, il tipo, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
+      "imageHint": "L'emblema o il Jolly Roger del gruppo.",
+      "options": {
+        "kind": {
+          "PIRATE_CREW": "Ciurma pirata",
+          "NAVY": "Marina",
+          "WORLD_GOVERNMENT": "Governo Mondiale",
+          "REVOLUTIONARY_ARMY": "Armata Rivoluzionaria",
+          "OTHER": "Altro"
+        }
+      }
     },
     "species": {
       "kicker": "Contenuti · /species",
