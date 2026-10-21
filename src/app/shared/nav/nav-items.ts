@@ -6,6 +6,7 @@ import { DEVIL_FRUIT_TYPE } from '../../content/devil-fruit-types/devil-fruit-ty
 import { DEVIL_FRUIT } from '../../content/devil-fruits/devil-fruit.model';
 import { EPISODE } from '../../content/episodes/episode.model';
 import { SAGA } from '../../content/sagas/saga.model';
+import { SPECIES } from '../../content/species/species.model';
 import { VOLUME } from '../../content/volumes/volume.model';
 import type { EntityDefinition } from '../../content/entity/entity-definition';
 import { STATUS_LABEL_KEY } from '../../content/content.model';
@@ -131,6 +132,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
             permission: 'content:read',
             soon: true,
           },
+          entityNavItem(SPECIES),
         ],
       },
       {

@@ -677,7 +677,8 @@
             "fruits": "Fruits online: {{count}}",
             "types": "Types online: {{count}}",
             "bounties": "Bounties online: {{count}}",
-            "affiliations": "Affiliations online: {{count}}"
+            "affiliations": "Affiliations online: {{count}}",
+            "species": "Species online: {{count}}"
           },
           "FIRST_APPEARANCE_MISSING": "First appearance missing",
           "PREVIOUS_ALREADY_REPLACED": "Previous bounty already replaced",
@@ -703,7 +704,8 @@
             "fruits": "Arrr! Online Fruits first appear in this chapter, matey. Retire them first:",
             "types": "Arrr! Online Types (or their subcategories) first appear in this chapter, matey. Retire them first:",
             "bounties": "Arrr! Bounties are still online with this one, matey. Retire them first:",
-            "affiliations": "Arrr! Online affiliations first appear here, matey. Retire them first:"
+            "affiliations": "Arrr! Online affiliations first appear here, matey. Retire them first:",
+            "species": "Arrr! Online species first appear here, matey. Retire them first:"
           },
           "FIRST_APPEARANCE_MISSING": "Arrr! The first appearance is missing, matey: set the chapter where the reader first meets it.",
           "PREVIOUS_ALREADY_REPLACED": "Arrr! The previous bounty is already replaced by another one online, matey: a bounty can be replaced by one only. Retire that one first, or pick another previous bounty:",
@@ -1451,6 +1453,21 @@
       },
       "hintMissing": "Review takes a romaji, the first appearance and, in every language, a name and a description. Meanwhile the draft can be saved incomplete.",
       "imageHint": "The group's emblem or Jolly Roger."
+    },
+    "species": {
+      "kicker": "Contents · /species",
+      "title": "Species",
+      "lead": "Humans, Fish-Men, Minks, Giants and every other race a character can belong to.",
+      "new": "+ New species",
+      "one": "Species",
+      "newTitle": "New species",
+      "placeholder": {
+        "romaji": "e.g. Gyojin",
+        "name": "name in the selected language",
+        "description": "description in the selected language"
+      },
+      "hintMissing": "Review takes a romaji, the first appearance and, in every language, a name and a description. Meanwhile the draft can be saved incomplete.",
+      "imageHint": "A typical member of the species, in portrait format."
     }
   }
 }

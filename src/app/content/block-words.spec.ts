@@ -173,6 +173,20 @@ describe('blockWords of the story contents', () => {
     );
   });
 
+  it('names, by romaji, the species that keep a chapter or an episode from being retired', () => {
+    const words = blockWords(transloco, {
+      reason: 'ONLINE_ITEMS_LINKED',
+      detail: { count: 1, species: [{ id: 's1', romaji: 'Tonakai' }] },
+    });
+
+    expect(words.note).toBe('Species online: 1');
+    expect(words.links).toEqual([{ label: 'Tonakai', route: '/content/species/s1' }]);
+    expect(words.more).toBe(0);
+    expect(words.titled).toBe(
+      'Arrr! Online species first appear here, matey. Retire them first: Tonakai',
+    );
+  });
+
   it('asks a fruit or a type for its first appearance before it goes online', () => {
     const words = blockWords(transloco, { reason: 'FIRST_APPEARANCE_MISSING', detail: {} });
 

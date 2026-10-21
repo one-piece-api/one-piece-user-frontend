@@ -26,14 +26,18 @@ const EMBLEM = { id: 'e1', url: '/api/content/images/e1' };
 class Elsewhere {}
 
 describe('the affiliation definition', () => {
-  it('is registered last, with its route, API path and menu entry after the bounties', () => {
-    expect(ENTITIES.at(-1)).toBe(AFFILIATION);
+  it('is registered after the bounties, with its route, API path and menu entry', () => {
+    expect(ENTITIES[ENTITIES.indexOf(AFFILIATION) - 1]?.entityType).toBe('BOUNTY');
     expect(entityOf('AFFILIATION')).toBe(AFFILIATION);
     expect(AFFILIATION.api).toBe(`/api${AFFILIATION.route}`);
     const subgroup = NAV_GROUPS.flatMap(({ items }) => items)
       .filter(isSubgroup)
       .find(({ labelKey }) => labelKey === 'shell.nav.crewsAndCharacters');
-    expect(subgroup?.items.map(({ id }) => id)).toEqual(['bounties', 'affiliations', 'characters']);
+    expect(subgroup?.items.map(({ id }) => id).slice(0, 3)).toEqual([
+      'bounties',
+      'affiliations',
+      'characters',
+    ]);
     expect(subgroup?.items[1]).toMatchObject({
       route: AFFILIATION.route,
       permission: 'content:read',

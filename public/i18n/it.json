@@ -677,7 +677,8 @@
             "fruits": "Frutti online: {{count}}",
             "types": "Tipi online: {{count}}",
             "bounties": "Taglie online: {{count}}",
-            "affiliations": "Affiliazioni online: {{count}}"
+            "affiliations": "Affiliazioni online: {{count}}",
+            "species": "Specie online: {{count}}"
           },
           "FIRST_APPEARANCE_MISSING": "Prima apparizione mancante",
           "PREVIOUS_ALREADY_REPLACED": "Taglia precedente già sostituita",
@@ -703,7 +704,8 @@
             "fruits": "Arrr! Ci sono Frutti online che appaiono per la prima volta in questo capitolo, compare. Ritirali prima:",
             "types": "Arrr! Ci sono Tipi online (o loro sottocategorie) che appaiono per la prima volta in questo capitolo, compare. Ritirali prima:",
             "bounties": "Arrr! Ci sono ancora taglie online collegate, compare. Ritirale prima:",
-            "affiliations": "Arrr! Ci sono affiliazioni online che appaiono per la prima volta qui, compare. Ritirale prima:"
+            "affiliations": "Arrr! Ci sono affiliazioni online che appaiono per la prima volta qui, compare. Ritirale prima:",
+            "species": "Arrr! Ci sono specie online che appaiono per la prima volta qui, compare. Ritirale prima:"
           },
           "FIRST_APPEARANCE_MISSING": "Arrr! Manca la prima apparizione, compare: indica il capitolo in cui il lettore lo incontra la prima volta.",
           "PREVIOUS_ALREADY_REPLACED": "Arrr! La taglia precedente è già sostituita da un'altra online, compare: ogni taglia può essere sostituita da una sola. Ritira prima quella, o scegli un'altra taglia precedente:",
@@ -1451,6 +1453,21 @@
       },
       "hintMissing": "Per la revisione servono il romaji, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
       "imageHint": "L'emblema o il Jolly Roger del gruppo."
+    },
+    "species": {
+      "kicker": "Contenuti · /species",
+      "title": "Specie",
+      "lead": "Umani, uomini-pesce, visoni, giganti e ogni altra razza a cui un personaggio può appartenere.",
+      "new": "+ Nuova specie",
+      "one": "Specie",
+      "newTitle": "Nuova specie",
+      "placeholder": {
+        "romaji": "es. Gyojin",
+        "name": "nome nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata"
+      },
+      "hintMissing": "Per la revisione servono il romaji, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
+      "imageHint": "Un esemplare tipico della specie, in verticale."
     }
   }
 }
