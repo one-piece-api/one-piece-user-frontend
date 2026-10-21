@@ -69,6 +69,7 @@ export const BOUNTY: EntityDefinition = {
       tones: { ACTIVE: 'PUBLISHED', SUPERSEDED: 'IN_REVIEW', INACTIVE: 'REJECTED' },
     }),
     relationField('previous', { target: 'BOUNTY', optional: true, listed: false }),
+    relationField('holder', { target: 'CHARACTER', optional: true }),
     storyPointField('firstAppearance'),
     localizedTextField('description', { maxLength: 2000, rows: 8 }),
   ],

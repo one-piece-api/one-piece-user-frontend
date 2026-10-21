@@ -126,11 +126,15 @@ export type BlockCause =
        * `{ volumeId, volumeNumber }`, for a first appearance (of a subcategory too, with its
        * `subcategoryId`) `{ firstAppearanceChapterId, firstAppearanceChapterNumber }` or
        * `{ firstAppearanceEpisodeId, firstAppearanceEpisodeNumber }` and, for the bounty a
-       * bounty replaces, `{ previousId, previousKey }`.
+       * bounty replaces, `{ previousId, previousKey }`, for the character that holds a bounty
+       * `{ holderId, holderRomaji }`.
        */
       reason: 'RELATED_NOT_ONLINE';
       detail: Partial<Record<`${StoryRelation}Id`, string>> &
-        Partial<Record<`${StoryRelation}Number`, number>> & { previousKey?: string };
+        Partial<Record<`${StoryRelation}Number`, number>> & {
+          previousKey?: string;
+          holderRomaji?: string;
+        };
     }
   | {
       /**
@@ -167,7 +171,7 @@ export type BlockCause =
 
 /**
  * The relations a block can name: a saga, an arc, a volume, the chapter or episode of a first
- * appearance, the bounty a bounty replaces.
+ * appearance, the bounty a bounty replaces, the character that holds a bounty.
  */
 export const STORY_RELATIONS = [
   'saga',
@@ -176,6 +180,7 @@ export const STORY_RELATIONS = [
   'firstAppearanceChapter',
   'firstAppearanceEpisode',
   'previous',
+  'holder',
 ] as const;
 export type StoryRelation = (typeof STORY_RELATIONS)[number];
 

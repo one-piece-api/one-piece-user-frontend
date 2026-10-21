@@ -89,6 +89,11 @@ describe('the character definition', () => {
   it('is listed on the card of a species, by the filter its list has for it', () => {
     expect(SPECIES.sections).toEqual([{ kind: 'relatedList', of: 'CHARACTER', by: 'species' }]);
   });
+
+  it('counts and lists the bounties naming it as holder, by the filter their list has for it', () => {
+    expect(CHARACTER.counts).toEqual([{ field: 'bountyCount', of: 'BOUNTY', by: 'holder' }]);
+    expect(CHARACTER.sections).toEqual([{ kind: 'relatedList', of: 'BOUNTY', by: 'holder' }]);
+  });
 });
 
 describe('the words about characters', () => {
@@ -108,6 +113,26 @@ describe('the words about characters', () => {
     expect(words.note).toBe('Characters online: 1');
     expect(words.sentence).toContain('Online characters are still linked');
     expect(words.links).toEqual([{ label: 'Nami', route: '/content/characters/c1' }]);
+  });
+
+  it('name the online bounties that keep a character from being retired, and link them', () => {
+    const words = blockWords(transloco, {
+      reason: 'ONLINE_ITEMS_LINKED',
+      detail: { count: 1, bounties: [{ id: 'b1', key: 'Nami 366000000' }] },
+    });
+
+    expect(words.note).toBe('Bounties online: 1');
+    expect(words.links).toEqual([{ label: 'Nami 366000000', route: '/content/bounties/b1' }]);
+  });
+
+  it('name a holder that is not online as what keeps a bounty from going online', () => {
+    const words = blockWords(transloco, {
+      reason: 'RELATED_NOT_ONLINE',
+      detail: { holderId: 'c1', holderRomaji: 'Nami' },
+    });
+
+    expect(words.note).toBe('Holder not online');
+    expect(words.sentence).toContain('Publish the character first');
   });
 
   it('name an entry of a list review still lacks, by position and language', () => {
@@ -193,7 +218,7 @@ describe('the list of characters', () => {
       author: NAMI_USER,
       updatedAt: '2026-10-01T08:00:00Z',
       onlineVersionNumber: 1,
-      body: { romaji: 'Nami', names: { en: 'Nami', it: 'Nami' } },
+      body: { romaji: 'Nami', names: { en: 'Nami', it: 'Nami' }, bountyCount: 2 },
       allowedActions: [],
       overrideActions: [],
     },
@@ -255,6 +280,14 @@ describe('the list of characters', () => {
     expect(row.querySelector('a')?.getAttribute('href')).toBe('/content/characters/c1');
     expect(root.querySelector('[data-testid="list-cell"]')).toBeNull();
     expect(root.querySelector('[data-testid="relation-cell"]')).toBeNull();
+  });
+
+  it('counts the bounties of a character, leading to their list filtered by it', async () => {
+    await open('/content/characters', 'page=0');
+
+    const count = root.querySelector('[data-testid="count-cell"]')!;
+    expect(count.textContent?.replace(/\s+/g, ' ')).toContain('2');
+    expect(count.querySelector('a')?.getAttribute('href')).toBe('/content/bounties?holder=c1');
   });
 
   it('filters by whether the character is alive, worded as the status field', async () => {

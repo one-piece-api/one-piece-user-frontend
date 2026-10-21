@@ -219,7 +219,15 @@ describe('the list of bounties', () => {
   let harness: RouterTestingHarness;
   let root: HTMLElement;
 
-  function row(id: string, posterName: string, amount: number, validity: string) {
+  const NAMI_HOLDER = { id: 'c1', romaji: 'Nami', names: { it: 'Nami', en: 'Nami' } };
+
+  function row(
+    id: string,
+    posterName: string,
+    amount: number,
+    validity: string,
+    holder: typeof NAMI_HOLDER | null = null,
+  ) {
     return {
       id,
       versionNumber: 1,
@@ -233,6 +241,7 @@ describe('the list of bounties', () => {
         amount,
         condition: 'DEAD_OR_ALIVE',
         validity,
+        ...(holder ? { holder } : {}),
       },
       allowedActions: [],
       overrideActions: [],
@@ -240,7 +249,7 @@ describe('the list of bounties', () => {
   }
 
   const ROWS = [
-    row('b3', 'Monkey D. Luffy', 3000000000, 'ACTIVE'),
+    row('b3', 'Monkey D. Luffy', 3000000000, 'ACTIVE', NAMI_HOLDER),
     row('b2', 'Monkey D. Luffy', 1500000000, 'SUPERSEDED'),
   ];
 
@@ -314,13 +323,26 @@ describe('the list of bounties', () => {
       '1,500,000,000 ฿',
       'Superseded',
     ]);
-    expect(root.querySelector('[data-testid="relation-cell"]')).toBeNull();
     expect(root.querySelector<HTMLInputElement>('input[type="search"]')?.placeholder).toBe(
       'name or amount…',
     );
     expect(firstRow.className).toContain(
       'sm:grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1fr)_',
     );
+  });
+
+  it('shows the holder of a bounty linked to its character, and a dash for one without', async () => {
+    await open('/content/bounties', 'page=0');
+
+    const holders = Array.from(root.querySelectorAll('[data-testid="relation-cell"]'));
+    expect(holders.map((cell) => cell.textContent?.trim())).toEqual(['Nami', '—']);
+    expect(holders[0].querySelector('a')?.getAttribute('href')).toBe('/content/characters/c1');
+  });
+
+  it('narrows to the bounties of a character, the way a character card leads there', async () => {
+    await open('/content/bounties?holder=c1', 'page=0&holder=c1');
+
+    expect(root.querySelector('[data-testid="relation-chip"]')?.textContent).toContain('Holder:');
   });
 
   it('narrows by validity and condition from the URL, and offers both as filters', async () => {

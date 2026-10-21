@@ -8,6 +8,8 @@ import {
   relationField,
   storyPointField,
   textField,
+  countColumn,
+  relatedList,
   type EntityDefinition,
 } from '../entity/entity-definition';
 
@@ -73,6 +75,9 @@ export const CHARACTER: EntityDefinition = {
     }),
     localizedTextField('description', { maxLength: 2000, rows: 8 }),
   ],
+  // The bounties it holds: derived from the bounties naming it, never part of its version (D11).
+  counts: [countColumn('bountyCount', { of: 'BOUNTY', by: 'holder' })],
+  sections: [relatedList({ of: 'BOUNTY', by: 'holder' })],
   list: {
     // The status has no column: the rows carry only names and romaji (plan C3, decision 4a).
     filters: [choiceFilter('characterStatus', STATUSES, { field: 'status' })],

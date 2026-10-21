@@ -615,7 +615,8 @@
           "aliases": {
             "list": "alias",
             "entry": "alias {{position}}"
-          }
+          },
+          "holder": "titolare"
         },
         "blocked": "Arrr! Non si può: {{reason}}",
         "blockedUnknown": "il contenuto non lo consente in questo momento."
@@ -681,7 +682,8 @@
             "volume": "Volume non online",
             "firstAppearanceChapter": "Capitolo della prima apparizione non online",
             "firstAppearanceEpisode": "Episodio della prima apparizione non online",
-            "previous": "Taglia precedente non online"
+            "previous": "Taglia precedente non online",
+            "holder": "Titolare non online"
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Archi online: {{count}}",
@@ -709,7 +711,8 @@
             "volume": "Arrr! Il volume che lo raccoglie non è ancora online, compare. Pubblica prima il volume.",
             "firstAppearanceChapter": "Arrr! Il capitolo della prima apparizione non è ancora online, compare. Pubblica prima il capitolo.",
             "firstAppearanceEpisode": "Arrr! L'episodio della prima apparizione non è ancora online, compare. Pubblica prima l'episodio.",
-            "previous": "Arrr! La taglia che questa sostituisce non è ancora online, compare. Pubblica prima quella."
+            "previous": "Arrr! La taglia che questa sostituisce non è ancora online, compare. Pubblica prima quella.",
+            "holder": "Arrr! Il personaggio titolare di questa taglia non è ancora online, compare. Pubblica prima il personaggio."
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arrr! Ci sono ancora archi online sotto questa saga, compare. Ritirali prima:",
@@ -803,7 +806,9 @@
         "validity": "Validità",
         "condition": "Condizione",
         "characterStatus": "Stato in vita",
-        "species": "Specie"
+        "species": "Specie",
+        "holder": "Titolare",
+        "bountyCount": "Taglie"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
@@ -895,7 +900,8 @@
         "birthday": "Compleanno",
         "species": "Specie",
         "epithets": "Epiteti",
-        "aliases": "Alias"
+        "aliases": "Alias",
+        "holder": "Titolare"
       },
       "noFirstAppearance": "Non indicata",
       "noPrevious": "nessuna, è la prima",
@@ -973,7 +979,8 @@
         "aliases": {
           "alias": "Alias {{position}}",
           "position": "Alias {{position}} · posizione"
-        }
+        },
+        "holder": "Titolare"
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -1224,6 +1231,10 @@
         "add": "Aggiungi alias",
         "empty": "Nessun alias.",
         "alias": "Alias"
+      },
+      "holder": {
+        "label": "Titolare",
+        "hint": "facoltativo · il personaggio, se noto; il nome sul manifesto resta com’è stampato"
       }
     },
     "dashboard": {
@@ -1518,7 +1529,8 @@
         "posterName": "es. Monkey D. Luffy",
         "amount": "es. 3000000000",
         "previous": "cerca e scegli la taglia precedente",
-        "description": "descrizione nella lingua selezionata"
+        "description": "descrizione nella lingua selezionata",
+        "holder": "cerca e scegli il personaggio"
       },
       "hintMissing": "Per la revisione servono il nome sul manifesto, l'importo, la condizione, la prima apparizione e, in ogni lingua, la descrizione. Intanto la bozza si salva anche incompleta.",
       "options": {
@@ -1609,6 +1621,13 @@
           "MALE": "Maschio",
           "FEMALE": "Femmina",
           "UNKNOWN": "Sconosciuto"
+        }
+      },
+      "related": {
+        "BOUNTY": {
+          "title": "Taglie di questo personaggio",
+          "empty": "Nessuna taglia per questo personaggio.",
+          "viewAll": "Vedi tutte ({{count}})"
         }
       }
     }

@@ -615,7 +615,8 @@
           "aliases": {
             "list": "aliases",
             "entry": "alias {{position}}"
-          }
+          },
+          "holder": "holder"
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
         "blockedUnknown": "the content does not allow it right now."
@@ -681,7 +682,8 @@
             "volume": "Volume not online",
             "firstAppearanceChapter": "First appearance chapter not online",
             "firstAppearanceEpisode": "First appearance episode not online",
-            "previous": "Previous bounty not online"
+            "previous": "Previous bounty not online",
+            "holder": "Holder not online"
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arcs online: {{count}}",
@@ -709,7 +711,8 @@
             "volume": "Arrr! The volume this one is collected in is not online yet, matey. Publish the volume first.",
             "firstAppearanceChapter": "Arrr! The first appearance chapter is not online yet, matey. Publish the chapter first.",
             "firstAppearanceEpisode": "Arrr! The episode of the first appearance is not online yet, matey. Publish the episode first.",
-            "previous": "Arrr! The bounty this one replaces is not online yet, matey. Publish it first."
+            "previous": "Arrr! The bounty this one replaces is not online yet, matey. Publish it first.",
+            "holder": "Arrr! The character holding this bounty is not online yet, matey. Publish the character first."
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arrr! Arcs are still online under this saga, matey. Retire them first:",
@@ -803,7 +806,9 @@
         "validity": "Validity",
         "condition": "Condition",
         "characterStatus": "Alive or dead",
-        "species": "Species"
+        "species": "Species",
+        "holder": "Holder",
+        "bountyCount": "Bounties"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji to be defined",
@@ -895,7 +900,8 @@
         "birthday": "Birthday",
         "species": "Species",
         "epithets": "Epithets",
-        "aliases": "Aliases"
+        "aliases": "Aliases",
+        "holder": "Holder"
       },
       "noFirstAppearance": "Not set",
       "noPrevious": "none, this is the first",
@@ -973,7 +979,8 @@
         "aliases": {
           "alias": "Alias {{position}}",
           "position": "Alias {{position}} · position"
-        }
+        },
+        "holder": "Holder"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -1224,6 +1231,10 @@
         "add": "Add alias",
         "empty": "No aliases.",
         "alias": "Alias"
+      },
+      "holder": {
+        "label": "Holder",
+        "hint": "optional · the character, when known; the poster name stays as printed"
       }
     },
     "dashboard": {
@@ -1518,7 +1529,8 @@
         "posterName": "e.g. Monkey D. Luffy",
         "amount": "e.g. 3000000000",
         "previous": "search and choose the previous bounty",
-        "description": "description in the selected language"
+        "description": "description in the selected language",
+        "holder": "search and choose the character"
       },
       "hintMissing": "Review takes the name on the poster, the amount, the condition, the first appearance and, in every language, a description. Meanwhile the draft can be saved incomplete.",
       "options": {
@@ -1609,6 +1621,13 @@
           "MALE": "Male",
           "FEMALE": "Female",
           "UNKNOWN": "Unknown"
+        }
+      },
+      "related": {
+        "BOUNTY": {
+          "title": "Bounties of this character",
+          "empty": "No bounty for this character.",
+          "viewAll": "See all ({{count}})"
         }
       }
     }
