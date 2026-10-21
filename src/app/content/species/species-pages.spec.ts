@@ -26,7 +26,7 @@ const PICTURE = { id: 'p1', url: '/api/content/images/p1' };
 class Elsewhere {}
 
 describe('the species definition', () => {
-  it('is registered last, with its route, API path and menu entry after the announced characters', () => {
+  it('is registered last, with its route, API path and menu entry after the characters', () => {
     expect(ENTITIES.at(-1)).toBe(SPECIES);
     expect(entityOf('SPECIES')).toBe(SPECIES);
     expect(SPECIES.route).toBe('/content/species');

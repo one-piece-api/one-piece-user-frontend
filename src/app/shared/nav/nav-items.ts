@@ -2,6 +2,7 @@ import { AFFILIATION } from '../../content/affiliations/affiliation.model';
 import { ARC } from '../../content/arcs/arc.model';
 import { BOUNTY } from '../../content/bounties/bounty.model';
 import { CHAPTER } from '../../content/chapters/chapter.model';
+import { CHARACTER } from '../../content/characters/character.model';
 import { DEVIL_FRUIT_TYPE } from '../../content/devil-fruit-types/devil-fruit-type.model';
 import { DEVIL_FRUIT } from '../../content/devil-fruits/devil-fruit.model';
 import { EPISODE } from '../../content/episodes/episode.model';
@@ -125,13 +126,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         items: [
           entityNavItem(BOUNTY),
           entityNavItem(AFFILIATION),
-          {
-            id: 'characters',
-            label: 'shell.nav.characters',
-            icon: 'assets/characters.webp',
-            permission: 'content:read',
-            soon: true,
-          },
+          entityNavItem(CHARACTER),
           entityNavItem(SPECIES),
         ],
       },

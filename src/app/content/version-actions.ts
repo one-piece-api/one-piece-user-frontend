@@ -327,7 +327,9 @@ export class VersionActions {
       case 'incomplete':
       case 'taken':
         return this.transloco.translate(key(refusal.kind), {
-          fields: refusal.fields.map((field) => this.fieldLabel(target.entity, field)).join(', '),
+          fields: refusal.fields
+            .map((field) => refusedFieldWords(this.transloco, target.entity, field))
+            .join(', '),
         });
       case 'slugTaken':
         return this.transloco.translate(key('slugTaken'), { slug: refusal.slug });
@@ -345,24 +347,6 @@ export class VersionActions {
         return this.transloco.translate(key(refusal.kind));
     }
   }
-
-  /** "romaji", "nome EN": a field named as the backend names it, in words. */
-  private fieldLabel(entity: EntityDefinition, field: string): string {
-    const [first, name] = (draftFieldKey(entity, field) ?? field).split('.');
-    if (name) {
-      return this.transloco.translate(`content.workflow.refused.field.${name}`, {
-        language: first.toUpperCase(),
-      });
-    }
-    // A field shared by every language has words of its own where the catalog has them.
-    const shared = `content.workflow.refused.field.${first}`;
-    const worded = this.transloco.translate(shared);
-    return worded !== shared
-      ? worded
-      : naturalKeyParts(entity)
-          .map((key) => this.transloco.translate(`content.workflow.refused.field.${key}`))
-          .join(', ');
-  }
 }
 
 /**
@@ -374,4 +358,35 @@ function replacedVersion(transition: VersionTransition, target: ActionTarget): n
   return transition.target === 'PUBLISHED' && online !== null && online !== target.version.number
     ? online
     : null;
+}
+
+/** "romaji", "nome EN", "epiteto 2 EN": a field named as the backend names it, in words. */
+export function refusedFieldWords(
+  transloco: TranslocoService,
+  entity: EntityDefinition,
+  field: string,
+): string {
+  const [first, name, , language] = (draftFieldKey(entity, field) ?? field).split('.');
+  if (entity.fields.some(({ key, kind }) => key === first && kind === 'partList')) {
+    // "epiteto 2 EN": an entry of a list, the language of its part where it has one.
+    return name === undefined
+      ? transloco.translate(`content.workflow.refused.field.${first}.list`)
+      : transloco.translate(`content.workflow.refused.field.${first}.entry`, {
+          position: Number(name) + 1,
+          language: language?.toUpperCase() ?? '',
+        });
+  }
+  if (name) {
+    return transloco.translate(`content.workflow.refused.field.${name}`, {
+      language: first.toUpperCase(),
+    });
+  }
+  // A field shared by every language has words of its own where the catalog has them.
+  const shared = `content.workflow.refused.field.${first}`;
+  const worded = transloco.translate(shared);
+  return worded !== shared
+    ? worded
+    : naturalKeyParts(entity)
+        .map((key) => transloco.translate(`content.workflow.refused.field.${key}`))
+        .join(', ');
 }

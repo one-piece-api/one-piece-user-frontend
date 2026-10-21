@@ -3,6 +3,7 @@ import { AFFILIATION } from '../affiliations/affiliation.model';
 import { ARC } from '../arcs/arc.model';
 import { BOUNTY } from '../bounties/bounty.model';
 import { CHAPTER } from '../chapters/chapter.model';
+import { CHARACTER } from '../characters/character.model';
 import { DEVIL_FRUIT_TYPE } from '../devil-fruit-types/devil-fruit-type.model';
 import { DEVIL_FRUIT } from '../devil-fruits/devil-fruit.model';
 import { EPISODE } from '../episodes/episode.model';
@@ -25,6 +26,7 @@ export const ENTITIES: readonly EntityDefinition[] = [
   EPISODE,
   BOUNTY,
   AFFILIATION,
+  CHARACTER,
   SPECIES,
 ];
 

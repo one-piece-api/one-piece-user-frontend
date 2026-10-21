@@ -4,7 +4,6 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
-import { MascotService } from '../mascot/mascot';
 import { AppShell } from './app-shell';
 
 @Component({ template: '' })
@@ -167,7 +166,7 @@ describe('AppShell', () => {
     expect(hrefsIn(flyout(root))).toEqual(['/users', '/audit']);
   });
 
-  it('lists the content section, with the entities not built yet only announced', async () => {
+  it('lists the content section, every entity in its subgroup', async () => {
     const fixture = TestBed.createComponent(AppShell);
     fixture.detectChanges();
 
@@ -188,7 +187,7 @@ describe('AppShell', () => {
       button.textContent?.trim().replace(/\s*›$/, ''),
     );
     expect(subgroups).toEqual(['Devil Fruits', 'Crews and characters', 'Story']);
-    expect(panel?.textContent).toContain('10 sections open');
+    expect(panel?.textContent).toContain('11 sections open');
     expect(subgroupFlyout(root)).toBeNull();
 
     hoverSubgroup(root, 'Devil Fruits');
@@ -201,18 +200,13 @@ describe('AppShell', () => {
 
     hoverSubgroup(root, 'Crews and characters');
     fixture.detectChanges();
-    const announced = Array.from(subgroupFlyout(root)?.querySelectorAll('button') ?? []).map(
-      (button) =>
-        Array.from(button.querySelectorAll(':scope > span'))
-          .map((part) => part.textContent?.trim())
-          .join(' '),
-    );
     expect(hrefsIn(subgroupFlyout(root))).toEqual([
       '/content/bounties',
       '/content/affiliations',
+      '/content/characters',
       '/content/species',
     ]);
-    expect(announced).toEqual(['Characters coming soon']);
+    expect(subgroupFlyout(root)?.querySelectorAll('button')).toHaveLength(0);
 
     hoverSubgroup(root, 'Story');
     fixture.detectChanges();
@@ -235,34 +229,6 @@ describe('AppShell', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).not.toContain('Contents');
     expect(root.querySelectorAll('nav button').length).toBe(0);
-  });
-
-  it('lets the mascot say an announced section is not open yet', async () => {
-    const fixture = TestBed.createComponent(AppShell);
-    fixture.detectChanges();
-
-    httpTesting.expectOne('/api/me').flush({
-      username: 'zoro',
-      email: 'zoro@onepiece.local',
-      roles: ['REVIEWER'],
-      permissions: ['content:read'],
-    });
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const root = fixture.nativeElement as HTMLElement;
-    groupButton(root, 'Contents').click();
-    fixture.detectChanges();
-    hoverSubgroup(root, 'Crews and characters');
-    fixture.detectChanges();
-    (subgroupFlyout(root)?.querySelector('button') as HTMLButtonElement).click();
-    fixture.detectChanges();
-
-    expect(flyout(root)).toBeNull();
-    expect(subgroupFlyout(root)).toBeNull();
-    const mascot = TestBed.inject(MascotService);
-    expect(mascot.open()).toBe(true);
-    expect(mascot.message().text).toContain("Characters isn't open yet");
   });
 
   it('fits the visible mobile viewport and keeps drawer scrolling from chaining to the page', () => {

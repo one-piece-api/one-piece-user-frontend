@@ -14,7 +14,6 @@
       "dashboard": "Dashboard",
       "overview": "Panoramica",
       "contents": "Contenuti",
-      "characters": "Personaggi",
       "soon": "in arrivo",
       "soonMessage": "{{label}} non è ancora attiva: arriverà con lo stesso schema di lista e dettaglio.",
       "liveItems": {
@@ -602,7 +601,21 @@
           "posterName": "nome sul manifesto",
           "amount": "importo",
           "condition": "condizione",
-          "previous": "taglia precedente"
+          "previous": "taglia precedente",
+          "status": "stato",
+          "gender": "genere",
+          "species": {
+            "list": "specie",
+            "entry": "specie {{position}}"
+          },
+          "epithets": {
+            "list": "epiteti",
+            "entry": "epiteto {{position}} {{language}}"
+          },
+          "aliases": {
+            "list": "alias",
+            "entry": "alias {{position}}"
+          }
         },
         "blocked": "Arrr! Non si può: {{reason}}",
         "blockedUnknown": "il contenuto non lo consente in questo momento."
@@ -678,7 +691,8 @@
             "types": "Tipi online: {{count}}",
             "bounties": "Taglie online: {{count}}",
             "affiliations": "Affiliazioni online: {{count}}",
-            "species": "Specie online: {{count}}"
+            "species": "Specie online: {{count}}",
+            "characters": "Personaggi online: {{count}}"
           },
           "FIRST_APPEARANCE_MISSING": "Prima apparizione mancante",
           "PREVIOUS_ALREADY_REPLACED": "Taglia precedente già sostituita",
@@ -705,7 +719,8 @@
             "types": "Arrr! Ci sono Tipi online (o loro sottocategorie) che appaiono per la prima volta in questo capitolo, compare. Ritirali prima:",
             "bounties": "Arrr! Ci sono ancora taglie online collegate, compare. Ritirale prima:",
             "affiliations": "Arrr! Ci sono affiliazioni online che appaiono per la prima volta qui, compare. Ritirale prima:",
-            "species": "Arrr! Ci sono specie online che appaiono per la prima volta qui, compare. Ritirale prima:"
+            "species": "Arrr! Ci sono specie online che appaiono per la prima volta qui, compare. Ritirale prima:",
+            "characters": "Arrr! Ci sono ancora personaggi online collegati, compare. Ritirali prima:"
           },
           "FIRST_APPEARANCE_MISSING": "Arrr! Manca la prima apparizione, compare: indica il capitolo in cui il lettore lo incontra la prima volta.",
           "PREVIOUS_ALREADY_REPLACED": "Arrr! La taglia precedente è già sostituita da un'altra online, compare: ogni taglia può essere sostituita da una sola. Ritira prima quella, o scegli un'altra taglia precedente:",
@@ -786,7 +801,9 @@
         "volume": "Volume",
         "amount": "Importo",
         "validity": "Validità",
-        "condition": "Condizione"
+        "condition": "Condizione",
+        "characterStatus": "Stato in vita",
+        "species": "Specie"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
@@ -871,7 +888,14 @@
         "subcategory": "Sottocategoria",
         "firstAppearance": "Prima apparizione",
         "condition": "Condizione",
-        "previous": "Taglia precedente"
+        "previous": "Taglia precedente",
+        "japaneseName": "Nome giapponese",
+        "status": "Stato",
+        "gender": "Genere",
+        "birthday": "Compleanno",
+        "species": "Specie",
+        "epithets": "Epiteti",
+        "aliases": "Alias"
       },
       "noFirstAppearance": "Non indicata",
       "noPrevious": "nessuna, è la prima",
@@ -933,7 +957,23 @@
         "amount": "importo",
         "condition": "condizione",
         "inactive": "taglia ritirata",
-        "previous": "taglia precedente"
+        "previous": "taglia precedente",
+        "japaneseName": "Nome giapponese",
+        "status": "Stato",
+        "gender": "Genere",
+        "birthday": "Compleanno",
+        "species": {
+          "species": "Specie {{position}}",
+          "position": "Specie {{position}} · posizione"
+        },
+        "epithets": {
+          "text": "Epiteto {{position}} · {{language}}",
+          "position": "Epiteto {{position}} · posizione"
+        },
+        "aliases": {
+          "alias": "Alias {{position}}",
+          "position": "Alias {{position}} · posizione"
+        }
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -1028,7 +1068,12 @@
         "firstAppearance": "Prima apparizione",
         "posterName": "Nome sul manifesto",
         "amount": "Importo",
-        "condition": "Condizione"
+        "condition": "Condizione",
+        "status": "Stato",
+        "gender": "Genere",
+        "epithets": {
+          "text": "Epiteto {{position}} · {{language}}"
+        }
       },
       "save": "Salva bozza",
       "saving": "Salvataggio…",
@@ -1139,6 +1184,46 @@
       "monthDay": {
         "day": "Giorno",
         "month": "Mese"
+      },
+      "japaneseName": {
+        "label": "Nome giapponese",
+        "hint": "facoltativo · com'è scritto nell'originale"
+      },
+      "status": {
+        "label": "Stato",
+        "hint": "com'è oggi nella storia · se non si sa, Sconosciuto"
+      },
+      "gender": {
+        "label": "Genere",
+        "hint": "come l'opera presenta il personaggio"
+      },
+      "birthday": {
+        "label": "Compleanno",
+        "hint": "facoltativo · giorno e mese, senza anno"
+      },
+      "species": {
+        "label": "Specie",
+        "hint": "facoltative · nessuna se l'opera non lo dice",
+        "entry": "Specie {{position}}",
+        "add": "Aggiungi specie",
+        "empty": "Nessuna specie indicata.",
+        "species": "Specie"
+      },
+      "epithets": {
+        "label": "Epiteti",
+        "hint": "facoltativi · un soprannome descrittivo, tradotto in ogni lingua: Gatta ladra / Cat Burglar",
+        "entry": "Epiteto {{position}}",
+        "add": "Aggiungi epiteto",
+        "empty": "Nessun epiteto.",
+        "text": "Epiteto · {{language}}"
+      },
+      "aliases": {
+        "label": "Alias",
+        "hint": "facoltativi · un altro nome con cui è conosciuto, uguale in ogni lingua: Sogeking",
+        "entry": "Alias {{position}}",
+        "add": "Aggiungi alias",
+        "empty": "Nessun alias.",
+        "alias": "Alias"
       }
     },
     "dashboard": {
@@ -1481,7 +1566,51 @@
         "description": "descrizione nella lingua selezionata"
       },
       "hintMissing": "Per la revisione servono il romaji, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
-      "imageHint": "Un esemplare tipico della specie, in verticale."
+      "imageHint": "Un esemplare tipico della specie, in verticale.",
+      "related": {
+        "CHARACTER": {
+          "title": "Personaggi di questa specie",
+          "empty": "Nessun personaggio di questa specie.",
+          "viewAll": "Vedi tutti ({{count}})"
+        }
+      }
+    },
+    "characters": {
+      "kicker": "Contenuti · /characters",
+      "title": "Personaggi",
+      "lead": "Pirati, soldati della Marina, rivoluzionari e chiunque altro si incontri nella storia.",
+      "new": "+ Nuovo personaggio",
+      "one": "Personaggio",
+      "newTitle": "Nuovo personaggio",
+      "placeholder": {
+        "romaji": "nome ufficiale in caratteri latini, es. Monkey D. Luffy",
+        "japaneseName": "es. モンキー・D・ルフィ",
+        "name": "nome nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata",
+        "species": {
+          "species": "cerca una specie"
+        },
+        "epithets": {
+          "text": "epiteto in questa lingua"
+        },
+        "aliases": {
+          "alias": "es. Sogeking"
+        }
+      },
+      "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione e, in ogni lingua, nome, descrizione e ogni epiteto. Intanto la bozza si salva anche incompleta.",
+      "imageHint": "Un ritratto del personaggio, in verticale.",
+      "options": {
+        "status": {
+          "ALIVE": "Vivo",
+          "DECEASED": "Morto",
+          "UNKNOWN": "Sconosciuto"
+        },
+        "gender": {
+          "MALE": "Maschio",
+          "FEMALE": "Femmina",
+          "UNKNOWN": "Sconosciuto"
+        }
+      }
     }
   }
 }

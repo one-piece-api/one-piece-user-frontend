@@ -1,6 +1,7 @@
 import {
   imageField,
   localizedTextField,
+  relatedList,
   storyPointField,
   textField,
   type EntityDefinition,
@@ -42,4 +43,6 @@ export const SPECIES: EntityDefinition = {
     localizedTextField('name', { maxLength: 100 }),
     localizedTextField('description', { maxLength: 2000, rows: 8 }),
   ],
+  // The characters of the species: a few on its card, all in their list filtered by it (C3, 4c).
+  sections: [relatedList({ of: 'CHARACTER', by: 'species' })],
 };

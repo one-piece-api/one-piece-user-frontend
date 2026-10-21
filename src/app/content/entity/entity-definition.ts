@@ -277,12 +277,15 @@ export interface BadgeColumn {
 export type ListColumn = BerryColumn | BadgeColumn;
 
 /**
- * A filter of the list by one value of a closed set, sent as `<key>=<VALUE>`; labelled as the
- * field of the same key (`<i18n>.options.<key>.<VALUE>`).
+ * A filter of the list by one value of a closed set, sent as `<key>=<VALUE>`; titled
+ * `content.list.column.<key>`, its values labelled as the field `field` - the key where
+ * absent - is (`<i18n>.options.<field>.<VALUE>`): the backend's `characterStatus` filters
+ * the field `status`.
  */
 export interface ChoiceFilter {
   readonly key: string;
   readonly options: readonly string[];
+  readonly field?: string;
 }
 
 /** What the list of an entity shows besides what every list shows. */
@@ -438,8 +441,12 @@ export function badgeColumn(field: string): BadgeColumn {
   return { kind: 'badge', field };
 }
 
-export function choiceFilter(key: string, options: readonly string[]): ChoiceFilter {
-  return { key, options };
+export function choiceFilter(
+  key: string,
+  options: readonly string[],
+  extra: Pick<ChoiceFilter, 'field'> = {},
+): ChoiceFilter {
+  return { key, options, ...extra };
 }
 
 /** The keys of the natural key, one for most entities, several for a composite one. */

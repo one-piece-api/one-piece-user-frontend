@@ -116,6 +116,12 @@ interface CountCell {
 }
 
 /** The filter "only the contents that point to this one", shown as a chip that removes it. */
+/** A relation the list can be narrowed by: its query parameter and the entity it points to. */
+interface FilterRelation {
+  readonly key: string;
+  readonly target: string;
+}
+
 interface RelationChip {
   /** The query parameter it lives in. */
   readonly key: string;
@@ -219,14 +225,27 @@ export class EntityList {
   protected readonly relationFields = this.entity.fields.filter(
     (field): field is RelationField => field.kind === 'relation' && field.listed !== false,
   );
+  /**
+   * Every relation the list can be narrowed by: those with a column, and a list of contents
+   * (`partList` of a single relation, a character's species) the rows do not carry - the
+   * filter a related list of the other entity leads to.
+   */
+  private readonly filterRelations: readonly FilterRelation[] = [
+    ...this.relationFields,
+    ...this.entity.fields.flatMap((field) =>
+      field.kind === 'partList' && field.parts.length === 1 && field.parts[0].kind === 'relation'
+        ? [{ key: field.key, target: field.parts[0].target }]
+        : [],
+    ),
+  ];
   /** The filters by a value of a closed set the entity declares, as the URL has them now. */
   protected readonly choiceFilters = computed<ChoiceFilterView[]>(() =>
-    (this.entity.list?.filters ?? []).map(({ key, options }) => ({
+    (this.entity.list?.filters ?? []).map(({ key, options, field = key }) => ({
       key,
       labelKey: `content.list.column.${key}`,
       options: options.map((value) => ({
         value,
-        labelKey: `${this.entity.i18n}.options.${key}.${value}`,
+        labelKey: `${this.entity.i18n}.options.${field}.${value}`,
       })),
       value: this.params().get(key),
     })),
@@ -241,7 +260,7 @@ export class EntityList {
       : 'content.list.searchPlaceholder';
   /** The id each relation is narrowed to in the URL - only the relations that are. */
   protected readonly relationFilters = computed(() =>
-    this.relationFields.flatMap((field) => {
+    this.filterRelations.flatMap((field) => {
       const id = this.params().get(field.key);
       return id ? [{ field, id }] : [];
     }),
@@ -411,7 +430,7 @@ export class EntityList {
       [PARAM.status]: null,
       [PARAM.author]: null,
       [PARAM.updated]: null,
-      ...Object.fromEntries(this.relationFields.map(({ key }) => [key, null])),
+      ...Object.fromEntries(this.filterRelations.map(({ key }) => [key, null])),
       ...Object.fromEntries(this.choiceFilters().map(({ key }) => [key, null])),
     });
   }
