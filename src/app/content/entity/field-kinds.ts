@@ -6,8 +6,18 @@
  * the comparison.
  */
 import { diffField, type FieldDiff } from '../version-comparison';
-import type { EntityField, FieldKindName } from './entity-definition';
+import type { EntityField, FieldKindName, PartField, PartListField } from './entity-definition';
 import { isImageDraft, isImageReference } from './entity-image';
+import { monthDayOf, monthDayText } from './entity-month-day';
+import {
+  isBareList,
+  isPartEntryDraft,
+  itemsOf,
+  localizedTextsOf,
+  newPartEntryKey,
+  partValueOf,
+  type PartEntryDraft,
+} from './entity-part-list';
 import { isReference, type EntityReference } from './entity-reference';
 import { newReleaseKey, releasesOf, type ReleaseDraft } from './entity-release';
 import {
@@ -30,10 +40,13 @@ export interface FieldKind {
   readonly localized: boolean;
   /** Asked for by review: an empty value keeps the draft from being ready. */
   readonly forReview: boolean;
-  /** What the editor holds for a value of a version - `undefined` for a content not saved yet. */
-  draftValue(saved: unknown): unknown;
+  /**
+   * What the editor holds for a value of a version - `undefined` for a content not saved yet.
+   * `field` is the one the value belongs to, for a kind whose shape the definition gives.
+   */
+  draftValue(saved: unknown, field?: EntityField): unknown;
   /** What the editor's value is saved as in the JSON - `undefined` for one sent otherwise. */
-  savedValue(draft: unknown): unknown;
+  savedValue(draft: unknown, field?: EntityField): unknown;
   /** Whether a value - saved, or being written - counts as filled in for review. */
   isFilled(value: unknown): boolean;
   /** How the value changed from `before` to `after`; `null` when it is absent on both sides. */
@@ -322,6 +335,103 @@ const BADGE_VALUE = {
 };
 
 /**
+ * A day of the year without a year: the editor holds the month and the day picked apart, the
+ * JSON sends `--MM-DD` - `null` until both make a real day. Optional, so never asked for by
+ * review; compared as `--MM-DD`, which the screens name ("3 luglio").
+ */
+const MONTH_DAY_VALUE = {
+  draftValue: monthDayOf,
+  savedValue: (draft: unknown) => monthDayText(monthDayOf(draft)),
+  isFilled: (value: unknown) => monthDayText(monthDayOf(value)) !== null,
+  diff: <TField>(field: TField, before: unknown, after: unknown) =>
+    diffField(field, monthDayText(monthDayOf(before)), monthDayText(monthDayOf(after))),
+};
+
+/** One part's value as its kind's editor holds it; a localized part, a text per language. */
+function partDraftValue(part: PartField, value: unknown): unknown {
+  return part.kind === 'localizedText'
+    ? localizedTextsOf(value)
+    : FIELD_KINDS[part.kind].draftValue(value, part);
+}
+
+/**
+ * One part's value as the JSON sends it, as its kind saves it; a localized part, the
+ * languages written, each text without the space around it.
+ */
+function partSavedValue(part: PartField, value: unknown): unknown {
+  if (part.kind !== 'localizedText') {
+    return FIELD_KINDS[part.kind].savedValue(value, part);
+  }
+  return Object.fromEntries(
+    Object.entries(localizedTextsOf(value))
+      .map(([language, text]) => [language, text.trim()])
+      .filter(([, text]) => text),
+  );
+}
+
+/**
+ * Whether one part of an entry has something in it - a localized part, in any language. A
+ * yes or no never counts: alone, it says nothing.
+ */
+export function isPartWritten(part: PartField, value: unknown): boolean {
+  if (part.kind === 'boolean') {
+    return false;
+  }
+  if (part.kind === 'localizedText') {
+    return Object.values(localizedTextsOf(value)).some((text) => text.trim());
+  }
+  return FIELD_KINDS[part.kind].isFilled(value);
+}
+
+/**
+ * The entries of the editor the JSON sends: those with something in them. An entry added and
+ * left empty is nothing, as a release row with no day; so an error the backend names by
+ * position (`species[1]`) is found among these.
+ */
+export function sentPartEntries(field: PartListField, draft: unknown): PartEntryDraft[] {
+  return itemsOf(draft)
+    .filter(isPartEntryDraft)
+    .filter((entry) => field.parts.some((part) => isPartWritten(part, entry.values[part.key])));
+}
+
+/**
+ * A list of entries made of parts (`PartListField`): the editor holds each entry with a key
+ * of its own and each part as its kind holds it; the JSON sends the entries with something
+ * in them, each part as its kind saves it - bare values for a list of one part not localized,
+ * else an object per entry. Never asked for as a whole: a localized part is a check of its
+ * own in each language (`entity-body.ts`), and the entries are compared one by one there.
+ */
+const PART_LIST_VALUE = {
+  draftValue: (saved: unknown, field?: EntityField): PartEntryDraft[] =>
+    field?.kind === 'partList'
+      ? itemsOf(saved).map((item) => ({
+          key: newPartEntryKey(),
+          values: Object.fromEntries(
+            field.parts.map((part) => [
+              part.key,
+              partDraftValue(part, partValueOf(field, item, part)),
+            ]),
+          ),
+        }))
+      : [],
+  savedValue: (draft: unknown, field?: EntityField): unknown[] => {
+    if (field?.kind !== 'partList') {
+      return [];
+    }
+    const [only] = field.parts;
+    return sentPartEntries(field, draft).map(({ values }) =>
+      isBareList(field)
+        ? partSavedValue(only, values[only.key])
+        : Object.fromEntries(
+            field.parts.map((part) => [part.key, partSavedValue(part, values[part.key])]),
+          ),
+    );
+  },
+  isFilled: () => true,
+  diff: () => null,
+};
+
+/**
  * Whether review asks for a field: its kind is one review looks at, and the definition did
  * not mark it `optional` - an optional one is never "missing".
  */
@@ -342,4 +452,6 @@ export const FIELD_KINDS: Record<FieldKindName, FieldKind> = {
   choice: { localized: false, forReview: true, ...CHOICE_VALUE },
   boolean: { localized: false, forReview: false, ...BOOLEAN_VALUE },
   badge: { localized: false, forReview: false, ...BADGE_VALUE },
+  monthDay: { localized: false, forReview: false, ...MONTH_DAY_VALUE },
+  partList: { localized: false, forReview: false, ...PART_LIST_VALUE },
 };

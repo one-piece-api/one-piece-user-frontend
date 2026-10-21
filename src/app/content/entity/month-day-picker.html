@@ -1,0 +1,48 @@
+<div class="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-2">
+  <div>
+    <label [for]="inputId()" class="font-heading text-[10px] font-extrabold text-ocean-500/70">{{
+      'content.editor.monthDay.day' | transloco
+    }}</label>
+    <select
+      #dayInput
+      [id]="inputId()"
+      class="w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+      [class]="invalid() ? 'border-flag-600' : 'border-ocean-800/20'"
+      [attr.aria-invalid]="invalid() ? true : null"
+      data-testid="month-day-day"
+      (change)="pickDay(dayInput.value)"
+    >
+      <option value="" [selected]="!value().day">
+        {{ 'content.editor.choiceNone' | transloco }}
+      </option>
+      @for (day of days(); track day) {
+        <option [value]="day" [selected]="day === value().day">{{ day }}</option>
+      }
+    </select>
+  </div>
+  <div>
+    <label
+      [for]="inputId() + '-month'"
+      class="font-heading text-[10px] font-extrabold text-ocean-500/70"
+      >{{ 'content.editor.monthDay.month' | transloco }}</label
+    >
+    <select
+      #monthInput
+      [id]="inputId() + '-month'"
+      class="w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+      [class]="invalid() ? 'border-flag-600' : 'border-ocean-800/20'"
+      [attr.aria-invalid]="invalid() ? true : null"
+      data-testid="month-day-month"
+      (change)="pickMonth(monthInput.value)"
+    >
+      <option value="" [selected]="!value().month">
+        {{ 'content.editor.choiceNone' | transloco }}
+      </option>
+      @for (month of months(); track month.value) {
+        <option [value]="month.value" [selected]="month.value === value().month">
+          {{ month.name }}
+        </option>
+      }
+    </select>
+  </div>
+</div>

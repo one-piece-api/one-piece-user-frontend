@@ -353,6 +353,38 @@
                         }
                       </div>
                     }
+                    @case ('monthDay') {
+                      @if (view.monthDay; as day) {
+                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                          <div class="flex items-center justify-between gap-2.5">
+                            <span
+                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                              >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</span
+                            >
+                            <span
+                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
+                            >
+                          </div>
+                          <div class="mt-2">
+                            <app-month-day-picker
+                              [inputId]="'draft-' + view.field.key"
+                              [value]="day"
+                              [invalid]="!!view.error"
+                              (picked)="setMonthDay(view.field.key, $event)"
+                            />
+                          </div>
+                          @if (view.error; as error) {
+                            <p
+                              class="mt-1 font-heading text-sm font-bold text-flag-700"
+                              data-testid="field-error"
+                            >
+                              {{ error }}
+                            </p>
+                          }
+                        </div>
+                      }
+                    }
                     @case ('boolean') {
                       <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
                         <label class="flex cursor-pointer items-start gap-3">
@@ -390,6 +422,17 @@
                 }
               </div>
             </div>
+
+            @for (list of partListViews(); track list.field.key) {
+              <app-part-list-editor
+                [field]="list.field"
+                [i18n]="entity.i18n"
+                [entries]="list.entries"
+                [languages]="languageCodes()"
+                [errors]="list.errors"
+                (changed)="setPartList(list.field.key, $event)"
+              />
+            }
 
             @for (list of releaseListViews(); track list.field.key) {
               <section

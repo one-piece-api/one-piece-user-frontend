@@ -1,0 +1,193 @@
+<section
+  class="grid gap-2.5 rounded-[14px] bg-parchment-200 px-4 py-3.5"
+  [attr.data-testid]="'draft-' + field().key"
+>
+  <div class="flex flex-wrap items-center justify-between gap-2.5">
+    <h2 class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase">
+      {{ 'content.editor.' + field().key + '.label' | transloco }}
+    </h2>
+    <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+      'content.editor.' + field().key + '.hint' | transloco
+    }}</span>
+  </div>
+  @for (entry of views(); track entry.key; let index = $index) {
+    <div class="grid gap-2 rounded-[14px] bg-white/60 px-3 py-2.5" data-testid="part-entry">
+      <div class="flex items-center justify-between gap-2">
+        <span class="font-display text-[13px] font-bold text-ocean-900">
+          {{ 'content.editor.' + field().key + '.entry' | transloco: { position: entry.position } }}
+        </span>
+        <span class="flex gap-1.5">
+          <button
+            type="button"
+            class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 disabled:pointer-events-none disabled:opacity-40"
+            [disabled]="entry.first"
+            [attr.aria-label]="'content.editor.partList.up' | transloco"
+            [title]="'content.editor.partList.up' | transloco"
+            data-testid="part-up"
+            (click)="move(index, -1)"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 disabled:pointer-events-none disabled:opacity-40"
+            [disabled]="entry.last"
+            [attr.aria-label]="'content.editor.partList.down' | transloco"
+            [title]="'content.editor.partList.down' | transloco"
+            data-testid="part-down"
+            (click)="move(index, 1)"
+          >
+            ↓
+          </button>
+          <button
+            type="button"
+            class="cursor-pointer rounded-lg bg-flag-100 px-2.5 py-1 font-heading text-xs font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
+            data-testid="part-remove"
+            (click)="remove(index)"
+          >
+            ✕ {{ 'content.editor.partList.remove' | transloco }}
+          </button>
+        </span>
+      </div>
+      @for (view of entry.parts; track view.part.key) {
+        @for (box of view.inputs; track box.id) {
+          <div>
+            @switch (view.part.kind) {
+              @case ('relation') {
+                <label
+                  [for]="box.id"
+                  [class]="
+                    labelledParts()
+                      ? 'font-heading text-[11px] font-extrabold text-ocean-500'
+                      : 'sr-only'
+                  "
+                  >{{ 'content.editor.' + field().key + '.' + view.part.key | transloco }}</label
+                >
+                @if (view.source; as source) {
+                  <app-relation-picker
+                    [inputId]="box.id"
+                    [source]="source"
+                    [value]="box.reference"
+                    [labelOf]="view.labelOf"
+                    [placeholder]="
+                      i18n() + '.placeholder.' + field().key + '.' + view.part.key | transloco
+                    "
+                    [invalid]="!!(box.error ?? entry.error)"
+                    (picked)="write(index, box, $event)"
+                  />
+                }
+              }
+              @case ('choice') {
+                <label
+                  [for]="box.id"
+                  [class]="
+                    labelledParts()
+                      ? 'font-heading text-[11px] font-extrabold text-ocean-500'
+                      : 'sr-only'
+                  "
+                  >{{ 'content.editor.' + field().key + '.' + view.part.key | transloco }}</label
+                >
+                <select
+                  #choiceInput
+                  [id]="box.id"
+                  class="w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                  [class]="box.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                  [attr.aria-invalid]="box.error ? true : null"
+                  (change)="write(index, box, choiceInput.value)"
+                >
+                  <option value="" [selected]="!box.text">
+                    {{ 'content.editor.choiceNone' | transloco }}
+                  </option>
+                  @for (option of view.options; track option.value) {
+                    <option [value]="option.value" [selected]="option.value === box.text">
+                      {{ option.labelKey | transloco }}
+                    </option>
+                  }
+                </select>
+              }
+              @case ('boolean') {
+                <label class="flex cursor-pointer items-center gap-2.5">
+                  <input
+                    #flagInput
+                    [id]="box.id"
+                    type="checkbox"
+                    class="size-5 flex-none cursor-pointer accent-ocean-700"
+                    [checked]="box.checked"
+                    (change)="write(index, box, flagInput.checked)"
+                  />
+                  <span class="font-heading text-[13px] font-extrabold text-ocean-800">{{
+                    'content.editor.' + field().key + '.' + view.part.key | transloco
+                  }}</span>
+                </label>
+              }
+              @default {
+                <label
+                  [for]="box.id"
+                  [class]="
+                    labelledParts() || box.language
+                      ? 'font-heading text-[11px] font-extrabold text-ocean-500'
+                      : 'sr-only'
+                  "
+                  >{{
+                    'content.editor.' + field().key + '.' + view.part.key
+                      | transloco: { language: box.language?.toUpperCase() }
+                  }}</label
+                >
+                <input
+                  #textInput
+                  [id]="box.id"
+                  type="text"
+                  class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                  [class]="box.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                  [attr.lang]="box.language"
+                  [value]="box.text"
+                  [attr.maxlength]="view.maxLength"
+                  [placeholder]="
+                    i18n() + '.placeholder.' + field().key + '.' + view.part.key | transloco
+                  "
+                  [attr.aria-invalid]="box.error ? true : null"
+                  (input)="write(index, box, textInput.value)"
+                />
+              }
+            }
+            @if (box.error; as error) {
+              <p
+                class="mt-1 font-heading text-sm font-bold text-flag-700"
+                data-testid="field-error"
+              >
+                {{ error }}
+              </p>
+            }
+          </div>
+        }
+      }
+      @if (entry.error; as error) {
+        <p class="font-heading text-sm font-bold text-flag-700" data-testid="field-error">
+          {{ error }}
+        </p>
+      }
+    </div>
+  } @empty {
+    <p class="font-heading text-[13px] font-bold text-ocean-500/60">
+      {{ 'content.editor.' + field().key + '.empty' | transloco }}
+    </p>
+  }
+  <div class="flex flex-wrap items-center gap-2.5">
+    <button
+      type="button"
+      class="cursor-pointer rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800 disabled:pointer-events-none disabled:opacity-40"
+      [disabled]="full()"
+      data-testid="part-add"
+      (click)="add()"
+    >
+      + {{ 'content.editor.' + field().key + '.add' | transloco }}
+    </button>
+    @if (full()) {
+      <span
+        class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+        data-testid="part-full"
+        >{{ 'content.editor.partList.full' | transloco: { max: field().maxEntries } }}</span
+      >
+    }
+  </div>
+</section>

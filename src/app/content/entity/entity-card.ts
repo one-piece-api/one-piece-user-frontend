@@ -5,9 +5,11 @@ import type { LanguageEntry } from '../language-catalog';
 import { ENTITY, entityOf } from './entities';
 import { STATUS_DOT_CLASS, STATUS_SOFT_CLASS } from '../status-badge';
 import { isLanguageComplete, localizedFields, sharedFields, type EntityBody } from './entity-body';
-import { naturalKeyParts } from './entity-definition';
+import { naturalKeyParts, type PartField, type PartListField } from './entity-definition';
 import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
+import { monthDayLabel, monthDayOf, monthDayText } from './entity-month-day';
+import { itemsOf, localizedTextsOf, partValueOf } from './entity-part-list';
 import { isReference, referenceLabel } from './entity-reference';
 import { countryName, releaseDateLabel, releasesInOrder } from './entity-release';
 import {
@@ -70,6 +72,22 @@ interface StoryItemLink {
   readonly label: string;
   /** Empty for a content whose section this app does not have. */
   readonly link: readonly string[];
+}
+
+/**
+ * One part of an entry of a list, in the language shown: its words - `null` for a localized
+ * text not written there - and, for a content pointed to, a link to its page.
+ */
+interface PartView {
+  readonly key: string;
+  readonly text: string | null;
+  readonly link: readonly string[];
+}
+
+/** An entry of a list of parts: its parts with something in them, in the definition's order. */
+interface PartEntryView {
+  readonly position: number;
+  readonly parts: readonly PartView[];
 }
 
 /** A content this one points to, as the card shows it: a link to its page under a heading. */
@@ -245,6 +263,18 @@ export class EntityCard {
         const label = this.transloco.translate(`${this.entity.i18n}.options.${field.key}.${value}`);
         return [{ field: field.key, value: label, lang: null }];
       }
+      if (field.kind === 'monthDay') {
+        const day = monthDayText(monthDayOf(value));
+        return day
+          ? [
+              {
+                field: field.key,
+                value: monthDayLabel(day, this.transloco.activeLang()),
+                lang: null,
+              },
+            ]
+          : [];
+      }
       if (field.kind === 'boolean') {
         if (field.inCard === false) {
           return [];
@@ -356,6 +386,65 @@ export class EntityCard {
         : [],
     );
   });
+
+  /**
+   * The lists of parts - epithets, aliases, species - a section each, the entries in their
+   * order and each part in the language shown; an empty list shows nothing.
+   */
+  protected readonly partLists = computed(() => {
+    const language = this.language() ?? this.transloco.activeLang();
+    this.transloco.activeLang();
+    return this.entity.fields.flatMap((field) =>
+      field.kind === 'partList'
+        ? [
+            {
+              field: field.key,
+              entries: itemsOf(this.body()[field.key]).map<PartEntryView>((item, index) => ({
+                position: index + 1,
+                parts: field.parts.flatMap((part) => this.partView(field, part, item, language)),
+              })),
+            },
+          ]
+        : [],
+    );
+  });
+
+  /**
+   * One part of an entry as the card shows it: a content pointed to by its name and linked, a
+   * localized text in the language shown - `null` when not written there - a choice by its
+   * label, a yes by the part's own label; nothing for an empty part or a no.
+   */
+  private partView(
+    field: PartListField,
+    part: PartField,
+    item: unknown,
+    language: string,
+  ): PartView[] {
+    const value = partValueOf(field, item, part);
+    const view = (text: string | null, link: readonly string[] = []) => [
+      { key: part.key, text, link },
+    ];
+    switch (part.kind) {
+      case 'relation': {
+        const target = entityOf(part.target);
+        return isReference(value)
+          ? view(referenceLabel(value, language, target), target ? [target.route, value.id] : [])
+          : [];
+      }
+      case 'localizedText':
+        return view(localizedTextsOf(value)[language]?.trim() || null);
+      case 'choice':
+        return typeof value === 'string' && value
+          ? view(this.transloco.translate(`${this.entity.i18n}.options.${part.key}.${value}`))
+          : [];
+      case 'boolean':
+        return value === true
+          ? view(this.transloco.translate(`${this.entity.i18n}.options.${part.key}.true`))
+          : [];
+      case 'text':
+        return textOf(value).trim() ? view(textOf(value).trim()) : [];
+    }
+  }
 
   /** The long texts in reading order, each a section of the card. */
   protected readonly longTexts = computed<LongText[]>(() =>

@@ -4,17 +4,30 @@
  * kind (`field-kinds.ts`). No Angular in here, so each one is testable on its own.
  */
 import { diffField, type FieldDiff } from '../version-comparison';
-import { naturalKeyParts, type EntityDefinition, type EntityField } from './entity-definition';
+import {
+  naturalKeyParts,
+  type EntityDefinition,
+  type EntityField,
+  type PartField,
+  type PartListField,
+} from './entity-definition';
 import { chosenFileOf, isImageDraft, isImageReference } from './entity-image';
+import {
+  identityOf,
+  isPartEntryDraft,
+  itemsOf,
+  localizedTextsOf,
+  partListFieldKey,
+  partValueOf,
+} from './entity-part-list';
 import {
   SUBCATEGORY_PARTS,
   subcategoriesOf,
   subcategoryNames,
   subcategoryText,
   type SavedSubcategory,
-  type SubcategoryPart,
 } from './entity-subcategory';
-import { FIELD_KINDS, isAskedByReview } from './field-kinds';
+import { FIELD_KINDS, isAskedByReview, sentPartEntries } from './field-kinds';
 
 /** What a version says in one language, by field key. */
 export type Translation = Record<string, unknown>;
@@ -49,14 +62,16 @@ export interface EntityFieldRef {
 }
 
 /**
- * One value of one entry of a list field - a text in one language, or the entry's first
- * appearance: which entry, where it stands, how it is called.
+ * One value of one entry of a list field - a text in one language, the entry's first
+ * appearance, a part of a `partList` entry or where that entry stands: which entry, where it
+ * stands, how it is called.
  */
 export interface FieldEntry {
   readonly id: string;
   /** Its place in the list, from 1. */
   readonly position: number;
-  readonly part: SubcategoryPart | 'firstAppearance';
+  /** A subcategory's text or first appearance, a part's key, or `position` for a move. */
+  readonly part: string;
   /** Its name in the language of the reference, `null` where it has none. */
   readonly name: string | null;
 }
@@ -106,8 +121,49 @@ export function isLanguageComplete(
 ): boolean {
   return (
     isTranslationComplete(definition, value.translations[language]) &&
-    subcategoryChecks(definition, value, language).every(({ done }) => done)
+    subcategoryChecks(definition, value, language).every(({ done }) => done) &&
+    partListChecks(definition, value, language).every(({ done }) => done)
   );
+}
+
+/** The fields that are lists of entries made of parts, such as a character's epithets. */
+export function partListFields(definition: EntityDefinition): PartListField[] {
+  return definition.fields.filter((field): field is PartListField => field.kind === 'partList');
+}
+
+/**
+ * Whether each entry of a `partList` has its localized parts written in `language` - the
+ * text of each epithet - as the backend asks before review (`epithets[1].text[en]`). Only
+ * the entries the JSON carries: one added and left empty is not saved, so not asked for.
+ */
+function partListChecks(
+  definition: EntityDefinition,
+  value: EntityBody | EntityDraft,
+  language: string,
+): ReadinessCheck[] {
+  return partListFields(definition).flatMap((field) => {
+    const items = itemsOf(value[field.key]);
+    const entries = items.some(isPartEntryDraft) ? sentPartEntries(field, items) : items;
+    return entries.flatMap((item, index) =>
+      field.parts.filter(isAskedByReview).flatMap((part) =>
+        part.kind === 'localizedText'
+          ? [
+              {
+                field: field.key,
+                language,
+                entry: {
+                  id: isPartEntryDraft(item) ? item.key : String(index),
+                  position: index + 1,
+                  part: part.key,
+                  name: null,
+                },
+                done: !!localizedTextsOf(partValueOf(field, item, part))[language]?.trim(),
+              },
+            ]
+          : [],
+      ),
+    );
+  });
 }
 
 /** Whether each subcategory has its name and its description in `language`. */
@@ -189,14 +245,14 @@ export function draftOf(
     translations: {},
   };
   for (const field of sharedFields(definition)) {
-    draft[field.key] = kindOf(field).draftValue(body?.[field.key]);
+    draft[field.key] = kindOf(field).draftValue(body?.[field.key], field);
   }
   for (const language of languages) {
     const translation = body?.translations[language];
     draft.translations[language] = Object.fromEntries(
       localizedFields(definition).map((field) => [
         field.key,
-        kindOf(field).draftValue(translation?.[field.key]),
+        kindOf(field).draftValue(translation?.[field.key], field),
       ]),
     );
   }
@@ -207,7 +263,7 @@ export function draftOf(
 export function toBody(definition: EntityDefinition, draft: EntityDraft): EntityBody {
   const body: Record<string, unknown> = {};
   for (const field of sharedFields(definition)) {
-    const value = kindOf(field).savedValue(draft[field.key]);
+    const value = kindOf(field).savedValue(draft[field.key], field);
     if (value !== undefined) {
       body[field.key] = value;
     }
@@ -217,7 +273,7 @@ export function toBody(definition: EntityDefinition, draft: EntityDraft): Entity
     translations[language] = Object.fromEntries(
       localizedFields(definition).map((field) => [
         field.key,
-        kindOf(field).savedValue(translation[field.key]),
+        kindOf(field).savedValue(translation[field.key], field),
       ]),
     );
   }
@@ -295,6 +351,7 @@ export function readinessChecks(
           done: kindOf(field).isFilled(translation?.[field.key]),
         })),
       ...subcategoryChecks(definition, draft, language),
+      ...partListChecks(definition, draft, language),
     );
   }
   return checks;
@@ -310,9 +367,15 @@ function releaseListFields(definition: EntityDefinition): EntityField[] {
  * key (`romaji`, `number`), `it.name`, `it.subcategories.0.name`, `subcategories.0` or
  * `releases.1.country`. The backend names them `romaji`, `translations[it].name`,
  * `subcategories[0].translations[it].name`, `subcategories[0].id` and `releases[1].country` -
- * a release by its position in the JSON sent (`sentReleaseRows`); anything else is `null`.
+ * a release by its position in the JSON sent (`sentReleaseRows`). An entry of a `partList`
+ * is `species.1` or `epithets.1.text.en`, by its position in the JSON sent
+ * (`sentPartEntries`; see `partListFieldKey`). Anything else is `null`.
  */
 export function draftFieldKey(definition: EntityDefinition, field: string): string | null {
+  const entryOfPartList = partListFieldKey(partListFields(definition), field);
+  if (entryOfPartList) {
+    return entryOfPartList;
+  }
   const lists = subcategoryListFields(definition).map(({ key }) => key);
   const entry = new RegExp(
     String.raw`^(${lists.join('|')})\[(\d+)\](?:\.translations\[([^\]]+)\]\.(name|description)|\.(firstAppearance)(?:\.(?:chapter|episode))?|\.id)?$`,
@@ -362,25 +425,27 @@ export function diffBodies(
   target: EntityBody,
   catalogOrder: readonly string[],
 ): FieldDiff<EntityFieldRef>[] {
-  const languages = languagesOf(base, target, catalogOrder);
+  const languages = languagesOf(definition, base, target, catalogOrder);
   const diffs = definition.fields.flatMap((field) =>
     field.kind === 'subcategoryList'
       ? diffSubcategories(field.key, base?.[field.key], target[field.key], languages)
-      : kindOf(field).localized
-        ? languages.map((language) =>
-            kindOf(field).diff<EntityFieldRef>(
-              { field: field.key, language },
-              base?.translations[language]?.[field.key],
-              target.translations[language]?.[field.key],
-            ),
-          )
-        : [
-            kindOf(field).diff<EntityFieldRef>(
-              { field: field.key, language: null },
-              base?.[field.key],
-              target[field.key],
-            ),
-          ],
+      : field.kind === 'partList'
+        ? diffPartList(field, base?.[field.key], target[field.key], languages)
+        : kindOf(field).localized
+          ? languages.map((language) =>
+              kindOf(field).diff<EntityFieldRef>(
+                { field: field.key, language },
+                base?.translations[language]?.[field.key],
+                target.translations[language]?.[field.key],
+              ),
+            )
+          : [
+              kindOf(field).diff<EntityFieldRef>(
+                { field: field.key, language: null },
+                base?.[field.key],
+                target[field.key],
+              ),
+            ],
   );
   return diffs.filter((diff) => diff !== null);
 }
@@ -437,16 +502,124 @@ function diffSubcategories(
   });
 }
 
-/** The languages either version has a translation in: the catalog's first, then the rest. */
+/** The languages of a version's translations and of the localized parts of its lists. */
+function languagesWritten(definition: EntityDefinition, body: EntityBody): string[] {
+  const inLists = partListFields(definition).flatMap((field) =>
+    field.parts
+      .filter(({ kind }) => kind === 'localizedText')
+      .flatMap((part) =>
+        itemsOf(body[field.key]).flatMap((item) =>
+          Object.keys(localizedTextsOf(partValueOf(field, item, part))),
+        ),
+      ),
+  );
+  return [...Object.keys(body.translations), ...inLists];
+}
+
+/** The part of a comparison row that says an entry of a `partList` moved. */
+export const POSITION_PART = 'position';
+
+/** An entry of a `partList` in both versions, or in one: where it stood, where it stands. */
+interface EntryPair {
+  readonly old?: unknown;
+  readonly oldPosition: number;
+  readonly now?: unknown;
+  readonly position: number;
+}
+
+/**
+ * The entries of two versions of a `partList`, paired: by their unique part where the list
+ * has one - so an entry that moved is still the same one - else by position. The entries of
+ * the version compared in order, then those it removed, at the place they had.
+ */
+function pairEntries(
+  field: PartListField,
+  was: readonly unknown[],
+  is: readonly unknown[],
+): EntryPair[] {
+  if (!field.unique) {
+    return Array.from({ length: Math.max(was.length, is.length) }, (_, index) => ({
+      ...(index < was.length ? { old: was[index] } : {}),
+      ...(index < is.length ? { now: is[index] } : {}),
+      oldPosition: index + 1,
+      position: index + 1,
+    }));
+  }
+  const unmatched = new Set(was.keys());
+  const pairs = is.map((now, index): EntryPair => {
+    const identity = identityOf(field, now);
+    const match = [...unmatched].find(
+      (oldIndex) => identity !== null && identityOf(field, was[oldIndex]) === identity,
+    );
+    if (match === undefined) {
+      return { now, oldPosition: index + 1, position: index + 1 };
+    }
+    unmatched.delete(match);
+    return { old: was[match], oldPosition: match + 1, now, position: index + 1 };
+  });
+  const removed = [...unmatched].map((oldIndex): EntryPair => ({
+    old: was[oldIndex],
+    oldPosition: oldIndex + 1,
+    position: oldIndex + 1,
+  }));
+  return [...pairs, ...removed];
+}
+
+/**
+ * Compares two versions of a `partList` entry by entry (`pairEntries`): each part as its kind
+ * compares it - a localized one once per language - and, for an entry that moved, a row
+ * saying from where to where. An entry added or removed shows all its parts so.
+ */
+function diffPartList(
+  field: PartListField,
+  before: unknown,
+  after: unknown,
+  languages: readonly string[],
+): (FieldDiff<EntityFieldRef> | null)[] {
+  return pairEntries(field, itemsOf(before), itemsOf(after)).flatMap(
+    ({ old, oldPosition, now, position }) => {
+      // A removed entry keeps its old place as `position`, so `#n` is never shared.
+      const id = identityOf(field, now !== undefined ? now : old) ?? `#${position}`;
+      const ref = (part: string, language: string | null): EntityFieldRef => ({
+        field: field.key,
+        language,
+        entry: { id, position, part, name: null },
+      });
+      const valueIn = (item: unknown, part: PartField) =>
+        item === undefined ? undefined : partValueOf(field, item, part);
+      const parts = field.parts.flatMap((part) =>
+        part.kind === 'localizedText'
+          ? languages.map((language) =>
+              diffField(
+                ref(part.key, language),
+                localizedTextsOf(valueIn(old, part))[language],
+                localizedTextsOf(valueIn(now, part))[language],
+              ),
+            )
+          : [kindOf(part).diff(ref(part.key, null), valueIn(old, part), valueIn(now, part))],
+      );
+      const moved =
+        old !== undefined && now !== undefined && oldPosition !== position
+          ? diffField(ref(POSITION_PART, null), String(oldPosition), String(position))
+          : null;
+      return [...parts, moved];
+    },
+  );
+}
+
+/**
+ * The languages either version is written in - its translations and the localized parts of
+ * its lists (an epithet), as the backend counts them: the catalog's first, then the rest.
+ */
 function languagesOf(
+  definition: EntityDefinition,
   base: EntityBody | null,
   target: EntityBody,
   catalogOrder: readonly string[],
 ): string[] {
-  const present = new Set([
-    ...Object.keys(base?.translations ?? {}),
-    ...Object.keys(target.translations),
-  ]);
+  const present = new Set(
+    [base, target].flatMap((body) => (body ? languagesWritten(definition, body) : [])),
+  );
   const inCatalog = catalogOrder.filter((language) => present.has(language));
   const outside = [...present].filter((language) => !catalogOrder.includes(language)).sort();
   return [...inCatalog, ...outside];

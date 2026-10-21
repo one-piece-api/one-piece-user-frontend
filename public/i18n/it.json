@@ -876,7 +876,8 @@
       "noFirstAppearance": "Non indicata",
       "noPrevious": "nessuna, è la prima",
       "yes": "Sì",
-      "no": "No"
+      "no": "No",
+      "notWritten": "— non scritto in {{language}} —"
     },
     "comparison": {
       "title": "Confronto versioni",
@@ -1044,7 +1045,9 @@
         "subcategoryNameTaken": "già il nome di un'altra sottocategoria",
         "numberInvalid": "dev'essere un numero intero, non sotto il minimo",
         "releaseCountry": "scegli un paese valido, con una sola data per paese",
-        "releaseDate": "scegli una data valida"
+        "releaseDate": "scegli una data valida",
+        "entryRepeated": "già presente in questo elenco",
+        "entryNotLinkable": "non si può più scegliere: serve un contenuto già approvato in revisione"
       },
       "takenNumberMessage": "Arrr! Un altro contenuto ha già lo stesso numero: dev'essere unico.",
       "numberRefusedMessage": "Arrr! Un numero non va: dev'essere un numero intero, non sotto il minimo.",
@@ -1125,7 +1128,18 @@
         "label": "Taglia precedente",
         "hint": "facoltativo · la taglia che questa sostituisce"
       },
-      "choiceNone": "— scegli —"
+      "choiceNone": "— scegli —",
+      "entryRefusedMessage": "Arrr! Qualche voce di un elenco non va: il motivo è scritto sotto.",
+      "partList": {
+        "up": "Sposta su",
+        "down": "Sposta giù",
+        "remove": "Togli",
+        "full": "massimo {{max}} voci"
+      },
+      "monthDay": {
+        "day": "Giorno",
+        "month": "Mese"
+      }
     },
     "dashboard": {
       "eyebrow": "Dashboard",

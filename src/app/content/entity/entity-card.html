@@ -193,6 +193,45 @@
           </div>
         }
       }
+      @for (list of partLists(); track list.field) {
+        @if (list.entries.length) {
+          <div
+            class="mb-3.5 flow-root border-t border-dashed border-card-line pt-3"
+            [attr.data-testid]="'card-' + list.field"
+          >
+            <h3
+              class="mb-1.5 font-display text-[13px] font-bold tracking-[0.08em] text-ocean-900 uppercase"
+            >
+              {{ 'content.card.heading.' + list.field | transloco }}
+            </h3>
+            <ul class="flex flex-wrap gap-1.5">
+              @for (entry of list.entries; track entry.position) {
+                <li
+                  class="rounded-xl bg-parchment-200/60 px-3 py-1 font-heading text-[15px] font-extrabold wrap-anywhere"
+                  data-testid="card-part-entry"
+                >
+                  @for (part of entry.parts; track part.key; let last = $last) {
+                    @if (part.text === null) {
+                      <span class="text-treasure-700">{{
+                        'content.card.notWritten' | transloco: { language: languageLabel() }
+                      }}</span>
+                    } @else if (part.link.length) {
+                      <a [routerLink]="part.link" class="text-ocean-700 hover:text-ocean-800">{{
+                        part.text
+                      }}</a>
+                    } @else {
+                      <span class="text-ocean-950">{{ part.text }}</span>
+                    }
+                    @if (!last) {
+                      <span class="text-ocean-500"> · </span>
+                    }
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      }
       @for (list of subcategoryLists(); track list.field) {
         @if (list.entries.length) {
           <div

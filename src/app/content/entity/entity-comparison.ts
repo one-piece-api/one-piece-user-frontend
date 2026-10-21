@@ -35,6 +35,8 @@ import { EntityCard } from './entity-card';
 import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityImageFrame } from './entity-image-frame';
+import type { EntityField } from './entity-definition';
+import { monthDayLabel } from './entity-month-day';
 import { comparedStoryPointLabel } from './entity-story-point';
 import { untitledOf } from './entity-title';
 
@@ -338,12 +340,17 @@ export class EntityComparison {
               this.transloco.translate('content.comparison.field.unnamedEntry', {
                 position: entry.position,
               }),
+            position: entry.position,
           })
         : this.transloco.translate(`content.comparison.field.${field}`, {
             language: language?.toUpperCase(),
           }),
-      before: storyPoint ? this.storyPointNamed(diff.before) : this.valueNamed(field, diff.before),
-      after: storyPoint ? this.storyPointNamed(diff.after) : this.valueNamed(field, diff.after),
+      before: storyPoint
+        ? this.storyPointNamed(diff.before)
+        : this.valueNamed(field, diff.before, entry?.part),
+      after: storyPoint
+        ? this.storyPointNamed(diff.after)
+        : this.valueNamed(field, diff.after, entry?.part),
       image: image !== undefined,
       ratio:
         image?.kind === 'image' ? image.profile.width / image.profile.height : DEFAULT_IMAGE_RATIO,
@@ -354,15 +361,24 @@ export class EntityComparison {
     };
   }
 
-  /** A value of a closed set, or a yes or no, in words; any other value as compared. */
-  private valueNamed(key: string, compared: string | null): string | null {
-    const kind = this.entity.fields.find((candidate) => candidate.key === key)?.kind;
+  /**
+   * A value of a closed set, or a yes or no, in words, a day of the year as a date; any other
+   * value as compared. `part` is the part of an entry of a list, whose kind says how it reads.
+   */
+  private valueNamed(key: string, compared: string | null, part?: string): string | null {
+    const field = this.entity.fields.find((candidate) => candidate.key === key);
+    const named: EntityField | undefined =
+      field?.kind === 'partList' ? field.parts.find((candidate) => candidate.key === part) : field;
     if (compared === null) {
       return null;
     }
-    if (kind === 'choice') {
-      return this.transloco.translate(`${this.entity.i18n}.options.${key}.${compared}`);
+    if (named?.kind === 'choice') {
+      return this.transloco.translate(`${this.entity.i18n}.options.${named.key}.${compared}`);
     }
+    if (named?.kind === 'monthDay') {
+      return monthDayLabel(compared, this.transloco.activeLang());
+    }
+    const kind = named?.kind;
     if (kind === 'boolean') {
       return this.transloco.translate(compared === 'true' ? 'content.card.yes' : 'content.card.no');
     }

@@ -171,6 +171,39 @@ export interface StoryPointField {
   readonly optional?: true;
 }
 
+/**
+ * A day of the year without a year - a birthday - sent as ISO 8601 `--MM-DD` (`--05-05`),
+ * `null` for none. Optional, never asked for by review; 29 February is a day like any other.
+ */
+export interface MonthDayField {
+  readonly kind: 'monthDay';
+  readonly key: string;
+}
+
+/** The kinds a part of a `partList` entry may have: values of one entry, never lists or files. */
+export type PartField = TextField | LocalizedTextField | RelationField | ChoiceField | BooleanField;
+
+/**
+ * An ordered list of entries inside the version, each made of `parts` - fields of the kinds
+ * above: a character's epithets, aliases, species. Each part is read, saved and compared by
+ * its own kind (`entity-part-list.ts`). A list of one part that is not localized travels as
+ * bare values (`["Sogeking"]`, `[id]`); any other as one object per entry, keyed by part, a
+ * localized part being a map of language to text (`{ text: { it, en } }`). Never required.
+ */
+export interface PartListField {
+  readonly kind: 'partList';
+  readonly key: string;
+  readonly parts: readonly PartField[];
+  /** The most entries the backend accepts; the editor offers no more. */
+  readonly maxEntries?: number;
+  /**
+   * The key of the part no two entries may share - the species, the alias. It identifies
+   * an entry across versions, so a comparison sees it move; without it, entries are matched
+   * by position.
+   */
+  readonly unique?: string;
+}
+
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
 export type EntityField =
   | TextField
@@ -184,7 +217,9 @@ export type EntityField =
   | StoryPointField
   | ChoiceField
   | BooleanField
-  | BadgeField;
+  | BadgeField
+  | MonthDayField
+  | PartListField;
 
 export type FieldKindName = EntityField['kind'];
 
@@ -367,6 +402,17 @@ export function booleanField(
 
 export function badgeField(key: string, options: Omit<BadgeField, 'kind' | 'key'>): BadgeField {
   return { kind: 'badge', key, ...options };
+}
+
+export function monthDayField(key: string): MonthDayField {
+  return { kind: 'monthDay', key };
+}
+
+export function partListField(
+  key: string,
+  options: Omit<PartListField, 'kind' | 'key'>,
+): PartListField {
+  return { kind: 'partList', key, ...options };
 }
 
 export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {

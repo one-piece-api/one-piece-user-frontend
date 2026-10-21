@@ -876,7 +876,8 @@
       "noFirstAppearance": "Not set",
       "noPrevious": "none, this is the first",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "notWritten": "— not written in {{language}} —"
     },
     "comparison": {
       "title": "Compare versions",
@@ -1044,7 +1045,9 @@
         "subcategoryNameTaken": "already the name of another subcategory",
         "numberInvalid": "must be a whole number, not below the minimum",
         "releaseCountry": "pick a valid country, with one date per country",
-        "releaseDate": "pick a valid date"
+        "releaseDate": "pick a valid date",
+        "entryRepeated": "already in this list",
+        "entryNotLinkable": "can no longer be chosen: it needs a content already approved in review"
       },
       "takenNumberMessage": "Arrr! Another content already has the same number: it must be unique.",
       "numberRefusedMessage": "Arrr! A number is off course: it must be a whole number, not below the minimum.",
@@ -1125,7 +1128,18 @@
         "label": "Previous bounty",
         "hint": "optional · the bounty this one replaces"
       },
-      "choiceNone": "— choose —"
+      "choiceNone": "— choose —",
+      "entryRefusedMessage": "Arrr! Some entry of a list is off course: the reason is written below it.",
+      "partList": {
+        "up": "Move up",
+        "down": "Move down",
+        "remove": "Remove",
+        "full": "at most {{max}} entries"
+      },
+      "monthDay": {
+        "day": "Day",
+        "month": "Month"
+      }
     },
     "dashboard": {
       "eyebrow": "Dashboard",

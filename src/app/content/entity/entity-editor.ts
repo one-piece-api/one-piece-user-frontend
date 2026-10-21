@@ -36,6 +36,7 @@ import {
   isLanguageComplete,
   localizedFields,
   namesOf,
+  partListFields,
   readinessChecks,
   sharedFields,
   toBody,
@@ -46,11 +47,15 @@ import {
 } from './entity-body';
 import type { EntityField, ImageField, SubcategoryField } from './entity-definition';
 import { isImageDraft, type ImageDraft } from './entity-image';
+import { monthDayOf, type MonthDayDraft } from './entity-month-day';
+import { identityOf, itemsOf, isPartEntryDraft, type PartEntryDraft } from './entity-part-list';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 import { COUNTRY_CODES, countryName, newReleaseKey, type ReleaseDraft } from './entity-release';
 import { isNumbered, untitledOf } from './entity-title';
-import { sentReleaseRows, textOf } from './field-kinds';
+import { sentPartEntries, sentReleaseRows, textOf } from './field-kinds';
 import { ImagePicker } from './image-picker';
+import { MonthDayPicker } from './month-day-picker';
+import { PartListEditor, type PartListChange } from './part-list-editor';
 import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
 import {
@@ -126,12 +131,25 @@ const SUBCATEGORY_REFUSED_KEY = {
 };
 const SUBCATEGORY_REFUSED_MESSAGE_KEY = 'content.editor.subcategoryRefusedMessage';
 
+/**
+ * What is said under an entry of a list of parts the backend refused - already in the list,
+ * or a content that cannot be linked - and what the Lumacofono says then.
+ */
+const ENTRY_REPEATED_KEY = 'content.editor.error.entryRepeated';
+const ENTRY_NOT_LINKABLE_KEY = 'content.editor.error.entryNotLinkable';
+const ENTRY_REFUSED_MESSAGE_KEY = 'content.editor.entryRefusedMessage';
+
+/** An entry of a list of parts the editor addresses as `species.1` or `epithets.1.text.en`. */
+const PART_ENTRY_KEY = /^([^.]+).(d+)((?:.[^.]+)*)$/;
+
 /** What the Lumacofono says for each of the specific texts above. */
 const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
   [RELATION_REFUSED_KEY]: RELATION_REFUSED_MESSAGE_KEY,
   [NUMBER_REFUSED_KEY]: NUMBER_REFUSED_MESSAGE_KEY,
   [RELEASE_REFUSED_KEY['country']]: RELEASE_REFUSED_MESSAGE_KEY,
   [RELEASE_REFUSED_KEY['date']]: RELEASE_REFUSED_MESSAGE_KEY,
+  [ENTRY_REPEATED_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
+  [ENTRY_NOT_LINKABLE_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
   ...Object.fromEntries(
     Object.values(SUBCATEGORY_REFUSED_KEY).map((text) => [text, SUBCATEGORY_REFUSED_MESSAGE_KEY]),
   ),
@@ -196,6 +214,8 @@ interface CheckView {
     Icon,
     ImagePicker,
     LoadingPlaceholder,
+    MonthDayPicker,
+    PartListEditor,
     RelationPicker,
     RouterLink,
     TranslocoPipe,
@@ -236,7 +256,7 @@ export class EntityEditor {
   private readonly version = httpResource<Version<EntityBody>>(() => this.versionUrl());
 
   protected readonly languages = computed(() => this.languageCatalog.languages.value() ?? []);
-  private readonly languageCodes = computed(() => this.languages().map(({ code }) => code));
+  protected readonly languageCodes = computed(() => this.languages().map(({ code }) => code));
 
   /** What the editor starts from, once everything it needs has arrived. */
   private readonly saved = computed<EntityDraft | null>(() => {
@@ -292,6 +312,7 @@ export class EntityEditor {
             field.kind !== 'image' &&
             field.kind !== 'subcategoryList' &&
             field.kind !== 'releaseList' &&
+            field.kind !== 'partList' &&
             field.kind !== 'badge',
         )
         .map((field) => {
@@ -310,6 +331,7 @@ export class EntityEditor {
                   }))
                 : [],
             storyPoint: field.kind === 'storyPoint' ? storyPointOf(chosen) : null,
+            monthDay: field.kind === 'monthDay' ? monthDayOf(chosen) : null,
             source: sourceOf(field),
             choices:
               field.kind === 'subcategory'
@@ -378,6 +400,23 @@ export class EntityEditor {
         },
       ];
     });
+  });
+
+  /**
+   * The lists of parts - epithets, aliases, species - each with its entries and the backend's
+   * refusals of it, by `index[.part[.language]]`.
+   */
+  protected readonly partListViews = computed(() => {
+    const refused = Object.entries(this.refusedFields());
+    return partListFields(this.entity).map((field) => ({
+      field,
+      entries: this.partEntriesIn(field.key),
+      errors: Object.fromEntries(
+        refused
+          .filter(([key]) => key.startsWith(`${field.key}.`))
+          .map(([key, text]) => [key.slice(field.key.length + 1), text]),
+      ),
+    }));
   });
 
   /** The translated fields in the language on screen, likewise. */
@@ -588,6 +627,26 @@ export class EntityEditor {
       (draft) => draft && { ...draft, [key]: { ...storyPointOf(draft[key]), [part]: item } },
     );
     this.forgetRefusal(key);
+  }
+
+  /** Picks the day and the month of a day of the year; the JSON gets it once both are picked. */
+  protected setMonthDay(key: string, value: MonthDayDraft): void {
+    this.draft.update((draft) => draft && { ...draft, [key]: value });
+    this.forgetRefusal(key);
+  }
+
+  /**
+   * Takes what a list of parts became: a value written forgets its own refusal and its entry's;
+   * an entry added, moved or removed forgets every refusal of the list, whose positions moved.
+   */
+  protected setPartList(key: string, { entries, touched }: PartListChange): void {
+    this.draft.update((draft) => draft && { ...draft, [key]: entries });
+    if (touched === null) {
+      this.forgetRefusalsOf(key);
+      return;
+    }
+    this.forgetRefusal(`${key}.${touched}`);
+    this.forgetRefusal(`${key}.${touched.split('.')[0]}`);
   }
 
   /** Chooses the content a relation or a story point points to - or none. */
@@ -845,7 +904,7 @@ export class EntityEditor {
       for (const violation of apiError?.errors ?? []) {
         const named = draftFieldKey(this.entity, violation.field);
         if (named) {
-          const key = draft ? this.releaseRowOf(named, draft) : named;
+          const key = draft ? this.partEntryOf(this.releaseRowOf(named, draft), draft) : named;
           // A number, a release, a relation or a subcategory is refused for being invalid:
           // not for a slug, which says the same code.
           const specific = this.specificRefusalKey(key, errorCode);
@@ -877,6 +936,10 @@ export class EntityEditor {
    * invalid - a relation or subcategory (`invalidValueKey`). `null` for any other field.
    */
   private specificRefusalKey(key: string, errorCode: string): string | null {
+    const entryRefusal = errorCode === VALUE_INVALID ? this.partEntryRefusalKey(key) : null;
+    if (entryRefusal) {
+      return entryRefusal;
+    }
     const field = this.entity.fields.find((candidate) => candidate.key === key);
     if (field?.kind === 'number' && errorCode !== VALUE_ALREADY_USED) {
       return NUMBER_REFUSED_KEY;
@@ -907,6 +970,46 @@ export class EntityEditor {
       return SUBCATEGORY_REFUSED_KEY.id;
     }
     return lists.some((list) => list.key === second) ? SUBCATEGORY_REFUSED_KEY.name : null;
+  }
+
+  /**
+   * What is said under an entry of a list of parts refused as invalid: repeated, when an
+   * earlier entry is the same one (its unique part), else - for a content pointed to - that
+   * it cannot be linked, and for a text that the list already has it. `null` for any other key.
+   */
+  private partEntryRefusalKey(key: string): string | null {
+    const [, list, index, rest] = PART_ENTRY_KEY.exec(key) ?? [];
+    const field = partListFields(this.entity).find((candidate) => candidate.key === list);
+    if (!field) {
+      return null;
+    }
+    const entries = this.partEntriesIn(field.key);
+    const identity = identityOf(field, entries[Number(index)]);
+    const repeated =
+      identity !== null &&
+      entries.slice(0, Number(index)).some((entry) => identityOf(field, entry) === identity);
+    const partKey = rest.split('.')[1];
+    const part = field.parts.find(({ key: candidate }) => candidate === partKey) ?? field.parts[0];
+    return !repeated && part.kind === 'relation' ? ENTRY_NOT_LINKABLE_KEY : ENTRY_REPEATED_KEY;
+  }
+
+  /**
+   * An entry of a list of parts the backend names by its position in the JSON sent, as the
+   * entry it came from: the JSON leaves out the entries left empty.
+   */
+  private partEntryOf(key: string, draft: EntityDraft): string {
+    const [, list, position, rest] = PART_ENTRY_KEY.exec(key) ?? [];
+    const field = partListFields(this.entity).find((candidate) => candidate.key === list);
+    if (!field) {
+      return key;
+    }
+    const entry = sentPartEntries(field, draft[list])[Number(position)];
+    const index = entry ? itemsOf(draft[list]).indexOf(entry) : -1;
+    return index < 0 ? key : `${list}.${index}${rest}`;
+  }
+
+  private partEntriesIn(key: string): PartEntryDraft[] {
+    return itemsOf(this.draft()?.[key]).filter(isPartEntryDraft);
   }
 
   /** The subcategory fields that pick among those of the content a relation points to. */
