@@ -140,7 +140,7 @@ const ENTRY_NOT_LINKABLE_KEY = 'content.editor.error.entryNotLinkable';
 const ENTRY_REFUSED_MESSAGE_KEY = 'content.editor.entryRefusedMessage';
 
 /** An entry of a list of parts the editor addresses as `species.1` or `epithets.1.text.en`. */
-const PART_ENTRY_KEY = /^([^.]+).(d+)((?:.[^.]+)*)$/;
+const PART_ENTRY_KEY = /^([^.]+)\.(\d+)((?:\.[^.]+)*)$/;
 
 /** What the Lumacofono says for each of the specific texts above. */
 const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
