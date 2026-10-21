@@ -15,7 +15,6 @@
       "overview": "Panoramica",
       "contents": "Contenuti",
       "characters": "Personaggi",
-      "crews": "Ciurme",
       "soon": "in arrivo",
       "soonMessage": "{{label}} non è ancora attiva: arriverà con lo stesso schema di lista e dettaglio.",
       "liveItems": {
@@ -677,7 +676,8 @@
             "episodes": "Episodi online: {{count}}",
             "fruits": "Frutti online: {{count}}",
             "types": "Tipi online: {{count}}",
-            "bounties": "Taglie online: {{count}}"
+            "bounties": "Taglie online: {{count}}",
+            "affiliations": "Affiliazioni online: {{count}}"
           },
           "FIRST_APPEARANCE_MISSING": "Prima apparizione mancante",
           "PREVIOUS_ALREADY_REPLACED": "Taglia precedente già sostituita",
@@ -702,7 +702,8 @@
             "episodes": "Arrr! Ci sono ancora episodi online collegati a questo arco, compare. Ritirali prima:",
             "fruits": "Arrr! Ci sono Frutti online che appaiono per la prima volta in questo capitolo, compare. Ritirali prima:",
             "types": "Arrr! Ci sono Tipi online (o loro sottocategorie) che appaiono per la prima volta in questo capitolo, compare. Ritirali prima:",
-            "bounties": "Arrr! Ci sono ancora taglie online collegate, compare. Ritirale prima:"
+            "bounties": "Arrr! Ci sono ancora taglie online collegate, compare. Ritirale prima:",
+            "affiliations": "Arrr! Ci sono affiliazioni online che appaiono per la prima volta qui, compare. Ritirale prima:"
           },
           "FIRST_APPEARANCE_MISSING": "Arrr! Manca la prima apparizione, compare: indica il capitolo in cui il lettore lo incontra la prima volta.",
           "PREVIOUS_ALREADY_REPLACED": "Arrr! La taglia precedente è già sostituita da un'altra online, compare: ogni taglia può essere sostituita da una sola. Ritira prima quella, o scegli un'altra taglia precedente:",
@@ -1435,6 +1436,21 @@
           "title": "Storia delle taglie"
         }
       }
+    },
+    "affiliations": {
+      "kicker": "Contenuti · /affiliations",
+      "title": "Affiliazioni",
+      "lead": "Ciurme, Marina, Governo Mondiale e ogni altro gruppo di cui un personaggio può far parte.",
+      "new": "+ Nuova affiliazione",
+      "one": "Affiliazione",
+      "newTitle": "Nuova affiliazione",
+      "placeholder": {
+        "romaji": "es. Mugiwara no Ichimi",
+        "name": "nome nella lingua selezionata",
+        "description": "descrizione nella lingua selezionata"
+      },
+      "hintMissing": "Per la revisione servono il romaji, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
+      "imageHint": "L'emblema o il Jolly Roger del gruppo."
     }
   }
 }

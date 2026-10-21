@@ -123,6 +123,8 @@ export interface ImageField {
   readonly kind: 'image';
   readonly key: string;
   readonly profile: ImageProfile;
+  /** What the image should show, as a translation key - the emblem of a group. */
+  readonly hint?: string;
 }
 
 /**
@@ -319,8 +321,12 @@ export function relationField(
   return { kind: 'relation', key, ...options };
 }
 
-export function imageField(key: string, profile: ImageProfile): ImageField {
-  return { kind: 'image', key, profile };
+export function imageField(
+  key: string,
+  profile: ImageProfile,
+  options: Pick<ImageField, 'hint'> = {},
+): ImageField {
+  return { kind: 'image', key, profile, ...options };
 }
 
 export function subcategoryListField(

@@ -157,6 +157,22 @@ describe('blockWords of the story contents', () => {
     expect(words.links).toEqual([{ label: 'Shizen-kei', route: '/content/devil-fruit-types/t1' }]);
   });
 
+  it('names, by romaji, the affiliations that keep a chapter or an episode from being retired', () => {
+    const words = blockWords(transloco, {
+      reason: 'ONLINE_ITEMS_LINKED',
+      detail: { count: 3, affiliations: [{ id: 'a1', romaji: 'Mugiwara no Ichimi' }] },
+    });
+
+    expect(words.note).toBe('Affiliations online: 3');
+    expect(words.links).toEqual([
+      { label: 'Mugiwara no Ichimi', route: '/content/affiliations/a1' },
+    ]);
+    expect(words.more).toBe(2);
+    expect(words.titled).toBe(
+      'Arrr! Online affiliations first appear here, matey. Retire them first: Mugiwara no Ichimi and 2 more',
+    );
+  });
+
   it('asks a fruit or a type for its first appearance before it goes online', () => {
     const words = blockWords(transloco, { reason: 'FIRST_APPEARANCE_MISSING', detail: {} });
 

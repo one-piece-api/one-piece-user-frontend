@@ -1,3 +1,4 @@
+import { AFFILIATION } from '../../content/affiliations/affiliation.model';
 import { ARC } from '../../content/arcs/arc.model';
 import { BOUNTY } from '../../content/bounties/bounty.model';
 import { CHAPTER } from '../../content/chapters/chapter.model';
@@ -122,17 +123,11 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         icon: 'assets/characters.webp',
         items: [
           entityNavItem(BOUNTY),
+          entityNavItem(AFFILIATION),
           {
             id: 'characters',
             label: 'shell.nav.characters',
             icon: 'assets/characters.webp',
-            permission: 'content:read',
-            soon: true,
-          },
-          {
-            id: 'crews',
-            label: 'shell.nav.crews',
-            icon: 'assets/crews.webp',
             permission: 'content:read',
             soon: true,
           },

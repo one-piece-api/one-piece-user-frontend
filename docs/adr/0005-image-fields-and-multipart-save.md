@@ -52,3 +52,13 @@ minTransparentPercent })`, come `maxLength` per i testi. Un'entità futura avrà
 - Un'entità ha al più un campo immagine, quanto la parte `image` del backend.
 - Il formato d'ingresso oggi è solo PNG (content-service, DF6): il WebP tornerà come nuovo
   controllo di firma, senza toccare il resto.
+
+## Addendum - cosa deve mostrare l'immagine (Affiliazione, A3)
+
+`imageField` accetta un `hint` facoltativo: una chiave di traduzione che l'area "Media" mostra
+sopra la riga dei requisiti, nello stesso paragrafo collegato all'input (`aria-describedby`).
+L'Affiliazione lo usa per dire che l'immagine è l'emblema o il Jolly Roger del gruppo; le altre
+entità non lo dichiarano e restano invariate.
+
+Scartato: dirlo solo nel sottotitolo della sezione (lontano dal punto in cui si sceglie il file),
+o un ramo per entità nel selettore.

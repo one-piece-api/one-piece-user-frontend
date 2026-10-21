@@ -73,6 +73,9 @@
     [id]="inputId() + '-hint'"
     class="font-heading text-[11px] leading-snug font-bold text-ocean-500/60"
   >
+    @if (hint(); as hint) {
+      <span class="block" data-testid="image-hint">{{ hint | transloco }}</span>
+    }
     {{ requirements() }}
   </p>
   @if (problem(); as problem) {

@@ -23,6 +23,7 @@ const STORY_ITEM_ENTITY: Record<StoryItems | KeyedItems, string> = {
   fruits: 'DEVIL_FRUIT',
   types: 'DEVIL_FRUIT_TYPE',
   bounties: BOUNTY_ENTITY,
+  affiliations: 'AFFILIATION',
 };
 
 /** A keyed content as a block names it: its romaji or key, else its id. */

@@ -28,8 +28,8 @@ const LANGUAGES = [
 class Elsewhere {}
 
 describe('the bounty definition', () => {
-  it('is registered last, with its route, API path and menu entry beside the characters', () => {
-    expect(ENTITIES.at(-1)).toBe(BOUNTY);
+  it('is registered, with its route, API path and menu entry first beside the characters', () => {
+    expect(ENTITIES).toContain(BOUNTY);
     expect(entityOf('BOUNTY')).toBe(BOUNTY);
     expect(BOUNTY.api).toBe(`/api${BOUNTY.route}`);
     const subgroup = NAV_GROUPS.flatMap(({ items }) => items)

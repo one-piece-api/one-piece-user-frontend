@@ -136,10 +136,10 @@ export type BlockCause =
       /**
        * A story content's version cannot go online while it leaves out one that online items
        * point to: the count, and the first few as `{ id, number }` - under `arcs`,
-       * `chapters` or `episodes`, whichever points to it - or, for a chapter that fruits or
-       * types first appear in, as `{ id, romaji }` under `fruits` or `types`. A bounty
-       * shown first there, or replaced by online bounties, names them as `{ id, key }` under
-       * `bounties`.
+       * `chapters` or `episodes`, whichever points to it - or, for a chapter that fruits,
+       * types or affiliations first appear in, as `{ id, romaji }` under `fruits`, `types` or
+       * `affiliations`. A bounty shown first there, or replaced by online bounties, names
+       * them as `{ id, key }` under `bounties`.
        */
       reason: 'ONLINE_ITEMS_LINKED';
       detail: { count: number } & Partial<Record<StoryItems, NumberedItem[]>> &
@@ -183,10 +183,10 @@ export const STORY_ITEMS = ['arcs', 'chapters', 'episodes'] as const;
 export type StoryItems = (typeof STORY_ITEMS)[number];
 
 /**
- * The contents known by a name rather than a number that stand in the way: fruits and types by
- * their romaji, bounties by their natural key.
+ * The contents known by a name rather than a number that stand in the way: fruits, types and
+ * affiliations by their romaji, bounties by their natural key.
  */
-export const KEYED_ITEMS = ['fruits', 'types', 'bounties'] as const;
+export const KEYED_ITEMS = ['fruits', 'types', 'bounties', 'affiliations'] as const;
 export type KeyedItems = (typeof KEYED_ITEMS)[number];
 
 /** A content known by its romaji - or, for a bounty, its key - that stands in the way. */

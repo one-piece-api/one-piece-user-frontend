@@ -94,6 +94,7 @@
                   [inputId]="'draft-' + image.field.key"
                   [value]="image.value"
                   [profile]="image.field.profile"
+                  [hint]="image.field.hint ?? null"
                   [alt]="title()"
                   [error]="image.error"
                   (picked)="setImage(image.field.key, $event)"

@@ -1,4 +1,5 @@
 import { InjectionToken } from '@angular/core';
+import { AFFILIATION } from '../affiliations/affiliation.model';
 import { ARC } from '../arcs/arc.model';
 import { BOUNTY } from '../bounties/bounty.model';
 import { CHAPTER } from '../chapters/chapter.model';
@@ -22,6 +23,7 @@ export const ENTITIES: readonly EntityDefinition[] = [
   CHAPTER,
   EPISODE,
   BOUNTY,
+  AFFILIATION,
 ];
 
 /** The definition of the entity a page belongs to, given by its route. */
