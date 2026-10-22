@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
-import { HUMAN, NAVY, PEOPLE } from '../../testing/part-list-entity';
+import { CREW, HUMAN, NAVY, PEOPLE } from '../../testing/part-list-entity';
 import type { PartListField } from './entity-definition';
 import type { PartEntryDraft } from './entity-part-list';
 import { PartListEditor, type PartListChange } from './part-list-editor';
@@ -156,6 +156,40 @@ describe('the editor of a list of parts', () => {
     expect(changes.map(({ touched }) => touched)).toEqual(['0.rank', '0.former']);
     expect(changes[0].entries[0].values['rank']).toBe('ADMIRAL');
     expect(changes[1].entries[0].values['former']).toBe(false);
+  });
+
+  describe('a part that waits for the content chosen in another', () => {
+    const picked = (reference: unknown) =>
+      (
+        fixture.debugElement.query(By.directive(RelationPicker)).componentInstance as RelationPicker
+      ).picked.emit(reference as never);
+
+    it('draws it only once the content chosen has the value asked for', () => {
+      render('memberships', [entry('a', { affiliation: NAVY }), entry('b', { affiliation: CREW })]);
+
+      expect(box('draft-memberships-0-rank')).not.toBeNull();
+      expect(box('draft-memberships-1-rank')).toBeNull();
+    });
+
+    it('does not draw it before any content is chosen', () => {
+      render('memberships', [entry('a', {})]);
+
+      expect(box('draft-memberships-0-rank')).toBeNull();
+    });
+
+    it('keeps drawing a value that is already there, so it can be removed', () => {
+      render('memberships', [entry('a', { affiliation: CREW, rank: 'CAPTAIN' })]);
+
+      expect(box<HTMLSelectElement>('draft-memberships-0-rank').value).toBe('CAPTAIN');
+    });
+
+    it('clears it when another content is chosen', () => {
+      render('memberships', [entry('a', { affiliation: NAVY, rank: 'ADMIRAL' })]);
+
+      picked(CREW);
+
+      expect(valuesOf(changes[0])).toEqual([{ affiliation: CREW, rank: '' }]);
+    });
   });
 
   it('puts a content picked in the entry', () => {

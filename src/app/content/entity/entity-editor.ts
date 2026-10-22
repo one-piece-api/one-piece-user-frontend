@@ -137,6 +137,7 @@ const SUBCATEGORY_REFUSED_MESSAGE_KEY = 'content.editor.subcategoryRefusedMessag
  */
 const ENTRY_REPEATED_KEY = 'content.editor.error.entryRepeated';
 const ENTRY_NOT_LINKABLE_KEY = 'content.editor.error.entryNotLinkable';
+const ENTRY_NOT_ALLOWED_KEY = 'content.editor.error.entryNotAllowed';
 const ENTRY_REFUSED_MESSAGE_KEY = 'content.editor.entryRefusedMessage';
 
 /** An entry of a list of parts the editor addresses as `species.1` or `epithets.1.text.en`. */
@@ -150,6 +151,7 @@ const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
   [RELEASE_REFUSED_KEY['date']]: RELEASE_REFUSED_MESSAGE_KEY,
   [ENTRY_REPEATED_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
   [ENTRY_NOT_LINKABLE_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
+  [ENTRY_NOT_ALLOWED_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
   ...Object.fromEntries(
     Object.values(SUBCATEGORY_REFUSED_KEY).map((text) => [text, SUBCATEGORY_REFUSED_MESSAGE_KEY]),
   ),
@@ -975,7 +977,8 @@ export class EntityEditor {
   /**
    * What is said under an entry of a list of parts refused as invalid: repeated, when an
    * earlier entry is the same one (its unique part), else - for a content pointed to - that
-   * it cannot be linked, and for a text that the list already has it. `null` for any other key.
+   * it cannot be linked, for a choice that it does not go with the rest of the entry (a rank
+   * outside the Navy), and for a text that the list already has it. `null` for any other key.
    */
   private partEntryRefusalKey(key: string): string | null {
     const [, list, index, rest] = PART_ENTRY_KEY.exec(key) ?? [];
@@ -990,7 +993,13 @@ export class EntityEditor {
       entries.slice(0, Number(index)).some((entry) => identityOf(field, entry) === identity);
     const partKey = rest.split('.')[1];
     const part = field.parts.find(({ key: candidate }) => candidate === partKey) ?? field.parts[0];
-    return !repeated && part.kind === 'relation' ? ENTRY_NOT_LINKABLE_KEY : ENTRY_REPEATED_KEY;
+    if (repeated) {
+      return ENTRY_REPEATED_KEY;
+    }
+    if (part.kind === 'relation') {
+      return ENTRY_NOT_LINKABLE_KEY;
+    }
+    return part.kind === 'choice' ? ENTRY_NOT_ALLOWED_KEY : ENTRY_REPEATED_KEY;
   }
 
   /**

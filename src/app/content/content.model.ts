@@ -151,6 +151,22 @@ export type BlockCause =
         Partial<Record<KeyedItems, KeyedItem[]>>;
     }
   | {
+      /**
+       * A character cannot go online with a rank in an affiliation whose online version is no
+       * longer the Navy: the membership's position and the affiliation.
+       */
+      reason: 'MARINE_RANK_NOT_ALLOWED';
+      detail: { affiliationsIndex: number; affiliationId: string; affiliationRomaji: string };
+    }
+  | {
+      /**
+       * An affiliation's version cannot go online as another kind than the Navy while online
+       * characters hold a rank in it: the count, and the first few.
+       */
+      reason: 'MARINE_RANK_IN_USE';
+      detail: { count: number; characters: KeyedItem[] };
+    }
+  | {
       /** A fruit or type cannot go online without a first appearance. */
       reason: 'FIRST_APPEARANCE_MISSING';
       detail: Record<string, never>;

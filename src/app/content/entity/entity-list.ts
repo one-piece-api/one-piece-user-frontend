@@ -232,11 +232,17 @@ export class EntityList {
    */
   private readonly filterRelations: readonly FilterRelation[] = [
     ...this.relationFields,
-    ...this.entity.fields.flatMap((field) =>
-      field.kind === 'partList' && field.parts.length === 1 && field.parts[0].kind === 'relation'
-        ? [{ key: field.key, target: field.parts[0].target }]
-        : [],
-    ),
+    ...this.entity.fields.flatMap((field) => {
+      if (field.kind !== 'partList') {
+        return [];
+      }
+      const by = field.filterBy;
+      const part = by ? field.parts.find(({ key }) => key === by.part) : field.parts[0];
+      const filtered = by || field.parts.length === 1;
+      return filtered && part?.kind === 'relation'
+        ? [{ key: by?.key ?? field.key, target: part.target }]
+        : [];
+    }),
   ];
   /** The filters by a value of a closed set the entity declares, as the URL has them now. */
   protected readonly choiceFilters = computed<ChoiceFilterView[]>(() =>

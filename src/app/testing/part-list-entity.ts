@@ -44,7 +44,10 @@ export const PEOPLE: EntityDefinition = {
       parts: [
         relationField('affiliation', { target: 'AFFILIATION' }),
         localizedTextField('role', { maxLength: 100, optional: true }),
-        choiceField('rank', { options: ['ADMIRAL', 'CAPTAIN'] }),
+        choiceField('rank', {
+          options: ['ADMIRAL', 'CAPTAIN'],
+          visibleWhen: { part: 'affiliation', field: 'kind', equals: 'NAVY' },
+        }),
         booleanField('former'),
       ],
       unique: 'affiliation',
@@ -62,4 +65,15 @@ export const GIANT: EntityReference = {
   romaji: 'Kyojin',
   names: { it: 'Gigante', en: 'Giant' },
 };
-export const NAVY: EntityReference = { id: 'a1', romaji: 'Kaigun', names: { en: 'Navy' } };
+export const NAVY: EntityReference = {
+  id: 'a1',
+  romaji: 'Kaigun',
+  names: { en: 'Navy' },
+  kind: 'NAVY',
+};
+export const CREW: EntityReference = {
+  id: 'a2',
+  romaji: 'Mugiwara',
+  names: { en: 'Straw Hats' },
+  kind: 'PIRATE_CREW',
+};

@@ -27,6 +27,8 @@ const LANGUAGES = [
   { code: 'it', name: 'Italiano' },
   { code: 'en', name: 'English' },
 ];
+const NAVY = { id: 'a1', romaji: 'Kaigun', names: { en: 'Navy' }, kind: 'NAVY' };
+const CREW = { id: 'a2', romaji: 'Mugiwara', names: { en: 'Straw Hats' }, kind: 'PIRATE_CREW' };
 const HUMAN = { id: 's1', romaji: 'Ningen', names: { it: 'Umano', en: 'Human' } };
 
 @Component({ template: '' })
@@ -65,6 +67,7 @@ describe('the character definition', () => {
       'gender:choice',
       'birthday:monthDay',
       'species:partList',
+      'affiliations:partList',
       'firstAppearance:storyPoint',
       'name:localizedText',
       'epithets:partList',
@@ -90,6 +93,23 @@ describe('the character definition', () => {
     expect(SPECIES.sections).toEqual([{ kind: 'relatedList', of: 'CHARACTER', by: 'species' }]);
   });
 
+  it('lists the memberships as a list of parts, a rank only in the Navy, filtered by the affiliation', () => {
+    const memberships = CHARACTER.fields.find((field) => field.key === 'affiliations');
+
+    expect(memberships).toMatchObject({
+      kind: 'partList',
+      unique: 'affiliation',
+      filterBy: { key: 'affiliation', part: 'affiliation' },
+    });
+    const parts = memberships?.kind === 'partList' ? memberships.parts : [];
+    expect(parts.map(({ key }) => key)).toEqual(['affiliation', 'role', 'marineRank', 'former']);
+    expect(parts[2]).toMatchObject({
+      options: expect.arrayContaining(['FLEET_ADMIRAL', 'CHORE_BOY']),
+      visibleWhen: { part: 'affiliation', field: 'kind', equals: 'NAVY' },
+    });
+    expect(parts[2].kind === 'choice' && parts[2].options).toHaveLength(19);
+  });
+
   it('counts and lists the bounties naming it as holder, by the filter their list has for it', () => {
     expect(CHARACTER.counts).toEqual([{ field: 'bountyCount', of: 'BOUNTY', by: 'holder' }]);
     expect(CHARACTER.sections).toEqual([{ kind: 'relatedList', of: 'BOUNTY', by: 'holder' }]);
@@ -97,6 +117,27 @@ describe('the character definition', () => {
 });
 
 describe('the words about characters', () => {
+  it('name the character whose rank the affiliation no longer allows, and link the affiliation', () => {
+    const words = blockWords(transloco, {
+      reason: 'MARINE_RANK_NOT_ALLOWED',
+      detail: { affiliationsIndex: 0, affiliationId: 'a1', affiliationRomaji: 'Kaigun' },
+    });
+
+    expect(words.note).toBe('Rank outside the Navy');
+    expect(words.links).toEqual([{ label: 'Kaigun', route: '/content/affiliations/a1' }]);
+  });
+
+  it('name the ranked characters that keep an affiliation from leaving the Navy, and link them', () => {
+    const words = blockWords(transloco, {
+      reason: 'MARINE_RANK_IN_USE',
+      detail: { count: 2, characters: [{ id: 'c1', romaji: 'Koby' }] },
+    });
+
+    expect(words.note).toBe('Ranks held: 2');
+    expect(words.links).toEqual([{ label: 'Koby', route: '/content/characters/c1' }]);
+    expect(words.more).toBe(1);
+  });
+
   let transloco: TranslocoService;
 
   beforeEach(() => {
@@ -304,6 +345,23 @@ describe('the list of characters', () => {
     expect(filter.value).toBe('DECEASED');
   });
 
+  it('narrows to the members of an affiliation, the way its member count leads there', async () => {
+    await open('/content/characters?affiliation=a1', 'page=0&affiliation=a1');
+
+    expect(root.querySelector('[data-testid="relation-chip"]')?.textContent).toContain(
+      'Affiliation:',
+    );
+  });
+
+  it('filters by the kind of group the character belongs to', async () => {
+    await open('/content/characters?affiliationKind=NAVY', 'page=0&affiliationKind=NAVY');
+
+    const filter = root.querySelector<HTMLSelectElement>('[data-testid="filter-affiliationKind"]')!;
+    expect(filter.closest('label')?.textContent).toContain('Kind of group');
+    expect(filter.options).toHaveLength(6);
+    expect(filter.value).toBe('NAVY');
+  });
+
   it('narrows to the characters of a species, the way a species card leads there', async () => {
     await open('/content/characters?species=s1', 'page=0&species=s1');
 
@@ -386,6 +444,15 @@ describe('the editor of a character', () => {
     await settle();
   }
 
+  /** Picks an affiliation in the first entry of the memberships, as the search would. */
+  async function pickAffiliation(reference: typeof NAVY): Promise<void> {
+    const picker = harness
+      .routeDebugElement!.query(By.css('[data-testid="draft-affiliations"]'))
+      .query(By.directive(RelationPicker));
+    (picker.componentInstance as RelationPicker).picked.emit(reference);
+    await settle();
+  }
+
   async function save(): Promise<void> {
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
     await settle();
@@ -407,7 +474,7 @@ describe('the editor of a character', () => {
   });
 
   it('asks review for an epithet written, in every language, not for one left empty', async () => {
-    await click('part-add', 1);
+    await click('part-add', 2);
     expect(checkLabels().join(' | ')).not.toContain('Epithet');
 
     await write('draft-epithets-0-text-it', 'Gatta ladra');
@@ -424,10 +491,10 @@ describe('the editor of a character', () => {
     await choose('draft-birthday', '3');
     await click('part-add', 0);
     await pickSpecies();
-    await click('part-add', 1);
+    await click('part-add', 2);
     await write('draft-epithets-0-text-en', ' Cat Burglar ');
-    await click('part-add', 2);
-    await click('part-add', 2);
+    await click('part-add', 3);
+    await click('part-add', 3);
     await write('draft-aliases-1-alias', 'Miss Nami');
 
     await save();
@@ -445,12 +512,58 @@ describe('the editor of a character', () => {
     await settle();
   });
 
+  it('offers a rank only for a Navy affiliation, and saves the membership with it', async () => {
+    await write('draft-romaji', 'Koby');
+    await click('part-add', 1);
+    expect(root.querySelector('#draft-affiliations-0-marineRank')).toBeNull();
+
+    await pickAffiliation(CREW);
+    expect(root.querySelector('#draft-affiliations-0-marineRank')).toBeNull();
+
+    await pickAffiliation(NAVY);
+    await choose('draft-affiliations-0-marineRank', 'VICE_ADMIRAL');
+    await write('draft-affiliations-0-role-en', ' Hero ');
+
+    await save();
+    const request = httpTesting.expectOne(API);
+    expect(request.request.body).toMatchObject({
+      affiliations: [
+        { affiliation: 'a1', role: { en: 'Hero' }, marineRank: 'VICE_ADMIRAL', former: false },
+      ],
+    });
+    request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
+    await settle();
+  });
+
+  it('says under the rank that the Navy alone has them, when the backend refuses it', async () => {
+    await write('draft-romaji', 'Koby');
+    await click('part-add', 1);
+    await pickAffiliation(NAVY);
+    await choose('draft-affiliations-0-marineRank', 'ADMIRAL');
+
+    await save();
+    httpTesting.expectOne(API).flush(
+      {
+        errorCode: 'CONTENT_VALUE_INVALID',
+        errors: [
+          { field: 'affiliations[0].marineRank', message: 'is allowed only in a Navy affiliation' },
+        ],
+      },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    await settle();
+
+    expect(fieldErrors()).toContain(
+      'is not allowed with this affiliation: only the Navy has ranks',
+    );
+  });
+
   it('shows a refused entry under the entry of the draft, past the empty ones not sent', async () => {
     await write('draft-romaji', 'Usopp');
-    await click('part-add', 2);
+    await click('part-add', 3);
     await write('draft-aliases-0-alias', 'Sogeking');
-    await click('part-add', 2);
-    await click('part-add', 2);
+    await click('part-add', 3);
+    await click('part-add', 3);
     await write('draft-aliases-2-alias', 'sogeking');
 
     await save();

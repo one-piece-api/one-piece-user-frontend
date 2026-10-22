@@ -220,6 +220,34 @@ describe('the list of affiliations', () => {
     expect(root.querySelector('h1')?.textContent).toContain('Affiliations');
   });
 
+  it('counts the members of an affiliation, leading to the characters filtered by it', async () => {
+    harness = await RouterTestingHarness.create('/content/affiliations');
+    harness.detectChanges();
+    httpTesting.expectOne('/api/me').flush({
+      username: 'nami',
+      email: 'nami@onepiece.local',
+      roles: [],
+      permissions: ['content:read'],
+    });
+    httpTesting.expectOne(`${API}/summary`).flush({ total: 1, mine: 0, statuses: ['PUBLISHED'] });
+    httpTesting.expectOne(`${API}/authors`).flush([]);
+    httpTesting.expectOne(`${API}?page=0`).flush({
+      content: [{ ...ROWS[0], body: { ...ROWS[0].body, memberCount: 3 } }],
+      page: 0,
+      size: 20,
+      totalElements: 1,
+      totalPages: 1,
+    });
+    await settle();
+    root = harness.routeNativeElement as HTMLElement;
+
+    const count = root.querySelector('[data-testid="count-cell"]')!;
+    expect(count.textContent?.replace(/s+/g, ' ')).toContain('3');
+    expect(count.querySelector('a')?.getAttribute('href')).toBe(
+      '/content/characters?affiliation=a1',
+    );
+  });
+
   it('filters by kind, worded as the field', async () => {
     harness = await RouterTestingHarness.create('/content/affiliations?kind=NAVY');
     harness.detectChanges();

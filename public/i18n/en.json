@@ -617,6 +617,10 @@
             "list": "aliases",
             "entry": "alias {{position}}"
           },
+          "affiliations": {
+            "list": "memberships",
+            "entry": "membership {{position}}"
+          },
           "holder": "holder"
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
@@ -699,7 +703,9 @@
           },
           "FIRST_APPEARANCE_MISSING": "First appearance missing",
           "PREVIOUS_ALREADY_REPLACED": "Previous bounty already replaced",
-          "BOUNTY_CHAIN_CYCLE": "Circular bounty chain"
+          "BOUNTY_CHAIN_CYCLE": "Circular bounty chain",
+          "MARINE_RANK_NOT_ALLOWED": "Rank outside the Navy",
+          "MARINE_RANK_IN_USE": "Ranks held: {{count}}"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "This fruit's type is not online. Republish the type first.",
@@ -728,7 +734,9 @@
           },
           "FIRST_APPEARANCE_MISSING": "Arrr! The first appearance is missing, matey: set the chapter where the reader first meets it.",
           "PREVIOUS_ALREADY_REPLACED": "Arrr! The previous bounty is already replaced by another one online, matey: a bounty can be replaced by one only. Retire that one first, or pick another previous bounty:",
-          "BOUNTY_CHAIN_CYCLE": "Arrr! With this previous bounty the chain would loop back on itself, matey. Pick another one."
+          "BOUNTY_CHAIN_CYCLE": "Arrr! With this previous bounty the chain would loop back on itself, matey. Pick another one.",
+          "MARINE_RANK_NOT_ALLOWED": "Arrr! This character holds a rank in an affiliation that is no longer the Navy, matey. Remove the rank, or publish the affiliation as the Navy again:",
+          "MARINE_RANK_IN_USE": "Arrr! Online characters hold a rank in this affiliation, matey: it cannot stop being the Navy. Retire them or remove their rank first:"
         },
         "andMore": "and {{count}} more"
       }
@@ -810,7 +818,10 @@
         "characterStatus": "Alive or dead",
         "species": "Species",
         "holder": "Holder",
-        "bountyCount": "Bounties"
+        "bountyCount": "Bounties",
+        "affiliation": "Affiliation",
+        "affiliationKind": "Kind of group",
+        "memberCount": "Members"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji to be defined",
@@ -903,6 +914,7 @@
         "birthday": "Birthday",
         "species": "Species",
         "epithets": "Epithets",
+        "affiliations": "Affiliations",
         "aliases": "Aliases",
         "holder": "Holder"
       },
@@ -983,6 +995,13 @@
         "aliases": {
           "alias": "Alias {{position}}",
           "position": "Alias {{position}} · position"
+        },
+        "affiliations": {
+          "affiliation": "Membership {{position}}",
+          "role": "Membership {{position}} · role · {{language}}",
+          "marineRank": "Membership {{position}} · rank",
+          "former": "Membership {{position}} · former member",
+          "position": "Membership {{position}} · position"
         },
         "holder": "Holder"
       },
@@ -1104,6 +1123,7 @@
         "releaseCountry": "pick a valid country, with one date per country",
         "releaseDate": "pick a valid date",
         "entryRepeated": "already in this list",
+        "entryNotAllowed": "is not allowed with this affiliation: only the Navy has ranks",
         "entryNotLinkable": "can no longer be chosen: it needs a content already approved in review"
       },
       "takenNumberMessage": "Arrr! Another content already has the same number: it must be unique.",
@@ -1232,6 +1252,17 @@
         "add": "Add epithet",
         "empty": "No epithets.",
         "text": "Epithet · {{language}}"
+      },
+      "affiliations": {
+        "label": "Affiliations",
+        "hint": "optional · crews, the Navy or other groups, with the role held and, in the Navy, the rank",
+        "entry": "Membership {{position}}",
+        "add": "Add affiliation",
+        "empty": "No affiliation given.",
+        "affiliation": "Affiliation",
+        "role": "Role · {{language}}",
+        "marineRank": "Rank (Navy only)",
+        "former": "Former member"
       },
       "aliases": {
         "label": "Aliases",
@@ -1625,6 +1656,10 @@
         },
         "aliases": {
           "alias": "e.g. Sogeking"
+        },
+        "affiliations": {
+          "affiliation": "search an affiliation",
+          "role": "role in this language, e.g. Captain"
         }
       },
       "hintMissing": "Review takes a romaji, the status, the gender, the first appearance and, in every language, a name, a description and every epithet. Meanwhile the draft can be saved incomplete.",
@@ -1639,6 +1674,37 @@
           "MALE": "Male",
           "FEMALE": "Female",
           "UNKNOWN": "Unknown"
+        },
+        "affiliationKind": {
+          "PIRATE_CREW": "Pirate crew",
+          "NAVY": "Navy",
+          "WORLD_GOVERNMENT": "World Government",
+          "REVOLUTIONARY_ARMY": "Revolutionary Army",
+          "OTHER": "Other"
+        },
+        "marineRank": {
+          "FLEET_ADMIRAL": "Fleet Admiral",
+          "ADMIRAL": "Admiral",
+          "VICE_ADMIRAL": "Vice Admiral",
+          "REAR_ADMIRAL": "Rear Admiral",
+          "COMMODORE": "Commodore",
+          "CAPTAIN": "Captain",
+          "COMMANDER": "Commander",
+          "LIEUTENANT_COMMANDER": "Lieutenant Commander",
+          "LIEUTENANT": "Lieutenant",
+          "LIEUTENANT_JUNIOR_GRADE": "Lieutenant Junior Grade",
+          "ENSIGN": "Ensign",
+          "WARRANT_OFFICER": "Warrant Officer",
+          "MASTER_CHIEF_PETTY_OFFICER": "Master Chief Petty Officer",
+          "CHIEF_PETTY_OFFICER": "Chief Petty Officer",
+          "PETTY_OFFICER": "Petty Officer",
+          "SEAMAN_FIRST_CLASS": "Seaman First Class",
+          "SEAMAN_APPRENTICE": "Seaman Apprentice",
+          "SEAMAN_RECRUIT": "Seaman Recruit",
+          "CHORE_BOY": "Chore Boy"
+        },
+        "former": {
+          "true": "Former member"
         }
       },
       "related": {

@@ -12,6 +12,10 @@ import { entityOf } from './entity/entities';
 
 /** The section a fruit lives in - what a type that cannot be retired points to. */
 const FRUIT_ENTITY = 'DEVIL_FRUIT';
+/** The section an affiliation lives in - what a rank outside the Navy points to. */
+const AFFILIATION_ENTITY = 'AFFILIATION';
+/** The section a character lives in - what an affiliation that keeps ranks points to. */
+const CHARACTER_ENTITY = 'CHARACTER';
 /** The section a bounty lives in - what an already replaced previous bounty points to. */
 const BOUNTY_ENTITY = 'BOUNTY';
 
@@ -118,6 +122,27 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
         more: 0,
         titled: sentence,
       };
+    }
+    case 'MARINE_RANK_NOT_ALLOWED': {
+      const { affiliationId, affiliationRomaji } = cause.detail;
+      const route = entityOf(AFFILIATION_ENTITY)?.route;
+      const link = { label: affiliationRomaji, route: route ? `${route}/${affiliationId}` : '' };
+      const sentence = text('sentence.MARINE_RANK_NOT_ALLOWED');
+      return {
+        note: text('note.MARINE_RANK_NOT_ALLOWED'),
+        sentence,
+        links: [link],
+        more: 0,
+        titled: `${sentence} ${link.label}`,
+      };
+    }
+    case 'MARINE_RANK_IN_USE': {
+      const route = entityOf(CHARACTER_ENTITY)?.route;
+      const links = cause.detail.characters.map((character) => ({
+        label: keyedLabel(character),
+        route: route ? `${route}/${character.id}` : '',
+      }));
+      return linkedWords(transloco, cause, cause.reason, links);
     }
     case 'ONLINE_FRUITS_LINKED':
     case 'SUBCATEGORY_IN_USE': {

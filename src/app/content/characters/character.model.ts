@@ -1,4 +1,6 @@
+import { AFFILIATION_KINDS } from '../affiliations/affiliation.model';
 import {
+  booleanField,
   choiceField,
   choiceFilter,
   imageField,
@@ -33,6 +35,29 @@ const CHARACTER_PORTRAIT = {
 const STATUSES = ['ALIVE', 'DECEASED', 'UNKNOWN'] as const;
 const GENDERS = ['MALE', 'FEMALE', 'UNKNOWN'] as const;
 
+/** The ranks of the Navy, highest first - the backend's `MarineRank` (plan D10). */
+const MARINE_RANKS = [
+  'FLEET_ADMIRAL',
+  'ADMIRAL',
+  'VICE_ADMIRAL',
+  'REAR_ADMIRAL',
+  'COMMODORE',
+  'CAPTAIN',
+  'COMMANDER',
+  'LIEUTENANT_COMMANDER',
+  'LIEUTENANT',
+  'LIEUTENANT_JUNIOR_GRADE',
+  'ENSIGN',
+  'WARRANT_OFFICER',
+  'MASTER_CHIEF_PETTY_OFFICER',
+  'CHIEF_PETTY_OFFICER',
+  'PETTY_OFFICER',
+  'SEAMAN_FIRST_CLASS',
+  'SEAMAN_APPRENTICE',
+  'SEAMAN_RECRUIT',
+  'CHORE_BOY',
+] as const;
+
 /** The most epithets and aliases a character has - the backend's limits. */
 const MAX_EPITHETS = 20;
 const MAX_ALIASES = 20;
@@ -62,6 +87,20 @@ export const CHARACTER: EntityDefinition = {
       parts: [relationField('species', { target: 'SPECIES' })],
       unique: 'species',
     }),
+    // A rank only where the affiliation is the Navy; the backend refuses it elsewhere (D10).
+    partListField('affiliations', {
+      parts: [
+        relationField('affiliation', { target: 'AFFILIATION' }),
+        localizedTextField('role', { maxLength: 100, optional: true }),
+        choiceField('marineRank', {
+          options: MARINE_RANKS,
+          visibleWhen: { part: 'affiliation', field: 'kind', equals: 'NAVY' },
+        }),
+        booleanField('former'),
+      ],
+      unique: 'affiliation',
+      filterBy: { key: 'affiliation', part: 'affiliation' },
+    }),
     storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
     partListField('epithets', {
@@ -80,6 +119,9 @@ export const CHARACTER: EntityDefinition = {
   sections: [relatedList({ of: 'BOUNTY', by: 'holder' })],
   list: {
     // The status has no column: the rows carry only names and romaji (plan C3, decision 4a).
-    filters: [choiceFilter('characterStatus', STATUSES, { field: 'status' })],
+    filters: [
+      choiceFilter('characterStatus', STATUSES, { field: 'status' }),
+      choiceFilter('affiliationKind', AFFILIATION_KINDS),
+    ],
   },
 };

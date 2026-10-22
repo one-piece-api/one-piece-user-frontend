@@ -50,7 +50,7 @@
         </span>
       </div>
       @for (view of entry.parts; track view.part.key) {
-        @for (box of view.inputs; track box.id) {
+        @for (box of view.visible ? view.inputs : []; track box.id) {
           <div>
             @switch (view.part.kind) {
               @case ('relation') {

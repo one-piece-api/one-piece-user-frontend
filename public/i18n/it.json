@@ -617,6 +617,10 @@
             "list": "alias",
             "entry": "alias {{position}}"
           },
+          "affiliations": {
+            "list": "appartenenze",
+            "entry": "appartenenza {{position}}"
+          },
           "holder": "titolare"
         },
         "blocked": "Arrr! Non si può: {{reason}}",
@@ -699,7 +703,9 @@
           },
           "FIRST_APPEARANCE_MISSING": "Prima apparizione mancante",
           "PREVIOUS_ALREADY_REPLACED": "Taglia precedente già sostituita",
-          "BOUNTY_CHAIN_CYCLE": "Catena di taglie circolare"
+          "BOUNTY_CHAIN_CYCLE": "Catena di taglie circolare",
+          "MARINE_RANK_NOT_ALLOWED": "Grado fuori dalla Marina",
+          "MARINE_RANK_IN_USE": "Gradi in uso: {{count}}"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "Il Tipo di questo Frutto non è online. Ripubblica prima il Tipo.",
@@ -728,7 +734,9 @@
           },
           "FIRST_APPEARANCE_MISSING": "Arrr! Manca la prima apparizione, compare: indica il capitolo in cui il lettore lo incontra la prima volta.",
           "PREVIOUS_ALREADY_REPLACED": "Arrr! La taglia precedente è già sostituita da un'altra online, compare: ogni taglia può essere sostituita da una sola. Ritira prima quella, o scegli un'altra taglia precedente:",
-          "BOUNTY_CHAIN_CYCLE": "Arrr! Con questa taglia precedente la catena tornerebbe su sé stessa, compare. Scegline un'altra."
+          "BOUNTY_CHAIN_CYCLE": "Arrr! Con questa taglia precedente la catena tornerebbe su sé stessa, compare. Scegline un'altra.",
+          "MARINE_RANK_NOT_ALLOWED": "Arrr! Questo personaggio ha un grado in un'affiliazione che non è più della Marina, compare. Togli il grado, o ripubblica l'affiliazione come Marina:",
+          "MARINE_RANK_IN_USE": "Arrr! Ci sono personaggi online con un grado in questa affiliazione, compare: non può smettere di essere della Marina. Ritirali o togli prima il loro grado:"
         },
         "andMore": "e altri {{count}}"
       }
@@ -810,7 +818,10 @@
         "characterStatus": "Stato in vita",
         "species": "Specie",
         "holder": "Titolare",
-        "bountyCount": "Taglie"
+        "bountyCount": "Taglie",
+        "affiliation": "Affiliazione",
+        "affiliationKind": "Tipo di gruppo",
+        "memberCount": "Membri"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
@@ -903,6 +914,7 @@
         "birthday": "Compleanno",
         "species": "Specie",
         "epithets": "Epiteti",
+        "affiliations": "Affiliazioni",
         "aliases": "Alias",
         "holder": "Titolare"
       },
@@ -983,6 +995,13 @@
         "aliases": {
           "alias": "Alias {{position}}",
           "position": "Alias {{position}} · posizione"
+        },
+        "affiliations": {
+          "affiliation": "Appartenenza {{position}}",
+          "role": "Appartenenza {{position}} · ruolo · {{language}}",
+          "marineRank": "Appartenenza {{position}} · grado",
+          "former": "Appartenenza {{position}} · ex membro",
+          "position": "Appartenenza {{position}} · posizione"
         },
         "holder": "Titolare"
       },
@@ -1104,6 +1123,7 @@
         "releaseCountry": "scegli un paese valido, con una sola data per paese",
         "releaseDate": "scegli una data valida",
         "entryRepeated": "già presente in questo elenco",
+        "entryNotAllowed": "non è ammesso con questa affiliazione: solo la Marina ha gradi",
         "entryNotLinkable": "non si può più scegliere: serve un contenuto già approvato in revisione"
       },
       "takenNumberMessage": "Arrr! Un altro contenuto ha già lo stesso numero: dev'essere unico.",
@@ -1232,6 +1252,17 @@
         "add": "Aggiungi epiteto",
         "empty": "Nessun epiteto.",
         "text": "Epiteto · {{language}}"
+      },
+      "affiliations": {
+        "label": "Affiliazioni",
+        "hint": "facoltative · ciurme, Marina o altri gruppi, con il ruolo ricoperto e, nella Marina, il grado",
+        "entry": "Appartenenza {{position}}",
+        "add": "Aggiungi affiliazione",
+        "empty": "Nessuna affiliazione indicata.",
+        "affiliation": "Affiliazione",
+        "role": "Ruolo · {{language}}",
+        "marineRank": "Grado (solo Marina)",
+        "former": "Ex membro"
       },
       "aliases": {
         "label": "Alias",
@@ -1625,6 +1656,10 @@
         },
         "aliases": {
           "alias": "es. Sogeking"
+        },
+        "affiliations": {
+          "affiliation": "cerca un'affiliazione",
+          "role": "ruolo in questa lingua, es. Capitano"
         }
       },
       "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione e, in ogni lingua, nome, descrizione e ogni epiteto. Intanto la bozza si salva anche incompleta.",
@@ -1639,6 +1674,37 @@
           "MALE": "Maschio",
           "FEMALE": "Femmina",
           "UNKNOWN": "Sconosciuto"
+        },
+        "affiliationKind": {
+          "PIRATE_CREW": "Ciurma pirata",
+          "NAVY": "Marina",
+          "WORLD_GOVERNMENT": "Governo Mondiale",
+          "REVOLUTIONARY_ARMY": "Armata Rivoluzionaria",
+          "OTHER": "Altro"
+        },
+        "marineRank": {
+          "FLEET_ADMIRAL": "Grand'ammiraglio",
+          "ADMIRAL": "Ammiraglio",
+          "VICE_ADMIRAL": "Viceammiraglio",
+          "REAR_ADMIRAL": "Contrammiraglio",
+          "COMMODORE": "Commodoro",
+          "CAPTAIN": "Capitano di vascello",
+          "COMMANDER": "Capitano di fregata",
+          "LIEUTENANT_COMMANDER": "Capitano di corvetta",
+          "LIEUTENANT": "Tenente di vascello",
+          "LIEUTENANT_JUNIOR_GRADE": "Sottotenente di vascello",
+          "ENSIGN": "Guardiamarina",
+          "WARRANT_OFFICER": "Maresciallo",
+          "MASTER_CHIEF_PETTY_OFFICER": "Sergente maggiore",
+          "CHIEF_PETTY_OFFICER": "Sergente",
+          "PETTY_OFFICER": "Caporale",
+          "SEAMAN_FIRST_CLASS": "Marine semplice",
+          "SEAMAN_APPRENTICE": "Marine apprendista",
+          "SEAMAN_RECRUIT": "Recluta",
+          "CHORE_BOY": "Ragazzo di servizio"
+        },
+        "former": {
+          "true": "Ex membro"
         }
       },
       "related": {

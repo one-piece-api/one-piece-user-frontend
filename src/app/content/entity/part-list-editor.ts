@@ -67,6 +67,7 @@ export class PartListEditor {
       error: errors[String(index)] ?? null,
       parts: this.field().parts.map((part) => ({
         part,
+        visible: this.isVisible(entry, part),
         maxLength: 'maxLength' in part ? part.maxLength : null,
         source: part.kind === 'relation' ? (entityOf(part.target)?.api ?? null) : null,
         labelOf: (reference: EntityReference, language: string) =>
@@ -86,6 +87,22 @@ export class PartListEditor {
       })),
     }));
   });
+
+  /**
+   * Whether a part is drawn: always, but for one with a condition on another part (`visibleWhen`),
+   * which waits for it - unless it already holds a value, which must stay reachable.
+   */
+  private isVisible(entry: PartEntryDraft, part: PartField): boolean {
+    const when = part.kind === 'choice' ? part.visibleWhen : undefined;
+    if (!when) {
+      return true;
+    }
+    const chosen = entry.values[when.part];
+    return (
+      (isReference(chosen) && chosen[when.field] === when.equals) ||
+      textOf(entry.values[part.key]) !== ''
+    );
+  }
 
   private inputsOf(
     entry: PartEntryDraft,
@@ -154,10 +171,16 @@ export class PartListEditor {
       language === null
         ? value
         : { ...localizedTextsOf(entry.values[part.key]), [language]: value };
+    // A part that waits for this one is cleared: what it said was about the previous content.
+    const cleared = Object.fromEntries(
+      this.field()
+        .parts.filter((other) => other.kind === 'choice' && other.visibleWhen?.part === part.key)
+        .map((other) => [other.key, '']),
+    );
     this.changed.emit({
       entries: this.entries().map((candidate, position) =>
         position === index
-          ? { ...candidate, values: { ...candidate.values, [part.key]: written } }
+          ? { ...candidate, values: { ...candidate.values, ...cleared, [part.key]: written } }
           : candidate,
       ),
       touched: [index, part.key, language].filter((segment) => segment !== null).join('.'),

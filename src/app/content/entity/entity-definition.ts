@@ -67,6 +67,20 @@ export interface ChoiceField {
   readonly kind: 'choice';
   readonly key: string;
   readonly options: readonly string[];
+  /** Where it is a part of a `partList` entry: shown only when the entry's other part says so. */
+  readonly visibleWhen?: VisibleWhen;
+}
+
+/**
+ * A condition on a sibling part of the same entry: the content chosen in the relation part
+ * `part` has `equals` in its `field` - a membership's rank only where the affiliation's kind is
+ * `NAVY`. Choosing another content clears the part; a value already there stays on screen,
+ * so it can be removed.
+ */
+export interface VisibleWhen {
+  readonly part: string;
+  readonly field: string;
+  readonly equals: string;
 }
 
 /** A yes or no shared by every language - a bounty made inactive. Never missing: false by default. */
@@ -202,6 +216,12 @@ export interface PartListField {
    * by position.
    */
   readonly unique?: string;
+  /**
+   * The list filter of the backend that narrows the entity's list to the contents naming a
+   * given one: its query parameter `key`, and the relation part `part` it is about. For a list
+   * of several parts, which the list cannot work out by itself - a membership's affiliation.
+   */
+  readonly filterBy?: { readonly key: string; readonly part: string };
 }
 
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
