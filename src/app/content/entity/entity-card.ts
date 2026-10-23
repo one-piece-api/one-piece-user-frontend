@@ -9,7 +9,7 @@ import { naturalKeyParts, type PartField, type PartListField } from './entity-de
 import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { monthDayLabel, monthDayOf, monthDayText } from './entity-month-day';
-import { itemsOf, localizedTextsOf, partValueOf } from './entity-part-list';
+import { choiceLabelKey, itemsOf, localizedTextsOf, partValueOf } from './entity-part-list';
 import { isReference, referenceLabel } from './entity-reference';
 import { countryName, releaseDateLabel, releasesInOrder } from './entity-release';
 import {
@@ -435,7 +435,9 @@ export class EntityCard {
         return view(localizedTextsOf(value)[language]?.trim() || null);
       case 'choice':
         return typeof value === 'string' && value
-          ? view(this.transloco.translate(`${this.entity.i18n}.options.${part.key}.${value}`))
+          ? view(
+              this.transloco.translate(choiceLabelKey(this.entity.i18n, field, part, value, item)),
+            )
           : [];
       case 'boolean':
         return value === true

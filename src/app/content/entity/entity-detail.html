@@ -176,6 +176,15 @@
                         <app-related-list class="block" [section]="section" [contentId]="id()" />
                       }
                     }
+                    @case ('relativeList') {
+                      @if (isCurrent()) {
+                        <app-relative-list
+                          class="block"
+                          [section]="section"
+                          [body]="version.body"
+                        />
+                      }
+                    }
                     @case ('chain') {
                       <app-chain-list
                         class="block"

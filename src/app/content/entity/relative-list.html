@@ -1,0 +1,22 @@
+@if (entries().length) {
+  <section class="min-w-0" data-testid="relative-list">
+    <h2
+      class="mb-2.5 font-display text-[13px] font-bold tracking-[0.08em] text-ocean-900 uppercase"
+    >
+      {{ entity.i18n + '.relativeList.' + section().field + '.title' | transloco }}
+    </h2>
+    <ul class="grid gap-2.25">
+      @for (entry of entries(); track entry.id) {
+        <li data-testid="relative-item">
+          <a
+            [routerLink]="entry.link"
+            class="grid gap-0.5 font-heading text-sm font-extrabold text-ocean-700 hover:text-ocean-800"
+          >
+            <span class="min-w-0 wrap-anywhere">{{ entry.label }}</span>
+            <span class="text-[13px] font-semibold text-ocean-500">{{ entry.kind }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </section>
+}

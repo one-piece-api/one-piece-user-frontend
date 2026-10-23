@@ -4,7 +4,7 @@
  * identifies an entry, and where the backend says one is at fault. How each value is read,
  * saved and compared is its part's kind (`field-kinds.ts`). No Angular in here.
  */
-import type { PartField, PartListField } from './entity-definition';
+import type { ChoiceField, PartField, PartListField } from './entity-definition';
 import { isReference } from './entity-reference';
 
 /**
@@ -115,4 +115,24 @@ export function partListFieldKey(lists: readonly PartListField[], path: string):
     return null;
   }
   return [key, index, part, language].filter(Boolean).join('.');
+}
+
+/**
+ * The key of the label a choice of an entry has on the card: `<i18n>.<group>.<VALUE>.<FIELD
+ * VALUE>` where the choice is worded after the content chosen in another part (`labelBy`) and
+ * that content has the value, else the neutral `<i18n>.options.<part>.<VALUE>`.
+ */
+export function choiceLabelKey(
+  i18n: string,
+  list: PartListField,
+  part: ChoiceField,
+  value: string,
+  item: unknown,
+): string {
+  const neutral = `${i18n}.options.${part.key}.${value}`;
+  const by = part.labelBy;
+  const source = by ? list.parts.find(({ key }) => key === by.part) : undefined;
+  const chosen = by && source ? partValueOf(list, item, source) : undefined;
+  const word = by && isReference(chosen) ? chosen[by.field] : undefined;
+  return by && typeof word === 'string' && word ? `${i18n}.${by.group}.${value}.${word}` : neutral;
 }

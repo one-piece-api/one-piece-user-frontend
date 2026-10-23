@@ -140,6 +140,16 @@ const ENTRY_NOT_LINKABLE_KEY = 'content.editor.error.entryNotLinkable';
 const ENTRY_NOT_ALLOWED_KEY = 'content.editor.error.entryNotAllowed';
 const ENTRY_REFUSED_MESSAGE_KEY = 'content.editor.entryRefusedMessage';
 
+/**
+ * A content pointed to that is refused for a reason of its own, not for being unlinkable: the
+ * texts the backend gives for a relative that is the character itself, or that already names it
+ * (`CharacterValidator`). Matched by the backend's text, as the refusal has no code of its own.
+ */
+const ENTRY_REFUSAL_BY_MESSAGE: Record<string, string> = {
+  'must not be the character itself': 'content.editor.error.entryItself',
+  'already names this character as a relative': 'content.editor.error.entryAlreadyLinked',
+};
+
 /** An entry of a list of parts the editor addresses as `species.1` or `epithets.1.text.en`. */
 const PART_ENTRY_KEY = /^([^.]+)\.(\d+)((?:\.[^.]+)*)$/;
 
@@ -152,6 +162,9 @@ const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
   [ENTRY_REPEATED_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
   [ENTRY_NOT_LINKABLE_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
   [ENTRY_NOT_ALLOWED_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
+  ...Object.fromEntries(
+    Object.values(ENTRY_REFUSAL_BY_MESSAGE).map((text) => [text, ENTRY_REFUSED_MESSAGE_KEY]),
+  ),
   ...Object.fromEntries(
     Object.values(SUBCATEGORY_REFUSED_KEY).map((text) => [text, SUBCATEGORY_REFUSED_MESSAGE_KEY]),
   ),
@@ -909,7 +922,7 @@ export class EntityEditor {
           const key = draft ? this.partEntryOf(this.releaseRowOf(named, draft), draft) : named;
           // A number, a release, a relation or a subcategory is refused for being invalid:
           // not for a slug, which says the same code.
-          const specific = this.specificRefusalKey(key, errorCode);
+          const specific = this.specificRefusalKey(key, errorCode, violation.message);
           if (specific) {
             refusedTexts.push(specific);
           }
@@ -937,8 +950,9 @@ export class EntityEditor {
    * meaning: a number that is not one, a release that is no country or has no day, or - when
    * invalid - a relation or subcategory (`invalidValueKey`). `null` for any other field.
    */
-  private specificRefusalKey(key: string, errorCode: string): string | null {
-    const entryRefusal = errorCode === VALUE_INVALID ? this.partEntryRefusalKey(key) : null;
+  private specificRefusalKey(key: string, errorCode: string, message?: string): string | null {
+    const entryRefusal =
+      errorCode === VALUE_INVALID ? this.partEntryRefusalKey(key, message) : null;
     if (entryRefusal) {
       return entryRefusal;
     }
@@ -980,7 +994,7 @@ export class EntityEditor {
    * it cannot be linked, for a choice that it does not go with the rest of the entry (a rank
    * outside the Navy), and for a text that the list already has it. `null` for any other key.
    */
-  private partEntryRefusalKey(key: string): string | null {
+  private partEntryRefusalKey(key: string, message?: string): string | null {
     const [, list, index, rest] = PART_ENTRY_KEY.exec(key) ?? [];
     const field = partListFields(this.entity).find((candidate) => candidate.key === list);
     if (!field) {
@@ -997,7 +1011,7 @@ export class EntityEditor {
       return ENTRY_REPEATED_KEY;
     }
     if (part.kind === 'relation') {
-      return ENTRY_NOT_LINKABLE_KEY;
+      return ENTRY_REFUSAL_BY_MESSAGE[message ?? ''] ?? ENTRY_NOT_LINKABLE_KEY;
     }
     return part.kind === 'choice' ? ENTRY_NOT_ALLOWED_KEY : ENTRY_REPEATED_KEY;
   }

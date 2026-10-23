@@ -69,6 +69,21 @@ export interface ChoiceField {
   readonly options: readonly string[];
   /** Where it is a part of a `partList` entry: shown only when the entry's other part says so. */
   readonly visibleWhen?: VisibleWhen;
+  /** Where it is a part of a `partList` entry: the card words the value after the content chosen. */
+  readonly labelBy?: LabelBy;
+}
+
+/**
+ * The card words a choice after the content chosen in the relation part `part`, by its
+ * `field`: a relative's kind by the relative's gender (`PARENT` is "father" for a man). The
+ * labels are `<i18n>.<group>.<VALUE>.<FIELD VALUE>`; where the content has no such value the
+ * neutral label of the choice stands. The editor always shows the neutral one: the content may
+ * not be loaded, and the words would change under the editor's hands.
+ */
+export interface LabelBy {
+  readonly part: string;
+  readonly field: string;
+  readonly group: string;
 }
 
 /**
@@ -278,7 +293,19 @@ export interface ChainSection {
   readonly field: string;
 }
 
-export type EntitySection = RelatedListSection | ChainSection;
+/**
+ * A section of the card listing the contents that name this one in a list of theirs, as the
+ * backend sends them under `field` - each with the kind of tie seen from this side, worded after
+ * the relative's `gender` (`group`). Not part of the version, so shown on the current one only.
+ */
+export interface RelativeListSection {
+  readonly kind: 'relativeList';
+  readonly field: string;
+  /** The i18n group of the gendered labels of the kind (`<i18n>.<group>.<KIND>.<GENDER>`). */
+  readonly group: string;
+}
+
+export type EntitySection = RelatedListSection | ChainSection | RelativeListSection;
 
 /** A column of the list showing an amount in Berry, formatted for the reader. */
 export interface BerryColumn {
@@ -444,6 +471,10 @@ export function countColumn(field: string, options: Omit<CountColumn, 'field'>):
 
 export function relatedList(options: Omit<RelatedListSection, 'kind'>): RelatedListSection {
   return { kind: 'relatedList', ...options };
+}
+
+export function relativeListSection(field: string, group: string): RelativeListSection {
+  return { kind: 'relativeList', field, group };
 }
 
 export function chainSection(field: string): ChainSection {

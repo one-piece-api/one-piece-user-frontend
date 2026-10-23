@@ -626,7 +626,11 @@
             "list": "fruits",
             "entry": "fruit {{position}}"
           },
-          "multipleUsers": "multiple users"
+          "multipleUsers": "multiple users",
+          "relatives": {
+            "list": "relatives",
+            "entry": "relative {{position}}"
+          }
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
         "blockedUnknown": "the content does not allow it right now."
@@ -693,7 +697,8 @@
             "firstAppearanceChapter": "First appearance chapter not online",
             "firstAppearanceEpisode": "First appearance episode not online",
             "previous": "Previous bounty not online",
-            "holder": "Holder not online"
+            "holder": "Holder not online",
+            "relative": "Relative not online"
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arcs online: {{count}}",
@@ -714,7 +719,8 @@
           "DEVIL_FRUIT_IN_USE": {
             "character": "Fruit already in use",
             "fruit": "Current users: {{count}}"
-          }
+          },
+          "RELATIVE_ALREADY_LINKED": "Relative already linked"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "This fruit's type is not online. Republish the type first.",
@@ -728,7 +734,8 @@
             "firstAppearanceChapter": "Arrr! The first appearance chapter is not online yet, matey. Publish the chapter first.",
             "firstAppearanceEpisode": "Arrr! The episode of the first appearance is not online yet, matey. Publish the episode first.",
             "previous": "Arrr! The bounty this one replaces is not online yet, matey. Publish it first.",
-            "holder": "Arrr! The character holding this bounty is not online yet, matey. Publish the character first."
+            "holder": "Arrr! The character holding this bounty is not online yet, matey. Publish the character first.",
+            "relative": "Arrr! A relative of this character is not online yet, matey. Publish the character first."
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arrr! Arcs are still online under this saga, matey. Retire them first:",
@@ -749,7 +756,8 @@
           "DEVIL_FRUIT_IN_USE": {
             "character": "Arrr! The {{fruit}} already has a current user online, matey: each fruit has only one (except the Smile ones). Mark the other as a former user, or take the fruit off this character:",
             "fruit": "Arrr! Several online characters still have this fruit, matey: with one user at a time it cannot go online. Mark the former users first:"
-          }
+          },
+          "RELATIVE_ALREADY_LINKED": "Arrr! This relative already names this character in its online version, matey: a pair is linked by one of the two only. Remove the relative here, or have the other one drop the tie first:"
         },
         "andMore": "and {{count}} more"
       }
@@ -932,7 +940,8 @@
         "aliases": "Aliases",
         "holder": "Holder",
         "devilFruits": "Devil Fruits",
-        "multipleUsers": "Multiple users"
+        "multipleUsers": "Multiple users",
+        "relatives": "Relatives"
       },
       "noFirstAppearance": "Not set",
       "noPrevious": "none, this is the first",
@@ -1025,7 +1034,12 @@
           "former": "Fruit {{position}} · former user",
           "position": "Fruit {{position}} · position"
         },
-        "multipleUsers": "Multiple users"
+        "multipleUsers": "Multiple users",
+        "relatives": {
+          "relative": "Relative {{position}}",
+          "kind": "Relative {{position}} · kind",
+          "position": "Relative {{position}} · position"
+        }
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -1146,7 +1160,9 @@
         "releaseDate": "pick a valid date",
         "entryRepeated": "already in this list",
         "entryNotAllowed": "is not allowed with this affiliation: only the Navy has ranks",
-        "entryNotLinkable": "can no longer be chosen: it needs a content already approved in review"
+        "entryNotLinkable": "can no longer be chosen: it needs a content already approved in review",
+        "entryItself": "a character cannot be its own relative",
+        "entryAlreadyLinked": "already names this character as a relative: a pair is linked by one of the two only"
       },
       "takenNumberMessage": "Arrr! Another content already has the same number: it must be unique.",
       "numberRefusedMessage": "Arrr! A number is off course: it must be a whole number, not below the minimum.",
@@ -1310,6 +1326,15 @@
       "multipleUsers": {
         "label": "Multiple users",
         "hint": "e.g. the Smile fruits: several characters may have it together"
+      },
+      "relatives": {
+        "label": "Relatives",
+        "hint": "optional · family and sworn ties; a pair is linked once, by one of the two characters: the other sees it from its side",
+        "entry": "Relative {{position}}",
+        "add": "Add relative",
+        "empty": "No relative given.",
+        "relative": "Character",
+        "kind": "The relative is the… of this character"
       }
     },
     "dashboard": {
@@ -1710,6 +1735,9 @@
         },
         "devilFruits": {
           "devilFruit": "search a fruit"
+        },
+        "relatives": {
+          "relative": "search a character"
         }
       },
       "hintMissing": "Review takes a romaji, the status, the gender, the first appearance and, in every language, a name, a description and every epithet. Meanwhile the draft can be saved incomplete.",
@@ -1762,6 +1790,20 @@
           "former": {
             "true": "Former user"
           }
+        },
+        "kind": {
+          "PARENT": "Parent",
+          "CHILD": "Child",
+          "GRANDPARENT": "Grandparent",
+          "GRANDCHILD": "Grandchild",
+          "UNCLE_AUNT": "Uncle or aunt",
+          "NEPHEW_NIECE": "Nephew or niece",
+          "ADOPTIVE_PARENT": "Adoptive parent",
+          "ADOPTIVE_CHILD": "Adoptive child",
+          "SIBLING": "Sibling",
+          "COUSIN": "Cousin",
+          "SPOUSE": "Spouse",
+          "SWORN_SIBLING": "Sworn sibling"
         }
       },
       "related": {
@@ -1769,6 +1811,73 @@
           "title": "Bounties of this character",
           "empty": "No bounty for this character.",
           "viewAll": "See all ({{count}})"
+        }
+      },
+      "relativeKinds": {
+        "PARENT": {
+          "MALE": "Father",
+          "FEMALE": "Mother",
+          "UNKNOWN": "Parent"
+        },
+        "CHILD": {
+          "MALE": "Son",
+          "FEMALE": "Daughter",
+          "UNKNOWN": "Child"
+        },
+        "GRANDPARENT": {
+          "MALE": "Grandfather",
+          "FEMALE": "Grandmother",
+          "UNKNOWN": "Grandparent"
+        },
+        "GRANDCHILD": {
+          "MALE": "Grandson",
+          "FEMALE": "Granddaughter",
+          "UNKNOWN": "Grandchild"
+        },
+        "UNCLE_AUNT": {
+          "MALE": "Uncle",
+          "FEMALE": "Aunt",
+          "UNKNOWN": "Uncle or aunt"
+        },
+        "NEPHEW_NIECE": {
+          "MALE": "Nephew",
+          "FEMALE": "Niece",
+          "UNKNOWN": "Nephew or niece"
+        },
+        "ADOPTIVE_PARENT": {
+          "MALE": "Adoptive father",
+          "FEMALE": "Adoptive mother",
+          "UNKNOWN": "Adoptive parent"
+        },
+        "ADOPTIVE_CHILD": {
+          "MALE": "Adopted son",
+          "FEMALE": "Adopted daughter",
+          "UNKNOWN": "Adopted child"
+        },
+        "SIBLING": {
+          "MALE": "Brother",
+          "FEMALE": "Sister",
+          "UNKNOWN": "Sibling"
+        },
+        "COUSIN": {
+          "MALE": "Cousin",
+          "FEMALE": "Cousin",
+          "UNKNOWN": "Cousin"
+        },
+        "SPOUSE": {
+          "MALE": "Husband",
+          "FEMALE": "Wife",
+          "UNKNOWN": "Spouse"
+        },
+        "SWORN_SIBLING": {
+          "MALE": "Sworn brother",
+          "FEMALE": "Sworn sister",
+          "UNKNOWN": "Sworn sibling"
+        }
+      },
+      "relativeList": {
+        "relativesOf": {
+          "title": "Named as a relative by"
         }
       }
     }

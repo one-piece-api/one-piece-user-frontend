@@ -626,7 +626,11 @@
             "list": "frutti",
             "entry": "frutto {{position}}"
           },
-          "multipleUsers": "più possessori"
+          "multipleUsers": "più possessori",
+          "relatives": {
+            "list": "parenti",
+            "entry": "parente {{position}}"
+          }
         },
         "blocked": "Arrr! Non si può: {{reason}}",
         "blockedUnknown": "il contenuto non lo consente in questo momento."
@@ -693,7 +697,8 @@
             "firstAppearanceChapter": "Capitolo della prima apparizione non online",
             "firstAppearanceEpisode": "Episodio della prima apparizione non online",
             "previous": "Taglia precedente non online",
-            "holder": "Titolare non online"
+            "holder": "Titolare non online",
+            "relative": "Parente non online"
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Archi online: {{count}}",
@@ -714,7 +719,8 @@
           "DEVIL_FRUIT_IN_USE": {
             "character": "Frutto già in uso",
             "fruit": "Possessori attuali: {{count}}"
-          }
+          },
+          "RELATIVE_ALREADY_LINKED": "Parente già legato"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "Il Tipo di questo Frutto non è online. Ripubblica prima il Tipo.",
@@ -728,7 +734,8 @@
             "firstAppearanceChapter": "Arrr! Il capitolo della prima apparizione non è ancora online, compare. Pubblica prima il capitolo.",
             "firstAppearanceEpisode": "Arrr! L'episodio della prima apparizione non è ancora online, compare. Pubblica prima l'episodio.",
             "previous": "Arrr! La taglia che questa sostituisce non è ancora online, compare. Pubblica prima quella.",
-            "holder": "Arrr! Il personaggio titolare di questa taglia non è ancora online, compare. Pubblica prima il personaggio."
+            "holder": "Arrr! Il personaggio titolare di questa taglia non è ancora online, compare. Pubblica prima il personaggio.",
+            "relative": "Arrr! Un parente di questo personaggio non è ancora online, compare. Pubblica prima il personaggio."
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arrr! Ci sono ancora archi online sotto questa saga, compare. Ritirali prima:",
@@ -749,7 +756,8 @@
           "DEVIL_FRUIT_IN_USE": {
             "character": "Arrr! Il frutto {{fruit}} ha già un possessore attuale online, compare: ogni frutto ne ha uno solo (tranne gli Smile). Segna l'altro come ex possessore, o togli il frutto da questo personaggio:",
             "fruit": "Arrr! Più personaggi online hanno ancora questo frutto, compare: con un solo possessore alla volta non può andare online. Segna gli ex possessori prima:"
-          }
+          },
+          "RELATIVE_ALREADY_LINKED": "Arrr! Questo parente nomina già questo personaggio nella sua versione online, compare: una coppia è legata da uno dei due soltanto. Togli il parente qui, oppure fai togliere prima il legame all'altro:"
         },
         "andMore": "e altri {{count}}"
       }
@@ -932,7 +940,8 @@
         "aliases": "Alias",
         "holder": "Titolare",
         "devilFruits": "Frutti del Diavolo",
-        "multipleUsers": "Più possessori"
+        "multipleUsers": "Più possessori",
+        "relatives": "Parenti"
       },
       "noFirstAppearance": "Non indicata",
       "noPrevious": "nessuna, è la prima",
@@ -1025,7 +1034,12 @@
           "former": "Frutto {{position}} · ex possessore",
           "position": "Frutto {{position}} · posizione"
         },
-        "multipleUsers": "Più possessori"
+        "multipleUsers": "Più possessori",
+        "relatives": {
+          "relative": "Parente {{position}}",
+          "kind": "Parente {{position}} · tipo",
+          "position": "Parente {{position}} · posizione"
+        }
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -1146,7 +1160,9 @@
         "releaseDate": "scegli una data valida",
         "entryRepeated": "già presente in questo elenco",
         "entryNotAllowed": "non è ammesso con questa affiliazione: solo la Marina ha gradi",
-        "entryNotLinkable": "non si può più scegliere: serve un contenuto già approvato in revisione"
+        "entryNotLinkable": "non si può più scegliere: serve un contenuto già approvato in revisione",
+        "entryItself": "un personaggio non può essere parente di se stesso",
+        "entryAlreadyLinked": "nomina già questo personaggio tra i suoi parenti: una coppia è legata da uno dei due soltanto"
       },
       "takenNumberMessage": "Arrr! Un altro contenuto ha già lo stesso numero: dev'essere unico.",
       "numberRefusedMessage": "Arrr! Un numero non va: dev'essere un numero intero, non sotto il minimo.",
@@ -1310,6 +1326,15 @@
       "multipleUsers": {
         "label": "Più possessori",
         "hint": "es. i frutti Smile: più personaggi possono averlo insieme"
+      },
+      "relatives": {
+        "label": "Parenti",
+        "hint": "facoltativi · legami di famiglia o di giuramento; una coppia è legata una volta sola, da uno dei due personaggi: l'altro la vede dal suo lato",
+        "entry": "Parente {{position}}",
+        "add": "Aggiungi parente",
+        "empty": "Nessun parente indicato.",
+        "relative": "Personaggio",
+        "kind": "Il parente è… di questo personaggio"
       }
     },
     "dashboard": {
@@ -1710,6 +1735,9 @@
         },
         "devilFruits": {
           "devilFruit": "cerca un frutto"
+        },
+        "relatives": {
+          "relative": "cerca un personaggio"
         }
       },
       "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione e, in ogni lingua, nome, descrizione e ogni epiteto. Intanto la bozza si salva anche incompleta.",
@@ -1762,6 +1790,20 @@
           "former": {
             "true": "Ex possessore"
           }
+        },
+        "kind": {
+          "PARENT": "Genitore",
+          "CHILD": "Figlio/a",
+          "GRANDPARENT": "Nonno/a",
+          "GRANDCHILD": "Nipote (di nonno)",
+          "UNCLE_AUNT": "Zio/a",
+          "NEPHEW_NIECE": "Nipote (di zio)",
+          "ADOPTIVE_PARENT": "Genitore adottivo",
+          "ADOPTIVE_CHILD": "Figlio/a adottivo/a",
+          "SIBLING": "Fratello/sorella",
+          "COUSIN": "Cugino/a",
+          "SPOUSE": "Coniuge",
+          "SWORN_SIBLING": "Fratello/sorella giurato/a"
         }
       },
       "related": {
@@ -1769,6 +1811,73 @@
           "title": "Taglie di questo personaggio",
           "empty": "Nessuna taglia per questo personaggio.",
           "viewAll": "Vedi tutte ({{count}})"
+        }
+      },
+      "relativeKinds": {
+        "PARENT": {
+          "MALE": "Padre",
+          "FEMALE": "Madre",
+          "UNKNOWN": "Genitore"
+        },
+        "CHILD": {
+          "MALE": "Figlio",
+          "FEMALE": "Figlia",
+          "UNKNOWN": "Figlio/a"
+        },
+        "GRANDPARENT": {
+          "MALE": "Nonno",
+          "FEMALE": "Nonna",
+          "UNKNOWN": "Nonno/a"
+        },
+        "GRANDCHILD": {
+          "MALE": "Nipote (di nonno)",
+          "FEMALE": "Nipote (di nonno)",
+          "UNKNOWN": "Nipote (di nonno)"
+        },
+        "UNCLE_AUNT": {
+          "MALE": "Zio",
+          "FEMALE": "Zia",
+          "UNKNOWN": "Zio/a"
+        },
+        "NEPHEW_NIECE": {
+          "MALE": "Nipote (di zio)",
+          "FEMALE": "Nipote (di zio)",
+          "UNKNOWN": "Nipote (di zio)"
+        },
+        "ADOPTIVE_PARENT": {
+          "MALE": "Padre adottivo",
+          "FEMALE": "Madre adottiva",
+          "UNKNOWN": "Genitore adottivo"
+        },
+        "ADOPTIVE_CHILD": {
+          "MALE": "Figlio adottivo",
+          "FEMALE": "Figlia adottiva",
+          "UNKNOWN": "Figlio/a adottivo/a"
+        },
+        "SIBLING": {
+          "MALE": "Fratello",
+          "FEMALE": "Sorella",
+          "UNKNOWN": "Fratello/sorella"
+        },
+        "COUSIN": {
+          "MALE": "Cugino",
+          "FEMALE": "Cugina",
+          "UNKNOWN": "Cugino/a"
+        },
+        "SPOUSE": {
+          "MALE": "Marito",
+          "FEMALE": "Moglie",
+          "UNKNOWN": "Coniuge"
+        },
+        "SWORN_SIBLING": {
+          "MALE": "Fratello giurato",
+          "FEMALE": "Sorella giurata",
+          "UNKNOWN": "Fratello/sorella giurato/a"
+        }
+      },
+      "relativeList": {
+        "relativesOf": {
+          "title": "Indicato come parente da"
         }
       }
     }

@@ -164,6 +164,19 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
         titled: `${sentence} ${links.map(({ label }) => label).join(', ')}`,
       };
     }
+    case 'RELATIVE_ALREADY_LINKED': {
+      const { relativeId, relativeRomaji } = cause.detail;
+      const route = entityOf(CHARACTER_ENTITY)?.route;
+      const link = { label: relativeRomaji, route: route ? `${route}/${relativeId}` : '' };
+      const sentence = text('sentence.RELATIVE_ALREADY_LINKED');
+      return {
+        note: text('note.RELATIVE_ALREADY_LINKED'),
+        sentence,
+        links: [link],
+        more: 0,
+        titled: `${sentence} ${link.label}`,
+      };
+    }
     case 'ONLINE_FRUITS_LINKED':
     case 'SUBCATEGORY_IN_USE': {
       const route = entityOf(FRUIT_ENTITY)?.route;

@@ -134,6 +134,7 @@ export type BlockCause =
         Partial<Record<`${StoryRelation}Number`, number>> & {
           previousKey?: string;
           holderRomaji?: string;
+          relativeRomaji?: string;
         };
     }
   | {
@@ -183,6 +184,15 @@ export type BlockCause =
       };
     }
   | {
+      /**
+       * A character cannot go online, or be restored, naming a relative whose online version
+       * already names it: a pair is linked by one of the two - the position of the entry and
+       * the relative.
+       */
+      reason: 'RELATIVE_ALREADY_LINKED';
+      detail: { relativesIndex: number; relativeId: string; relativeRomaji: string };
+    }
+  | {
       /** A fruit or type cannot go online without a first appearance. */
       reason: 'FIRST_APPEARANCE_MISSING';
       detail: Record<string, never>;
@@ -203,7 +213,7 @@ export type BlockCause =
 
 /**
  * The relations a block can name: a saga, an arc, a volume, the chapter or episode of a first
- * appearance, the bounty a bounty replaces, the character that holds a bounty.
+ * appearance, the bounty a bounty replaces, the character that holds a bounty, the relative of a character.
  */
 export const STORY_RELATIONS = [
   'saga',
@@ -213,6 +223,7 @@ export const STORY_RELATIONS = [
   'firstAppearanceEpisode',
   'previous',
   'holder',
+  'relative',
 ] as const;
 export type StoryRelation = (typeof STORY_RELATIONS)[number];
 

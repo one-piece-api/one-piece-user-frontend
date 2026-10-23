@@ -19,7 +19,7 @@ import { EntityList } from '../entity/entity-list';
 import { RelationPicker } from '../entity/relation-picker';
 import { SPECIES } from '../species/species.model';
 import { refusedFieldWords } from '../version-actions';
-import { CHARACTER } from './character.model';
+import { CHARACTER, RELATIVE_KINDS } from './character.model';
 
 const ID = '3f2a9c1b-0000-4000-8000-0000000000c1';
 const NAMI_USER = { id: 'u1', username: 'nami', email: 'nami@onepiece.local' };
@@ -30,6 +30,18 @@ const LANGUAGES = [
 const NAVY = { id: 'a1', romaji: 'Kaigun', names: { en: 'Navy' }, kind: 'NAVY' };
 const CREW = { id: 'a2', romaji: 'Mugiwara', names: { en: 'Straw Hats' }, kind: 'PIRATE_CREW' };
 const MERA = { id: 'f1', romaji: 'Mera Mera no Mi', names: { en: 'Flame-Flame' } };
+const LUFFY = {
+  id: 'c2',
+  romaji: 'Monkey D. Luffy',
+  names: { en: 'Monkey D. Luffy' },
+  gender: 'MALE',
+};
+const GARP = {
+  id: 'c3',
+  romaji: 'Monkey D. Garp',
+  names: { en: 'Monkey D. Garp' },
+  gender: 'MALE',
+};
 const HUMAN = { id: 's1', romaji: 'Ningen', names: { it: 'Umano', en: 'Human' } };
 
 @Component({ template: '' })
@@ -70,6 +82,7 @@ describe('the character definition', () => {
       'species:partList',
       'affiliations:partList',
       'devilFruits:partList',
+      'relatives:partList',
       'firstAppearance:storyPoint',
       'name:localizedText',
       'epithets:partList',
@@ -128,9 +141,29 @@ describe('the character definition', () => {
     expect(parts[0]).toMatchObject({ target: 'DEVIL_FRUIT' });
   });
 
+  it("lists the relatives as a list of parts, each once, the kind worded after the relative's gender", () => {
+    const relatives = CHARACTER.fields.find((field) => field.key === 'relatives');
+
+    expect(relatives).toMatchObject({ kind: 'partList', unique: 'relative' });
+    const parts = relatives?.kind === 'partList' ? relatives.parts : [];
+    expect(parts.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
+      'relative:relation',
+      'kind:choice',
+    ]);
+    expect(parts[0]).toMatchObject({ target: 'CHARACTER' });
+    expect(parts[1]).toMatchObject({
+      options: [...RELATIVE_KINDS],
+      labelBy: { part: 'relative', field: 'gender', group: 'relativeKinds' },
+    });
+    expect(RELATIVE_KINDS).toHaveLength(12);
+  });
+
   it('counts and lists the bounties naming it as holder, by the filter their list has for it', () => {
     expect(CHARACTER.counts).toEqual([{ field: 'bountyCount', of: 'BOUNTY', by: 'holder' }]);
-    expect(CHARACTER.sections).toEqual([{ kind: 'relatedList', of: 'BOUNTY', by: 'holder' }]);
+    expect(CHARACTER.sections).toEqual([
+      { kind: 'relatedList', of: 'BOUNTY', by: 'holder' },
+      { kind: 'relativeList', field: 'relativesOf', group: 'relativeKinds' },
+    ]);
   });
 });
 
@@ -222,12 +255,35 @@ describe('the words about characters', () => {
     expect(words.sentence).toContain('Publish the character first');
   });
 
+  it('name a relative that is not online as what keeps a character from going online', () => {
+    const words = blockWords(transloco, {
+      reason: 'RELATED_NOT_ONLINE',
+      detail: { relativeId: 'c3', relativeRomaji: 'Monkey D. Garp' },
+    });
+
+    expect(words.note).toBe('Relative not online');
+    expect(words.sentence).toContain('relative of this character is not online');
+  });
+
+  it('name the relative that already links the pair, and link it', () => {
+    const words = blockWords(transloco, {
+      reason: 'RELATIVE_ALREADY_LINKED',
+      detail: { relativesIndex: 1, relativeId: 'c3', relativeRomaji: 'Monkey D. Garp' },
+    });
+
+    expect(words.note).toBe('Relative already linked');
+    expect(words.sentence).toContain('a pair is linked by one of the two only');
+    expect(words.links).toEqual([{ label: 'Monkey D. Garp', route: '/content/characters/c3' }]);
+    expect(words.titled).toContain('Monkey D. Garp');
+  });
+
   it('name an entry of a list review still lacks, by position and language', () => {
     const words = (field: string) => refusedFieldWords(transloco, CHARACTER, field);
 
     expect(words('epithets[1].text[en]')).toBe('epithet 2 EN');
     expect(words('aliases[0]')).toBe('alias 1');
     expect(words('devilFruits[0].devilFruit')).toBe('fruit 1');
+    expect(words('relatives[1].relative')).toBe('relative 2');
     expect(words('epithets')).toBe('epithets');
     expect(words('translations[it].name')).toBe('name IT');
     expect(words('status')).toBe('status');
@@ -305,6 +361,26 @@ describe('the card of a character', () => {
     );
     expect(text('card-devilFruits')).toContain('Flame-Flame');
     expect(text('card-devilFruits')).toContain('Former user');
+  });
+
+  it("words the kind of a relative after the relative's gender", () => {
+    fixture.componentRef.setInput('body', {
+      ...NAMI,
+      relatives: [
+        { relative: GARP, kind: 'GRANDPARENT' },
+        { relative: { ...LUFFY, gender: 'FEMALE' }, kind: 'SIBLING' },
+        { relative: { id: 'c9', romaji: 'Oda' }, kind: 'PARENT' },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(root.querySelector('[data-testid="card-relatives"] a')?.getAttribute('href')).toBe(
+      '/content/characters/c3',
+    );
+    expect(text('card-relatives')).toContain('Monkey D. Garp · Grandfather');
+    expect(text('card-relatives')).toContain('Monkey D. Luffy · Sister');
+    // A relative whose gender is not known is worded neutrally.
+    expect(text('card-relatives')).toContain('Oda · Parent');
   });
 
   it('lists its species linked, its epithets in the language shown and its aliases', () => {
@@ -542,6 +618,15 @@ describe('the editor of a character', () => {
     await settle();
   }
 
+  /** Picks a relative in the first entry of the relatives, as the search would. */
+  async function pickRelative(reference: typeof GARP): Promise<void> {
+    const picker = harness
+      .routeDebugElement!.query(By.css('[data-testid="draft-relatives"]'))
+      .query(By.directive(RelationPicker));
+    (picker.componentInstance as RelationPicker).picked.emit(reference);
+    await settle();
+  }
+
   async function save(): Promise<void> {
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
     await settle();
@@ -563,7 +648,7 @@ describe('the editor of a character', () => {
   });
 
   it('asks review for an epithet written, in every language, not for one left empty', async () => {
-    await click('part-add', 3);
+    await click('part-add', 4);
     expect(checkLabels().join(' | ')).not.toContain('Epithet');
 
     await write('draft-epithets-0-text-it', 'Gatta ladra');
@@ -580,10 +665,10 @@ describe('the editor of a character', () => {
     await choose('draft-birthday', '3');
     await click('part-add', 0);
     await pickSpecies();
-    await click('part-add', 3);
+    await click('part-add', 4);
     await write('draft-epithets-0-text-en', ' Cat Burglar ');
-    await click('part-add', 4);
-    await click('part-add', 4);
+    await click('part-add', 5);
+    await click('part-add', 5);
     await write('draft-aliases-1-alias', 'Miss Nami');
 
     await save();
@@ -640,6 +725,27 @@ describe('the editor of a character', () => {
     await settle();
   });
 
+  it('saves a relative with its kind, worded neutrally in the editor', async () => {
+    await write('draft-romaji', 'Monkey D. Luffy');
+    await click('part-add', 3);
+    await pickRelative(GARP);
+    await choose('draft-relatives-0-kind', 'GRANDPARENT');
+
+    expect(
+      root
+        .querySelector('#draft-relatives-0-kind option[value="GRANDPARENT"]')
+        ?.textContent?.trim(),
+    ).toBe('Grandparent');
+
+    await save();
+    const request = httpTesting.expectOne(API);
+    expect(request.request.body).toMatchObject({
+      relatives: [{ relative: 'c3', kind: 'GRANDPARENT' }],
+    });
+    request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
+    await settle();
+  });
+
   it('says under the rank that the Navy alone has them, when the backend refuses it', async () => {
     await write('draft-romaji', 'Koby');
     await click('part-add', 1);
@@ -665,10 +771,10 @@ describe('the editor of a character', () => {
 
   it('shows a refused entry under the entry of the draft, past the empty ones not sent', async () => {
     await write('draft-romaji', 'Usopp');
-    await click('part-add', 4);
+    await click('part-add', 5);
     await write('draft-aliases-0-alias', 'Sogeking');
-    await click('part-add', 4);
-    await click('part-add', 4);
+    await click('part-add', 5);
+    await click('part-add', 5);
     await write('draft-aliases-2-alias', 'sogeking');
 
     await save();
@@ -686,6 +792,41 @@ describe('the editor of a character', () => {
     );
     expect(fieldErrors()).toEqual(['already in this list']);
     expect(entries[2].textContent).toContain('already in this list');
+    expect(TestBed.inject(MascotService).message().text).toContain('Some entry of a list');
+  });
+
+  it.each([
+    [
+      'is not approved',
+      'must be a Character with an approved version',
+      'can no longer be chosen: it needs a content already approved in review',
+    ],
+    [
+      'is the character itself',
+      'must not be the character itself',
+      'a character cannot be its own relative',
+    ],
+    [
+      'already names the character',
+      'already names this character as a relative',
+      'already names this character as a relative: a pair is linked by one of the two only',
+    ],
+  ])('tells why a relative is refused when it %s', async (_case, message, expected) => {
+    await write('draft-romaji', 'Monkey D. Garp');
+    await click('part-add', 3);
+    await pickRelative(GARP);
+
+    await save();
+    httpTesting.expectOne(API).flush(
+      {
+        errorCode: 'CONTENT_VALUE_INVALID',
+        errors: [{ field: 'relatives[0].relative', message }],
+      },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    await settle();
+
+    expect(fieldErrors()).toEqual([expected]);
     expect(TestBed.inject(MascotService).message().text).toContain('Some entry of a list');
   });
 

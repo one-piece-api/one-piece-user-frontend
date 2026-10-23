@@ -12,6 +12,7 @@ import {
   textField,
   countColumn,
   relatedList,
+  relativeListSection,
   type EntityDefinition,
 } from '../entity/entity-definition';
 
@@ -56,6 +57,22 @@ const MARINE_RANKS = [
   'SEAMAN_APPRENTICE',
   'SEAMAN_RECRUIT',
   'CHORE_BOY',
+] as const;
+
+/** What a relative is to the character - the backend's `RelativeKind`, read "the relative is the <kind> of this character" (plan D13). */
+export const RELATIVE_KINDS = [
+  'PARENT',
+  'CHILD',
+  'GRANDPARENT',
+  'GRANDCHILD',
+  'UNCLE_AUNT',
+  'NEPHEW_NIECE',
+  'ADOPTIVE_PARENT',
+  'ADOPTIVE_CHILD',
+  'SIBLING',
+  'COUSIN',
+  'SPOUSE',
+  'SWORN_SIBLING',
 ] as const;
 
 /** The most epithets and aliases a character has - the backend's limits. */
@@ -107,6 +124,17 @@ export const CHARACTER: EntityDefinition = {
       unique: 'devilFruit',
       filterBy: { key: 'devilFruit', part: 'devilFruit' },
     }),
+    // A pair is linked once, by one of the two; the other side reads it as `relativesOf` (D13).
+    partListField('relatives', {
+      parts: [
+        relationField('relative', { target: 'CHARACTER' }),
+        choiceField('kind', {
+          options: RELATIVE_KINDS,
+          labelBy: { part: 'relative', field: 'gender', group: 'relativeKinds' },
+        }),
+      ],
+      unique: 'relative',
+    }),
     storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
     partListField('epithets', {
@@ -122,7 +150,11 @@ export const CHARACTER: EntityDefinition = {
   ],
   // The bounties it holds: derived from the bounties naming it, never part of its version (D11).
   counts: [countColumn('bountyCount', { of: 'BOUNTY', by: 'holder' })],
-  sections: [relatedList({ of: 'BOUNTY', by: 'holder' })],
+  sections: [
+    relatedList({ of: 'BOUNTY', by: 'holder' }),
+    // The characters that name this one as a relative: stored by them, read from this side (D13).
+    relativeListSection('relativesOf', 'relativeKinds'),
+  ],
   list: {
     // The status has no column: the rows carry only names and romaji (plan C3, decision 4a).
     filters: [

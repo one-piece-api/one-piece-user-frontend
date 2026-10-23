@@ -35,6 +35,7 @@ import { EntityCard } from './entity-card';
 import { EntityComparison } from './entity-comparison';
 import { ChainList } from './chain-list';
 import { RelatedList } from './related-list';
+import { RelativeList } from './relative-list';
 
 /** The query parameters this page keeps its view in, so a link reopens the same version. */
 const PARAM = { version: 'v', tab: 'tab' } as const;
@@ -72,6 +73,7 @@ const NOT_FOUND_STATUSES = [400, 404];
     EntityComparison,
     LoadingPlaceholder,
     ChainList,
+    RelativeList,
     RelatedList,
     RouterLink,
     StatusBadge,
