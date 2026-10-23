@@ -621,7 +621,12 @@
             "list": "appartenenze",
             "entry": "appartenenza {{position}}"
           },
-          "holder": "titolare"
+          "holder": "titolare",
+          "devilFruits": {
+            "list": "frutti",
+            "entry": "frutto {{position}}"
+          },
+          "multipleUsers": "più possessori"
         },
         "blocked": "Arrr! Non si può: {{reason}}",
         "blockedUnknown": "il contenuto non lo consente in questo momento."
@@ -705,7 +710,11 @@
           "PREVIOUS_ALREADY_REPLACED": "Taglia precedente già sostituita",
           "BOUNTY_CHAIN_CYCLE": "Catena di taglie circolare",
           "MARINE_RANK_NOT_ALLOWED": "Grado fuori dalla Marina",
-          "MARINE_RANK_IN_USE": "Gradi in uso: {{count}}"
+          "MARINE_RANK_IN_USE": "Gradi in uso: {{count}}",
+          "DEVIL_FRUIT_IN_USE": {
+            "character": "Frutto già in uso",
+            "fruit": "Possessori attuali: {{count}}"
+          }
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "Il Tipo di questo Frutto non è online. Ripubblica prima il Tipo.",
@@ -736,7 +745,11 @@
           "PREVIOUS_ALREADY_REPLACED": "Arrr! La taglia precedente è già sostituita da un'altra online, compare: ogni taglia può essere sostituita da una sola. Ritira prima quella, o scegli un'altra taglia precedente:",
           "BOUNTY_CHAIN_CYCLE": "Arrr! Con questa taglia precedente la catena tornerebbe su sé stessa, compare. Scegline un'altra.",
           "MARINE_RANK_NOT_ALLOWED": "Arrr! Questo personaggio ha un grado in un'affiliazione che non è più della Marina, compare. Togli il grado, o ripubblica l'affiliazione come Marina:",
-          "MARINE_RANK_IN_USE": "Arrr! Ci sono personaggi online con un grado in questa affiliazione, compare: non può smettere di essere della Marina. Ritirali o togli prima il loro grado:"
+          "MARINE_RANK_IN_USE": "Arrr! Ci sono personaggi online con un grado in questa affiliazione, compare: non può smettere di essere della Marina. Ritirali o togli prima il loro grado:",
+          "DEVIL_FRUIT_IN_USE": {
+            "character": "Arrr! Il frutto {{fruit}} ha già un possessore attuale online, compare: ogni frutto ne ha uno solo (tranne gli Smile). Segna l'altro come ex possessore, o togli il frutto da questo personaggio:",
+            "fruit": "Arrr! Più personaggi online hanno ancora questo frutto, compare: con un solo possessore alla volta non può andare online. Segna gli ex possessori prima:"
+          }
         },
         "andMore": "e altri {{count}}"
       }
@@ -821,7 +834,8 @@
         "bountyCount": "Taglie",
         "affiliation": "Affiliazione",
         "affiliationKind": "Tipo di gruppo",
-        "memberCount": "Membri"
+        "memberCount": "Membri",
+        "devilFruit": "Frutto del Diavolo"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji da definire",
@@ -916,7 +930,9 @@
         "epithets": "Epiteti",
         "affiliations": "Affiliazioni",
         "aliases": "Alias",
-        "holder": "Titolare"
+        "holder": "Titolare",
+        "devilFruits": "Frutti del Diavolo",
+        "multipleUsers": "Più possessori"
       },
       "noFirstAppearance": "Non indicata",
       "noPrevious": "nessuna, è la prima",
@@ -1003,7 +1019,13 @@
           "former": "Appartenenza {{position}} · ex membro",
           "position": "Appartenenza {{position}} · posizione"
         },
-        "holder": "Titolare"
+        "holder": "Titolare",
+        "devilFruits": {
+          "devilFruit": "Frutto {{position}}",
+          "former": "Frutto {{position}} · ex possessore",
+          "position": "Frutto {{position}} · posizione"
+        },
+        "multipleUsers": "Più possessori"
       },
       "baseLabel": "Versione di partenza del confronto",
       "before": "prima",
@@ -1275,6 +1297,19 @@
       "holder": {
         "label": "Titolare",
         "hint": "facoltativo · il personaggio, se noto; il nome sul manifesto resta com’è stampato"
+      },
+      "devilFruits": {
+        "label": "Frutti del Diavolo",
+        "hint": "facoltativi · i frutti mangiati; un frutto ha un solo possessore attuale, gli altri sono ex possessori",
+        "entry": "Frutto {{position}}",
+        "add": "Aggiungi frutto",
+        "empty": "Nessun frutto indicato.",
+        "devilFruit": "Frutto del Diavolo",
+        "former": "Ex possessore"
+      },
+      "multipleUsers": {
+        "label": "Più possessori",
+        "hint": "es. i frutti Smile: più personaggi possono averlo insieme"
       }
     },
     "dashboard": {
@@ -1426,7 +1461,19 @@
         "advantages": "cosa dà questo frutto a chi lo mangia, nella lingua selezionata",
         "disadvantages": "cosa costa a chi lo mangia, nella lingua selezionata"
       },
-      "hintMissing": "Per la revisione servono il romaji, il Tipo e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta."
+      "hintMissing": "Per la revisione servono il romaji, il Tipo e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta.",
+      "options": {
+        "multipleUsers": {
+          "true": "Più possessori"
+        }
+      },
+      "related": {
+        "CHARACTER": {
+          "title": "Possessori attuali di questo frutto",
+          "empty": "Nessun personaggio ha questo frutto adesso.",
+          "viewAll": "Vedi tutti ({{count}})"
+        }
+      }
     },
     "image": {
       "media": "Media",
@@ -1660,6 +1707,9 @@
         "affiliations": {
           "affiliation": "cerca un'affiliazione",
           "role": "ruolo in questa lingua, es. Capitano"
+        },
+        "devilFruits": {
+          "devilFruit": "cerca un frutto"
         }
       },
       "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione e, in ogni lingua, nome, descrizione e ogni epiteto. Intanto la bozza si salva anche incompleta.",
@@ -1703,8 +1753,15 @@
           "SEAMAN_RECRUIT": "Recluta",
           "CHORE_BOY": "Ragazzo di servizio"
         },
-        "former": {
-          "true": "Ex membro"
+        "affiliations": {
+          "former": {
+            "true": "Ex membro"
+          }
+        },
+        "devilFruits": {
+          "former": {
+            "true": "Ex possessore"
+          }
         }
       },
       "related": {

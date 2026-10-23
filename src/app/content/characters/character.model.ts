@@ -101,6 +101,12 @@ export const CHARACTER: EntityDefinition = {
       unique: 'affiliation',
       filterBy: { key: 'affiliation', part: 'affiliation' },
     }),
+    // At most one current user per fruit, except the SMILE ones; checked on publish (D12).
+    partListField('devilFruits', {
+      parts: [relationField('devilFruit', { target: 'DEVIL_FRUIT' }), booleanField('former')],
+      unique: 'devilFruit',
+      filterBy: { key: 'devilFruit', part: 'devilFruit' },
+    }),
     storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
     partListField('epithets', {

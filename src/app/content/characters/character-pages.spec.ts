@@ -29,6 +29,7 @@ const LANGUAGES = [
 ];
 const NAVY = { id: 'a1', romaji: 'Kaigun', names: { en: 'Navy' }, kind: 'NAVY' };
 const CREW = { id: 'a2', romaji: 'Mugiwara', names: { en: 'Straw Hats' }, kind: 'PIRATE_CREW' };
+const MERA = { id: 'f1', romaji: 'Mera Mera no Mi', names: { en: 'Flame-Flame' } };
 const HUMAN = { id: 's1', romaji: 'Ningen', names: { it: 'Umano', en: 'Human' } };
 
 @Component({ template: '' })
@@ -68,6 +69,7 @@ describe('the character definition', () => {
       'birthday:monthDay',
       'species:partList',
       'affiliations:partList',
+      'devilFruits:partList',
       'firstAppearance:storyPoint',
       'name:localizedText',
       'epithets:partList',
@@ -110,6 +112,22 @@ describe('the character definition', () => {
     expect(parts[2].kind === 'choice' && parts[2].options).toHaveLength(19);
   });
 
+  it('lists the Devil Fruits as a list of parts, each once, filtered by the fruit', () => {
+    const fruits = CHARACTER.fields.find((field) => field.key === 'devilFruits');
+
+    expect(fruits).toMatchObject({
+      kind: 'partList',
+      unique: 'devilFruit',
+      filterBy: { key: 'devilFruit', part: 'devilFruit' },
+    });
+    const parts = fruits?.kind === 'partList' ? fruits.parts : [];
+    expect(parts.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
+      'devilFruit:relation',
+      'former:boolean',
+    ]);
+    expect(parts[0]).toMatchObject({ target: 'DEVIL_FRUIT' });
+  });
+
   it('counts and lists the bounties naming it as holder, by the filter their list has for it', () => {
     expect(CHARACTER.counts).toEqual([{ field: 'bountyCount', of: 'BOUNTY', by: 'holder' }]);
     expect(CHARACTER.sections).toEqual([{ kind: 'relatedList', of: 'BOUNTY', by: 'holder' }]);
@@ -143,6 +161,34 @@ describe('the words about characters', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
     transloco = TestBed.inject(TranslocoService);
+  });
+
+  it('name the fruit a character cannot have as its current one, and the characters already using it', () => {
+    const words = blockWords(transloco, {
+      reason: 'DEVIL_FRUIT_IN_USE',
+      detail: {
+        devilFruitsIndex: 0,
+        devilFruitId: 'f1',
+        devilFruitRomaji: 'Mera Mera no Mi',
+        characters: [{ id: 'c1', romaji: 'Portgas D. Ace' }],
+      },
+    });
+
+    expect(words.note).toBe('Fruit already in use');
+    expect(words.sentence).toContain('Mera Mera no Mi');
+    expect(words.links).toEqual([{ label: 'Portgas D. Ace', route: '/content/characters/c1' }]);
+    expect(words.more).toBe(0);
+  });
+
+  it('name the characters that keep a fruit from going online with one user at a time, and link them', () => {
+    const words = blockWords(transloco, {
+      reason: 'DEVIL_FRUIT_IN_USE',
+      detail: { count: 3, characters: [{ id: 'c1', romaji: 'Caesar Clown' }] },
+    });
+
+    expect(words.note).toBe('Current users: 3');
+    expect(words.links).toEqual([{ label: 'Caesar Clown', route: '/content/characters/c1' }]);
+    expect(words.more).toBe(2);
   });
 
   it('name the online characters that keep a species from being retired, and link them', () => {
@@ -181,6 +227,7 @@ describe('the words about characters', () => {
 
     expect(words('epithets[1].text[en]')).toBe('epithet 2 EN');
     expect(words('aliases[0]')).toBe('alias 1');
+    expect(words('devilFruits[0].devilFruit')).toBe('fruit 1');
     expect(words('epithets')).toBe('epithets');
     expect(words('translations[it].name')).toBe('name IT');
     expect(words('status')).toBe('status');
@@ -233,6 +280,31 @@ describe('the card of a character', () => {
     expect(root.querySelector('[data-testid="card-japaneseName"]')?.getAttribute('lang')).toBe(
       'ja',
     );
+  });
+
+  it('marks a past membership as a former member, not as a former user', () => {
+    fixture.componentRef.setInput('body', {
+      ...NAMI,
+      affiliations: [{ affiliation: CREW, former: true }],
+    });
+    fixture.detectChanges();
+
+    expect(text('card-affiliations')).toContain('Former member');
+    expect(text('card-affiliations')).not.toContain('Former user');
+  });
+
+  it('lists its Devil Fruits linked, a past one marked as a former user', () => {
+    fixture.componentRef.setInput('body', {
+      ...NAMI,
+      devilFruits: [{ devilFruit: MERA, former: true }],
+    });
+    fixture.detectChanges();
+
+    expect(root.querySelector('[data-testid="card-devilFruits"] a')?.getAttribute('href')).toBe(
+      '/content/devil-fruits/f1',
+    );
+    expect(text('card-devilFruits')).toContain('Flame-Flame');
+    expect(text('card-devilFruits')).toContain('Former user');
   });
 
   it('lists its species linked, its epithets in the language shown and its aliases', () => {
@@ -362,6 +434,14 @@ describe('the list of characters', () => {
     expect(filter.value).toBe('NAVY');
   });
 
+  it('narrows to the users of a Devil Fruit, the way the fruit card leads there', async () => {
+    await open('/content/characters?devilFruit=f1', 'page=0&devilFruit=f1');
+
+    expect(root.querySelector('[data-testid="relation-chip"]')?.textContent).toContain(
+      'Devil Fruit:',
+    );
+  });
+
   it('narrows to the characters of a species, the way a species card leads there', async () => {
     await open('/content/characters?species=s1', 'page=0&species=s1');
 
@@ -453,6 +533,15 @@ describe('the editor of a character', () => {
     await settle();
   }
 
+  /** Picks a fruit in the first entry of the Devil Fruits, as the search would. */
+  async function pickFruit(reference: typeof MERA): Promise<void> {
+    const picker = harness
+      .routeDebugElement!.query(By.css('[data-testid="draft-devilFruits"]'))
+      .query(By.directive(RelationPicker));
+    (picker.componentInstance as RelationPicker).picked.emit(reference);
+    await settle();
+  }
+
   async function save(): Promise<void> {
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
     await settle();
@@ -474,7 +563,7 @@ describe('the editor of a character', () => {
   });
 
   it('asks review for an epithet written, in every language, not for one left empty', async () => {
-    await click('part-add', 2);
+    await click('part-add', 3);
     expect(checkLabels().join(' | ')).not.toContain('Epithet');
 
     await write('draft-epithets-0-text-it', 'Gatta ladra');
@@ -491,10 +580,10 @@ describe('the editor of a character', () => {
     await choose('draft-birthday', '3');
     await click('part-add', 0);
     await pickSpecies();
-    await click('part-add', 2);
+    await click('part-add', 3);
     await write('draft-epithets-0-text-en', ' Cat Burglar ');
-    await click('part-add', 3);
-    await click('part-add', 3);
+    await click('part-add', 4);
+    await click('part-add', 4);
     await write('draft-aliases-1-alias', 'Miss Nami');
 
     await save();
@@ -535,6 +624,22 @@ describe('the editor of a character', () => {
     await settle();
   });
 
+  it('saves a Devil Fruit with whether its user is a former one', async () => {
+    await write('draft-romaji', 'Portgas D. Ace');
+    await click('part-add', 2);
+    await pickFruit(MERA);
+    root.querySelector<HTMLInputElement>('#draft-devilFruits-0-former')!.click();
+    await settle();
+
+    await save();
+    const request = httpTesting.expectOne(API);
+    expect(request.request.body).toMatchObject({
+      devilFruits: [{ devilFruit: 'f1', former: true }],
+    });
+    request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
+    await settle();
+  });
+
   it('says under the rank that the Navy alone has them, when the backend refuses it', async () => {
     await write('draft-romaji', 'Koby');
     await click('part-add', 1);
@@ -560,10 +665,10 @@ describe('the editor of a character', () => {
 
   it('shows a refused entry under the entry of the draft, past the empty ones not sent', async () => {
     await write('draft-romaji', 'Usopp');
-    await click('part-add', 3);
+    await click('part-add', 4);
     await write('draft-aliases-0-alias', 'Sogeking');
-    await click('part-add', 3);
-    await click('part-add', 3);
+    await click('part-add', 4);
+    await click('part-add', 4);
     await write('draft-aliases-2-alias', 'sogeking');
 
     await save();

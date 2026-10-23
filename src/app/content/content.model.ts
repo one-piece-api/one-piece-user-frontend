@@ -167,6 +167,22 @@ export type BlockCause =
       detail: { count: number; characters: KeyedItem[] };
     }
   | {
+      /**
+       * A fruit with one user at a time has another online: a character cannot go online, or be
+       * restored, naming it as its current one - the position, the fruit and the characters
+       * already using it - and a fruit's version cannot go online as such while several online
+       * characters use it now - the count, and the first few.
+       */
+      reason: 'DEVIL_FRUIT_IN_USE';
+      detail: {
+        devilFruitsIndex?: number;
+        devilFruitId?: string;
+        devilFruitRomaji?: string;
+        count?: number;
+        characters: KeyedItem[];
+      };
+    }
+  | {
       /** A fruit or type cannot go online without a first appearance. */
       reason: 'FIRST_APPEARANCE_MISSING';
       detail: Record<string, never>;

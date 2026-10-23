@@ -144,6 +144,26 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
       }));
       return linkedWords(transloco, cause, cause.reason, links);
     }
+    case 'DEVIL_FRUIT_IN_USE': {
+      const route = entityOf(CHARACTER_ENTITY)?.route;
+      const { devilFruitRomaji, characters } = cause.detail;
+      const links = characters.map((character) => ({
+        label: keyedLabel(character),
+        route: route ? `${route}/${character.id}` : '',
+      }));
+      if (devilFruitRomaji === undefined) {
+        const count = cause.detail.count ?? links.length;
+        return linkedWords(transloco, { detail: { count } }, 'DEVIL_FRUIT_IN_USE.fruit', links);
+      }
+      const sentence = text('sentence.DEVIL_FRUIT_IN_USE.character', { fruit: devilFruitRomaji });
+      return {
+        note: text('note.DEVIL_FRUIT_IN_USE.character'),
+        sentence,
+        links,
+        more: 0,
+        titled: `${sentence} ${links.map(({ label }) => label).join(', ')}`,
+      };
+    }
     case 'ONLINE_FRUITS_LINKED':
     case 'SUBCATEGORY_IN_USE': {
       const route = entityOf(FRUIT_ENTITY)?.route;

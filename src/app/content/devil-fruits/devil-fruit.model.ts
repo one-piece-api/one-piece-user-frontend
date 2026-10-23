@@ -1,6 +1,8 @@
 import {
+  booleanField,
   imageField,
   localizedTextField,
+  relatedList,
   relationField,
   storyPointField,
   subcategoryField,
@@ -27,7 +29,8 @@ const DEVIL_FRUIT_IMAGE = {
  * The Devil Fruit: one romaji, the type it belongs to, and a name, a description, advantages
  * and disadvantages per language - the longest each may be is what the backend accepts.
  * The type is a relation: a draft may not have chosen one, but review asks for it. The
- * subcategory, one of the type's, is optional, and so is the image.
+ * subcategory, one of the type's, is optional, and so is the image. A fruit that several
+ * characters may have at once (the SMILE ones) says so with `multipleUsers`.
  */
 export const DEVIL_FRUIT: EntityDefinition = {
   entityType: 'DEVIL_FRUIT',
@@ -42,10 +45,13 @@ export const DEVIL_FRUIT: EntityDefinition = {
     imageField('image', DEVIL_FRUIT_IMAGE),
     relationField('type', { target: 'DEVIL_FRUIT_TYPE' }),
     subcategoryField('subcategory', { of: 'type' }),
+    booleanField('multipleUsers'),
     storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
     localizedTextField('description', { maxLength: 2000, rows: 8 }),
     localizedTextField('advantages', { maxLength: 2000, rows: 5 }),
     localizedTextField('disadvantages', { maxLength: 2000, rows: 5 }),
   ],
+  // Its current users: derived from the characters naming it, never part of its version (D12).
+  sections: [relatedList({ of: 'CHARACTER', by: 'devilFruit' })],
 };

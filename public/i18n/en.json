@@ -621,7 +621,12 @@
             "list": "memberships",
             "entry": "membership {{position}}"
           },
-          "holder": "holder"
+          "holder": "holder",
+          "devilFruits": {
+            "list": "fruits",
+            "entry": "fruit {{position}}"
+          },
+          "multipleUsers": "multiple users"
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
         "blockedUnknown": "the content does not allow it right now."
@@ -705,7 +710,11 @@
           "PREVIOUS_ALREADY_REPLACED": "Previous bounty already replaced",
           "BOUNTY_CHAIN_CYCLE": "Circular bounty chain",
           "MARINE_RANK_NOT_ALLOWED": "Rank outside the Navy",
-          "MARINE_RANK_IN_USE": "Ranks held: {{count}}"
+          "MARINE_RANK_IN_USE": "Ranks held: {{count}}",
+          "DEVIL_FRUIT_IN_USE": {
+            "character": "Fruit already in use",
+            "fruit": "Current users: {{count}}"
+          }
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "This fruit's type is not online. Republish the type first.",
@@ -736,7 +745,11 @@
           "PREVIOUS_ALREADY_REPLACED": "Arrr! The previous bounty is already replaced by another one online, matey: a bounty can be replaced by one only. Retire that one first, or pick another previous bounty:",
           "BOUNTY_CHAIN_CYCLE": "Arrr! With this previous bounty the chain would loop back on itself, matey. Pick another one.",
           "MARINE_RANK_NOT_ALLOWED": "Arrr! This character holds a rank in an affiliation that is no longer the Navy, matey. Remove the rank, or publish the affiliation as the Navy again:",
-          "MARINE_RANK_IN_USE": "Arrr! Online characters hold a rank in this affiliation, matey: it cannot stop being the Navy. Retire them or remove their rank first:"
+          "MARINE_RANK_IN_USE": "Arrr! Online characters hold a rank in this affiliation, matey: it cannot stop being the Navy. Retire them or remove their rank first:",
+          "DEVIL_FRUIT_IN_USE": {
+            "character": "Arrr! The {{fruit}} already has a current user online, matey: each fruit has only one (except the Smile ones). Mark the other as a former user, or take the fruit off this character:",
+            "fruit": "Arrr! Several online characters still have this fruit, matey: with one user at a time it cannot go online. Mark the former users first:"
+          }
         },
         "andMore": "and {{count}} more"
       }
@@ -821,7 +834,8 @@
         "bountyCount": "Bounties",
         "affiliation": "Affiliation",
         "affiliationKind": "Kind of group",
-        "memberCount": "Members"
+        "memberCount": "Members",
+        "devilFruit": "Devil Fruit"
       },
       "online": "v{{version}} online",
       "romajiMissing": "romaji to be defined",
@@ -916,7 +930,9 @@
         "epithets": "Epithets",
         "affiliations": "Affiliations",
         "aliases": "Aliases",
-        "holder": "Holder"
+        "holder": "Holder",
+        "devilFruits": "Devil Fruits",
+        "multipleUsers": "Multiple users"
       },
       "noFirstAppearance": "Not set",
       "noPrevious": "none, this is the first",
@@ -1003,7 +1019,13 @@
           "former": "Membership {{position}} · former member",
           "position": "Membership {{position}} · position"
         },
-        "holder": "Holder"
+        "holder": "Holder",
+        "devilFruits": {
+          "devilFruit": "Fruit {{position}}",
+          "former": "Fruit {{position}} · former user",
+          "position": "Fruit {{position}} · position"
+        },
+        "multipleUsers": "Multiple users"
       },
       "baseLabel": "Version to compare with",
       "before": "before",
@@ -1275,6 +1297,19 @@
       "holder": {
         "label": "Holder",
         "hint": "optional · the character, when known; the poster name stays as printed"
+      },
+      "devilFruits": {
+        "label": "Devil Fruits",
+        "hint": "optional · the fruits eaten; a fruit has only one current user, the others are former users",
+        "entry": "Fruit {{position}}",
+        "add": "Add fruit",
+        "empty": "No fruit given.",
+        "devilFruit": "Devil Fruit",
+        "former": "Former user"
+      },
+      "multipleUsers": {
+        "label": "Multiple users",
+        "hint": "e.g. the Smile fruits: several characters may have it together"
       }
     },
     "dashboard": {
@@ -1426,7 +1461,19 @@
         "advantages": "what this fruit gives whoever eats it, in the selected language",
         "disadvantages": "what it costs whoever eats it, in the selected language"
       },
-      "hintMissing": "Review takes a romaji, a type and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete."
+      "hintMissing": "Review takes a romaji, a type and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete.",
+      "options": {
+        "multipleUsers": {
+          "true": "Multiple users"
+        }
+      },
+      "related": {
+        "CHARACTER": {
+          "title": "Current users of this fruit",
+          "empty": "No character has this fruit now.",
+          "viewAll": "View all ({{count}})"
+        }
+      }
     },
     "image": {
       "media": "Media",
@@ -1660,6 +1707,9 @@
         "affiliations": {
           "affiliation": "search an affiliation",
           "role": "role in this language, e.g. Captain"
+        },
+        "devilFruits": {
+          "devilFruit": "search a fruit"
         }
       },
       "hintMissing": "Review takes a romaji, the status, the gender, the first appearance and, in every language, a name, a description and every epithet. Meanwhile the draft can be saved incomplete.",
@@ -1703,8 +1753,15 @@
           "SEAMAN_RECRUIT": "Seaman Recruit",
           "CHORE_BOY": "Chore Boy"
         },
-        "former": {
-          "true": "Former member"
+        "affiliations": {
+          "former": {
+            "true": "Former member"
+          }
+        },
+        "devilFruits": {
+          "former": {
+            "true": "Former user"
+          }
         }
       },
       "related": {

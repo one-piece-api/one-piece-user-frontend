@@ -21,12 +21,28 @@ describe('the Devil Fruit entity', () => {
       'image:image',
       'type:relation',
       'subcategory:subcategory',
+      'multipleUsers:boolean',
       'firstAppearance:storyPoint',
       'name:localizedText',
       'description:localizedText',
       'advantages:localizedText',
       'disadvantages:localizedText',
     ]);
+  });
+
+  it('lists the characters that have it now, by the filter their list has for it', () => {
+    expect(DEVIL_FRUIT.sections).toEqual([
+      { kind: 'relatedList', of: 'CHARACTER', by: 'devilFruit' },
+    ]);
+  });
+
+  it('says whether several characters may have it at once, no by default', () => {
+    const draft = draftOf(DEVIL_FRUIT, GOMU, ['it']);
+
+    expect(draft['multipleUsers']).toBe(false);
+    expect(toBody(DEVIL_FRUIT, { ...draft, multipleUsers: true })).toMatchObject({
+      multipleUsers: true,
+    });
   });
 
   it('points to the Devil Fruit Type, which it is told apart from by name only', () => {

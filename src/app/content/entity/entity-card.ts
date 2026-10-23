@@ -412,7 +412,7 @@ export class EntityCard {
   /**
    * One part of an entry as the card shows it: a content pointed to by its name and linked, a
    * localized text in the language shown - `null` when not written there - a choice by its
-   * label, a yes by the part's own label; nothing for an empty part or a no.
+   * label, a yes by the label of the part in its list; nothing for an empty part or a no.
    */
   private partView(
     field: PartListField,
@@ -439,7 +439,9 @@ export class EntityCard {
           : [];
       case 'boolean':
         return value === true
-          ? view(this.transloco.translate(`${this.entity.i18n}.options.${part.key}.true`))
+          ? view(
+              this.transloco.translate(`${this.entity.i18n}.options.${field.key}.${part.key}.true`),
+            )
           : [];
       case 'text':
         return textOf(value).trim() ? view(textOf(value).trim()) : [];
