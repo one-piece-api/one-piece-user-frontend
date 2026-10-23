@@ -45,3 +45,27 @@ Due nuovi tipi di campo in `EntityDefinition`, con la loro strategia in `field-k
   componenti propri.
 - `readinessChecks`, `diffBodies` e `languagesOf` distinguono ora due tipi lista
   (`subcategoryList`, `partList`).
+
+## Addendum - parti condizionate, filtro per voce, etichette per genere (Personaggio, C9-C13)
+
+Le liste di appartenenze, frutti e parenti hanno chiesto quattro aggiunte a `partList`, tutte
+dichiarative (nessun componente per entità):
+
+- **`visibleWhen` su una parte `choice`:** la parte compare solo se il contenuto scelto in
+  un'altra parte `relation` della stessa voce ha un certo valore (`{ part, field, equals }`): il
+  grado di Marina solo dove l'affiliazione è `NAVY`. Cambiare contenuto svuota la parte; un valore
+  già presente resta visibile, così si può togliere.
+- **`filterBy` su un `partList`:** nome del filtro della lista del backend e parte che riguarda
+  (`{ key, part }`). Serve dove la lista non può dedurlo (più parti): `?affiliation=`,
+  `?devilFruit=`. Il conteggio dei membri porta alla lista dei personaggi filtrata così.
+- **`labelBy` su una parte `choice`:** la scheda dice il valore in base a un campo del contenuto
+  scelto (`PARENT` + `MALE` = padre): etichette `<i18n>.<group>.<VALORE>.<CAMPO>`, con ripiego
+  sull'etichetta neutra. L'editor mostra sempre la neutra, perché il contenuto potrebbe non
+  essere caricato e le parole cambierebbero sotto le mani di chi scrive.
+- **Sezione `relativeList`:** elenca i contenuti che nominano questo in una loro lista, come
+  li manda il backend sotto `field` (`relativesOf`), col tipo visto da questo lato. Non fa parte
+  della versione, quindi si mostra solo sulla versione corrente.
+- **Alternativa scartata:** un tipo di campo per ogni caso (rango, parentela). Ogni nuova lista
+  condizionata sarebbe stata codice; ora è una definizione.
+- **Compromesso:** `visibleWhen` e `labelBy` leggono un solo campo di una sola parte; condizioni
+  composte richiederebbero un linguaggio di regole, finora non necessario.
