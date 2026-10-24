@@ -32,6 +32,19 @@ const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const PNG_HEADER_BYTES = 24;
 const WIDTH_OFFSET = 16;
 const HEIGHT_OFFSET = 20;
+/** RIFF header (12 bytes), first chunk header (8), then the image's own header: sizes end at byte 30. */
+const WEBP_HEADER_BYTES = 30;
+/** Where the first chunk's data starts. */
+const WEBP_DATA = 20;
+/** `VP8X`: its flags byte holds the animation bit. */
+const WEBP_ANIMATION_FLAG = 0x02;
+/** `VP8L`: one signature byte, then the sizes in 14 bits each, minus one. */
+const VP8L_SIGNATURE = 0x2f;
+const FOURTEEN_BITS = 0x3fff;
+/** `VP8 `: the key frame's start code, then the sizes in 14 bits (the top two are a scale). */
+const VP8_START_CODE = [0x9d, 0x01, 0x2a];
+/** The longest header the checks read before decoding. */
+const HEADER_BYTES = Math.max(PNG_HEADER_BYTES, WEBP_HEADER_BYTES);
 const BYTES_PER_PIXEL = 4;
 const ALPHA_OFFSET = 3;
 
@@ -48,7 +61,7 @@ export async function checkImage(
   if (tooLarge) {
     return tooLarge;
   }
-  const size = pngSizeOf(new Uint8Array(await file.slice(0, PNG_HEADER_BYTES).arrayBuffer()));
+  const size = imageSizeOf(new Uint8Array(await file.slice(0, HEADER_BYTES).arrayBuffer()));
   if (!size) {
     return { code: 'CONTENT_IMAGE_FORMAT_UNSUPPORTED', numbers: {} };
   }
@@ -69,6 +82,14 @@ export function sizeRefusal(sizeBytes: number, profile: ImageProfile): ImageRefu
     : null;
 }
 
+/**
+ * The width and height a static PNG or WebP declares (the backend's formats) - `null` for
+ * any other file, an animated WebP included.
+ */
+export function imageSizeOf(header: Uint8Array): { width: number; height: number } | null {
+  return pngSizeOf(header) ?? webpSizeOf(header);
+}
+
 /** The width and height a PNG's header declares - `null` for a file that is not a PNG. */
 export function pngSizeOf(header: Uint8Array): { width: number; height: number } | null {
   if (
@@ -79,6 +100,44 @@ export function pngSizeOf(header: Uint8Array): { width: number; height: number }
   }
   const view = new DataView(header.buffer, header.byteOffset, header.byteLength);
   return { width: view.getUint32(WIDTH_OFFSET), height: view.getUint32(HEIGHT_OFFSET) };
+}
+
+/**
+ * The width and height a static WebP declares (RFC 9649): the first chunk is the lossy
+ * (`VP8 `) or lossless (`VP8L`) image, or the extended header (`VP8X`) without its
+ * animation flag. `null` for anything else.
+ */
+export function webpSizeOf(header: Uint8Array): { width: number; height: number } | null {
+  if (
+    header.length < WEBP_HEADER_BYTES ||
+    ascii(header, 0, 4) !== 'RIFF' ||
+    ascii(header, 8, 4) !== 'WEBP'
+  ) {
+    return null;
+  }
+  const view = new DataView(header.buffer, header.byteOffset, header.byteLength);
+  switch (ascii(header, 12, 4)) {
+    case 'VP8 ':
+      return VP8_START_CODE.every((byte, index) => header[WEBP_DATA + 3 + index] === byte)
+        ? {
+            width: view.getUint16(WEBP_DATA + 6, true) & FOURTEEN_BITS,
+            height: view.getUint16(WEBP_DATA + 8, true) & FOURTEEN_BITS,
+          }
+        : null;
+    case 'VP8L': {
+      if (header[WEBP_DATA] !== VP8L_SIGNATURE) {
+        return null;
+      }
+      const sizes = view.getUint32(WEBP_DATA + 1, true);
+      return { width: (sizes & FOURTEEN_BITS) + 1, height: ((sizes >>> 14) & FOURTEEN_BITS) + 1 };
+    }
+    case 'VP8X':
+      return header[WEBP_DATA] & WEBP_ANIMATION_FLAG
+        ? null
+        : { width: uint24(header, WEBP_DATA + 4) + 1, height: uint24(header, WEBP_DATA + 7) + 1 };
+    default:
+      return null;
+  }
 }
 
 /** Too many pixels, too small (the profile's minimum, else its canvas), then too far from the canvas' ratio - read before decoding. */
@@ -142,6 +201,15 @@ export function transparencyRefusal(
 export function simplestRatio(profile: ImageProfile): { ratioWidth: number; ratioHeight: number } {
   const divisor = greatestCommonDivisor(profile.width, profile.height);
   return { ratioWidth: profile.width / divisor, ratioHeight: profile.height / divisor };
+}
+
+function ascii(bytes: Uint8Array, offset: number, length: number): string {
+  return String.fromCharCode(...bytes.subarray(offset, offset + length));
+}
+
+/** A little-endian 24-bit number. */
+function uint24(bytes: Uint8Array, offset: number): number {
+  return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16);
 }
 
 function greatestCommonDivisor(a: number, b: number): number {

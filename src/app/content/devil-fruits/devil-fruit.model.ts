@@ -12,7 +12,7 @@ import {
 
 /**
  * What the image of a fruit must be - the backend's profile `devil-fruit` (plan D6): at
- * least 320 × 400 and close to 4:5, a PNG with a transparent background, at most 5 MB and
+ * least 320 × 400 and close to 4:5, a PNG or WebP with a transparent background, at most 5 MB and
  * 25 megapixels. The backend fits it into a 320 × 400 canvas - the size of the fruit images
  * at hand (334 × 400), which are never enlarged.
  */

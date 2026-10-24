@@ -459,7 +459,7 @@ describe('the editor of a Devil Fruit', () => {
       it('offers the Media area with what the image must be, outside the checklist', () => {
         expect(root.textContent).toContain('Drop the main image here');
         expect(root.textContent).toContain(
-          'PNG with a transparent background, 4:5, at least 320 × 400 px.',
+          'PNG or WebP with a transparent background, 4:5, at least 320 × 400 px.',
         );
         expect(checks().join()).not.toContain('mage');
       });

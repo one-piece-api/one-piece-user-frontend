@@ -2,11 +2,13 @@ import type { ImageProfile } from './entity-definition';
 import {
   checkImage,
   dimensionRefusal,
+  imageSizeOf,
   pngSizeOf,
   sizeRefusal,
   transparencyRefusal,
 } from './image-checks';
 import { pixels, pngFile, pngHeader } from '../../testing/png-file';
+import { webpFile, webpHeader } from '../../testing/webp-file';
 
 /** A 4:5 profile, twice the size of the Devil Fruit's: the checks do not depend on the numbers. */
 const PROFILE: ImageProfile = {
@@ -33,6 +35,24 @@ describe('the checks of an image before it is sent', () => {
     jpeg.set([0xff, 0xd8, 0xff]);
     expect(pngSizeOf(jpeg)).toBeNull();
     expect(pngSizeOf(new Uint8Array(8))).toBeNull();
+  });
+
+  it('reads the size a static WebP declares, lossy, lossless or extended', () => {
+    expect(imageSizeOf(webpHeader('lossy', 640, 800))).toEqual({ width: 640, height: 800 });
+    expect(imageSizeOf(webpHeader('lossless', 333, 417))).toEqual({ width: 333, height: 417 });
+    expect(imageSizeOf(webpHeader('extended', 783, 1232))).toEqual({ width: 783, height: 1232 });
+    expect(imageSizeOf(pngHeader(640, 800))).toEqual({ width: 640, height: 800 });
+  });
+
+  it('reads nothing from an animated WebP, nor from a RIFF file that is not a WebP', () => {
+    expect(imageSizeOf(webpHeader('animated', 640, 800))).toBeNull();
+    const wave = webpHeader('lossy', 640, 800);
+    wave.set([0x57, 0x41, 0x56, 0x45], 8);
+    expect(imageSizeOf(wave)).toBeNull();
+    const broken = webpHeader('lossy', 640, 800);
+    broken[23] = 0;
+    expect(imageSizeOf(broken)).toBeNull();
+    expect(imageSizeOf(webpHeader('lossy', 640, 800).subarray(0, 29))).toBeNull();
   });
 
   it('refuses too many pixels before anything else about the size', () => {
@@ -82,6 +102,23 @@ describe('the checks of an image before it is sent', () => {
 
       expect(await checkImage(pngFile(640, 800), PROFILE, readPixels)).toBeNull();
       expect(readPixels).toHaveBeenCalledOnce();
+    });
+
+    it('lets through a transparent WebP of the right size', async () => {
+      const readPixels = vi.fn(async () => pixels(10, 5));
+
+      expect(await checkImage(webpFile(640, 800), PROFILE, readPixels)).toBeNull();
+      expect(readPixels).toHaveBeenCalledOnce();
+    });
+
+    it('refuses an animated WebP without decoding it', async () => {
+      const readPixels = vi.fn(async () => pixels(10, 5));
+
+      expect(await checkImage(webpFile(640, 800, 'animated'), PROFILE, readPixels)).toEqual({
+        code: 'CONTENT_IMAGE_FORMAT_UNSUPPORTED',
+        numbers: {},
+      });
+      expect(readPixels).not.toHaveBeenCalled();
     });
 
     it('refuses a file that is not a PNG whatever its name says, without decoding it', async () => {

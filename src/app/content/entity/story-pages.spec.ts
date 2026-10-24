@@ -8,6 +8,7 @@ import { MascotService } from '../../shared/mascot/mascot';
 import { polyfillDialog } from '../../testing/dialog-polyfill';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
 import { pixels, pngFile } from '../../testing/png-file';
+import { webpFile } from '../../testing/webp-file';
 import { CHAPTER } from '../chapters/chapter.model';
 import type { VersionStatus } from '../content.model';
 import { EPISODE } from '../episodes/episode.model';
@@ -452,7 +453,7 @@ describe('the editor of the story entities', () => {
           .querySelector<HTMLElement>('[data-testid="image-drop"]')!
           .style.getPropertyValue('--ratio'),
       ).toBe('0.7');
-      expect(root.textContent).toContain('PNG, 7:10, at least 560 × 800 px.');
+      expect(root.textContent).toContain('PNG or WebP, 7:10, at least 560 × 800 px.');
       expect(root.textContent).not.toContain('transparent background');
       expect(checks().join()).not.toMatch(/over/);
     });
@@ -465,6 +466,9 @@ describe('the editor of the story entities', () => {
 
       await pick(pngFile(420, 600));
       expect(imageError()).toBe('The image is 420 × 600: it must be at least 560 × 800.');
+
+      await pick(webpFile(783, 1232, 'extended', 'Volume_1.webp'));
+      expect(imageError()).toBeUndefined();
     });
 
     it('sends a cover that passes beside the JSON, in the part named cover', async () => {

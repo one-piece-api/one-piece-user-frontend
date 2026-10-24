@@ -9,7 +9,7 @@ import {
 
 /**
  * What the picture of a species must be - the backend's profile `species`: at least 400 × 500
- * and close to 4:5, a PNG with no transparency required, at most 5 MB and 25 megapixels. The
+ * and close to 4:5, a PNG or WebP with no transparency required, at most 5 MB and 25 megapixels. The
  * backend fits it into a 320 × 400 canvas.
  */
 const SPECIES_PICTURE = {

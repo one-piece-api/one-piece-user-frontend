@@ -11,7 +11,7 @@ import {
 
 /**
  * What the emblem of an affiliation must be - the backend's profile `affiliation`: at least
- * 512 × 512 and close to square, a PNG with at least 5 % of it transparent, at most 5 MB and
+ * 512 × 512 and close to square, a PNG or WebP with at least 5 % of it transparent, at most 5 MB and
  * 25 megapixels. The backend fits it into a 400 × 400 transparent canvas.
  */
 const AFFILIATION_EMBLEM = {

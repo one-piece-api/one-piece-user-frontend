@@ -18,7 +18,7 @@ import {
 
 /**
  * What the poster of a bounty must be - the backend's profile `bounty`: at least 560 × 800 and
- * close to 7:10, a PNG of any background, at most 5 MB and 25 megapixels. The backend fits it
+ * close to 7:10, a PNG or WebP of any background, at most 5 MB and 25 megapixels. The backend fits it
  * into a 420 × 600 canvas.
  */
 const BOUNTY_POSTER = {

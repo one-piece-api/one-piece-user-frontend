@@ -1507,10 +1507,10 @@
       "replace": "Sostituisci",
       "remove": "Rimuovi",
       "checking": "Controllo l'immagine…",
-      "requirements": "PNG con sfondo trasparente, in proporzione {{ratioWidth}}:{{ratioHeight}}, almeno {{width}} × {{height}} px.",
-      "requirementsOpaque": "PNG, in proporzione {{ratioWidth}}:{{ratioHeight}}, almeno {{width}} × {{height}} px.",
+      "requirements": "PNG o WebP con sfondo trasparente, in proporzione {{ratioWidth}}:{{ratioHeight}}, almeno {{width}} × {{height}} px.",
+      "requirementsOpaque": "PNG o WebP, in proporzione {{ratioWidth}}:{{ratioHeight}}, almeno {{width}} × {{height}} px.",
       "refused": {
-        "CONTENT_IMAGE_FORMAT_UNSUPPORTED": "Serve un file PNG: questo non lo è, qualunque cosa dica il suo nome.",
+        "CONTENT_IMAGE_FORMAT_UNSUPPORTED": "Serve un file PNG o WebP non animato: questo non lo è, qualunque cosa dica il suo nome.",
         "CONTENT_IMAGE_NOT_TRANSPARENT": "Lo sfondo deve essere trasparente: qui lo è solo il {{transparentPercent}}% dell'immagine, ne serve almeno il {{minPercent}}%.",
         "CONTENT_IMAGE_WRONG_RATIO": "L'immagine è {{width}} × {{height}}: le proporzioni devono essere {{ratioWidth}}:{{ratioHeight}} (si tollera il {{tolerancePercent}}% di scarto).",
         "CONTENT_IMAGE_TOO_SMALL": "L'immagine è {{width}} × {{height}}: ne serve una di almeno {{minWidth}} × {{minHeight}}.",

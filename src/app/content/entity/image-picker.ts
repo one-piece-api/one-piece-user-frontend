@@ -54,7 +54,7 @@ export class ImagePicker {
   /** The frame has the profile's own ratio: 4:5 for a fruit, 7:10 for a cover. */
   protected readonly ratio = computed(() => this.profile().width / this.profile().height);
 
-  /** "PNG with a transparent background, 4:5, at least 320 × 400 px" - from the profile's numbers. */
+  /** "PNG or WebP with a transparent background, 4:5, at least 320 × 400 px" - from the profile's numbers. */
   protected readonly requirements = computed(() => {
     this.transloco.activeLang();
     const profile = this.profile();

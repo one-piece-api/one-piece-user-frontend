@@ -24,8 +24,8 @@ minTransparentPercent })`, come `maxLength` per i testi. Un'entità futura avrà
   è un `Blob` `application/json`, perché Spring la validi con `@RequestPart`.
 - **Facoltativa:** i tipi di campo dichiarano `forReview`; l'immagine non entra nella checklist.
 - **Controlli nel browser = quelli del backend**, nello stesso ordine e con gli stessi codici
-  (`image-checks.ts`): peso, firma PNG, megapixel, minimo, proporzione, trasparenza. Larghezza e
-  altezza si leggono dall'intestazione PNG senza decodificare; si decodifica (canvas) solo per
+  (`image-checks.ts`): peso, firma PNG o WebP statico, megapixel, minimo, proporzione, trasparenza. Larghezza e
+  altezza si leggono dall'intestazione (PNG `IHDR`; WebP `VP8 `, `VP8L` o `VP8X`) senza decodificare; si decodifica (canvas) solo per
   contare i pixel trasparenti, e solo se il resto è passato. Un solo traduttore
   (`image-words.ts`) per un rifiuto del browser, un `422` e un `413`. Il backend resta l'autorità.
 - **Area "Media"** (`ImagePicker`): trascina o scegli, anteprima 4:5, "Rimuovi"; un file
@@ -50,8 +50,9 @@ minTransparentPercent })`, come `maxLength` per i testi. Un'entità futura avrà
 - I numeri del profilo stanno sia nel backend sia nella definizione: se divergono, il browser è
   più severo o più permissivo del dovuto, ma il `422` del backend viene comunque tradotto.
 - Un'entità ha al più un campo immagine, quanto la parte `image` del backend.
-- Il formato d'ingresso oggi è solo PNG (content-service, DF6): il WebP tornerà come nuovo
-  controllo di firma, senza toccare il resto.
+- Il formato d'ingresso è PNG o WebP statico (content-service ADR-0010, piano WebP W3): il WebP
+  è entrato come nuovo controllo di firma, senza toccare il resto. Un WebP animato è rifiutato
+  come formato non supportato, come nel backend.
 
 ## Addendum - cosa deve mostrare l'immagine (Affiliazione, A3)
 
