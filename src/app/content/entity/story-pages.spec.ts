@@ -452,8 +452,8 @@ describe('the editor of the story entities', () => {
         root
           .querySelector<HTMLElement>('[data-testid="image-drop"]')!
           .style.getPropertyValue('--ratio'),
-      ).toBe('0.7');
-      expect(root.textContent).toContain('PNG or WebP, 7:10, at least 560 × 800 px.');
+      ).toBe('0.631578947368421');
+      expect(root.textContent).toContain('PNG or WebP, 12:19, at least 504 × 800 px.');
       expect(root.textContent).not.toContain('transparent background');
       expect(checks().join()).not.toMatch(/over/);
     });
@@ -462,10 +462,10 @@ describe('the editor of the story entities', () => {
       await open('/content/volumes/new');
 
       await pick(pngFile(640, 800));
-      expect(imageError()).toBe('The image is 640 × 800: it must be 7:10 (within 10%).');
+      expect(imageError()).toBe('The image is 640 × 800: it must be 12:19 (within 10%).');
 
-      await pick(pngFile(420, 600));
-      expect(imageError()).toBe('The image is 420 × 600: it must be at least 560 × 800.');
+      await pick(pngFile(420, 665));
+      expect(imageError()).toBe('The image is 420 × 665: it must be at least 504 × 800.');
 
       await pick(webpFile(783, 1232, 'extended', 'Volume_1.webp'));
       expect(imageError()).toBeUndefined();
@@ -474,7 +474,7 @@ describe('the editor of the story entities', () => {
     it('sends a cover that passes beside the JSON, in the part named cover', async () => {
       await open('/content/volumes/new');
       await type('number', '1');
-      await pick(pngFile(560, 800));
+      await pick(pngFile(504, 800));
       expect(root.querySelector('[data-testid="image-preview"]')?.getAttribute('src')).toBe(
         'blob:cover',
       );
@@ -641,7 +641,7 @@ describe('the card of a story content', () => {
     render(VOLUME, { number: 7, cover: null, releases: [], translations: {} });
 
     const frameElement = root.querySelector<HTMLElement>('app-entity-image-frame > div')!;
-    expect(frameElement.style.getPropertyValue('--ratio')).toBe('0.7');
+    expect(frameElement.style.getPropertyValue('--ratio')).toBe('0.631578947368421');
     expect(text('entity-image-placeholder')).toBe('Image of Volume 7');
   });
 
@@ -776,8 +776,8 @@ describe('the comparison of two volumes', () => {
       ),
     );
     expect(frames.map((element) => element.style.getPropertyValue('--ratio'))).toEqual([
-      '0.7',
-      '0.7',
+      '0.631578947368421',
+      '0.631578947368421',
     ]);
     const label = root.querySelector('[data-testid="comparison-row"]')?.firstElementChild;
     expect(label?.textContent?.replace(/\s+/g, ' ').trim()).toContain('Cover');

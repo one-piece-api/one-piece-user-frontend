@@ -197,7 +197,7 @@ export function transparencyRefusal(
     : null;
 }
 
-/** The profile's ratio in its smallest whole numbers: 420 × 600 is 7:10. */
+/** The profile's ratio in its smallest whole numbers: 420 × 665 is 12:19. */
 export function simplestRatio(profile: ImageProfile): { ratioWidth: number; ratioHeight: number } {
   const divisor = greatestCommonDivisor(profile.width, profile.height);
   return { ratioWidth: profile.width / divisor, ratioHeight: profile.height / divisor };

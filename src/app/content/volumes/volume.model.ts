@@ -9,14 +9,14 @@ import {
 } from '../entity/entity-definition';
 
 /**
- * What the cover of a volume must be - the backend's profile `volume`: at least 560 × 800
- * and close to 7:10, a PNG or WebP of any background, at most 5 MB and 25 megapixels. The backend
- * fits it into a 420 × 600 canvas.
+ * What the cover of a volume must be - the backend's profile `volume`: at least 504 × 800
+ * and close to 12:19 (the real covers), a PNG or WebP of any background, at most 5 MB and 25 megapixels. The backend
+ * fits it into a 420 × 665 canvas.
  */
 const VOLUME_COVER = {
   width: 420,
-  height: 600,
-  minWidth: 560,
+  height: 665,
+  minWidth: 504,
   minHeight: 800,
   ratioTolerance: 0.1,
   maxBytes: 5 * 1024 * 1024,
