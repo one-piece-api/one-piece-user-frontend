@@ -17,15 +17,15 @@ import {
 } from '../entity/entity-definition';
 
 /**
- * What the poster of a bounty must be - the backend's profile `bounty`: at least 560 × 800 and
- * close to 7:10, a PNG or WebP of any background, at most 5 MB and 25 megapixels. The backend fits it
- * into a 420 × 600 canvas.
+ * What the poster of a bounty must be - the backend's profile `bounty`: at least 350 × 520 and
+ * close to that ratio (about 2:3), a PNG or WebP of any background, at most 5 MB and 25 megapixels.
+ * The backend fits it, centred and never cropped or enlarged, into a 350 × 520 canvas.
  */
 const BOUNTY_POSTER = {
-  width: 420,
-  height: 600,
-  minWidth: 560,
-  minHeight: 800,
+  width: 350,
+  height: 520,
+  minWidth: 350,
+  minHeight: 520,
   ratioTolerance: 0.1,
   maxBytes: 5 * 1024 * 1024,
   maxPixels: 25_000_000,
