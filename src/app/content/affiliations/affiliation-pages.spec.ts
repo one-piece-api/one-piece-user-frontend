@@ -71,15 +71,15 @@ describe('the affiliation definition', () => {
     });
   });
 
-  it('takes a square emblem with a transparent background, as the backend profile', () => {
+  it('takes a 4:3 flag, transparent or not, as the backend profile', () => {
     const image = AFFILIATION.fields.find((field) => field.kind === 'image');
 
     expect(image).toMatchObject({
       key: 'image',
       hint: 'content.affiliations.imageHint',
-      profile: { width: 400, height: 400, minWidth: 512, minHeight: 512 },
+      profile: { width: 400, height: 300, minWidth: 512, minHeight: 384 },
     });
-    expect(image?.kind === 'image' && image.profile.minTransparentPercent).toBe(5);
+    expect(image?.kind === 'image' && image.profile.minTransparentPercent).toBe(0);
   });
 });
 
@@ -334,14 +334,14 @@ describe('the editor of an affiliation', () => {
     expect(labels).not.toMatch(/Image|Media/);
   });
 
-  it('says above the requirements that the image is the emblem, square and transparent', () => {
+  it('says above the requirements that the image is the flag, 4:3', () => {
     const hint = root.querySelector('#draft-image-hint');
 
     expect(root.querySelector('[data-testid="image-hint"]')?.textContent?.trim()).toBe(
-      "The group's emblem or Jolly Roger.",
+      "The group's flag, its Jolly Roger.",
     );
     expect(hint?.textContent?.replace(/\s+/g, ' ').trim()).toMatch(
-      /^The group's emblem or Jolly Roger\. .*1:1.*512 × 512/,
+      /^The group's flag, its Jolly Roger\. .*4:3.*512 × 384/,
     );
   });
 

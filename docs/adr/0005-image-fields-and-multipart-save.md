@@ -58,8 +58,14 @@ minTransparentPercent })`, come `maxLength` per i testi. Un'entità futura avrà
 
 `imageField` accetta un `hint` facoltativo: una chiave di traduzione che l'area "Media" mostra
 sopra la riga dei requisiti, nello stesso paragrafo collegato all'input (`aria-describedby`).
-L'Affiliazione lo usa per dire che l'immagine è l'emblema o il Jolly Roger del gruppo; le altre
+L'Affiliazione lo usa per dire che l'immagine è la bandiera (il Jolly Roger) del gruppo; le altre
 entità non lo dichiarano e restano invariate.
 
 Scartato: dirlo solo nel sottotitolo della sezione (lontano dal punto in cui si sceglie il file),
 o un ramo per entità nel selettore.
+
+## Addendum - profilo dell'Affiliazione: bandiera 4:3 (2026-10-27)
+
+Il profilo `affiliation` passa da emblema quadrato trasparente (400 × 400, minimo 512 × 512, almeno
+5 % trasparente) a bandiera 4:3 (400 × 300, minimo 512 × 384, nessuna trasparenza richiesta). Il campo
+resta `imageField` con lo stesso `hint`; cambiano solo il profilo e il testo del suggerimento.

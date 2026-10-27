@@ -152,7 +152,7 @@ export interface ImageField {
   readonly kind: 'image';
   readonly key: string;
   readonly profile: ImageProfile;
-  /** What the image should show, as a translation key - the emblem of a group. */
+  /** What the image should show, as a translation key - the flag of a group. */
   readonly hint?: string;
 }
 

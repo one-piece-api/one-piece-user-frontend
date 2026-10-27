@@ -1675,7 +1675,7 @@
         "description": "descrizione nella lingua selezionata"
       },
       "hintMissing": "Per la revisione servono il romaji, il tipo, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
-      "imageHint": "L'emblema o il Jolly Roger del gruppo.",
+      "imageHint": "La bandiera del gruppo, il suo Jolly Roger.",
       "options": {
         "kind": {
           "PIRATE_CREW": "Ciurma pirata",

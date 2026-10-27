@@ -1675,7 +1675,7 @@
         "description": "description in the selected language"
       },
       "hintMissing": "Review takes a romaji, a kind, the first appearance and, in every language, a name and a description. Meanwhile the draft can be saved incomplete.",
-      "imageHint": "The group's emblem or Jolly Roger.",
+      "imageHint": "The group's flag, its Jolly Roger.",
       "options": {
         "kind": {
           "PIRATE_CREW": "Pirate crew",
