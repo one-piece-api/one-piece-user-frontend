@@ -1,7 +1,12 @@
 import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { entityOf } from './entities';
-import type { PartField, PartListField, ValuePartField } from './entity-definition';
+import {
+  labelKeyOf,
+  type PartField,
+  type PartListField,
+  type ValuePartField,
+} from './entity-definition';
 import {
   isPartEntryDraft,
   itemsOf,
@@ -114,7 +119,7 @@ export class PartListEditor {
     return this.nested() ? `sub-${name}` : name;
   }
 
-  protected readonly labels = computed(() => this.labelPath() ?? this.field().key);
+  protected readonly labels = computed(() => this.labelPath() ?? labelKeyOf(this.field()));
   protected readonly ids = computed(() => this.idPrefix() ?? `draft-${this.field().key}`);
 
   /** The value parts, each with a label of its own: not for an entry of a single part. */
@@ -148,6 +153,8 @@ export class PartListEditor {
           part,
           visible: this.isVisible(entry, part),
           maxLength: 'maxLength' in part ? part.maxLength : null,
+          // A long text - a paragraph - is a box of `rows` lines, its languages side by side when wide.
+          rows: part.kind === 'localizedText' ? (part.rows ?? null) : null,
           source: part.kind === 'relation' ? (entityOf(part.target)?.api ?? null) : null,
           labelOf: (reference: EntityReference, language: string) =>
             referenceLabel(

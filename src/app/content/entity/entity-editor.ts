@@ -45,7 +45,12 @@ import {
   type EntityDraft,
   type TranslationDraft,
 } from './entity-body';
-import type { EntityField, ImageField, SubcategoryField } from './entity-definition';
+import {
+  labelKeyOf,
+  type EntityField,
+  type ImageField,
+  type SubcategoryField,
+} from './entity-definition';
 import { isImageDraft, type ImageDraft } from './entity-image';
 import { monthDayOf, type MonthDayDraft } from './entity-month-day';
 import {
@@ -520,6 +525,12 @@ export class EntityEditor {
     }));
   });
 
+  /** Where the words of a field live in the catalog: `paragraphs.description` for a section. */
+  private labelKeyOf(key: string): string {
+    const field = this.entity.fields.find((candidate) => candidate.key === key);
+    return field ? labelKeyOf(field) : key;
+  }
+
   /** "Ready for review": the shared fields, then every translated field per language. */
   private readonly readiness = computed(() => {
     const draft = this.draft();
@@ -531,7 +542,7 @@ export class EntityEditor {
     return this.readiness().map((check) => ({
       label: this.transloco.translate(
         check.entry
-          ? `content.editor.ready.${check.field}.${check.entry.part}`
+          ? `content.editor.ready.${this.labelKeyOf(check.field)}.${check.entry.part}`
           : `content.editor.ready.${check.field}`,
         {
           language: languageNames.get(check.language ?? '') ?? '',

@@ -45,7 +45,7 @@ describe('the bounty definition', () => {
       'Monkey D. Luffy 3000000000',
     );
     expect(naturalKeyOf(BOUNTY, { posterName: '', amount: null })).toBeNull();
-    expect(namesOf(BOUNTY, { posterName: 'Monkey D. Luffy', translations: {} })).toEqual({});
+    expect(namesOf(BOUNTY, { posterName: 'Monkey D. Luffy' })).toEqual({});
   });
 
   it('calls a bounty by its poster name and amount, as the reader writes numbers', () => {
@@ -66,7 +66,6 @@ describe('the comparison of two bounties', () => {
       condition: 'DEAD_OR_ALIVE',
       inactive: false,
       validity: 'SUPERSEDED',
-      translations: {},
     };
     const after: EntityBody = {
       ...before,
@@ -103,7 +102,7 @@ describe('the card of a bounty', () => {
     inactive: false,
     validity: 'SUPERSEDED',
     previous: { id: 'b0', posterName: 'Monkey D. Luffy', amount: 1500000000 },
-    translations: { en: { description: 'After Wano.' } },
+    description: [{ text: { en: 'After Wano.' }, discovered: null, ended: null }],
   };
 
   function render(body: EntityBody): void {
@@ -183,7 +182,7 @@ describe('the chain of a bounty', () => {
     });
     const fixture = TestBed.createComponent(ChainList);
     fixture.componentRef.setInput('section', chainSection('chain'));
-    fixture.componentRef.setInput('body', { chain, translations: {} });
+    fixture.componentRef.setInput('body', { chain });
     fixture.componentRef.setInput('contentId', contentId);
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;

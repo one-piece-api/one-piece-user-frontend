@@ -221,6 +221,16 @@ export type BlockCause =
        */
       reason: 'STORY_POINT_OUT_OF_RANGE';
       detail: { field: string; message: string };
+    }
+  | {
+      /**
+       * A point of a Saga or an Arc names a chapter or an episode that has passed no review yet:
+       * the point (`field`, e.g. `description[0].discovered.chapter`), the content and, when its
+       * latest version has one, its number.
+       */
+      reason: 'STORY_POINT_NOT_APPROVED';
+      detail: { field: string } & Partial<Record<'chapterId' | 'episodeId', string>> &
+        Partial<Record<'chapterNumber' | 'episodeNumber', number>>;
     };
 
 /**

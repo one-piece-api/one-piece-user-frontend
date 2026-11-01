@@ -1,4 +1,5 @@
 import {
+  paragraphListField,
   booleanField,
   imageField,
   localizedTextField,
@@ -26,8 +27,8 @@ const DEVIL_FRUIT_IMAGE = {
 };
 
 /**
- * The Devil Fruit: one romaji, the type it belongs to, and a name, a description, advantages
- * and disadvantages per language - the longest each may be is what the backend accepts.
+ * The Devil Fruit: one romaji, the type it belongs to, a name per language and a description,
+ * advantages and disadvantages in paragraphs (one section each).
  * The type is a relation: a draft may not have chosen one, but review asks for it. The
  * subcategory, one of the type's, is optional, and so is the image. A fruit that several
  * characters may have at once (the SMILE ones) says so with `multipleUsers`.
@@ -48,9 +49,9 @@ export const DEVIL_FRUIT: EntityDefinition = {
     booleanField('multipleUsers'),
     storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
-    localizedTextField('description', { maxLength: 2000, rows: 8 }),
-    localizedTextField('advantages', { maxLength: 2000, rows: 5 }),
-    localizedTextField('disadvantages', { maxLength: 2000, rows: 5 }),
+    paragraphListField('description', { rows: 5 }),
+    paragraphListField('advantages', { rows: 5 }),
+    paragraphListField('disadvantages', { rows: 5 }),
   ],
   // Its current users: derived from the characters naming it, never part of its version (D12).
   sections: [relatedList({ of: 'CHARACTER', by: 'devilFruit' })],

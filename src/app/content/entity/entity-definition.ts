@@ -252,6 +252,13 @@ export interface PartListField {
    * never lists them; whether an entry is former is worked out from `ended`, never stored.
    */
   readonly windowed?: true;
+  /**
+   * The list is a long text written by paragraphs (workflow 3.7.3): review asks for a paragraph
+   * discovered at the first appearance - any, without one - the card shows it as prose and
+   * marks an ended paragraph as superseded. Its words live under `paragraphs.<key>`, apart
+   * from the single text of the same name on Chapter and Episode (`labelKeyOf`).
+   */
+  readonly paragraphs?: true;
 }
 
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
@@ -478,6 +485,31 @@ export function partListField(
   options: Omit<PartListField, 'kind' | 'key'>,
 ): PartListField {
   return { kind: 'partList', key, ...options };
+}
+
+/** The most paragraphs a section holds, and the longest one may be - the backend's limits. */
+const MAX_PARAGRAPHS = 50;
+const MAX_PARAGRAPH_LENGTH = 2000;
+
+/**
+ * A section of paragraphs - `description`, `advantages`, `disadvantages` (workflow 3.7.3): each
+ * paragraph a text per language, `rows` high, with its window on the reader axis.
+ */
+export function paragraphListField(key: string, options: { rows: number }): PartListField {
+  return partListField(key, {
+    parts: [localizedTextField('text', { maxLength: MAX_PARAGRAPH_LENGTH, rows: options.rows })],
+    maxEntries: MAX_PARAGRAPHS,
+    windowed: true,
+    paragraphs: true,
+  });
+}
+
+/**
+ * Where the words of a field live in the catalog, after the group (`content.editor.ready.`): its
+ * key, but `paragraphs.<key>` for a section of paragraphs.
+ */
+export function labelKeyOf(field: EntityField | PartField): string {
+  return field.kind === 'partList' && field.paragraphs ? `paragraphs.${field.key}` : field.key;
 }
 
 export function countColumn(field: string, options: Omit<CountColumn, 'field'>): CountColumn {

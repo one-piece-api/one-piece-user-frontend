@@ -1,5 +1,6 @@
 import { AFFILIATION_KINDS } from '../affiliations/affiliation.model';
 import {
+  paragraphListField,
   choiceField,
   choiceFilter,
   imageField,
@@ -81,7 +82,7 @@ const MAX_PERIODS = 20;
 
 /**
  * The Character: a person of the story, known by the romaji of its official name (plan D2).
- * Besides the name and the description per language, its epithets - a title written in each
+ * Besides the name per language and the description in paragraphs, its epithets - a title written in each
  * language - and aliases - names it goes by, the same in every language - as ordered lists
  * (D15), the species it belongs to (D8) and a birthday without a year (D16).
  */
@@ -157,7 +158,7 @@ export const CHARACTER: EntityDefinition = {
       unique: 'alias',
       windowed: true,
     }),
-    localizedTextField('description', { maxLength: 2000, rows: 8 }),
+    paragraphListField('description', { rows: 5 }),
   ],
   // The bounties it holds: derived from the bounties naming it, never part of its version (D11).
   counts: [countColumn('bountyCount', { of: 'BOUNTY', by: 'holder' })],

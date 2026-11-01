@@ -30,6 +30,7 @@ import {
   subcategoryText,
   type SavedSubcategory,
 } from './entity-subcategory';
+import { isAtStoryPoint } from './entity-story-point';
 import { FIELD_KINDS, isAskedByReview, sentPartEntries } from './field-kinds';
 
 /** What a version says in one language, by field key. */
@@ -43,7 +44,8 @@ export type Translation = Record<string, unknown>;
  */
 export interface EntityBody {
   readonly [field: string]: unknown;
-  readonly translations: Record<string, Translation>;
+  /** None for an entity with nothing to translate: a bounty. */
+  readonly translations?: Record<string, Translation>;
 }
 
 /** What the editor holds for one language while a draft is being written. */
@@ -130,7 +132,7 @@ export function isLanguageComplete(
   language: string,
 ): boolean {
   return (
-    isTranslationComplete(definition, value.translations[language]) &&
+    isTranslationComplete(definition, value.translations?.[language]) &&
     subcategoryChecks(definition, value, language).every(({ done }) => done) &&
     partListChecks(definition, value, language).every(({ done }) => done)
   );
@@ -220,6 +222,51 @@ function windowChecks(definition: EntityDefinition, draft: EntityDraft): Readine
   );
 }
 
+/** The first appearance of an entity, where it has one: the point its paragraphs start from. */
+const FIRST_APPEARANCE = 'firstAppearance';
+
+/**
+ * What review asks of each section of paragraphs (workflow 3.7.3): a paragraph discovered at the
+ * first appearance, on every axis it has, so the reader meeting the content finds it described;
+ * for an entity without a first appearance - Saga, Arc - a paragraph, discovered anywhere.
+ */
+export function paragraphSectionRule(
+  definition: EntityDefinition,
+): typeof AT_FIRST_APPEARANCE | typeof COUNT_PART {
+  return definition.fields.some(
+    ({ key, kind }) => kind === 'storyPoint' && key === FIRST_APPEARANCE,
+  )
+    ? AT_FIRST_APPEARANCE
+    : COUNT_PART;
+}
+
+/** The readiness part saying a section has a paragraph discovered at the first appearance. */
+export const AT_FIRST_APPEARANCE = 'atFirstAppearance';
+
+/**
+ * The rule of each section of paragraphs, once per section: shared by every language. Only the
+ * entries the JSON carries, as the backend counts them.
+ */
+function paragraphChecks(definition: EntityDefinition, draft: EntityDraft): ReadinessCheck[] {
+  const rule = paragraphSectionRule(definition);
+  return partListFields(definition)
+    .filter(({ paragraphs }) => paragraphs)
+    .map((field) => {
+      const entries = sentPartEntries(field, draft[field.key]);
+      return {
+        field: field.key,
+        language: null,
+        entry: { id: field.key, position: 1, part: rule, name: null },
+        done:
+          rule === COUNT_PART
+            ? entries.length > 0
+            : entries.some((entry) =>
+                isAtStoryPoint(entry.values[DISCOVERED_PART.key], draft[FIRST_APPEARANCE]),
+              ),
+      };
+    });
+}
+
 /** The readiness part saying an entry has at least one entry in a nested list: `periods.count`. */
 export const COUNT_PART = 'count';
 
@@ -283,7 +330,7 @@ export function namesOf(definition: EntityDefinition, body: EntityBody): Record<
   if (!labelField) {
     return names;
   }
-  for (const [language, translation] of Object.entries(body.translations)) {
+  for (const [language, translation] of Object.entries(body.translations ?? {})) {
     const name = translation[labelField];
     if (typeof name === 'string' && name) {
       names[language] = name;
@@ -309,7 +356,7 @@ export function draftOf(
     draft[field.key] = kindOf(field).draftValue(body?.[field.key], field);
   }
   for (const language of languages) {
-    const translation = body?.translations[language];
+    const translation = body?.translations?.[language];
     draft.translations[language] = Object.fromEntries(
       localizedFields(definition).map((field) => [
         field.key,
@@ -401,7 +448,7 @@ export function readinessChecks(
       language: null,
       done: kindOf(field).isFilled(draft[field.key]),
     }));
-  checks.push(...windowChecks(definition, draft));
+  checks.push(...windowChecks(definition, draft), ...paragraphChecks(definition, draft));
   for (const language of languages) {
     const translation = draft.translations[language];
     checks.push(
@@ -497,8 +544,8 @@ export function diffBodies(
           ? languages.map((language) =>
               kindOf(field).diff<EntityFieldRef>(
                 { field: field.key, language },
-                base?.translations[language]?.[field.key],
-                target.translations[language]?.[field.key],
+                base?.translations?.[language]?.[field.key],
+                target.translations?.[language]?.[field.key],
               ),
             )
           : [
@@ -569,7 +616,7 @@ function languagesWritten(definition: EntityDefinition, body: EntityBody): strin
   const inLists = partListFields(definition).flatMap((field) =>
     itemsOf(body[field.key]).flatMap((item) => languagesOfEntry(field, item)),
   );
-  return [...Object.keys(body.translations), ...inLists];
+  return [...Object.keys(body.translations ?? {}), ...inLists];
 }
 
 /** The languages the localized parts of an entry are written in, its nested entries' too. */

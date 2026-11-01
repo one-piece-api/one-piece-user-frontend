@@ -48,3 +48,29 @@ Due aggiunte a `partList` (ADR-0007), dichiarative:
   `sub-` per non coprire quelli esterni.
 - La tabella dei messaggi va aggiornata quando `ReaderAxisRules` cambia un testo; lo spec lo
   segnala.
+
+## Addendum: sezioni di paragrafi (R8, 2026-11-01)
+
+**Contesto.** Con R3 (ADR-0011 di content-service, addendum paragrafi) ogni testo lungo diventa una
+sezione di paragrafi: `description: [{ text: {lang}, discovered, ended }]` (Frutto e Tipo anche
+`advantages`/`disadvantages`), max 50 paragrafi da 2000 caratteri. Le traduzioni tengono solo il
+nome. In revisione una sezione chiede un paragrafo scoperto alla prima apparizione (Saga e Arco,
+senza prima apparizione: almeno un paragrafo).
+
+**Decisione.** Una sezione è un `partList` con finestra e il flag `paragraphs: true`, costruito da
+`paragraphListField(key, { rows })`: nessun nuovo tipo di campo.
+
+- **Etichette:** `labelKeyOf` mette le sezioni sotto `paragraphs.<key>`, perché Capitolo ed Episodio
+  tengono una `description` localizzata semplice con le stesse chiavi i18n.
+- **Editor:** testo in `textarea` (righe da `rows`), lingue affiancate da `xl` in su.
+- **Revisione:** `paragraphSectionRule` sceglie `atFirstAppearance` (paragrafo con `discovered`
+  sugli stessi assi della prima apparizione, `isAtStoryPoint`) o `count`; la stessa regola dà le
+  parole dell'errore `description` del backend.
+- **Scheda:** tutti i paragrafi in ordine; quelli con `ended` attenuati, con badge "Superato" e la
+  riga della finestra.
+
+**Alternative.** Un tipo `paragraphList`: duplica editor, revisione e confronto. Regola di revisione
+lasciata solo al backend: la checklist non saprebbe dire cosa manca prima dell'invio.
+
+**Conseguenze.** Una sezione è una riga di definizione; la regola della prima apparizione vive in
+due posti (backend e checklist): se cambia nel workflow, vanno cambiati entrambi.

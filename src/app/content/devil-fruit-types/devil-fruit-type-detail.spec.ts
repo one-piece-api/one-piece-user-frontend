@@ -55,23 +55,20 @@ const CREATED = {
   occurredAt: '2026-08-20T10:00:00Z',
 };
 
+/** A paragraph discovered at chapter 1, with its text per language. */
+function paragraph(text: Record<string, string>) {
+  return { text, discovered: { chapter: { id: 'c1', number: 1, names: {} } }, ended: null };
+}
+
 function body(name: string, italianDescription: string | null = 'Elementale.') {
   return {
     romaji: 'Shizen-kei',
-    translations: {
-      en: {
-        name,
-        description: 'Elemental.',
-        advantages: 'Attacks pass through.',
-        disadvantages: 'Haki and sea water.',
-      },
-      it: {
-        name: 'Rogia',
-        description: italianDescription,
-        advantages: 'Intangibile.',
-        disadvantages: 'Haki e acqua di mare.',
-      },
-    },
+    translations: { en: { name }, it: { name: 'Rogia' } },
+    description: [
+      paragraph({ en: 'Elemental.', ...(italianDescription ? { it: italianDescription } : {}) }),
+    ],
+    advantages: [paragraph({ en: 'Attacks pass through.', it: 'Intangibile.' })],
+    disadvantages: [paragraph({ en: 'Haki and sea water.', it: 'Haki e acqua di mare.' })],
   };
 }
 
@@ -415,9 +412,10 @@ describe('DevilFruitTypeDetail', () => {
     harness.detectChanges();
 
     expect(root.querySelector('[data-testid="card-name"]')?.textContent).toContain('Rogia');
-    expect(root.querySelector('[data-testid="card-description"]')?.textContent).toContain(
-      'no description in this language',
-    );
+    expect(
+      root.querySelector('[data-testid="card-description"] [data-testid="card-paragraph-text"]')
+        ?.textContent,
+    ).toContain('not written in IT');
   });
 
   it('opens the Workflow tab from the URL and goes back to the overview', async () => {
@@ -601,8 +599,8 @@ describe('DevilFruitTypeDetail', () => {
           errors: [
             { field: 'romaji', message: 'is required for review' },
             { field: 'firstAppearance.chapter', message: 'is required for review' },
-            { field: 'translations[en].description', message: 'is required for review' },
-            { field: 'translations[it].disadvantages', message: 'is required for review' },
+            { field: 'description[0].text[en]', message: 'is required for review' },
+            { field: 'disadvantages', message: 'is required for review' },
           ],
         },
         { status: 422, statusText: 'Unprocessable Entity' },
@@ -611,7 +609,7 @@ describe('DevilFruitTypeDetail', () => {
       await answerReload('DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
 
       expect(mascotSays()).toBe(
-        'Arrr! Still missing before review: romaji, first appearance, description EN, disadvantages IT.',
+        'Arrr! Still missing before review: romaji, first appearance, description paragraph 1 EN, a disadvantages paragraph discovered at the first appearance.',
       );
     });
 
@@ -1332,24 +1330,20 @@ describe('DevilFruitTypeDetail', () => {
 
     const FIRST = {
       romaji: 'Rogia',
-      translations: {
-        it: { name: 'Rogia', description: 'Frutti elementali.' },
-        en: { name: 'Logia', description: null },
-      },
+      translations: { it: { name: 'Rogia' }, en: { name: 'Logia' } },
+      description: [paragraph({ it: 'Frutti elementali.' })],
     };
     const ONLINE = {
       romaji: 'Rogia',
-      translations: {
-        it: { name: 'Rogia', description: 'Frutti che trasformano il corpo.' },
-        en: { name: 'Logia', description: 'Fruits that turn the body.' },
-      },
+      translations: { it: { name: 'Rogia' }, en: { name: 'Logia' } },
+      description: [
+        paragraph({ it: 'Frutti che trasformano il corpo.', en: 'Fruits that turn the body.' }),
+      ],
     };
     const DRAFT = {
       romaji: 'Rogia',
-      translations: {
-        it: { name: 'Rogia', description: 'Frutti elementali, i più rari.' },
-        en: { name: null, description: 'Elemental fruits.' },
-      },
+      translations: { it: { name: 'Rogia' }, en: { name: null } },
+      description: [paragraph({ it: 'Frutti elementali, i più rari.', en: 'Elemental fruits.' })],
     };
 
     function panel(): HTMLElement {
@@ -1438,11 +1432,11 @@ describe('DevilFruitTypeDetail', () => {
       expect(panel().textContent).toContain('Comparing v1 → v3');
       expect(baseSelect()?.value).toBe('1');
       expect(Array.from(baseSelect()!.options).map((option) => option.value)).toEqual(['2', '1']);
-      expect(summaryText()).toBe('+ 1 added − 1 removed ~ 1 modified = 2 unchanged');
+      expect(summaryText()).toBe('+ 1 added − 1 removed ~ 1 modified = 3 unchanged');
       expect(rows()).toEqual([
         'Name · EN − removed',
-        'Description · IT ~ modified',
-        'Description · EN + added',
+        'Description · paragraph 1 · IT ~ modified',
+        'Description · paragraph 1 · EN + added',
       ]);
       expect(panel().querySelector('[data-testid="comparison-unchanged"]')).toBeNull();
       expect(TestBed.inject(Router).url).toBe(PAGE);
@@ -1454,14 +1448,14 @@ describe('DevilFruitTypeDetail', () => {
       const toggle = panel().querySelector<HTMLButtonElement>(
         '[data-testid="comparison-toggle-unchanged"]',
       )!;
-      expect(toggle.textContent).toContain('Show 2 unchanged fields');
+      expect(toggle.textContent).toContain('Show 3 unchanged fields');
       toggle.click();
       harness.detectChanges();
 
       const unchanged = panel().querySelector('[data-testid="comparison-unchanged"]');
       expect(unchanged?.textContent).toContain('Romaji');
       expect(unchanged?.textContent).toContain('Name · IT');
-      expect(toggle.textContent).toContain('Hide 2 unchanged fields');
+      expect(toggle.textContent).toContain('Hide 3 unchanged fields');
     });
 
     it('compares with another earlier version once picked', async () => {
@@ -1474,7 +1468,7 @@ describe('DevilFruitTypeDetail', () => {
       await answerPanel(V2, ONLINE);
 
       expect(panel().textContent).toContain('Comparing v2 → v3');
-      expect(summaryText()).toBe('+ 0 added − 1 removed ~ 2 modified = 2 unchanged');
+      expect(summaryText()).toBe('+ 0 added − 1 removed ~ 2 modified = 3 unchanged');
     });
 
     it('compares the first version with an empty content', async () => {
@@ -1489,7 +1483,7 @@ describe('DevilFruitTypeDetail', () => {
       expect(baseSelect()).toBeNull();
       expect(panel().textContent).toContain('nothing existed before v1');
       expect(panel().textContent).toContain('First version');
-      expect(summaryText()).toBe('+ 4 added − 0 removed ~ 0 modified = 0 unchanged');
+      expect(summaryText()).toBe('+ 5 added − 0 removed ~ 0 modified = 0 unchanged');
     });
 
     it('moves along the chain inside the panel, back to the default base, URL untouched', async () => {

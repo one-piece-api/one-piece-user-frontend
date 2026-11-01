@@ -75,9 +75,16 @@ describe('the card of a species', () => {
   const GYOJIN: EntityBody = {
     romaji: 'Gyojin',
     translations: {
-      en: { name: 'Fish-Man', description: 'People with the traits of a fish.' },
-      it: { name: 'Uomo-pesce', description: 'Persone con i tratti di un pesce.' },
+      en: { name: 'Fish-Man' },
+      it: { name: 'Uomo-pesce' },
     },
+    description: [
+      {
+        text: { en: 'People with the traits of a fish.', it: 'Persone con i tratti di un pesce.' },
+        discovered: { chapter: { id: 'c69', number: 69, names: {} } },
+        ended: null,
+      },
+    ],
   };
 
   function render(body: EntityBody): void {
@@ -104,7 +111,7 @@ describe('the card of a species', () => {
 
     expect(text('card-name')).toBe('Fish-Man');
     expect(root.textContent).toContain('Gyojin');
-    expect(text('card-description')).toBe('People with the traits of a fish.');
+    expect(text('card-paragraph-text')).toBe('People with the traits of a fish.');
   });
 
   it('shows the picture, named after the species', () => {

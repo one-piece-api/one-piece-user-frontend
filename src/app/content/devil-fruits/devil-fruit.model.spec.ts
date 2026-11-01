@@ -10,12 +10,12 @@ const GOMU = {
   romaji: 'Gomu Gomu no Mi',
   type: LOGIA,
   translations: {
-    it: { name: 'Frutto Gomu', description: 'd', advantages: 'p', disadvantages: 'c' },
+    it: { name: 'Frutto Gomu' },
   },
 };
 
 describe('the Devil Fruit entity', () => {
-  it('has a romaji, an image, the type it belongs to and its subcategory, and the four texts of a language', () => {
+  it('has a romaji, an image, the type it belongs to and its subcategory, a name per language and three sections of paragraphs', () => {
     expect(DEVIL_FRUIT.fields.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
       'romaji:text',
       'image:image',
@@ -24,9 +24,9 @@ describe('the Devil Fruit entity', () => {
       'multipleUsers:boolean',
       'firstAppearance:storyPoint',
       'name:localizedText',
-      'description:localizedText',
-      'advantages:localizedText',
-      'disadvantages:localizedText',
+      'description:partList',
+      'advantages:partList',
+      'disadvantages:partList',
     ]);
   });
 

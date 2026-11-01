@@ -230,6 +230,20 @@ export function blockWords(
         titled: sentence,
       };
     }
+    case 'STORY_POINT_NOT_APPROVED': {
+      const axis = 'episodeId' in cause.detail ? 'episode' : 'chapter';
+      const sentence = text(`sentence.STORY_POINT_NOT_APPROVED.${axis}`, {
+        number: cause.detail[`${axis}Number`] ?? '',
+        field: fieldWords(cause.detail.field),
+      });
+      return {
+        note: text(`note.STORY_POINT_NOT_APPROVED.${axis}`),
+        sentence,
+        links: [],
+        more: 0,
+        titled: sentence,
+      };
+    }
     case 'BOUNTY_CHAIN_CYCLE': {
       const sentence = text('sentence.BOUNTY_CHAIN_CYCLE');
       return {

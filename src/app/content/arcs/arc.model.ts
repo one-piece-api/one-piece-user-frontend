@@ -1,4 +1,5 @@
 import {
+  paragraphListField,
   localizedTextField,
   numberField,
   relatedList,
@@ -7,8 +8,8 @@ import {
 } from '../entity/entity-definition';
 
 /**
- * The Arc: a number, the saga it belongs to (asked for by review) and, per language, a title
- * and a description. Chapters and episodes point to it: its card lists a few of each.
+ * The Arc: a number, the saga it belongs to (asked for by review), a title per language and
+ * a description in paragraphs. Chapters and episodes point to it: its card lists a few of each.
  */
 export const ARC: EntityDefinition = {
   entityType: 'ARC',
@@ -22,7 +23,7 @@ export const ARC: EntityDefinition = {
     numberField('number'),
     relationField('saga', { target: 'SAGA' }),
     localizedTextField('title', { maxLength: 200 }),
-    localizedTextField('description', { maxLength: 2000, rows: 8 }),
+    paragraphListField('description', { rows: 5 }),
   ],
   sections: [relatedList({ of: 'CHAPTER', by: 'arc' }), relatedList({ of: 'EPISODE', by: 'arc' })],
 };

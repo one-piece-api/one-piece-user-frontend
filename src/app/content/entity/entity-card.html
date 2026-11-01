@@ -189,6 +189,52 @@
           </p>
         </div>
       }
+      @for (section of paragraphSections(); track section.field) {
+        <div
+          class="mb-3.5 flow-root border-t border-dashed border-card-line pt-3"
+          [attr.data-testid]="'card-' + section.field"
+        >
+          <h3
+            class="mb-1 font-display text-[13px] font-bold tracking-[0.08em] text-ocean-900 uppercase"
+          >
+            {{ 'content.card.heading.' + section.field | transloco }}
+          </h3>
+          @for (paragraph of section.paragraphs; track paragraph.position) {
+            <div
+              class="mb-2.5"
+              [class.opacity-60]="paragraph.superseded"
+              data-testid="card-paragraph"
+            >
+              <p
+                class="font-heading text-[15px] leading-relaxed font-semibold text-pretty whitespace-pre-line"
+                [class]="paragraph.text ? 'text-ocean-500' : 'text-treasure-700'"
+                data-testid="card-paragraph-text"
+              >
+                {{
+                  paragraph.text ??
+                    ('content.card.notWritten' | transloco: { language: languageLabel() })
+                }}
+              </p>
+              <p class="mt-0.5 text-xs font-bold text-ocean-500/80">
+                @if (paragraph.superseded) {
+                  <span
+                    class="mr-1.5 rounded-full bg-ocean-100 px-2 py-0.5 text-[11px] text-ocean-700"
+                    data-testid="card-paragraph-superseded"
+                    >{{ 'content.card.paragraphs.superseded' | transloco }}</span
+                  >
+                }
+                @if (paragraph.window; as window) {
+                  <span data-testid="card-paragraph-window">{{ window }}</span>
+                }
+              </p>
+            </div>
+          } @empty {
+            <p class="font-heading text-[15px] font-semibold text-treasure-700">
+              {{ 'content.card.paragraphs.none' | transloco }}
+            </p>
+          }
+        </div>
+      }
       @for (list of releaseLists(); track list.field) {
         @if (list.entries.length) {
           <div

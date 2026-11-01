@@ -1,6 +1,7 @@
 import type { TranslocoService } from '@jsverse/transloco';
-import { draftFieldKey } from './entity/entity-body';
+import { draftFieldKey, paragraphSectionRule } from './entity/entity-body';
 import {
+  labelKeyOf,
   naturalKeyParts,
   type EntityDefinition,
   type PartListField,
@@ -29,10 +30,14 @@ export function refusedFieldWords(
       candidate.key === first && candidate.kind === 'partList',
   );
   if (list) {
-    const words = `${FIELD_WORDS}.${first}`;
-    return name === undefined
-      ? transloco.translate(`${words}.list`)
-      : entryWords(transloco, list, words, name, rest);
+    const words = `${FIELD_WORDS}.${labelKeyOf(list)}`;
+    if (name !== undefined) {
+      return entryWords(transloco, list, words, name, rest);
+    }
+    // A section of paragraphs is named by what review asks of it (workflow 3.7.3).
+    return transloco.translate(
+      list.paragraphs ? `${words}.${paragraphSectionRule(entity)}` : `${words}.list`,
+    );
   }
   if (name) {
     return transloco.translate(`${FIELD_WORDS}.${name}`, { language: first.toUpperCase() });

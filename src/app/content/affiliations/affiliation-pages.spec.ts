@@ -64,7 +64,7 @@ describe('the affiliation definition', () => {
       'image:image',
       'firstAppearance:storyPoint',
       'name:localizedText',
-      'description:localizedText',
+      'description:partList',
     ]);
     expect(AFFILIATION.fields.find(({ key }) => key === 'kind')).toMatchObject({
       options: ['PIRATE_CREW', 'NAVY', 'WORLD_GOVERNMENT', 'REVOLUTIONARY_ARMY', 'OTHER'],
@@ -90,9 +90,16 @@ describe('the card of an affiliation', () => {
   const MUGIWARA: EntityBody = {
     romaji: 'Mugiwara no Ichimi',
     translations: {
-      en: { name: 'Straw Hat Pirates', description: 'The crew of Monkey D. Luffy.' },
-      it: { name: 'Pirati di Cappello di Paglia', description: 'La ciurma di Monkey D. Luffy.' },
+      en: { name: 'Straw Hat Pirates' },
+      it: { name: 'Pirati di Cappello di Paglia' },
     },
+    description: [
+      {
+        text: { en: 'The crew of Monkey D. Luffy.', it: 'La ciurma di Monkey D. Luffy.' },
+        discovered: { chapter: { id: 'c1', number: 1, names: {} } },
+        ended: null,
+      },
+    ],
   };
 
   function render(body: EntityBody): void {
@@ -119,7 +126,7 @@ describe('the card of an affiliation', () => {
 
     expect(text('card-name')).toBe('Straw Hat Pirates');
     expect(root.textContent).toContain('Mugiwara no Ichimi');
-    expect(text('card-description')).toBe('The crew of Monkey D. Luffy.');
+    expect(text('card-paragraph-text')).toBe('The crew of Monkey D. Luffy.');
   });
 
   it('shows the emblem, named after the affiliation', () => {

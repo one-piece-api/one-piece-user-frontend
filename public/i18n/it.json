@@ -133,6 +133,10 @@
         "tip5": {
           "text": "Ogni voce di un elenco ha una scoperta: il punto della storia in cui il lettore la viene a sapere. Con una fine diventa «ex», senza resta attuale.",
           "code": "scoperta → fine · attuale / ex"
+        },
+        "tip6": {
+          "text": "Una convinzione che il lettore vedrà smentita va in un paragrafo a sé: dandogli una fine, sparisce solo quella frase. Si aggiunge, non si riscrive: un paragrafo per arco.",
+          "code": "paragrafi · una convinzione, un paragrafo"
         }
       }
     }
@@ -597,8 +601,6 @@
           "romaji": "romaji",
           "name": "nome {{language}}",
           "description": "descrizione {{language}}",
-          "advantages": "vantaggi {{language}}",
-          "disadvantages": "svantaggi {{language}}",
           "subcategories": "sottocategorie {{language}}",
           "firstAppearance": "prima apparizione",
           "type": "tipo",
@@ -645,6 +647,26 @@
             "axis": {
               "chapter": "capitolo",
               "episode": "episodio"
+            }
+          },
+          "paragraphs": {
+            "description": {
+              "list": "descrizione",
+              "entry": "paragrafo {{position}} della descrizione {{language}}",
+              "atFirstAppearance": "un paragrafo della descrizione scoperto alla prima apparizione",
+              "count": "almeno un paragrafo della descrizione"
+            },
+            "advantages": {
+              "list": "vantaggi",
+              "entry": "paragrafo {{position}} dei vantaggi {{language}}",
+              "atFirstAppearance": "un paragrafo dei vantaggi scoperto alla prima apparizione",
+              "count": "almeno un paragrafo dei vantaggi"
+            },
+            "disadvantages": {
+              "list": "svantaggi",
+              "entry": "paragrafo {{position}} degli svantaggi {{language}}",
+              "atFirstAppearance": "un paragrafo degli svantaggi scoperto alla prima apparizione",
+              "count": "almeno un paragrafo degli svantaggi"
             }
           }
         },
@@ -739,7 +761,11 @@
             "fruit": "Possessori attuali: {{count}}"
           },
           "RELATIVE_ALREADY_LINKED": "Parente già legato",
-          "STORY_POINT_OUT_OF_RANGE": "Punto fuori ordine"
+          "STORY_POINT_OUT_OF_RANGE": "Punto fuori ordine",
+          "STORY_POINT_NOT_APPROVED": {
+            "chapter": "Capitolo di un punto non approvato",
+            "episode": "Episodio di un punto non approvato"
+          }
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "Il Tipo di questo Frutto non è online. Ripubblica prima il Tipo.",
@@ -779,7 +805,11 @@
             "fruit": "Arrr! Più personaggi online hanno ancora questo frutto, compare: con un solo possessore alla volta non può andare online. Segna gli ex possessori prima:"
           },
           "RELATIVE_ALREADY_LINKED": "Arrr! Questo parente nomina già questo personaggio nella sua versione online, compare: una coppia è legata da uno dei due soltanto. Togli il parente qui, oppure fai togliere prima il legame all'altro:",
-          "STORY_POINT_OUT_OF_RANGE": "Arrr! «{{field}}»: {{rule}} Sui numeri online qualcosa non torna più: forse un capitolo o un episodio è stato rinumerato, compare. Correggi il punto in una nuova versione."
+          "STORY_POINT_OUT_OF_RANGE": "Arrr! «{{field}}»: {{rule}} Sui numeri online qualcosa non torna più: forse un capitolo o un episodio è stato rinumerato, compare. Correggi il punto in una nuova versione.",
+          "STORY_POINT_NOT_APPROVED": {
+            "chapter": "Arrr! Il capitolo {{number}} usato in «{{field}}» non ha ancora passato la revisione, compare. Fallo approvare prima.",
+            "episode": "Arrr! L'episodio {{number}} usato in «{{field}}» non ha ancora passato la revisione, compare. Fallo approvare prima."
+          }
         },
         "andMore": "e altri {{count}}"
       }
@@ -802,15 +832,23 @@
       "placeholder": {
         "romaji": "es. Chōjin-kei",
         "name": "nome nella lingua selezionata",
-        "description": "descrizione nella lingua selezionata",
-        "advantages": "cosa dà questo tipo a chi lo possiede, nella lingua selezionata",
-        "disadvantages": "cosa costa a chi lo possiede, nella lingua selezionata",
         "subcategories": {
           "name": "nome della sottocategoria, es. Mitologico",
           "description": "cosa la distingue, nella lingua selezionata"
+        },
+        "paragraphs": {
+          "description": {
+            "text": "cosa sa il lettore da questo punto della storia"
+          },
+          "advantages": {
+            "text": "cosa dà a chi mangia un frutto di questo tipo"
+          },
+          "disadvantages": {
+            "text": "cosa costa a chi mangia un frutto di questo tipo"
+          }
         }
       },
-      "hintMissing": "Per la revisione servono il romaji e, in ogni lingua, nome, descrizione, vantaggi e svantaggi, più nome e descrizione di ogni sottocategoria. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il romaji, la scoperta di ogni paragrafo, in descrizione, vantaggi e svantaggi un paragrafo scoperto alla prima apparizione, in ogni lingua il nome e ogni paragrafo, più nome e descrizione di ogni sottocategoria. Intanto la bozza si salva anche incompleta.",
       "related": {
         "DEVIL_FRUIT": {
           "title": "Frutti di questo Tipo",
@@ -919,12 +957,8 @@
       "title": "Titolo · {{language}}",
       "name": "Nome · {{language}}",
       "description": "Descrizione · {{language}}",
-      "advantages": "Vantaggi · {{language}}",
-      "disadvantages": "Svantaggi · {{language}}",
       "noName": "— nessun nome in questa lingua —",
       "noDescription": "— nessuna descrizione in questa lingua —",
-      "noAdvantages": "— nessun vantaggio in questa lingua —",
-      "noDisadvantages": "— nessuno svantaggio in questa lingua —",
       "incomplete": "traduzione incompleta",
       "type": "Tipo",
       "noType": "non collegato",
@@ -973,6 +1007,10 @@
       "window": {
         "discovered": "Scoperta: {{point}}",
         "ended": "Fine: {{point}}"
+      },
+      "paragraphs": {
+        "superseded": "Superato",
+        "none": "— nessun paragrafo —"
       }
     },
     "comparison": {
@@ -1003,8 +1041,6 @@
         "romaji": "Romaji",
         "name": "Nome · {{language}}",
         "description": "Descrizione · {{language}}",
-        "advantages": "Vantaggi · {{language}}",
-        "disadvantages": "Svantaggi · {{language}}",
         "type": "Tipo",
         "image": "Immagine",
         "cover": "Copertina",
@@ -1077,6 +1113,26 @@
           "position": "Parente {{position}} · posizione",
           "discovered": "Parente {{position}} · scoperta",
           "ended": "Parente {{position}} · fine"
+        },
+        "paragraphs": {
+          "description": {
+            "text": "Descrizione · paragrafo {{position}} · {{language}}",
+            "position": "Descrizione · paragrafo {{position}} · posizione",
+            "discovered": "Descrizione · paragrafo {{position}} · scoperta",
+            "ended": "Descrizione · paragrafo {{position}} · fine"
+          },
+          "advantages": {
+            "text": "Vantaggi · paragrafo {{position}} · {{language}}",
+            "position": "Vantaggi · paragrafo {{position}} · posizione",
+            "discovered": "Vantaggi · paragrafo {{position}} · scoperta",
+            "ended": "Vantaggi · paragrafo {{position}} · fine"
+          },
+          "disadvantages": {
+            "text": "Svantaggi · paragrafo {{position}} · {{language}}",
+            "position": "Svantaggi · paragrafo {{position}} · posizione",
+            "discovered": "Svantaggi · paragrafo {{position}} · scoperta",
+            "ended": "Svantaggi · paragrafo {{position}} · fine"
+          }
         }
       },
       "baseLabel": "Versione di partenza del confronto",
@@ -1159,8 +1215,6 @@
         "title": "Titolo · {{language}}",
         "name": "Nome · {{language}}",
         "description": "Descrizione · {{language}}",
-        "advantages": "Vantaggi · {{language}}",
-        "disadvantages": "Svantaggi · {{language}}",
         "done": "completo",
         "required": "obbligatorio",
         "hintReady": "Tutto pronto per la revisione.",
@@ -1196,6 +1250,26 @@
           "periods": {
             "count": "Appartenenza {{position}} · almeno un periodo",
             "discovered": "Appartenenza {{position}} · periodo {{subPosition}} · scoperta"
+          }
+        },
+        "paragraphs": {
+          "description": {
+            "text": "Descrizione · paragrafo {{position}} · {{language}}",
+            "discovered": "Descrizione · paragrafo {{position}} · scoperta",
+            "atFirstAppearance": "Descrizione · un paragrafo scoperto alla prima apparizione",
+            "count": "Descrizione · almeno un paragrafo"
+          },
+          "advantages": {
+            "text": "Vantaggi · paragrafo {{position}} · {{language}}",
+            "discovered": "Vantaggi · paragrafo {{position}} · scoperta",
+            "atFirstAppearance": "Vantaggi · un paragrafo scoperto alla prima apparizione",
+            "count": "Vantaggi · almeno un paragrafo"
+          },
+          "disadvantages": {
+            "text": "Svantaggi · paragrafo {{position}} · {{language}}",
+            "discovered": "Svantaggi · paragrafo {{position}} · scoperta",
+            "atFirstAppearance": "Svantaggi · un paragrafo scoperto alla prima apparizione",
+            "count": "Svantaggi · almeno un paragrafo"
           }
         }
       },
@@ -1413,7 +1487,33 @@
           "episode": "La prima apparizione non ha più un episodio: togli questo."
         }
       },
-      "pointRefusedMessage": "Arrr! Un punto della storia non torna: il motivo è scritto sotto, compare."
+      "pointRefusedMessage": "Arrr! Un punto della storia non torna: il motivo è scritto sotto, compare.",
+      "paragraphs": {
+        "description": {
+          "label": "Descrizione",
+          "hint": "un paragrafo per arco · una convinzione che verrà smentita va in un paragrafo a sé",
+          "entry": "Paragrafo {{position}}",
+          "add": "Aggiungi paragrafo",
+          "empty": "Nessun paragrafo.",
+          "text": "Testo · {{language}}"
+        },
+        "advantages": {
+          "label": "Vantaggi",
+          "hint": "un paragrafo per ogni cosa che il lettore scopre, con il punto in cui la scopre",
+          "entry": "Paragrafo {{position}}",
+          "add": "Aggiungi paragrafo",
+          "empty": "Nessun paragrafo.",
+          "text": "Testo · {{language}}"
+        },
+        "disadvantages": {
+          "label": "Svantaggi",
+          "hint": "un paragrafo per ogni cosa che il lettore scopre, con il punto in cui la scopre",
+          "entry": "Paragrafo {{position}}",
+          "add": "Aggiungi paragrafo",
+          "empty": "Nessun paragrafo.",
+          "text": "Testo · {{language}}"
+        }
+      }
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1560,11 +1660,19 @@
         "romaji": "es. Gomu Gomu no Mi",
         "type": "cerca e scegli un Tipo",
         "name": "nome nella lingua selezionata",
-        "description": "descrizione nella lingua selezionata",
-        "advantages": "cosa dà questo frutto a chi lo mangia, nella lingua selezionata",
-        "disadvantages": "cosa costa a chi lo mangia, nella lingua selezionata"
+        "paragraphs": {
+          "description": {
+            "text": "cosa sa il lettore da questo punto della storia"
+          },
+          "advantages": {
+            "text": "cosa dà questo frutto a chi lo mangia"
+          },
+          "disadvantages": {
+            "text": "cosa costa a chi lo mangia"
+          }
+        }
       },
-      "hintMissing": "Per la revisione servono il romaji, il Tipo e, in ogni lingua, nome, descrizione, vantaggi e svantaggi. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il romaji, il Tipo, la scoperta di ogni paragrafo, in descrizione, vantaggi e svantaggi un paragrafo scoperto alla prima apparizione e, in ogni lingua, il nome e ogni paragrafo. Intanto la bozza si salva anche incompleta.",
       "options": {
         "multipleUsers": {
           "true": "Più possessori"
@@ -1607,9 +1715,13 @@
       "placeholder": {
         "number": "es. 1",
         "title": "titolo nella lingua selezionata",
-        "description": "descrizione nella lingua selezionata"
+        "paragraphs": {
+          "description": {
+            "text": "cosa sa il lettore da questo punto della storia"
+          }
+        }
       },
-      "hintMissing": "Per la revisione servono il numero e, in ogni lingua, titolo e descrizione. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il numero, almeno un paragrafo di descrizione con la sua scoperta e, in ogni lingua, il titolo e ogni paragrafo. Intanto la bozza si salva anche incompleta.",
       "related": {
         "ARC": {
           "title": "Archi di questa saga",
@@ -1629,9 +1741,13 @@
         "number": "es. 1",
         "saga": "cerca e scegli una Saga",
         "title": "titolo nella lingua selezionata",
-        "description": "descrizione nella lingua selezionata"
+        "paragraphs": {
+          "description": {
+            "text": "cosa sa il lettore da questo punto della storia"
+          }
+        }
       },
-      "hintMissing": "Per la revisione servono il numero, la Saga e, in ogni lingua, titolo e descrizione. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il numero, la Saga, almeno un paragrafo di descrizione con la sua scoperta e, in ogni lingua, il titolo e ogni paragrafo. Intanto la bozza si salva anche incompleta.",
       "related": {
         "CHAPTER": {
           "title": "Capitoli di questo arco",
@@ -1715,6 +1831,7 @@
         "periodOverlapping": "Un periodo non può sovrapporsi a uno precedente.",
         "periodOpen": "Manca la fine: solo l'ultimo periodo può restarne senza.",
         "notLinkable": "Si può scegliere solo un capitolo o un episodio con una versione approvata.",
+        "unknown": "Il capitolo o l'episodio scelto non esiste più.",
         "invalid": "Questo punto della storia non va bene."
       }
     },
@@ -1730,10 +1847,14 @@
         "posterName": "es. Monkey D. Luffy",
         "amount": "es. 3000000000",
         "previous": "cerca e scegli la taglia precedente",
-        "description": "descrizione nella lingua selezionata",
-        "holder": "cerca e scegli il personaggio"
+        "holder": "cerca e scegli il personaggio",
+        "paragraphs": {
+          "description": {
+            "text": "cosa sa il lettore da questo punto della storia"
+          }
+        }
       },
-      "hintMissing": "Per la revisione servono il nome sul manifesto, l'importo, la condizione, la prima apparizione e, in ogni lingua, la descrizione. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il nome sul manifesto, l'importo, la condizione, la prima apparizione, la scoperta di ogni paragrafo, nella descrizione un paragrafo scoperto alla prima apparizione e ogni paragrafo in ogni lingua. Intanto la bozza si salva anche incompleta.",
       "options": {
         "condition": {
           "DEAD_OR_ALIVE": "Vivo o morto",
@@ -1761,9 +1882,13 @@
       "placeholder": {
         "romaji": "es. Mugiwara no Ichimi",
         "name": "nome nella lingua selezionata",
-        "description": "descrizione nella lingua selezionata"
+        "paragraphs": {
+          "description": {
+            "text": "cosa sa il lettore da questo punto della storia"
+          }
+        }
       },
-      "hintMissing": "Per la revisione servono il romaji, il tipo, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il romaji, il tipo, la prima apparizione, la scoperta di ogni paragrafo, nella descrizione un paragrafo scoperto alla prima apparizione e, in ogni lingua, il nome e ogni paragrafo. Intanto la bozza si salva anche incompleta.",
       "imageHint": "La bandiera del gruppo, il suo Jolly Roger.",
       "options": {
         "kind": {
@@ -1785,9 +1910,13 @@
       "placeholder": {
         "romaji": "es. Gyojin",
         "name": "nome nella lingua selezionata",
-        "description": "descrizione nella lingua selezionata"
+        "paragraphs": {
+          "description": {
+            "text": "cosa sa il lettore da questo punto della storia"
+          }
+        }
       },
-      "hintMissing": "Per la revisione servono il romaji, la prima apparizione e, in ogni lingua, nome e descrizione. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il romaji, la prima apparizione, la scoperta di ogni paragrafo, nella descrizione un paragrafo scoperto alla prima apparizione e, in ogni lingua, il nome e ogni paragrafo. Intanto la bozza si salva anche incompleta.",
       "imageHint": "Un esemplare tipico della specie, in verticale.",
       "related": {
         "CHARACTER": {
@@ -1808,7 +1937,6 @@
         "romaji": "nome ufficiale in caratteri latini, es. Monkey D. Luffy",
         "japaneseName": "es. モンキー・D・ルフィ",
         "name": "nome nella lingua selezionata",
-        "description": "descrizione nella lingua selezionata",
         "species": {
           "species": "cerca una specie"
         },
@@ -1829,9 +1957,14 @@
         },
         "relatives": {
           "relative": "cerca un personaggio"
+        },
+        "paragraphs": {
+          "description": {
+            "text": "cosa sa il lettore da questo punto della storia"
+          }
         }
       },
-      "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione, la scoperta di ogni voce degli elenchi, almeno un periodo per ogni appartenenza e, in ogni lingua, nome, descrizione e ogni epiteto. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione, la scoperta di ogni voce degli elenchi e di ogni paragrafo, almeno un periodo per ogni appartenenza, nella descrizione un paragrafo scoperto alla prima apparizione e, in ogni lingua, il nome, ogni epiteto e ogni paragrafo. Intanto la bozza si salva anche incompleta.",
       "imageHint": "Un ritratto del personaggio, in verticale.",
       "options": {
         "status": {

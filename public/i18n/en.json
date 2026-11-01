@@ -133,6 +133,10 @@
         "tip5": {
           "text": "Every list entry has a discovery: the point of the story where the reader learns it. With an end it becomes \"former\"; without one it stays current.",
           "code": "discovered → ended · current / former"
+        },
+        "tip6": {
+          "text": "A belief the reader will see disproved gets a paragraph of its own: give it an end and only that sentence goes. Add, don't rewrite: one paragraph per arc.",
+          "code": "paragraphs · one belief, one paragraph"
         }
       }
     }
@@ -597,8 +601,6 @@
           "romaji": "romaji",
           "name": "name {{language}}",
           "description": "description {{language}}",
-          "advantages": "advantages {{language}}",
-          "disadvantages": "disadvantages {{language}}",
           "subcategories": "subcategories {{language}}",
           "firstAppearance": "first appearance",
           "type": "type",
@@ -645,6 +647,26 @@
             "axis": {
               "chapter": "chapter",
               "episode": "episode"
+            }
+          },
+          "paragraphs": {
+            "description": {
+              "list": "description",
+              "entry": "description paragraph {{position}} {{language}}",
+              "atFirstAppearance": "a description paragraph discovered at the first appearance",
+              "count": "at least one description paragraph"
+            },
+            "advantages": {
+              "list": "advantages",
+              "entry": "advantages paragraph {{position}} {{language}}",
+              "atFirstAppearance": "an advantages paragraph discovered at the first appearance",
+              "count": "at least one advantages paragraph"
+            },
+            "disadvantages": {
+              "list": "disadvantages",
+              "entry": "disadvantages paragraph {{position}} {{language}}",
+              "atFirstAppearance": "a disadvantages paragraph discovered at the first appearance",
+              "count": "at least one disadvantages paragraph"
             }
           }
         },
@@ -739,7 +761,11 @@
             "fruit": "Current users: {{count}}"
           },
           "RELATIVE_ALREADY_LINKED": "Relative already linked",
-          "STORY_POINT_OUT_OF_RANGE": "Point out of order"
+          "STORY_POINT_OUT_OF_RANGE": "Point out of order",
+          "STORY_POINT_NOT_APPROVED": {
+            "chapter": "Chapter of a point not approved",
+            "episode": "Episode of a point not approved"
+          }
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "This fruit's type is not online. Republish the type first.",
@@ -779,7 +805,11 @@
             "fruit": "Arrr! Several online characters still have this fruit, matey: with one user at a time it cannot go online. Mark the former users first:"
           },
           "RELATIVE_ALREADY_LINKED": "Arrr! This relative already names this character in its online version, matey: a pair is linked by one of the two only. Remove the relative here, or have the other one drop the tie first:",
-          "STORY_POINT_OUT_OF_RANGE": "Arrr! \"{{field}}\": {{rule}} The numbers online no longer add up: a chapter or an episode may have been renumbered, matey. Fix the point in a new version."
+          "STORY_POINT_OUT_OF_RANGE": "Arrr! \"{{field}}\": {{rule}} The numbers online no longer add up: a chapter or an episode may have been renumbered, matey. Fix the point in a new version.",
+          "STORY_POINT_NOT_APPROVED": {
+            "chapter": "Arrr! Chapter {{number}}, used in \"{{field}}\", has not passed review yet, matey. Get it approved first.",
+            "episode": "Arrr! Episode {{number}}, used in \"{{field}}\", has not passed review yet, matey. Get it approved first."
+          }
         },
         "andMore": "and {{count}} more"
       }
@@ -802,15 +832,23 @@
       "placeholder": {
         "romaji": "e.g. Chōjin-kei",
         "name": "name in the selected language",
-        "description": "description in the selected language",
-        "advantages": "what this type gives its user, in the selected language",
-        "disadvantages": "what it costs its user, in the selected language",
         "subcategories": {
           "name": "subcategory name, e.g. Mythical",
           "description": "what sets it apart, in the selected language"
+        },
+        "paragraphs": {
+          "description": {
+            "text": "what the reader knows from this point of the story"
+          },
+          "advantages": {
+            "text": "what a fruit of this type gives whoever eats it"
+          },
+          "disadvantages": {
+            "text": "what a fruit of this type costs whoever eats it"
+          }
         }
       },
-      "hintMissing": "Review takes a romaji and, in every language, a name, a description, advantages and disadvantages, plus each subcategory's name and description. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a romaji, the discovery of every paragraph, a paragraph discovered at the first appearance in the description, advantages and disadvantages, a name and every paragraph in every language, plus each subcategory's name and description. Meanwhile the draft can be saved incomplete.",
       "related": {
         "DEVIL_FRUIT": {
           "title": "Fruits of this type",
@@ -919,12 +957,8 @@
       "title": "Title · {{language}}",
       "name": "Name · {{language}}",
       "description": "Description · {{language}}",
-      "advantages": "Advantages · {{language}}",
-      "disadvantages": "Disadvantages · {{language}}",
       "noName": "— no name in this language —",
       "noDescription": "— no description in this language —",
-      "noAdvantages": "— no advantages in this language —",
-      "noDisadvantages": "— no disadvantages in this language —",
       "incomplete": "incomplete translation",
       "type": "Type",
       "noType": "not linked",
@@ -973,6 +1007,10 @@
       "window": {
         "discovered": "Discovered: {{point}}",
         "ended": "Ended: {{point}}"
+      },
+      "paragraphs": {
+        "superseded": "Superseded",
+        "none": "— no paragraphs —"
       }
     },
     "comparison": {
@@ -1003,8 +1041,6 @@
         "romaji": "Romaji",
         "name": "Name · {{language}}",
         "description": "Description · {{language}}",
-        "advantages": "Advantages · {{language}}",
-        "disadvantages": "Disadvantages · {{language}}",
         "type": "Type",
         "image": "Image",
         "cover": "Cover",
@@ -1077,6 +1113,26 @@
           "position": "Relative {{position}} · position",
           "discovered": "Relative {{position}} · discovered",
           "ended": "Relative {{position}} · ended"
+        },
+        "paragraphs": {
+          "description": {
+            "text": "Description · paragraph {{position}} · {{language}}",
+            "position": "Description · paragraph {{position}} · position",
+            "discovered": "Description · paragraph {{position}} · discovered",
+            "ended": "Description · paragraph {{position}} · ended"
+          },
+          "advantages": {
+            "text": "Advantages · paragraph {{position}} · {{language}}",
+            "position": "Advantages · paragraph {{position}} · position",
+            "discovered": "Advantages · paragraph {{position}} · discovered",
+            "ended": "Advantages · paragraph {{position}} · ended"
+          },
+          "disadvantages": {
+            "text": "Disadvantages · paragraph {{position}} · {{language}}",
+            "position": "Disadvantages · paragraph {{position}} · position",
+            "discovered": "Disadvantages · paragraph {{position}} · discovered",
+            "ended": "Disadvantages · paragraph {{position}} · ended"
+          }
         }
       },
       "baseLabel": "Version to compare with",
@@ -1159,8 +1215,6 @@
         "title": "Title · {{language}}",
         "name": "Name · {{language}}",
         "description": "Description · {{language}}",
-        "advantages": "Advantages · {{language}}",
-        "disadvantages": "Disadvantages · {{language}}",
         "done": "complete",
         "required": "required",
         "hintReady": "All set for review.",
@@ -1196,6 +1250,26 @@
           "periods": {
             "count": "Membership {{position}} · at least one period",
             "discovered": "Membership {{position}} · period {{subPosition}} · discovered"
+          }
+        },
+        "paragraphs": {
+          "description": {
+            "text": "Description · paragraph {{position}} · {{language}}",
+            "discovered": "Description · paragraph {{position}} · discovered",
+            "atFirstAppearance": "Description · a paragraph discovered at the first appearance",
+            "count": "Description · at least one paragraph"
+          },
+          "advantages": {
+            "text": "Advantages · paragraph {{position}} · {{language}}",
+            "discovered": "Advantages · paragraph {{position}} · discovered",
+            "atFirstAppearance": "Advantages · a paragraph discovered at the first appearance",
+            "count": "Advantages · at least one paragraph"
+          },
+          "disadvantages": {
+            "text": "Disadvantages · paragraph {{position}} · {{language}}",
+            "discovered": "Disadvantages · paragraph {{position}} · discovered",
+            "atFirstAppearance": "Disadvantages · a paragraph discovered at the first appearance",
+            "count": "Disadvantages · at least one paragraph"
           }
         }
       },
@@ -1413,7 +1487,33 @@
           "episode": "The first appearance no longer has an episode: remove this one."
         }
       },
-      "pointRefusedMessage": "Arrr! A point of the story does not add up: the reason is written below, matey."
+      "pointRefusedMessage": "Arrr! A point of the story does not add up: the reason is written below, matey.",
+      "paragraphs": {
+        "description": {
+          "label": "Description",
+          "hint": "one paragraph per arc · a belief that will be disproved gets a paragraph of its own",
+          "entry": "Paragraph {{position}}",
+          "add": "Add paragraph",
+          "empty": "No paragraphs.",
+          "text": "Text · {{language}}"
+        },
+        "advantages": {
+          "label": "Advantages",
+          "hint": "one paragraph for each thing the reader learns, with the point where they learn it",
+          "entry": "Paragraph {{position}}",
+          "add": "Add paragraph",
+          "empty": "No paragraphs.",
+          "text": "Text · {{language}}"
+        },
+        "disadvantages": {
+          "label": "Disadvantages",
+          "hint": "one paragraph for each thing the reader learns, with the point where they learn it",
+          "entry": "Paragraph {{position}}",
+          "add": "Add paragraph",
+          "empty": "No paragraphs.",
+          "text": "Text · {{language}}"
+        }
+      }
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1560,11 +1660,19 @@
         "romaji": "e.g. Gomu Gomu no Mi",
         "type": "search and pick a type",
         "name": "name in the selected language",
-        "description": "description in the selected language",
-        "advantages": "what this fruit gives whoever eats it, in the selected language",
-        "disadvantages": "what it costs whoever eats it, in the selected language"
+        "paragraphs": {
+          "description": {
+            "text": "what the reader knows from this point of the story"
+          },
+          "advantages": {
+            "text": "what this fruit gives whoever eats it"
+          },
+          "disadvantages": {
+            "text": "what it costs whoever eats it"
+          }
+        }
       },
-      "hintMissing": "Review takes a romaji, a type and, in every language, a name, a description, advantages and disadvantages. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a romaji, a type, the discovery of every paragraph, a paragraph discovered at the first appearance in the description, advantages and disadvantages and, in every language, a name and every paragraph. Meanwhile the draft can be saved incomplete.",
       "options": {
         "multipleUsers": {
           "true": "Multiple users"
@@ -1607,9 +1715,13 @@
       "placeholder": {
         "number": "e.g. 1",
         "title": "title in the selected language",
-        "description": "description in the selected language"
+        "paragraphs": {
+          "description": {
+            "text": "what the reader knows from this point of the story"
+          }
+        }
       },
-      "hintMissing": "Review takes a number and, in every language, a title and a description. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a number, at least one description paragraph with its discovery and, in every language, a title and every paragraph. Meanwhile the draft can be saved incomplete.",
       "related": {
         "ARC": {
           "title": "Arcs of this saga",
@@ -1629,9 +1741,13 @@
         "number": "e.g. 1",
         "saga": "search and choose a Saga",
         "title": "title in the selected language",
-        "description": "description in the selected language"
+        "paragraphs": {
+          "description": {
+            "text": "what the reader knows from this point of the story"
+          }
+        }
       },
-      "hintMissing": "Review takes a number, the Saga and, in every language, a title and a description. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a number, the Saga, at least one description paragraph with its discovery and, in every language, a title and every paragraph. Meanwhile the draft can be saved incomplete.",
       "related": {
         "CHAPTER": {
           "title": "Chapters of this arc",
@@ -1715,6 +1831,7 @@
         "periodOverlapping": "A period cannot overlap a previous one.",
         "periodOpen": "The end is missing: only the last period may go without one.",
         "notLinkable": "Only a chapter or an episode with an approved version can be picked.",
+        "unknown": "The chapter or episode picked no longer exists.",
         "invalid": "This point of the story is not valid."
       }
     },
@@ -1730,10 +1847,14 @@
         "posterName": "e.g. Monkey D. Luffy",
         "amount": "e.g. 3000000000",
         "previous": "search and choose the previous bounty",
-        "description": "description in the selected language",
-        "holder": "search and choose the character"
+        "holder": "search and choose the character",
+        "paragraphs": {
+          "description": {
+            "text": "what the reader knows from this point of the story"
+          }
+        }
       },
-      "hintMissing": "Review takes the name on the poster, the amount, the condition, the first appearance and, in every language, a description. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes the name on the poster, the amount, the condition, the first appearance, the discovery of every paragraph, a description paragraph discovered at the first appearance and every paragraph in every language. Meanwhile the draft can be saved incomplete.",
       "options": {
         "condition": {
           "DEAD_OR_ALIVE": "Dead or alive",
@@ -1761,9 +1882,13 @@
       "placeholder": {
         "romaji": "e.g. Mugiwara no Ichimi",
         "name": "name in the selected language",
-        "description": "description in the selected language"
+        "paragraphs": {
+          "description": {
+            "text": "what the reader knows from this point of the story"
+          }
+        }
       },
-      "hintMissing": "Review takes a romaji, a kind, the first appearance and, in every language, a name and a description. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a romaji, a kind, the first appearance, the discovery of every paragraph, a description paragraph discovered at the first appearance and, in every language, a name and every paragraph. Meanwhile the draft can be saved incomplete.",
       "imageHint": "The group's flag, its Jolly Roger.",
       "options": {
         "kind": {
@@ -1785,9 +1910,13 @@
       "placeholder": {
         "romaji": "e.g. Gyojin",
         "name": "name in the selected language",
-        "description": "description in the selected language"
+        "paragraphs": {
+          "description": {
+            "text": "what the reader knows from this point of the story"
+          }
+        }
       },
-      "hintMissing": "Review takes a romaji, the first appearance and, in every language, a name and a description. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a romaji, the first appearance, the discovery of every paragraph, a description paragraph discovered at the first appearance and, in every language, a name and every paragraph. Meanwhile the draft can be saved incomplete.",
       "imageHint": "A typical member of the species, in portrait format.",
       "related": {
         "CHARACTER": {
@@ -1808,7 +1937,6 @@
         "romaji": "official name in Latin script, e.g. Monkey D. Luffy",
         "japaneseName": "e.g. モンキー・D・ルフィ",
         "name": "name in the selected language",
-        "description": "description in the selected language",
         "species": {
           "species": "search a species"
         },
@@ -1829,9 +1957,14 @@
         },
         "relatives": {
           "relative": "search a character"
+        },
+        "paragraphs": {
+          "description": {
+            "text": "what the reader knows from this point of the story"
+          }
         }
       },
-      "hintMissing": "Review takes a romaji, the status, the gender, the first appearance, the discovery of every list entry, at least one period for every membership and, in every language, a name, a description and every epithet. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a romaji, the status, the gender, the first appearance, the discovery of every list entry and every paragraph, at least one period for every membership, a description paragraph discovered at the first appearance and, in every language, a name, every epithet and every paragraph. Meanwhile the draft can be saved incomplete.",
       "imageHint": "A portrait of the character, upright.",
       "options": {
         "status": {

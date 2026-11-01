@@ -37,7 +37,8 @@ describe('the story entities', () => {
     const asked = (entity: EntityDefinition) =>
       readinessChecks(entity, draftOf(entity, null, ['it']), ['it']).map(({ field }) => field);
 
-    expect(asked(ARC)).toEqual(['number', 'saga', 'title', 'description']);
+    // The saga and the arc ask for a paragraph of description, shared by every language.
+    expect(asked(ARC)).toEqual(['number', 'saga', 'description', 'title']);
     expect(asked(CHAPTER)).toEqual(['number', 'arc', 'title', 'description']);
     expect(asked(EPISODE)).toEqual(['number', 'title', 'description']);
     expect(asked(VOLUME)).toEqual(['number', 'title']);

@@ -228,6 +228,8 @@ describe('the words of a point refused', () => {
     ['must have an end: only the last period may have none', 'periodOpen'],
     ['must be a Chapter with an approved version', 'notLinkable'],
     ['must be an Episode with an approved version', 'notLinkable'],
+    ['must be a Chapter', 'unknown'],
+    ['must be an Episode', 'unknown'],
   ])('match the backend saying "%s"', (message, key) => {
     expect(pointRefusalKey(message)).toBe(`content.storyPoint.refused.${key}`);
   });

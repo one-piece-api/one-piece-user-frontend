@@ -9,18 +9,20 @@ import { DEVIL_FRUIT_TYPE } from './devil-fruit-type.model';
 const ITALIAN = { code: 'it', name: 'Italiano' };
 const ENGLISH = { code: 'en', name: 'English' };
 
+const CHAPTER_1 = { chapter: { id: 'c1', number: 1, names: {} } };
+
+/** One paragraph of a section, discovered at chapter 1, in the languages given. */
+function paragraph(text: Record<string, string>) {
+  return { text, discovered: CHAPTER_1, ended: null };
+}
+
 /** Complete in English; in Italian, still without a description and disadvantages. */
 const LOGIA: EntityBody = {
   romaji: 'Shizen-kei',
-  translations: {
-    en: {
-      name: 'Logia',
-      description: 'Turns the body into an element.',
-      advantages: 'Attacks pass through.',
-      disadvantages: 'Haki and sea water.',
-    },
-    it: { name: 'Rogia', description: null, advantages: 'Intangibile.', disadvantages: null },
-  },
+  translations: { en: { name: 'Logia' }, it: { name: 'Rogia' } },
+  description: [paragraph({ en: 'Turns the body into an element.' })],
+  advantages: [paragraph({ en: 'Attacks pass through.', it: 'Intangibile.' })],
+  disadvantages: [paragraph({ en: 'Haki and sea water.' })],
 };
 
 describe('DevilFruitTypeCard', () => {
@@ -50,6 +52,14 @@ describe('DevilFruitTypeCard', () => {
     return root.querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? '';
   }
 
+  /** The texts of the paragraphs of a section, in order. */
+  function paragraphs(section: string): string[] {
+    return Array.from(
+      root.querySelectorAll(`[data-testid="card-${section}"] [data-testid="card-paragraph-text"]`),
+      (element) => element.textContent?.trim() ?? '',
+    );
+  }
+
   it('offers one tab per language of the catalog', () => {
     render(LOGIA);
 
@@ -61,9 +71,9 @@ describe('DevilFruitTypeCard', () => {
 
     expect(tabs()[1].getAttribute('aria-selected')).toBe('true');
     expect(text('card-name')).toBe('Logia');
-    expect(text('card-description')).toBe('Turns the body into an element.');
-    expect(text('card-advantages')).toBe('Attacks pass through.');
-    expect(text('card-disadvantages')).toBe('Haki and sea water.');
+    expect(paragraphs('description')).toEqual(['Turns the body into an element.']);
+    expect(paragraphs('advantages')).toEqual(['Attacks pass through.']);
+    expect(paragraphs('disadvantages')).toEqual(['Haki and sea water.']);
     expect(root.textContent).toContain('Description');
     expect(root.textContent).toContain('Advantages');
     expect(root.textContent).toContain('Disadvantages');
@@ -84,9 +94,9 @@ describe('DevilFruitTypeCard', () => {
 
     expect(tabs()[0].getAttribute('aria-selected')).toBe('true');
     expect(text('card-name')).toBe('Rogia');
-    expect(text('card-description')).toBe('— no description in this language —');
-    expect(text('card-advantages')).toBe('Intangibile.');
-    expect(text('card-disadvantages')).toBe('— no disadvantages in this language —');
+    expect(paragraphs('description')).toEqual(['— not written in IT —']);
+    expect(paragraphs('advantages')).toEqual(['Intangibile.']);
+    expect(paragraphs('disadvantages')).toEqual(['— not written in IT —']);
   });
 
   it('marks the languages whose translation is incomplete', () => {
@@ -99,7 +109,7 @@ describe('DevilFruitTypeCard', () => {
   });
 
   it('marks a language of the catalog the version has no translation for', () => {
-    render({ romaji: 'Shizen-kei', translations: { en: LOGIA.translations['en'] } });
+    render({ romaji: 'Shizen-kei', translations: { en: LOGIA.translations?.['en'] ?? {} } });
 
     expect(tabs()[0].querySelector('[data-testid="incomplete-marker"]')).not.toBeNull();
   });
@@ -110,13 +120,67 @@ describe('DevilFruitTypeCard', () => {
 
     fixture.componentRef.setInput('body', {
       romaji: 'Shizen-kei',
-      translations: {
-        it: { name: 'Rogia v2', description: 'Elementale.', advantages: null, disadvantages: null },
-      },
+      translations: { it: { name: 'Rogia v2' } },
     });
     fixture.detectChanges();
 
     expect(text('card-name')).toBe('Rogia v2');
+  });
+});
+
+describe('DevilFruitTypeCard, the paragraphs', () => {
+  const ENDED_AT_8 = { chapter: { id: 'c8', number: 8, names: {} } };
+
+  function render(body: EntityBody): HTMLElement {
+    TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [provideRouter([]), { provide: ENTITY, useValue: DEVIL_FRUIT_TYPE }],
+    });
+    const fixture = TestBed.createComponent(EntityCard);
+    fixture.componentRef.setInput('body', body);
+    fixture.componentRef.setInput('languages', [ENGLISH]);
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('shows every paragraph in order, an ended one muted and marked superseded, each with its window', () => {
+    const root = render({
+      ...LOGIA,
+      description: [
+        { ...paragraph({ en: 'Believed a myth.' }), ended: ENDED_AT_8 },
+        paragraph({ en: 'Turns the body into an element.' }),
+      ],
+    });
+
+    const shown = Array.from(
+      root.querySelectorAll<HTMLElement>(
+        '[data-testid="card-description"] [data-testid="card-paragraph"]',
+      ),
+    );
+    expect(
+      shown.map((element) =>
+        element.querySelector('[data-testid="card-paragraph-text"]')?.textContent?.trim(),
+      ),
+    ).toEqual(['Believed a myth.', 'Turns the body into an element.']);
+    expect(shown.map((element) => element.classList.contains('opacity-60'))).toEqual([true, false]);
+    expect(
+      shown[0].querySelector('[data-testid="card-paragraph-superseded"]')?.textContent?.trim(),
+    ).toBe('Superseded');
+    expect(shown[1].querySelector('[data-testid="card-paragraph-superseded"]')).toBeNull();
+    expect(
+      shown[0].querySelector('[data-testid="card-paragraph-window"]')?.textContent?.trim(),
+    ).toBe('Discovered: Ch. 1 — Ended: Ch. 8');
+  });
+
+  it('says a section has no paragraphs yet', () => {
+    const root = render({ ...LOGIA, advantages: [] });
+
+    expect(root.querySelector('[data-testid="card-advantages"]')?.textContent).toContain(
+      '— no paragraphs —',
+    );
+    expect(
+      root.querySelector('[data-testid="card-advantages"] [data-testid="card-paragraph"]'),
+    ).toBeNull();
   });
 });
 

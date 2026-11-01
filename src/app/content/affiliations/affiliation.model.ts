@@ -1,4 +1,5 @@
 import {
+  paragraphListField,
   choiceField,
   choiceFilter,
   countColumn,
@@ -36,8 +37,8 @@ export const AFFILIATION_KINDS = [
 
 /**
  * The Affiliation: a group a character can belong to, of any kind - a pirate crew, the Navy,
- * the World Government (plan D1). One romaji, a name and a description per language (D2, D3),
- * the kind (C5), the first appearance (D4) and, optionally, its flag (D5).
+ * the World Government (plan D1). One romaji, a name per language and a description in
+ * paragraphs (D2, D3), the kind (C5), the first appearance (D4) and, optionally, its flag (D5).
  */
 export const AFFILIATION: EntityDefinition = {
   entityType: 'AFFILIATION',
@@ -53,7 +54,7 @@ export const AFFILIATION: EntityDefinition = {
     imageField('image', AFFILIATION_FLAG, { hint: 'content.affiliations.imageHint' }),
     storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
-    localizedTextField('description', { maxLength: 2000, rows: 8 }),
+    paragraphListField('description', { rows: 5 }),
   ],
   // Its members: derived from the characters naming it, never part of its version (D10, D16).
   counts: [countColumn('memberCount', { of: 'CHARACTER', by: 'affiliation' })],

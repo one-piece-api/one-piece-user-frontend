@@ -17,6 +17,9 @@ const POINT_REFUSAL_BY_MESSAGE: Readonly<Record<string, string>> = {
   'must have an end: only the last period may have none': 'content.storyPoint.refused.periodOpen',
   'must be a Chapter with an approved version': 'content.storyPoint.refused.notLinkable',
   'must be an Episode with an approved version': 'content.storyPoint.refused.notLinkable',
+  // A point of a Saga or an Arc needs only to be a chapter or an episode on save.
+  'must be a Chapter': 'content.storyPoint.refused.unknown',
+  'must be an Episode': 'content.storyPoint.refused.unknown',
 };
 
 /** What is said for a refusal whose text is not known. */

@@ -35,7 +35,7 @@ import { EntityCard } from './entity-card';
 import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityImageFrame } from './entity-image-frame';
-import type { EntityField } from './entity-definition';
+import { labelKeyOf, type EntityField } from './entity-definition';
 import { monthDayLabel } from './entity-month-day';
 import { comparedStoryPointLabel } from './entity-story-point';
 import { untitledOf } from './entity-title';
@@ -318,6 +318,12 @@ export class EntityComparison {
     }
   }
 
+  /** Where the words of a field live in the catalog: `paragraphs.description` for a section. */
+  private labelKeyOf(key: string): string {
+    const field = this.entity.fields.find((candidate) => candidate.key === key);
+    return field ? labelKeyOf(field) : key;
+  }
+
   private toRow(diff: FieldDiff<EntityFieldRef>): DiffRow {
     const { field, language, entry } = diff.field;
     const image = this.entity.fields.find(
@@ -333,16 +339,19 @@ export class EntityComparison {
         ? `${field}.${entry.id}.${entry.subPosition ?? ''}.${entry.part}.${language ?? ''}`
         : `${field}.${language ?? ''}`,
       label: entry
-        ? this.transloco.translate(`content.comparison.field.${field}.${entry.part}`, {
-            language: language?.toUpperCase(),
-            subcategory:
-              entry.name ??
-              this.transloco.translate('content.comparison.field.unnamedEntry', {
-                position: entry.position,
-              }),
-            position: entry.position,
-            subPosition: entry.subPosition,
-          })
+        ? this.transloco.translate(
+            `content.comparison.field.${this.labelKeyOf(field)}.${entry.part}`,
+            {
+              language: language?.toUpperCase(),
+              subcategory:
+                entry.name ??
+                this.transloco.translate('content.comparison.field.unnamedEntry', {
+                  position: entry.position,
+                }),
+              position: entry.position,
+              subPosition: entry.subPosition,
+            },
+          )
         : this.transloco.translate(`content.comparison.field.${field}`, {
             language: language?.toUpperCase(),
           }),

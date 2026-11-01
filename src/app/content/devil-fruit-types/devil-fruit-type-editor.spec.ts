@@ -47,22 +47,22 @@ function link(
 const ONLINE = link(1, 'PUBLISHED', ['OPEN_NEW_VERSION']);
 const DRAFT = link(2, 'DRAFT', ['EDIT', 'DELETE', 'SUBMIT']);
 
+/** A paragraph written in Italian only, with no window yet. */
+function italian(text: string) {
+  return { text: { it: text }, discovered: null, ended: null };
+}
+
 /** Complete in Italian; in English, only the name so far. */
 const DRAFT_BODY = {
   romaji: 'Shizen-kei',
-  translations: {
-    it: {
-      name: 'Rogia',
-      description: 'Elementale.',
-      advantages: 'Intangibile.',
-      disadvantages: 'Acqua di mare.',
-    },
-    en: { name: 'Logia', description: null, advantages: null, disadvantages: null },
-  },
+  translations: { it: { name: 'Rogia' }, en: { name: 'Logia' } },
+  description: [italian('Elementale.')],
+  advantages: [italian('Intangibile.')],
+  disadvantages: [italian('Acqua di mare.')],
 };
 
-type FieldId =
-  'draft-romaji' | 'draft-name' | 'draft-description' | 'draft-advantages' | 'draft-disadvantages';
+/** A box of the editor: `draft-romaji`, `draft-name`, `draft-description-0-text-en`. */
+type FieldId = string;
 
 polyfillDialog();
 
@@ -152,6 +152,16 @@ describe('DevilFruitTypeEditor', () => {
     )!;
   }
 
+  /** Adds an empty paragraph at the end of a section. */
+  async function addParagraph(section: string): Promise<void> {
+    root
+      .querySelector<HTMLButtonElement>(
+        `[data-testid="draft-${section}"] [data-testid="part-add"]`,
+      )!
+      .click();
+    await settle();
+  }
+
   async function pickLanguage(label: string): Promise<void> {
     tab(label).click();
     await settle();
@@ -201,20 +211,17 @@ describe('DevilFruitTypeEditor', () => {
       expect(cancelHref()).toBe(SECTION);
     });
 
-    it('asks for the romaji and, in every language of the catalog, every translated field', async () => {
+    it('asks for the romaji, a paragraph per section and, in every language of the catalog, the name', async () => {
       await open(`${SECTION}/new`);
 
       expect(checks()).toEqual([
         '! Romaji · unique key required',
         '! First appearance required',
+        '! Description · a paragraph discovered at the first appearance required',
+        '! Advantages · a paragraph discovered at the first appearance required',
+        '! Disadvantages · a paragraph discovered at the first appearance required',
         '! Name · Italiano required',
-        '! Description · Italiano required',
-        '! Advantages · Italiano required',
-        '! Disadvantages · Italiano required',
         '! Name · English required',
-        '! Description · English required',
-        '! Advantages · English required',
-        '! Disadvantages · English required',
       ]);
       expect(root.textContent).toContain('Review takes a romaji');
     });
@@ -234,10 +241,10 @@ describe('DevilFruitTypeEditor', () => {
     it('keeps each language its own: the tabs switch what is shown and say what is incomplete', async () => {
       await open(`${SECTION}/new`);
       await type('draft-name', 'Logia');
-      await type('draft-description', 'Elemental.');
-      await type('draft-advantages', 'Attacks pass through.');
+      await addParagraph('description');
+      await type('draft-description-0-text-it', 'Elementale.');
       expect(tab('EN').textContent).toContain('incomplete');
-      await type('draft-disadvantages', 'Haki and sea water.');
+      await type('draft-description-0-text-en', 'Elemental.');
 
       expect(tab('EN').textContent).not.toContain('incomplete');
       expect(tab('IT').textContent).toContain('incomplete');
@@ -253,24 +260,22 @@ describe('DevilFruitTypeEditor', () => {
       await open(`${SECTION}/new`);
       await type('draft-romaji', '  Shizen-kei ');
       await type('draft-name', 'Logia');
-      await type('draft-advantages', ' Attacks pass through. ');
+      await addParagraph('description');
+      await addParagraph('advantages');
+      await type('draft-advantages-0-text-en', ' Attacks pass through. ');
 
       await save();
       const request = httpTesting.expectOne(ENDPOINT);
       expect(request.request.method).toBe('POST');
+      // The empty paragraph of the description is not sent.
       expect(request.request.body).toEqual({
         romaji: 'Shizen-kei',
         firstAppearance: null,
+        description: [],
+        advantages: [{ text: { en: 'Attacks pass through.' }, discovered: null, ended: null }],
+        disadvantages: [],
         subcategories: [],
-        translations: {
-          it: { name: null, description: null, advantages: null, disadvantages: null },
-          en: {
-            name: 'Logia',
-            description: null,
-            advantages: 'Attacks pass through.',
-            disadvantages: null,
-          },
-        },
+        translations: { it: { name: null }, en: { name: 'Logia' } },
       });
       request.flush({ id: ID, onlineVersionNumber: null, versions: [link(1, 'DRAFT', ['EDIT'])] });
       await settle();
@@ -365,12 +370,30 @@ describe('DevilFruitTypeEditor', () => {
 
     it('limits each text to what the backend accepts', async () => {
       await open(`${SECTION}/new`);
+      for (const section of ['description', 'advantages', 'disadvantages']) {
+        await addParagraph(section);
+      }
 
       expect(field('draft-romaji').maxLength).toBe(100);
       expect(field('draft-name').maxLength).toBe(100);
-      expect(field('draft-description').maxLength).toBe(2000);
-      expect(field('draft-advantages').maxLength).toBe(2000);
-      expect(field('draft-disadvantages').maxLength).toBe(2000);
+      for (const section of ['description', 'advantages', 'disadvantages']) {
+        expect(field(`draft-${section}-0-text-it`).maxLength).toBe(2000);
+      }
+    });
+
+    it('writes a paragraph in a box of several lines per language, with its window under it', async () => {
+      await open(`${SECTION}/new`);
+      await addParagraph('description');
+
+      const boxes = ['it', 'en'].map((language) => field(`draft-description-0-text-${language}`));
+      expect(boxes.map((box) => box.tagName)).toEqual(['TEXTAREA', 'TEXTAREA']);
+      expect(boxes.map((box) => box.getAttribute('lang'))).toEqual(['it', 'en']);
+      expect((boxes[0] as HTMLTextAreaElement).rows).toBe(5);
+      expect(boxes[0].parentElement?.parentElement?.className).toContain('xl:grid-cols-2');
+      const section = root.querySelector('[data-testid="draft-description"]')!;
+      expect(section.textContent).toContain('Paragraph 1');
+      // No first appearance yet: the window asks for it before offering its pickers.
+      expect(section.querySelector('[data-testid="window-no-axis"]')).not.toBeNull();
     });
   });
 
@@ -382,8 +405,9 @@ describe('DevilFruitTypeEditor', () => {
       expect(root.textContent).toContain('your draft v2 · v1 stays online');
       expect(field('draft-romaji').value).toBe('Shizen-kei');
       expect(field('draft-name').value).toBe('Logia');
-      expect(field('draft-description').value).toBe('');
-      expect(field('draft-advantages').value).toBe('');
+      expect(field('draft-description-0-text-it').value).toBe('Elementale.');
+      expect(field('draft-description-0-text-en').value).toBe('');
+      expect(field('draft-advantages-0-text-en').value).toBe('');
       expect(tab('EN').textContent).toContain('incomplete');
       expect(tab('IT').textContent).not.toContain('incomplete');
       expect(cancelHref()).toBe(`${SECTION}/${ID}`);
@@ -410,26 +434,24 @@ describe('DevilFruitTypeEditor', () => {
 
     it('saves the whole draft in place of the version, then shows it', async () => {
       await openDraft();
-      await type('draft-description', 'Elemental.');
-      await type('draft-advantages', 'Attacks pass through.');
-      await type('draft-disadvantages', 'Haki and sea water.');
+      await type('draft-description-0-text-en', 'Elemental.');
+      await type('draft-advantages-0-text-en', 'Attacks pass through.');
+      await type('draft-disadvantages-0-text-en', 'Haki and sea water.');
 
       await save();
       const request = httpTesting.expectOne(`${DETAIL}/versions/2`);
       expect(request.request.method).toBe('PUT');
+      const both = (it: string, en: string) => [
+        { text: { it, en }, discovered: null, ended: null },
+      ];
       expect(request.request.body).toEqual({
         romaji: 'Shizen-kei',
         firstAppearance: null,
+        description: both('Elementale.', 'Elemental.'),
+        advantages: both('Intangibile.', 'Attacks pass through.'),
+        disadvantages: both('Acqua di mare.', 'Haki and sea water.'),
         subcategories: [],
-        translations: {
-          it: DRAFT_BODY.translations.it,
-          en: {
-            name: 'Logia',
-            description: 'Elemental.',
-            advantages: 'Attacks pass through.',
-            disadvantages: 'Haki and sea water.',
-          },
-        },
+        translations: DRAFT_BODY.translations,
       });
       request.flush({ ...DRAFT, rejectionReason: null, body: DRAFT_BODY });
       await settle();

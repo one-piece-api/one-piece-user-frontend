@@ -1,4 +1,5 @@
 import {
+  paragraphListField,
   imageField,
   localizedTextField,
   relatedList,
@@ -25,7 +26,7 @@ const SPECIES_PICTURE = {
 
 /**
  * The Species: the race of a character - Human, Fish-Man, Mink, Giant (plan D1). One romaji,
- * a name and a description per language (D2, D3), the first appearance (D4) and, optionally,
+ * a name per language and a description in paragraphs (D2, D3), the first appearance (D4) and, optionally,
  * a picture of a typical member (D5). `species` is both singular and plural.
  */
 export const SPECIES: EntityDefinition = {
@@ -41,7 +42,7 @@ export const SPECIES: EntityDefinition = {
     imageField('image', SPECIES_PICTURE, { hint: 'content.species.imageHint' }),
     storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
-    localizedTextField('description', { maxLength: 2000, rows: 8 }),
+    paragraphListField('description', { rows: 5 }),
   ],
   // The characters of the species: a few on its card, all in their list filtered by it (C3, 4c).
   sections: [relatedList({ of: 'CHARACTER', by: 'species' })],

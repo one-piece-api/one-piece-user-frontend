@@ -56,6 +56,17 @@ export function isStoryPointFilled(value: unknown): boolean {
 }
 
 /**
+ * Whether a point names the same chapter and episode as `at` on every axis `at` has - a paragraph
+ * discovered at the first appearance (workflow 3.7.3). Never for an empty `at`.
+ */
+export function isAtStoryPoint(point: unknown, at: unknown): boolean {
+  const target = storyPointOf(at);
+  const own = storyPointOf(point);
+  const axes = STORY_POINT_PARTS.filter((axis) => target[axis] !== null);
+  return axes.length > 0 && axes.every((axis) => own[axis]?.id === target[axis]?.id);
+}
+
+/**
  * What follows "Cap." or "Ep." in the label of a chapter or an episode: its number and its
  * title in `language` - any title it has where `language` is `null` or has none - or the bare
  * number.

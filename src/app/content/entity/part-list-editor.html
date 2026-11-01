@@ -63,113 +63,139 @@
         </span>
       </div>
       @for (view of entry.parts; track view.part.key) {
-        @for (box of view.visible ? view.inputs : []; track box.id) {
-          <div>
-            @switch (view.part.kind) {
-              @case ('relation') {
-                <label
-                  [for]="box.id"
-                  [class]="
-                    labelledParts()
-                      ? 'font-heading text-[11px] font-extrabold text-ocean-500'
-                      : 'sr-only'
-                  "
-                  >{{ 'content.editor.' + labels() + '.' + view.part.key | transloco }}</label
-                >
-                @if (view.source; as source) {
-                  <app-relation-picker
-                    [inputId]="box.id"
-                    [source]="source"
-                    [value]="box.reference"
-                    [labelOf]="view.labelOf"
-                    [placeholder]="
-                      i18n() + '.placeholder.' + labels() + '.' + view.part.key | transloco
-                    "
-                    [invalid]="!!(box.error ?? entry.error)"
-                    (picked)="write(index, box, $event)"
-                  />
-                }
-              }
-              @case ('choice') {
-                <label
-                  [for]="box.id"
-                  [class]="
-                    labelledParts()
-                      ? 'font-heading text-[11px] font-extrabold text-ocean-500'
-                      : 'sr-only'
-                  "
-                  >{{ 'content.editor.' + labels() + '.' + view.part.key | transloco }}</label
-                >
-                <select
-                  #choiceInput
-                  [id]="box.id"
-                  class="w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                  [class]="box.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                  [attr.aria-invalid]="box.error ? true : null"
-                  (change)="write(index, box, choiceInput.value)"
-                >
-                  <option value="" [selected]="!box.text">
-                    {{ 'content.editor.choiceNone' | transloco }}
-                  </option>
-                  @for (option of view.options; track option.value) {
-                    <option [value]="option.value" [selected]="option.value === box.text">
-                      {{ option.labelKey | transloco }}
-                    </option>
+        @if (view.visible) {
+          <div
+            [class]="
+              view.rows && view.inputs.length > 1 ? 'grid gap-2 xl:grid-cols-2' : 'grid gap-2'
+            "
+          >
+            @for (box of view.inputs; track box.id) {
+              <div class="min-w-0">
+                @switch (view.part.kind) {
+                  @case ('relation') {
+                    <label
+                      [for]="box.id"
+                      [class]="
+                        labelledParts()
+                          ? 'font-heading text-[11px] font-extrabold text-ocean-500'
+                          : 'sr-only'
+                      "
+                      >{{ 'content.editor.' + labels() + '.' + view.part.key | transloco }}</label
+                    >
+                    @if (view.source; as source) {
+                      <app-relation-picker
+                        [inputId]="box.id"
+                        [source]="source"
+                        [value]="box.reference"
+                        [labelOf]="view.labelOf"
+                        [placeholder]="
+                          i18n() + '.placeholder.' + labels() + '.' + view.part.key | transloco
+                        "
+                        [invalid]="!!(box.error ?? entry.error)"
+                        (picked)="write(index, box, $event)"
+                      />
+                    }
                   }
-                </select>
-              }
-              @case ('boolean') {
-                <label class="flex cursor-pointer items-center gap-2.5">
-                  <input
-                    #flagInput
-                    [id]="box.id"
-                    type="checkbox"
-                    class="size-5 flex-none cursor-pointer accent-ocean-700"
-                    [checked]="box.checked"
-                    (change)="write(index, box, flagInput.checked)"
-                  />
-                  <span class="font-heading text-[13px] font-extrabold text-ocean-800">{{
-                    'content.editor.' + labels() + '.' + view.part.key | transloco
-                  }}</span>
-                </label>
-              }
-              @default {
-                <label
-                  [for]="box.id"
-                  [class]="
-                    labelledParts() || box.language
-                      ? 'font-heading text-[11px] font-extrabold text-ocean-500'
-                      : 'sr-only'
-                  "
-                  >{{
-                    'content.editor.' + labels() + '.' + view.part.key
-                      | transloco: { language: box.language?.toUpperCase() }
-                  }}</label
-                >
-                <input
-                  #textInput
-                  [id]="box.id"
-                  type="text"
-                  class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                  [class]="box.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                  [attr.lang]="box.language"
-                  [value]="box.text"
-                  [attr.maxlength]="view.maxLength"
-                  [placeholder]="
-                    i18n() + '.placeholder.' + labels() + '.' + view.part.key | transloco
-                  "
-                  [attr.aria-invalid]="box.error ? true : null"
-                  (input)="write(index, box, textInput.value)"
-                />
-              }
-            }
-            @if (box.error; as error) {
-              <p
-                class="mt-1 font-heading text-sm font-bold text-flag-700"
-                data-testid="field-error"
-              >
-                {{ error }}
-              </p>
+                  @case ('choice') {
+                    <label
+                      [for]="box.id"
+                      [class]="
+                        labelledParts()
+                          ? 'font-heading text-[11px] font-extrabold text-ocean-500'
+                          : 'sr-only'
+                      "
+                      >{{ 'content.editor.' + labels() + '.' + view.part.key | transloco }}</label
+                    >
+                    <select
+                      #choiceInput
+                      [id]="box.id"
+                      class="w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                      [class]="box.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                      [attr.aria-invalid]="box.error ? true : null"
+                      (change)="write(index, box, choiceInput.value)"
+                    >
+                      <option value="" [selected]="!box.text">
+                        {{ 'content.editor.choiceNone' | transloco }}
+                      </option>
+                      @for (option of view.options; track option.value) {
+                        <option [value]="option.value" [selected]="option.value === box.text">
+                          {{ option.labelKey | transloco }}
+                        </option>
+                      }
+                    </select>
+                  }
+                  @case ('boolean') {
+                    <label class="flex cursor-pointer items-center gap-2.5">
+                      <input
+                        #flagInput
+                        [id]="box.id"
+                        type="checkbox"
+                        class="size-5 flex-none cursor-pointer accent-ocean-700"
+                        [checked]="box.checked"
+                        (change)="write(index, box, flagInput.checked)"
+                      />
+                      <span class="font-heading text-[13px] font-extrabold text-ocean-800">{{
+                        'content.editor.' + labels() + '.' + view.part.key | transloco
+                      }}</span>
+                    </label>
+                  }
+                  @default {
+                    <label
+                      [for]="box.id"
+                      [class]="
+                        labelledParts() || box.language
+                          ? 'font-heading text-[11px] font-extrabold text-ocean-500'
+                          : 'sr-only'
+                      "
+                      >{{
+                        'content.editor.' + labels() + '.' + view.part.key
+                          | transloco: { language: box.language?.toUpperCase() }
+                      }}</label
+                    >
+                    @if (view.rows) {
+                      <textarea
+                        #longTextInput
+                        [id]="box.id"
+                        [rows]="view.rows"
+                        class="w-full resize-y rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                        [class]="box.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                        [attr.lang]="box.language"
+                        [value]="box.text"
+                        [attr.maxlength]="view.maxLength"
+                        [placeholder]="
+                          i18n() + '.placeholder.' + labels() + '.' + view.part.key | transloco
+                        "
+                        [attr.aria-invalid]="box.error ? true : null"
+                        (input)="write(index, box, longTextInput.value)"
+                      ></textarea>
+                    } @else {
+                      <input
+                        #textInput
+                        [id]="box.id"
+                        type="text"
+                        class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                        [class]="box.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                        [attr.lang]="box.language"
+                        [value]="box.text"
+                        [attr.maxlength]="view.maxLength"
+                        [placeholder]="
+                          i18n() + '.placeholder.' + labels() + '.' + view.part.key | transloco
+                        "
+                        [attr.aria-invalid]="box.error ? true : null"
+                        (input)="write(index, box, textInput.value)"
+                      />
+                    }
+                  }
+                }
+                @if (box.error; as error) {
+                  <p
+                    class="mt-1 font-heading text-sm font-bold text-flag-700"
+                    data-testid="field-error"
+                  >
+                    {{ error }}
+                  </p>
+                }
+              </div>
             }
           </div>
         }

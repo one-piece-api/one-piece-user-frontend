@@ -8,7 +8,7 @@ import {
   choiceField,
   choiceFilter,
   imageField,
-  localizedTextField,
+  paragraphListField,
   numberField,
   relationField,
   storyPointField,
@@ -71,7 +71,7 @@ export const BOUNTY: EntityDefinition = {
     relationField('previous', { target: 'BOUNTY', optional: true, listed: false }),
     relationField('holder', { target: 'CHARACTER', optional: true }),
     storyPointField('firstAppearance'),
-    localizedTextField('description', { maxLength: 2000, rows: 8 }),
+    paragraphListField('description', { rows: 5 }),
   ],
   sections: [chainSection('chain')],
   list: {

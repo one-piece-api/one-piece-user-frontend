@@ -17,6 +17,7 @@ import { naturalKeyParts } from '../entity/entity-definition';
 import { EntityEditor } from '../entity/entity-editor';
 import { EntityList } from '../entity/entity-list';
 import { RelationPicker } from '../entity/relation-picker';
+import { SAGA } from '../sagas/saga.model';
 import { SPECIES } from '../species/species.model';
 import { refusedFieldWords } from '../field-words';
 import { CHARACTER, RELATIVE_KINDS } from './character.model';
@@ -90,7 +91,7 @@ describe('the character definition', () => {
       'name:localizedText',
       'epithets:partList',
       'aliases:partList',
-      'description:localizedText',
+      'description:partList',
     ]);
   });
 
@@ -140,7 +141,14 @@ describe('the character definition', () => {
       .filter((field) => field.kind === 'partList' && field.windowed)
       .map(({ key }) => key);
 
-    expect(windowed).toEqual(['species', 'devilFruits', 'relatives', 'epithets', 'aliases']);
+    expect(windowed).toEqual([
+      'species',
+      'devilFruits',
+      'relatives',
+      'epithets',
+      'aliases',
+      'description',
+    ]);
   });
 
   it('lists the Devil Fruits as a list of parts, each once, filtered by the fruit', () => {
@@ -311,6 +319,18 @@ describe('the words about characters', () => {
     expect(words('translations[it].name')).toBe('name IT');
     expect(words('status')).toBe('status');
   });
+
+  it('name a paragraph by section, position and language, and a section by what review asks of it', () => {
+    const words = (field: string) => refusedFieldWords(transloco, CHARACTER, field);
+
+    expect(words('description[1].text[en]')).toBe('description paragraph 2 EN');
+    expect(words('description[0].discovered')).toBe('description paragraph 1 · discovered');
+    expect(words('description')).toBe('a description paragraph discovered at the first appearance');
+    // A Saga has no first appearance: review asks it for one paragraph at least.
+    expect(refusedFieldWords(transloco, SAGA, 'description')).toBe(
+      'at least one description paragraph',
+    );
+  });
 });
 
 describe('the words about the points of a character', () => {
@@ -352,6 +372,27 @@ describe('the words about the points of a character', () => {
     expect(words.sentence).toContain('"membership 1 · period 2"');
     expect(words.sentence).toContain('A period cannot overlap a previous one.');
     expect(words.sentence).toContain('renumbered');
+  });
+
+  it('name the chapter of a paragraph of a Saga that has passed no review yet, and the paragraph', () => {
+    const words = blockWords(
+      transloco,
+      {
+        reason: 'STORY_POINT_NOT_APPROVED',
+        detail: {
+          field: 'description[0].discovered.chapter',
+          chapterId: 'ch12',
+          chapterNumber: 12,
+        },
+      },
+      SAGA,
+    );
+
+    expect(words.note).toBe('Chapter of a point not approved');
+    expect(words.sentence).toContain(
+      'Chapter 12, used in "description paragraph 1 · discovered, chapter"',
+    );
+    expect(words.sentence).toContain('has not passed review yet');
   });
 
   it('name the point as the backend does, where the page knows no kind of content', () => {

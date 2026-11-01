@@ -108,6 +108,23 @@ interface PartEntryView {
   readonly nested: readonly PartEntryView[];
 }
 
+/**
+ * A paragraph of a section, in the language shown: its text - `null` when not written there -
+ * its window in a line, and whether it is superseded (ended: workflow 3.7.3).
+ */
+interface ParagraphView {
+  readonly position: number;
+  readonly text: string | null;
+  readonly window: string | null;
+  readonly superseded: boolean;
+}
+
+/** A section of paragraphs - the description - every paragraph in order, ended ones too. */
+interface ParagraphSection {
+  readonly field: string;
+  readonly paragraphs: readonly ParagraphView[];
+}
+
 /** A content this one points to, as the card shows it: a link to its page under a heading. */
 interface RelationChip {
   readonly field: string;
@@ -160,7 +177,7 @@ export class EntityCard {
 
   protected readonly languageLabel = computed(() => this.language()?.toUpperCase() ?? '');
 
-  private readonly translation = computed(() => this.body().translations[this.language() ?? '']);
+  private readonly translation = computed(() => this.body().translations?.[this.language() ?? '']);
   /**
    * Its name in the language shown - or, for an entity without a localized name, what its
    * definition calls it (a bounty: "Monkey D. Luffy — 3.000.000.000 ฿").
@@ -413,7 +430,7 @@ export class EntityCard {
     const language = this.language() ?? this.transloco.activeLang();
     this.transloco.activeLang();
     return this.entity.fields.flatMap((field) =>
-      field.kind === 'partList'
+      field.kind === 'partList' && !field.paragraphs
         ? [
             {
               field: field.key,
@@ -426,6 +443,33 @@ export class EntityCard {
                   `${this.entity.i18n}.former.${field.key}`,
                 ),
               ),
+            },
+          ]
+        : [],
+    );
+  });
+
+  /**
+   * The sections of paragraphs as prose, every paragraph shown - the card is where a version is
+   * checked - with its window, an ended one marked superseded (reveals plan R8, paragraphs 3).
+   */
+  protected readonly paragraphSections = computed<ParagraphSection[]>(() => {
+    const language = this.language() ?? this.transloco.activeLang();
+    this.transloco.activeLang();
+    return this.entity.fields.flatMap((field) =>
+      field.kind === 'partList' && field.paragraphs
+        ? [
+            {
+              field: field.key,
+              paragraphs: itemsOf(this.body()[field.key]).map((item, index) => {
+                const [text] = field.parts;
+                return {
+                  position: index + 1,
+                  text: localizedTextsOf(partValueOf(field, item, text))[language]?.trim() || null,
+                  window: this.windowLine(field, item),
+                  superseded: isFormer(field, item),
+                };
+              }),
             },
           ]
         : [],

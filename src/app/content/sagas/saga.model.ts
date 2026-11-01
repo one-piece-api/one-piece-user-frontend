@@ -1,4 +1,5 @@
 import {
+  paragraphListField,
   localizedTextField,
   numberField,
   relatedList,
@@ -6,8 +7,7 @@ import {
 } from '../entity/entity-definition';
 
 /**
- * The Saga: a number and, per language, a title and a description - the longest each may be
- * is what the backend accepts. Arcs point to it: its card lists a few.
+ * The Saga: a number, a title per language and a description in paragraphs. Arcs point to it: its card lists a few.
  */
 export const SAGA: EntityDefinition = {
   entityType: 'SAGA',
@@ -20,7 +20,7 @@ export const SAGA: EntityDefinition = {
   fields: [
     numberField('number'),
     localizedTextField('title', { maxLength: 200 }),
-    localizedTextField('description', { maxLength: 2000, rows: 8 }),
+    paragraphListField('description', { rows: 5 }),
   ],
   sections: [relatedList({ of: 'ARC', by: 'saga' })],
 };
