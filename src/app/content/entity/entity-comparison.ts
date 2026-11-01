@@ -324,13 +324,13 @@ export class EntityComparison {
       (candidate) => candidate.key === field && candidate.kind === 'image',
     );
     const storyPoint = entry
-      ? entry.part === 'firstAppearance'
+      ? entry.part === 'firstAppearance' || entry.storyPoint === true
       : this.entity.fields.some(
           (candidate) => candidate.key === field && candidate.kind === 'storyPoint',
         );
     return {
       key: entry
-        ? `${field}.${entry.id}.${entry.part}.${language ?? ''}`
+        ? `${field}.${entry.id}.${entry.subPosition ?? ''}.${entry.part}.${language ?? ''}`
         : `${field}.${language ?? ''}`,
       label: entry
         ? this.transloco.translate(`content.comparison.field.${field}.${entry.part}`, {
@@ -341,6 +341,7 @@ export class EntityComparison {
                 position: entry.position,
               }),
             position: entry.position,
+            subPosition: entry.subPosition,
           })
         : this.transloco.translate(`content.comparison.field.${field}`, {
             language: language?.toUpperCase(),
@@ -367,8 +368,15 @@ export class EntityComparison {
    */
   private valueNamed(key: string, compared: string | null, part?: string): string | null {
     const field = this.entity.fields.find((candidate) => candidate.key === key);
+    // A part of a nested list is named `periods.marineRank`: the nested list, then its part.
+    const [first, nested] = part?.split('.') ?? [];
+    const owner = field?.kind === 'partList' ? field.parts.find(({ key }) => key === first) : null;
     const named: EntityField | undefined =
-      field?.kind === 'partList' ? field.parts.find((candidate) => candidate.key === part) : field;
+      field?.kind !== 'partList'
+        ? field
+        : owner?.kind === 'partList' && nested
+          ? owner.parts.find(({ key }) => key === nested)
+          : (owner ?? undefined);
     if (compared === null) {
       return null;
     }

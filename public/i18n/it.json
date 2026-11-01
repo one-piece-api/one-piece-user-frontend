@@ -129,6 +129,10 @@
         "tip4": {
           "text": "Un frutto va online solo dopo il suo tipo, e un tipo resta online finché lo è uno dei suoi frutti: pubblica prima il tipo, ritira prima i frutti.",
           "code": "tipo → frutto · ordine di pubblicazione"
+        },
+        "tip5": {
+          "text": "Ogni voce di un elenco ha una scoperta: il punto della storia in cui il lettore la viene a sapere. Con una fine diventa «ex», senza resta attuale.",
+          "code": "scoperta → fine · attuale / ex"
         }
       }
     }
@@ -619,7 +623,11 @@
           },
           "affiliations": {
             "list": "appartenenze",
-            "entry": "appartenenza {{position}}"
+            "entry": "appartenenza {{position}}",
+            "periods": {
+              "list": "periodi",
+              "entry": "periodo {{position}}"
+            }
           },
           "holder": "titolare",
           "devilFruits": {
@@ -630,6 +638,14 @@
           "relatives": {
             "list": "parenti",
             "entry": "parente {{position}}"
+          },
+          "window": {
+            "discovered": "scoperta",
+            "ended": "fine",
+            "axis": {
+              "chapter": "capitolo",
+              "episode": "episodio"
+            }
           }
         },
         "blocked": "Arrr! Non si può: {{reason}}",
@@ -698,7 +714,9 @@
             "firstAppearanceEpisode": "Episodio della prima apparizione non online",
             "previous": "Taglia precedente non online",
             "holder": "Titolare non online",
-            "relative": "Parente non online"
+            "relative": "Parente non online",
+            "chapter": "Capitolo di un punto non online",
+            "episode": "Episodio di un punto non online"
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Archi online: {{count}}",
@@ -720,7 +738,8 @@
             "character": "Frutto già in uso",
             "fruit": "Possessori attuali: {{count}}"
           },
-          "RELATIVE_ALREADY_LINKED": "Parente già legato"
+          "RELATIVE_ALREADY_LINKED": "Parente già legato",
+          "STORY_POINT_OUT_OF_RANGE": "Punto fuori ordine"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "Il Tipo di questo Frutto non è online. Ripubblica prima il Tipo.",
@@ -735,7 +754,9 @@
             "firstAppearanceEpisode": "Arrr! L'episodio della prima apparizione non è ancora online, compare. Pubblica prima l'episodio.",
             "previous": "Arrr! La taglia che questa sostituisce non è ancora online, compare. Pubblica prima quella.",
             "holder": "Arrr! Il personaggio titolare di questa taglia non è ancora online, compare. Pubblica prima il personaggio.",
-            "relative": "Arrr! Un parente di questo personaggio non è ancora online, compare. Pubblica prima il personaggio."
+            "relative": "Arrr! Un parente di questo personaggio non è ancora online, compare. Pubblica prima il personaggio.",
+            "chapter": "Arrr! Il capitolo {{number}} usato in «{{field}}» non è ancora online, compare. Pubblica prima il capitolo.",
+            "episode": "Arrr! L'episodio {{number}} usato in «{{field}}» non è ancora online, compare. Pubblica prima l'episodio."
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arrr! Ci sono ancora archi online sotto questa saga, compare. Ritirali prima:",
@@ -757,7 +778,8 @@
             "character": "Arrr! Il frutto {{fruit}} ha già un possessore attuale online, compare: ogni frutto ne ha uno solo (tranne gli Smile). Segna l'altro come ex possessore, o togli il frutto da questo personaggio:",
             "fruit": "Arrr! Più personaggi online hanno ancora questo frutto, compare: con un solo possessore alla volta non può andare online. Segna gli ex possessori prima:"
           },
-          "RELATIVE_ALREADY_LINKED": "Arrr! Questo parente nomina già questo personaggio nella sua versione online, compare: una coppia è legata da uno dei due soltanto. Togli il parente qui, oppure fai togliere prima il legame all'altro:"
+          "RELATIVE_ALREADY_LINKED": "Arrr! Questo parente nomina già questo personaggio nella sua versione online, compare: una coppia è legata da uno dei due soltanto. Togli il parente qui, oppure fai togliere prima il legame all'altro:",
+          "STORY_POINT_OUT_OF_RANGE": "Arrr! «{{field}}»: {{rule}} Sui numeri online qualcosa non torna più: forse un capitolo o un episodio è stato rinumerato, compare. Correggi il punto in una nuova versione."
         },
         "andMore": "e altri {{count}}"
       }
@@ -947,7 +969,11 @@
       "noPrevious": "nessuna, è la prima",
       "yes": "Sì",
       "no": "No",
-      "notWritten": "— non scritto in {{language}} —"
+      "notWritten": "— non scritto in {{language}} —",
+      "window": {
+        "discovered": "Scoperta: {{point}}",
+        "ended": "Fine: {{point}}"
+      }
     },
     "comparison": {
       "title": "Confronto versioni",
@@ -1011,34 +1037,46 @@
         "birthday": "Compleanno",
         "species": {
           "species": "Specie {{position}}",
-          "position": "Specie {{position}} · posizione"
+          "position": "Specie {{position}} · posizione",
+          "discovered": "Specie {{position}} · scoperta",
+          "ended": "Specie {{position}} · fine"
         },
         "epithets": {
           "text": "Epiteto {{position}} · {{language}}",
-          "position": "Epiteto {{position}} · posizione"
+          "position": "Epiteto {{position}} · posizione",
+          "discovered": "Epiteto {{position}} · scoperta",
+          "ended": "Epiteto {{position}} · fine"
         },
         "aliases": {
           "alias": "Alias {{position}}",
-          "position": "Alias {{position}} · posizione"
+          "position": "Alias {{position}} · posizione",
+          "discovered": "Alias {{position}} · scoperta",
+          "ended": "Alias {{position}} · fine"
         },
         "affiliations": {
           "affiliation": "Appartenenza {{position}}",
-          "role": "Appartenenza {{position}} · ruolo · {{language}}",
-          "marineRank": "Appartenenza {{position}} · grado",
-          "former": "Appartenenza {{position}} · ex membro",
-          "position": "Appartenenza {{position}} · posizione"
+          "position": "Appartenenza {{position}} · posizione",
+          "periods": {
+            "role": "Appartenenza {{position}} · periodo {{subPosition}} · ruolo · {{language}}",
+            "marineRank": "Appartenenza {{position}} · periodo {{subPosition}} · grado",
+            "discovered": "Appartenenza {{position}} · periodo {{subPosition}} · scoperta",
+            "ended": "Appartenenza {{position}} · periodo {{subPosition}} · fine"
+          }
         },
         "holder": "Titolare",
         "devilFruits": {
           "devilFruit": "Frutto {{position}}",
-          "former": "Frutto {{position}} · ex possessore",
-          "position": "Frutto {{position}} · posizione"
+          "position": "Frutto {{position}} · posizione",
+          "discovered": "Frutto {{position}} · scoperta",
+          "ended": "Frutto {{position}} · fine"
         },
         "multipleUsers": "Più possessori",
         "relatives": {
           "relative": "Parente {{position}}",
           "kind": "Parente {{position}} · tipo",
-          "position": "Parente {{position}} · posizione"
+          "position": "Parente {{position}} · posizione",
+          "discovered": "Parente {{position}} · scoperta",
+          "ended": "Parente {{position}} · fine"
         }
       },
       "baseLabel": "Versione di partenza del confronto",
@@ -1139,7 +1177,26 @@
         "status": "Stato",
         "gender": "Genere",
         "epithets": {
-          "text": "Epiteto {{position}} · {{language}}"
+          "text": "Epiteto {{position}} · {{language}}",
+          "discovered": "Epiteto {{position}} · scoperta"
+        },
+        "species": {
+          "discovered": "Specie {{position}} · scoperta"
+        },
+        "aliases": {
+          "discovered": "Alias {{position}} · scoperta"
+        },
+        "devilFruits": {
+          "discovered": "Frutto {{position}} · scoperta"
+        },
+        "relatives": {
+          "discovered": "Parente {{position}} · scoperta"
+        },
+        "affiliations": {
+          "periods": {
+            "count": "Appartenenza {{position}} · almeno un periodo",
+            "discovered": "Appartenenza {{position}} · periodo {{subPosition}} · scoperta"
+          }
         }
       },
       "save": "Salva bozza",
@@ -1293,14 +1350,20 @@
       },
       "affiliations": {
         "label": "Affiliazioni",
-        "hint": "facoltative · ciurme, Marina o altri gruppi, con il ruolo ricoperto e, nella Marina, il grado",
+        "hint": "facoltative · ciurme, Marina o altri gruppi; per ognuna i periodi, con il ruolo ricoperto e, nella Marina, il grado",
         "entry": "Appartenenza {{position}}",
         "add": "Aggiungi affiliazione",
         "empty": "Nessuna affiliazione indicata.",
         "affiliation": "Affiliazione",
-        "role": "Ruolo · {{language}}",
-        "marineRank": "Grado (solo Marina)",
-        "former": "Ex membro"
+        "periods": {
+          "label": "Periodi",
+          "hint": "almeno uno · in ordine; solo l'ultimo può restare senza fine",
+          "entry": "Periodo {{position}}",
+          "add": "Aggiungi periodo",
+          "empty": "Nessun periodo: ne serve almeno uno.",
+          "role": "Ruolo · {{language}}",
+          "marineRank": "Grado (solo Marina)"
+        }
       },
       "aliases": {
         "label": "Alias",
@@ -1316,12 +1379,11 @@
       },
       "devilFruits": {
         "label": "Frutti del Diavolo",
-        "hint": "facoltativi · i frutti mangiati; un frutto ha un solo possessore attuale, gli altri sono ex possessori",
+        "hint": "facoltativi · i frutti mangiati; un frutto ha un solo possessore attuale: chi lo ha perso ha una fine",
         "entry": "Frutto {{position}}",
         "add": "Aggiungi frutto",
         "empty": "Nessun frutto indicato.",
-        "devilFruit": "Frutto del Diavolo",
-        "former": "Ex possessore"
+        "devilFruit": "Frutto del Diavolo"
       },
       "multipleUsers": {
         "label": "Più possessori",
@@ -1335,7 +1397,23 @@
         "empty": "Nessun parente indicato.",
         "relative": "Personaggio",
         "kind": "Il parente è… di questo personaggio"
-      }
+      },
+      "window": {
+        "discovered": "Scoperta",
+        "ended": "Fine",
+        "addEnd": "Fine",
+        "removeEnd": "Togli la fine",
+        "noFirstAppearance": "Indica prima la prima apparizione: scoperta e fine si scelgono sui suoi stessi assi.",
+        "axisMissing": {
+          "chapter": "La prima apparizione non ha un capitolo.",
+          "episode": "La prima apparizione non ha un episodio."
+        },
+        "offAxis": {
+          "chapter": "La prima apparizione non ha più un capitolo: togli questo.",
+          "episode": "La prima apparizione non ha più un episodio: togli questo."
+        }
+      },
+      "pointRefusedMessage": "Arrr! Un punto della storia non torna: il motivo è scritto sotto, compare."
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1627,7 +1705,18 @@
       "chapterMedium": "Capitolo (manga)",
       "episodeMedium": "Episodio (anime)",
       "placeholder": "Cerca per numero o titolo",
-      "episodeNumbered": "Ep. {{item}}"
+      "episodeNumbered": "Ep. {{item}}",
+      "refused": {
+        "offAxis": "Va scelto su un asse della prima apparizione.",
+        "beforeFirstAppearance": "Non può venire prima della prima apparizione.",
+        "endedOffAxis": "La fine va scelta su un asse in cui c'è la scoperta.",
+        "endedBeforeDiscovered": "La fine non può venire prima della scoperta.",
+        "periodOutOfOrder": "Un periodo non può iniziare prima di uno precedente.",
+        "periodOverlapping": "Un periodo non può sovrapporsi a uno precedente.",
+        "periodOpen": "Manca la fine: solo l'ultimo periodo può restarne senza.",
+        "notLinkable": "Si può scegliere solo un capitolo o un episodio con una versione approvata.",
+        "invalid": "Questo punto della storia non va bene."
+      }
     },
     "bounties": {
       "kicker": "Contenuti · /bounties",
@@ -1731,7 +1820,9 @@
         },
         "affiliations": {
           "affiliation": "cerca un'affiliazione",
-          "role": "ruolo in questa lingua, es. Capitano"
+          "periods": {
+            "role": "ruolo in questa lingua, es. Capitano"
+          }
         },
         "devilFruits": {
           "devilFruit": "cerca un frutto"
@@ -1740,7 +1831,7 @@
           "relative": "cerca un personaggio"
         }
       },
-      "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione e, in ogni lingua, nome, descrizione e ogni epiteto. Intanto la bozza si salva anche incompleta.",
+      "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione, la scoperta di ogni voce degli elenchi, almeno un periodo per ogni appartenenza e, in ogni lingua, nome, descrizione e ogni epiteto. Intanto la bozza si salva anche incompleta.",
       "imageHint": "Un ritratto del personaggio, in verticale.",
       "options": {
         "status": {
@@ -1780,16 +1871,6 @@
           "SEAMAN_APPRENTICE": "Marine apprendista",
           "SEAMAN_RECRUIT": "Recluta",
           "CHORE_BOY": "Ragazzo di servizio"
-        },
-        "affiliations": {
-          "former": {
-            "true": "Ex membro"
-          }
-        },
-        "devilFruits": {
-          "former": {
-            "true": "Ex possessore"
-          }
         },
         "kind": {
           "PARENT": "Genitore",
@@ -1879,6 +1960,14 @@
         "relativesOf": {
           "title": "Indicato come parente da"
         }
+      },
+      "former": {
+        "species": "Ex",
+        "epithets": "Ex",
+        "aliases": "Ex",
+        "affiliations": "Ex membro",
+        "devilFruits": "Ex possessore",
+        "relatives": "Ex"
       }
     }
   }

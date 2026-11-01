@@ -13,11 +13,14 @@ import {
 } from './entity-definition';
 import { chosenFileOf, isImageDraft, isImageReference } from './entity-image';
 import {
+  DISCOVERED_PART,
   identityOf,
   isPartEntryDraft,
   itemsOf,
   localizedTextsOf,
+  nestedListsOf,
   partListFieldKey,
+  partsOf,
   partValueOf,
 } from './entity-part-list';
 import {
@@ -70,8 +73,15 @@ export interface FieldEntry {
   readonly id: string;
   /** Its place in the list, from 1. */
   readonly position: number;
-  /** A subcategory's text or first appearance, a part's key, or `position` for a move. */
+  /**
+   * A subcategory's text or first appearance, a part's key, or `position` for a move; for a
+   * part of an entry of a nested list, the nested list's key then the part's (`periods.role`).
+   */
   readonly part: string;
+  /** The place of the nested entry (a period) inside its entry, from 1, for a nested part. */
+  readonly subPosition?: number;
+  /** The value is a story point: a first appearance, a window's `discovered` or `ended`. */
+  readonly storyPoint?: true;
   /** Its name in the language of the reference, `null` where it has none. */
   readonly name: string | null;
 }
@@ -164,6 +174,57 @@ function partListChecks(
       ),
     );
   });
+}
+
+/**
+ * The window of each entry review asks for (workflow 3.7.2, revision 17): `discovered` on
+ * every entry of a `windowed` list (`epithets[0].discovered`), and for an entry holding a
+ * windowed list - a membership - at least one entry there (`affiliations[0].periods`), each
+ * with its `discovered`. Only the entries the JSON carries; shared by every language.
+ */
+function windowChecks(definition: EntityDefinition, draft: EntityDraft): ReadinessCheck[] {
+  return partListFields(definition).flatMap((field) =>
+    sentPartEntries(field, draft[field.key]).flatMap((entry, index) => {
+      const check = (part: string, done: boolean, subPosition?: number): ReadinessCheck => ({
+        field: field.key,
+        language: null,
+        entry: {
+          id: entry.key,
+          position: index + 1,
+          part,
+          name: null,
+          ...(subPosition === undefined ? {} : { subPosition }),
+        },
+        done,
+      });
+      const own = field.windowed
+        ? [check(DISCOVERED_PART.key, isDiscovered(entry.values[DISCOVERED_PART.key]))]
+        : [];
+      const nested = nestedListsOf(field)
+        .filter(({ windowed }) => windowed)
+        .flatMap((list) => {
+          const entries = sentPartEntries(list, entry.values[list.key]);
+          return [
+            check(`${list.key}.${COUNT_PART}`, entries.length > 0),
+            ...entries.map((sub, subIndex) =>
+              check(
+                `${list.key}.${DISCOVERED_PART.key}`,
+                isDiscovered(sub.values[DISCOVERED_PART.key]),
+                subIndex + 1,
+              ),
+            ),
+          ];
+        });
+      return [...own, ...nested];
+    }),
+  );
+}
+
+/** The readiness part saying an entry has at least one entry in a nested list: `periods.count`. */
+export const COUNT_PART = 'count';
+
+function isDiscovered(value: unknown): boolean {
+  return FIELD_KINDS.storyPoint.isFilled(value);
 }
 
 /** Whether each subcategory has its name and its description in `language`. */
@@ -340,6 +401,7 @@ export function readinessChecks(
       language: null,
       done: kindOf(field).isFilled(draft[field.key]),
     }));
+  checks.push(...windowChecks(definition, draft));
   for (const language of languages) {
     const translation = draft.translations[language];
     checks.push(
@@ -505,15 +567,20 @@ function diffSubcategories(
 /** The languages of a version's translations and of the localized parts of its lists. */
 function languagesWritten(definition: EntityDefinition, body: EntityBody): string[] {
   const inLists = partListFields(definition).flatMap((field) =>
-    field.parts
-      .filter(({ kind }) => kind === 'localizedText')
-      .flatMap((part) =>
-        itemsOf(body[field.key]).flatMap((item) =>
-          Object.keys(localizedTextsOf(partValueOf(field, item, part))),
-        ),
-      ),
+    itemsOf(body[field.key]).flatMap((item) => languagesOfEntry(field, item)),
   );
   return [...Object.keys(body.translations), ...inLists];
+}
+
+/** The languages the localized parts of an entry are written in, its nested entries' too. */
+function languagesOfEntry(field: PartListField, item: unknown): string[] {
+  return field.parts.flatMap((part) => {
+    const value = partValueOf(field, item, part);
+    if (part.kind === 'partList') {
+      return itemsOf(value).flatMap((sub) => languagesOfEntry(part, sub));
+    }
+    return part.kind === 'localizedText' ? Object.keys(localizedTextsOf(value)) : [];
+  });
 }
 
 /** The part of a comparison row that says an entry of a `partList` moved. */
@@ -580,30 +647,95 @@ function diffPartList(
     ({ old, oldPosition, now, position }) => {
       // A removed entry keeps its old place as `position`, so `#n` is never shared.
       const id = identityOf(field, now !== undefined ? now : old) ?? `#${position}`;
-      const ref = (part: string, language: string | null): EntityFieldRef => ({
+      const ref = (
+        part: PartField,
+        language: string | null,
+        nested?: { list: string; subPosition: number },
+      ): EntityFieldRef => ({
         field: field.key,
         language,
-        entry: { id, position, part, name: null },
+        entry: {
+          id,
+          position,
+          part: nested ? `${nested.list}.${part.key}` : part.key,
+          name: null,
+          ...(nested ? { subPosition: nested.subPosition } : {}),
+          ...(part.kind === 'storyPoint' ? { storyPoint: true as const } : {}),
+        },
       });
-      const valueIn = (item: unknown, part: PartField) =>
-        item === undefined ? undefined : partValueOf(field, item, part);
-      const parts = field.parts.flatMap((part) =>
-        part.kind === 'localizedText'
-          ? languages.map((language) =>
-              diffField(
-                ref(part.key, language),
-                localizedTextsOf(valueIn(old, part))[language],
-                localizedTextsOf(valueIn(now, part))[language],
-              ),
+      const parts = partsOf(field).flatMap((part) =>
+        part.kind === 'partList'
+          ? diffNestedList(
+              part,
+              valueIn(field, old, part),
+              valueIn(field, now, part),
+              languages,
+              (sub, language, subPosition) => ref(sub, language, { list: part.key, subPosition }),
             )
-          : [kindOf(part).diff(ref(part.key, null), valueIn(old, part), valueIn(now, part))],
+          : diffParts(field, part, old, now, languages, (language) => ref(part, language)),
       );
       const moved =
         old !== undefined && now !== undefined && oldPosition !== position
-          ? diffField(ref(POSITION_PART, null), String(oldPosition), String(position))
+          ? diffField<EntityFieldRef>(
+              {
+                field: field.key,
+                language: null,
+                entry: { id, position, part: POSITION_PART, name: null },
+              },
+              String(oldPosition),
+              String(position),
+            )
           : null;
       return [...parts, moved];
     },
+  );
+}
+
+/** One part of an entry of either version: `undefined` on the side without the entry. */
+function valueIn(field: PartListField, item: unknown, part: PartField): unknown {
+  return item === undefined ? undefined : partValueOf(field, item, part);
+}
+
+/** Compares one part of an entry as its kind compares it: a localized one once per language. */
+function diffParts(
+  field: PartListField,
+  part: PartField,
+  old: unknown,
+  now: unknown,
+  languages: readonly string[],
+  ref: (language: string | null) => EntityFieldRef,
+): (FieldDiff<EntityFieldRef> | null)[] {
+  return part.kind === 'localizedText'
+    ? languages.map((language) =>
+        diffField(
+          ref(language),
+          localizedTextsOf(valueIn(field, old, part))[language],
+          localizedTextsOf(valueIn(field, now, part))[language],
+        ),
+      )
+    : [kindOf(part).diff(ref(null), valueIn(field, old, part), valueIn(field, now, part))];
+}
+
+/**
+ * Compares the nested list of an entry in both versions - a membership's periods - entry by
+ * entry by position, each part as its kind compares it.
+ */
+function diffNestedList(
+  list: PartListField,
+  before: unknown,
+  after: unknown,
+  languages: readonly string[],
+  ref: (part: PartField, language: string | null, subPosition: number) => EntityFieldRef,
+): (FieldDiff<EntityFieldRef> | null)[] {
+  const was = itemsOf(before);
+  const is = itemsOf(after);
+  return Array.from({ length: Math.max(was.length, is.length) }, (_, index) => index).flatMap(
+    (index) =>
+      partsOf(list).flatMap((part) =>
+        diffParts(list, part, was[index], is[index], languages, (language) =>
+          ref(part, language, index + 1),
+        ),
+      ),
   );
 }
 

@@ -129,6 +129,10 @@
         "tip4": {
           "text": "A fruit goes online only after its type, and a type stays online while any of its fruits is: publish the type first, retire the fruits first.",
           "code": "type → fruit · publish order"
+        },
+        "tip5": {
+          "text": "Every list entry has a discovery: the point of the story where the reader learns it. With an end it becomes \"former\"; without one it stays current.",
+          "code": "discovered → ended · current / former"
         }
       }
     }
@@ -619,7 +623,11 @@
           },
           "affiliations": {
             "list": "memberships",
-            "entry": "membership {{position}}"
+            "entry": "membership {{position}}",
+            "periods": {
+              "list": "periods",
+              "entry": "period {{position}}"
+            }
           },
           "holder": "holder",
           "devilFruits": {
@@ -630,6 +638,14 @@
           "relatives": {
             "list": "relatives",
             "entry": "relative {{position}}"
+          },
+          "window": {
+            "discovered": "discovered",
+            "ended": "ended",
+            "axis": {
+              "chapter": "chapter",
+              "episode": "episode"
+            }
           }
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
@@ -698,7 +714,9 @@
             "firstAppearanceEpisode": "First appearance episode not online",
             "previous": "Previous bounty not online",
             "holder": "Holder not online",
-            "relative": "Relative not online"
+            "relative": "Relative not online",
+            "chapter": "Chapter of a point not online",
+            "episode": "Episode of a point not online"
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arcs online: {{count}}",
@@ -720,7 +738,8 @@
             "character": "Fruit already in use",
             "fruit": "Current users: {{count}}"
           },
-          "RELATIVE_ALREADY_LINKED": "Relative already linked"
+          "RELATIVE_ALREADY_LINKED": "Relative already linked",
+          "STORY_POINT_OUT_OF_RANGE": "Point out of order"
         },
         "sentence": {
           "TYPE_NOT_ONLINE": "This fruit's type is not online. Republish the type first.",
@@ -735,7 +754,9 @@
             "firstAppearanceEpisode": "Arrr! The episode of the first appearance is not online yet, matey. Publish the episode first.",
             "previous": "Arrr! The bounty this one replaces is not online yet, matey. Publish it first.",
             "holder": "Arrr! The character holding this bounty is not online yet, matey. Publish the character first.",
-            "relative": "Arrr! A relative of this character is not online yet, matey. Publish the character first."
+            "relative": "Arrr! A relative of this character is not online yet, matey. Publish the character first.",
+            "chapter": "Arrr! Chapter {{number}}, used in \"{{field}}\", is not online yet, matey. Publish the chapter first.",
+            "episode": "Arrr! Episode {{number}}, used in \"{{field}}\", is not online yet, matey. Publish the episode first."
           },
           "ONLINE_ITEMS_LINKED": {
             "arcs": "Arrr! Arcs are still online under this saga, matey. Retire them first:",
@@ -757,7 +778,8 @@
             "character": "Arrr! The {{fruit}} already has a current user online, matey: each fruit has only one (except the Smile ones). Mark the other as a former user, or take the fruit off this character:",
             "fruit": "Arrr! Several online characters still have this fruit, matey: with one user at a time it cannot go online. Mark the former users first:"
           },
-          "RELATIVE_ALREADY_LINKED": "Arrr! This relative already names this character in its online version, matey: a pair is linked by one of the two only. Remove the relative here, or have the other one drop the tie first:"
+          "RELATIVE_ALREADY_LINKED": "Arrr! This relative already names this character in its online version, matey: a pair is linked by one of the two only. Remove the relative here, or have the other one drop the tie first:",
+          "STORY_POINT_OUT_OF_RANGE": "Arrr! \"{{field}}\": {{rule}} The numbers online no longer add up: a chapter or an episode may have been renumbered, matey. Fix the point in a new version."
         },
         "andMore": "and {{count}} more"
       }
@@ -947,7 +969,11 @@
       "noPrevious": "none, this is the first",
       "yes": "Yes",
       "no": "No",
-      "notWritten": "— not written in {{language}} —"
+      "notWritten": "— not written in {{language}} —",
+      "window": {
+        "discovered": "Discovered: {{point}}",
+        "ended": "Ended: {{point}}"
+      }
     },
     "comparison": {
       "title": "Compare versions",
@@ -1011,34 +1037,46 @@
         "birthday": "Birthday",
         "species": {
           "species": "Species {{position}}",
-          "position": "Species {{position}} · position"
+          "position": "Species {{position}} · position",
+          "discovered": "Species {{position}} · discovered",
+          "ended": "Species {{position}} · ended"
         },
         "epithets": {
           "text": "Epithet {{position}} · {{language}}",
-          "position": "Epithet {{position}} · position"
+          "position": "Epithet {{position}} · position",
+          "discovered": "Epithet {{position}} · discovered",
+          "ended": "Epithet {{position}} · ended"
         },
         "aliases": {
           "alias": "Alias {{position}}",
-          "position": "Alias {{position}} · position"
+          "position": "Alias {{position}} · position",
+          "discovered": "Alias {{position}} · discovered",
+          "ended": "Alias {{position}} · ended"
         },
         "affiliations": {
           "affiliation": "Membership {{position}}",
-          "role": "Membership {{position}} · role · {{language}}",
-          "marineRank": "Membership {{position}} · rank",
-          "former": "Membership {{position}} · former member",
-          "position": "Membership {{position}} · position"
+          "position": "Membership {{position}} · position",
+          "periods": {
+            "role": "Membership {{position}} · period {{subPosition}} · role · {{language}}",
+            "marineRank": "Membership {{position}} · period {{subPosition}} · rank",
+            "discovered": "Membership {{position}} · period {{subPosition}} · discovered",
+            "ended": "Membership {{position}} · period {{subPosition}} · ended"
+          }
         },
         "holder": "Holder",
         "devilFruits": {
           "devilFruit": "Fruit {{position}}",
-          "former": "Fruit {{position}} · former user",
-          "position": "Fruit {{position}} · position"
+          "position": "Fruit {{position}} · position",
+          "discovered": "Fruit {{position}} · discovered",
+          "ended": "Fruit {{position}} · ended"
         },
         "multipleUsers": "Multiple users",
         "relatives": {
           "relative": "Relative {{position}}",
           "kind": "Relative {{position}} · kind",
-          "position": "Relative {{position}} · position"
+          "position": "Relative {{position}} · position",
+          "discovered": "Relative {{position}} · discovered",
+          "ended": "Relative {{position}} · ended"
         }
       },
       "baseLabel": "Version to compare with",
@@ -1139,7 +1177,26 @@
         "status": "Status",
         "gender": "Gender",
         "epithets": {
-          "text": "Epithet {{position}} · {{language}}"
+          "text": "Epithet {{position}} · {{language}}",
+          "discovered": "Epithet {{position}} · discovered"
+        },
+        "species": {
+          "discovered": "Species {{position}} · discovered"
+        },
+        "aliases": {
+          "discovered": "Alias {{position}} · discovered"
+        },
+        "devilFruits": {
+          "discovered": "Fruit {{position}} · discovered"
+        },
+        "relatives": {
+          "discovered": "Relative {{position}} · discovered"
+        },
+        "affiliations": {
+          "periods": {
+            "count": "Membership {{position}} · at least one period",
+            "discovered": "Membership {{position}} · period {{subPosition}} · discovered"
+          }
         }
       },
       "save": "Save draft",
@@ -1293,14 +1350,20 @@
       },
       "affiliations": {
         "label": "Affiliations",
-        "hint": "optional · crews, the Navy or other groups, with the role held and, in the Navy, the rank",
+        "hint": "optional · crews, the Navy or other groups; for each, its periods, with the role held and, in the Navy, the rank",
         "entry": "Membership {{position}}",
         "add": "Add affiliation",
         "empty": "No affiliation given.",
         "affiliation": "Affiliation",
-        "role": "Role · {{language}}",
-        "marineRank": "Rank (Navy only)",
-        "former": "Former member"
+        "periods": {
+          "label": "Periods",
+          "hint": "at least one · in order; only the last one may stay without an end",
+          "entry": "Period {{position}}",
+          "add": "Add period",
+          "empty": "No period: at least one is needed.",
+          "role": "Role · {{language}}",
+          "marineRank": "Rank (Navy only)"
+        }
       },
       "aliases": {
         "label": "Aliases",
@@ -1316,12 +1379,11 @@
       },
       "devilFruits": {
         "label": "Devil Fruits",
-        "hint": "optional · the fruits eaten; a fruit has only one current user, the others are former users",
+        "hint": "optional · the fruits eaten; a fruit has only one current user: whoever lost it has an end",
         "entry": "Fruit {{position}}",
         "add": "Add fruit",
         "empty": "No fruit given.",
-        "devilFruit": "Devil Fruit",
-        "former": "Former user"
+        "devilFruit": "Devil Fruit"
       },
       "multipleUsers": {
         "label": "Multiple users",
@@ -1335,7 +1397,23 @@
         "empty": "No relative given.",
         "relative": "Character",
         "kind": "The relative is the… of this character"
-      }
+      },
+      "window": {
+        "discovered": "Discovered",
+        "ended": "Ended",
+        "addEnd": "Ended",
+        "removeEnd": "Remove the end",
+        "noFirstAppearance": "Set the first appearance first: discovered and ended are picked on its own axes.",
+        "axisMissing": {
+          "chapter": "The first appearance has no chapter.",
+          "episode": "The first appearance has no episode."
+        },
+        "offAxis": {
+          "chapter": "The first appearance no longer has a chapter: remove this one.",
+          "episode": "The first appearance no longer has an episode: remove this one."
+        }
+      },
+      "pointRefusedMessage": "Arrr! A point of the story does not add up: the reason is written below, matey."
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1627,7 +1705,18 @@
       "chapterMedium": "Chapter (manga)",
       "episodeMedium": "Episode (anime)",
       "placeholder": "Search by number or title",
-      "episodeNumbered": "Ep. {{item}}"
+      "episodeNumbered": "Ep. {{item}}",
+      "refused": {
+        "offAxis": "It must be picked on an axis of the first appearance.",
+        "beforeFirstAppearance": "It cannot come before the first appearance.",
+        "endedOffAxis": "The end must be picked on an axis where there is a discovery.",
+        "endedBeforeDiscovered": "The end cannot come before the discovery.",
+        "periodOutOfOrder": "A period cannot start before a previous one.",
+        "periodOverlapping": "A period cannot overlap a previous one.",
+        "periodOpen": "The end is missing: only the last period may go without one.",
+        "notLinkable": "Only a chapter or an episode with an approved version can be picked.",
+        "invalid": "This point of the story is not valid."
+      }
     },
     "bounties": {
       "kicker": "Contents · /bounties",
@@ -1731,7 +1820,9 @@
         },
         "affiliations": {
           "affiliation": "search an affiliation",
-          "role": "role in this language, e.g. Captain"
+          "periods": {
+            "role": "role in this language, e.g. Captain"
+          }
         },
         "devilFruits": {
           "devilFruit": "search a fruit"
@@ -1740,7 +1831,7 @@
           "relative": "search a character"
         }
       },
-      "hintMissing": "Review takes a romaji, the status, the gender, the first appearance and, in every language, a name, a description and every epithet. Meanwhile the draft can be saved incomplete.",
+      "hintMissing": "Review takes a romaji, the status, the gender, the first appearance, the discovery of every list entry, at least one period for every membership and, in every language, a name, a description and every epithet. Meanwhile the draft can be saved incomplete.",
       "imageHint": "A portrait of the character, upright.",
       "options": {
         "status": {
@@ -1780,16 +1871,6 @@
           "SEAMAN_APPRENTICE": "Seaman Apprentice",
           "SEAMAN_RECRUIT": "Seaman Recruit",
           "CHORE_BOY": "Chore Boy"
-        },
-        "affiliations": {
-          "former": {
-            "true": "Former member"
-          }
-        },
-        "devilFruits": {
-          "former": {
-            "true": "Former user"
-          }
         },
         "kind": {
           "PARENT": "Parent",
@@ -1879,6 +1960,14 @@
         "relativesOf": {
           "title": "Named as a relative by"
         }
+      },
+      "former": {
+        "species": "Former",
+        "epithets": "Former",
+        "aliases": "Former",
+        "affiliations": "Former member",
+        "devilFruits": "Former user",
+        "relatives": "Former"
       }
     }
   }

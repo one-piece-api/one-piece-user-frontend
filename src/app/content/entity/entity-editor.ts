@@ -48,14 +48,21 @@ import {
 import type { EntityField, ImageField, SubcategoryField } from './entity-definition';
 import { isImageDraft, type ImageDraft } from './entity-image';
 import { monthDayOf, type MonthDayDraft } from './entity-month-day';
-import { identityOf, itemsOf, isPartEntryDraft, type PartEntryDraft } from './entity-part-list';
+import {
+  identityOf,
+  itemsOf,
+  isPartEntryDraft,
+  partAtPath,
+  type PartEntryDraft,
+} from './entity-part-list';
 import { isReference, referenceLabel, type EntityReference } from './entity-reference';
 import { COUNTRY_CODES, countryName, newReleaseKey, type ReleaseDraft } from './entity-release';
 import { isNumbered, untitledOf } from './entity-title';
-import { sentPartEntries, sentReleaseRows, textOf } from './field-kinds';
+import { draftEntryPath, sentReleaseRows, textOf } from './field-kinds';
 import { ImagePicker } from './image-picker';
 import { MonthDayPicker } from './month-day-picker';
-import { PartListEditor, type PartListChange } from './part-list-editor';
+import { PartListEditor, type PartListChange, type StoryAxes } from './part-list-editor';
+import { POINT_REFUSAL_KEYS, pointRefusalKey } from './point-refusals';
 import { imageProblemOf, imageProblemWords } from './image-words';
 import { RelationPicker } from './relation-picker';
 import {
@@ -75,6 +82,9 @@ import {
 
 /** What the backend answers for a content that is not there - or not for this caller. */
 const NOT_FOUND_STATUSES = [400, 404];
+
+/** The field every point of a window is measured from. */
+const FIRST_APPEARANCE = 'firstAppearance';
 
 /** The error codes the editor has something specific to say about. */
 const VALUE_ALREADY_USED = 'CONTENT_VALUE_ALREADY_USED';
@@ -153,6 +163,9 @@ const ENTRY_REFUSAL_BY_MESSAGE: Record<string, string> = {
 /** An entry of a list of parts the editor addresses as `species.1` or `epithets.1.text.en`. */
 const PART_ENTRY_KEY = /^([^.]+)\.(\d+)((?:\.[^.]+)*)$/;
 
+/** What the Lumacofono says when a point of a window is refused - the reason is under it. */
+const POINT_REFUSED_MESSAGE_KEY = 'content.editor.pointRefusedMessage';
+
 /** What the Lumacofono says for each of the specific texts above. */
 const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
   [RELATION_REFUSED_KEY]: RELATION_REFUSED_MESSAGE_KEY,
@@ -165,6 +178,7 @@ const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
   ...Object.fromEntries(
     Object.values(ENTRY_REFUSAL_BY_MESSAGE).map((text) => [text, ENTRY_REFUSED_MESSAGE_KEY]),
   ),
+  ...Object.fromEntries(POINT_REFUSAL_KEYS.map((text) => [text, POINT_REFUSED_MESSAGE_KEY])),
   ...Object.fromEntries(
     Object.values(SUBCATEGORY_REFUSED_KEY).map((text) => [text, SUBCATEGORY_REFUSED_MESSAGE_KEY]),
   ),
@@ -434,6 +448,21 @@ export class EntityEditor {
     }));
   });
 
+  /**
+   * The axes of the first appearance the draft has now: a window of a list entry may have a
+   * part only there (workflow 3.7.4). Both, for an entity without a first appearance.
+   */
+  protected readonly storyAxes = computed<StoryAxes>(() => {
+    const field = this.entity.fields.find(
+      ({ key, kind }) => kind === 'storyPoint' && key === FIRST_APPEARANCE,
+    );
+    if (!field) {
+      return { chapter: true, episode: true };
+    }
+    const { chapter, episode } = storyPointOf(this.draft()?.[field.key]);
+    return { chapter: chapter !== null, episode: episode !== null };
+  });
+
   /** The translated fields in the language on screen, likewise. */
   protected readonly localizedViews = computed(() => {
     const language = this.language();
@@ -507,6 +536,7 @@ export class EntityEditor {
         {
           language: languageNames.get(check.language ?? '') ?? '',
           position: check.entry?.position,
+          subPosition: check.entry?.subPosition,
         },
       ),
       ...(check.done ? CHECK_DONE : CHECK_MISSING),
@@ -1000,13 +1030,18 @@ export class EntityEditor {
     if (!field) {
       return null;
     }
+    const found = partAtPath(field, rest.split('.').slice(1));
+    // A point of a window, or a period as a whole (out of order, overlapping): by its rule.
+    if (found.part?.kind === 'storyPoint' || found.part?.kind === 'partList') {
+      return pointRefusalKey(message);
+    }
     const entries = this.partEntriesIn(field.key);
     const identity = identityOf(field, entries[Number(index)]);
     const repeated =
+      found.list === field &&
       identity !== null &&
       entries.slice(0, Number(index)).some((entry) => identityOf(field, entry) === identity);
-    const partKey = rest.split('.')[1];
-    const part = field.parts.find(({ key: candidate }) => candidate === partKey) ?? field.parts[0];
+    const part = found.part ?? field.parts[0];
     if (repeated) {
       return ENTRY_REPEATED_KEY;
     }
@@ -1018,17 +1053,13 @@ export class EntityEditor {
 
   /**
    * An entry of a list of parts the backend names by its position in the JSON sent, as the
-   * entry it came from: the JSON leaves out the entries left empty.
+   * entry it came from - a nested one too: the JSON leaves out the entries left empty.
    */
   private partEntryOf(key: string, draft: EntityDraft): string {
-    const [, list, position, rest] = PART_ENTRY_KEY.exec(key) ?? [];
+    const [list, ...rest] = key.split('.');
     const field = partListFields(this.entity).find((candidate) => candidate.key === list);
-    if (!field) {
-      return key;
-    }
-    const entry = sentPartEntries(field, draft[list])[Number(position)];
-    const index = entry ? itemsOf(draft[list]).indexOf(entry) : -1;
-    return index < 0 ? key : `${list}.${index}${rest}`;
+    const path = field && rest.length ? draftEntryPath(field, draft[list], rest) : null;
+    return path ? [list, ...path].join('.') : key;
   }
 
   private partEntriesIn(key: string): PartEntryDraft[] {

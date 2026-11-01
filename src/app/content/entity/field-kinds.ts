@@ -15,6 +15,7 @@ import {
   itemsOf,
   localizedTextsOf,
   newPartEntryKey,
+  partsOf,
   partValueOf,
   type PartEntryDraft,
 } from './entity-part-list';
@@ -347,7 +348,10 @@ const MONTH_DAY_VALUE = {
     diffField(field, monthDayText(monthDayOf(before)), monthDayText(monthDayOf(after))),
 };
 
-/** One part's value as its kind's editor holds it; a localized part, a text per language. */
+/**
+ * One part's value as its kind's editor holds it; a localized part, a text per language; a
+ * nested list, its entries as the list's kind holds them.
+ */
 function partDraftValue(part: PartField, value: unknown): unknown {
   return part.kind === 'localizedText'
     ? localizedTextsOf(value)
@@ -370,12 +374,15 @@ function partSavedValue(part: PartField, value: unknown): unknown {
 }
 
 /**
- * Whether one part of an entry has something in it - a localized part, in any language. A
- * yes or no never counts: alone, it says nothing.
+ * Whether one part of an entry has something in it - a localized part, in any language; a
+ * nested list, an entry with something in it. A yes or no never counts: alone, it says nothing.
  */
 export function isPartWritten(part: PartField, value: unknown): boolean {
   if (part.kind === 'boolean') {
     return false;
+  }
+  if (part.kind === 'partList') {
+    return sentPartEntries(part, value).length > 0;
   }
   if (part.kind === 'localizedText') {
     return Object.values(localizedTextsOf(value)).some((text) => text.trim());
@@ -391,15 +398,43 @@ export function isPartWritten(part: PartField, value: unknown): boolean {
 export function sentPartEntries(field: PartListField, draft: unknown): PartEntryDraft[] {
   return itemsOf(draft)
     .filter(isPartEntryDraft)
-    .filter((entry) => field.parts.some((part) => isPartWritten(part, entry.values[part.key])));
+    .filter((entry) => partsOf(field).some((part) => isPartWritten(part, entry.values[part.key])));
+}
+
+/**
+ * Where an entry the backend names by its position in the JSON sent stands in the editor:
+ * `[sent index, part, ...rest]` becomes `[editor index, part, ...rest]`, going down into a
+ * nested list the same way (`0.periods.1.role`) - the JSON leaves out the entries left empty.
+ * `null` for a position the JSON did not have.
+ */
+export function draftEntryPath(
+  field: PartListField,
+  draft: unknown,
+  [index, partKey, ...tail]: readonly string[],
+): string[] | null {
+  const entry = sentPartEntries(field, draft)[Number(index)];
+  if (!entry) {
+    return null;
+  }
+  const position = String(itemsOf(draft).indexOf(entry));
+  if (partKey === undefined) {
+    return [position];
+  }
+  const part = partsOf(field).find(({ key }) => key === partKey);
+  if (part?.kind === 'partList' && tail.length) {
+    const nested = draftEntryPath(part, entry.values[part.key], tail);
+    return nested && [position, partKey, ...nested];
+  }
+  return [position, partKey, ...tail];
 }
 
 /**
  * A list of entries made of parts (`PartListField`): the editor holds each entry with a key
- * of its own and each part as its kind holds it; the JSON sends the entries with something
- * in them, each part as its kind saves it - bare values for a list of one part not localized,
- * else an object per entry. Never asked for as a whole: a localized part is a check of its
- * own in each language (`entity-body.ts`), and the entries are compared one by one there.
+ * of its own and each part as its kind holds it - the window of a `windowed` list and a
+ * nested list included (`partsOf`); the JSON sends the entries with something in them, each
+ * part as its kind saves it - bare values for a list of one part not localized, else an object
+ * per entry. Never asked for as a whole: a localized part and a window are checks of their own
+ * (`entity-body.ts`), and the entries are compared one by one there.
  */
 const PART_LIST_VALUE = {
   draftValue: (saved: unknown, field?: EntityField): PartEntryDraft[] =>
@@ -407,7 +442,7 @@ const PART_LIST_VALUE = {
       ? itemsOf(saved).map((item) => ({
           key: newPartEntryKey(),
           values: Object.fromEntries(
-            field.parts.map((part) => [
+            partsOf(field).map((part) => [
               part.key,
               partDraftValue(part, partValueOf(field, item, part)),
             ]),
@@ -418,12 +453,13 @@ const PART_LIST_VALUE = {
     if (field?.kind !== 'partList') {
       return [];
     }
-    const [only] = field.parts;
+    const parts = partsOf(field);
+    const [only] = parts;
     return sentPartEntries(field, draft).map(({ values }) =>
       isBareList(field)
         ? partSavedValue(only, values[only.key])
         : Object.fromEntries(
-            field.parts.map((part) => [part.key, partSavedValue(part, values[part.key])]),
+            parts.map((part) => [part.key, partSavedValue(part, values[part.key])]),
           ),
     );
   },

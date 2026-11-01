@@ -48,6 +48,8 @@ export class RelationPicker {
     input<(reference: EntityReference, language: string) => string>(referenceLabel);
   /** The backend refused the choice: the box is marked. */
   readonly invalid = input(false);
+  /** Nothing can be chosen here now (an axis the content does not have): the box is greyed. */
+  readonly disabled = input(false);
 
   /** The reader chose a content - or `null`, none. */
   readonly picked = output<EntityReference | null>();

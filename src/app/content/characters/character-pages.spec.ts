@@ -18,7 +18,7 @@ import { EntityEditor } from '../entity/entity-editor';
 import { EntityList } from '../entity/entity-list';
 import { RelationPicker } from '../entity/relation-picker';
 import { SPECIES } from '../species/species.model';
-import { refusedFieldWords } from '../version-actions';
+import { refusedFieldWords } from '../field-words';
 import { CHARACTER, RELATIVE_KINDS } from './character.model';
 
 const ID = '3f2a9c1b-0000-4000-8000-0000000000c1';
@@ -43,6 +43,9 @@ const GARP = {
   gender: 'MALE',
 };
 const HUMAN = { id: 's1', romaji: 'Ningen', names: { it: 'Umano', en: 'Human' } };
+const CHAPTER_1 = { id: 'ch1', number: 1, titles: { en: 'Romance Dawn' } };
+const CHAPTER_8 = { id: 'ch8', number: 8, titles: { en: 'Nami' } };
+const EPISODE_1 = { id: 'ep1', number: 1, titles: { en: "I'm Luffy!" } };
 
 @Component({ template: '' })
 class Elsewhere {}
@@ -117,12 +120,27 @@ describe('the character definition', () => {
       filterBy: { key: 'affiliation', part: 'affiliation' },
     });
     const parts = memberships?.kind === 'partList' ? memberships.parts : [];
-    expect(parts.map(({ key }) => key)).toEqual(['affiliation', 'role', 'marineRank', 'former']);
-    expect(parts[2]).toMatchObject({
+    expect(parts.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
+      'affiliation:relation',
+      'periods:partList',
+    ]);
+    const periods = parts[1].kind === 'partList' ? parts[1] : null;
+    expect(periods).toMatchObject({ windowed: true, maxEntries: 20 });
+    expect(periods?.parts.map(({ key }) => key)).toEqual(['role', 'marineRank']);
+    const rank = periods?.parts[1];
+    expect(rank).toMatchObject({
       options: expect.arrayContaining(['FLEET_ADMIRAL', 'CHORE_BOY']),
       visibleWhen: { part: 'affiliation', field: 'kind', equals: 'NAVY' },
     });
-    expect(parts[2].kind === 'choice' && parts[2].options).toHaveLength(19);
+    expect(rank?.kind === 'choice' && rank.options).toHaveLength(19);
+  });
+
+  it('gives every list a window, the memberships one per period', () => {
+    const windowed = CHARACTER.fields
+      .filter((field) => field.kind === 'partList' && field.windowed)
+      .map(({ key }) => key);
+
+    expect(windowed).toEqual(['species', 'devilFruits', 'relatives', 'epithets', 'aliases']);
   });
 
   it('lists the Devil Fruits as a list of parts, each once, filtered by the fruit', () => {
@@ -134,10 +152,7 @@ describe('the character definition', () => {
       filterBy: { key: 'devilFruit', part: 'devilFruit' },
     });
     const parts = fruits?.kind === 'partList' ? fruits.parts : [];
-    expect(parts.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
-      'devilFruit:relation',
-      'former:boolean',
-    ]);
+    expect(parts.map(({ key, kind }) => `${key}:${kind}`)).toEqual(['devilFruit:relation']);
     expect(parts[0]).toMatchObject({ target: 'DEVIL_FRUIT' });
   });
 
@@ -285,8 +300,68 @@ describe('the words about characters', () => {
     expect(words('devilFruits[0].devilFruit')).toBe('fruit 1');
     expect(words('relatives[1].relative')).toBe('relative 2');
     expect(words('epithets')).toBe('epithets');
+    expect(words('epithets[0].discovered')).toBe('epithet 1 · discovered');
+    expect(words('species[1].ended.episode')).toBe('species 2 · ended, episode');
+    expect(words('affiliations[1].periods')).toBe('membership 2 · periods');
+    expect(words('affiliations[0].periods[1]')).toBe('membership 1 · period 2');
+    expect(words('affiliations[0].periods[1].discovered.chapter')).toBe(
+      'membership 1 · period 2 · discovered, chapter',
+    );
+    expect(words('affiliations[0].periods[0].role[en]')).toBe('membership 1 · period 1');
     expect(words('translations[it].name')).toBe('name IT');
     expect(words('status')).toBe('status');
+  });
+});
+
+describe('the words about the points of a character', () => {
+  let transloco: TranslocoService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [provideTranslocoTesting()] });
+    transloco = TestBed.inject(TranslocoService);
+  });
+
+  it('name the chapter of a point that is not online, and the point', () => {
+    const words = blockWords(
+      transloco,
+      {
+        reason: 'RELATED_NOT_ONLINE',
+        detail: { field: 'species[1].discovered', chapterId: 'ch8', chapterNumber: 8 },
+      },
+      CHARACTER,
+    );
+
+    expect(words.note).toBe('Chapter of a point not online');
+    expect(words.sentence).toContain('Chapter 8, used in "species 2 · discovered"');
+  });
+
+  it('say which rule a point breaks on the numbers online, where, and why it may have changed', () => {
+    const words = blockWords(
+      transloco,
+      {
+        reason: 'STORY_POINT_OUT_OF_RANGE',
+        detail: {
+          field: 'affiliations[0].periods[1]',
+          message: 'must not overlap a previous period on the episode axis',
+        },
+      },
+      CHARACTER,
+    );
+
+    expect(words.note).toBe('Point out of order');
+    expect(words.sentence).toContain('"membership 1 · period 2"');
+    expect(words.sentence).toContain('A period cannot overlap a previous one.');
+    expect(words.sentence).toContain('renumbered');
+  });
+
+  it('name the point as the backend does, where the page knows no kind of content', () => {
+    const words = blockWords(transloco, {
+      reason: 'STORY_POINT_OUT_OF_RANGE',
+      detail: { field: 'epithets[0].ended', message: 'something new' },
+    });
+
+    expect(words.sentence).toContain('"epithets[0].ended"');
+    expect(words.sentence).toContain('This point of the story is not valid.');
   });
 });
 
@@ -300,9 +375,9 @@ describe('the card of a character', () => {
     status: 'ALIVE',
     gender: 'FEMALE',
     birthday: '--07-03',
-    species: [HUMAN],
+    species: [{ species: HUMAN, discovered: { chapter: CHAPTER_8 } }],
     epithets: [{ text: { it: 'Gatta ladra', en: 'Cat Burglar' } }],
-    aliases: ['Miss All Sunday'],
+    aliases: [{ alias: 'Miss All Sunday' }],
     translations: {
       en: { name: 'Nami', description: 'The navigator of the Straw Hats.' },
       it: { name: 'Nami', description: 'La navigatrice della ciurma di Cappello di paglia.' },
@@ -338,21 +413,53 @@ describe('the card of a character', () => {
     );
   });
 
-  it('marks a past membership as a former member, not as a former user', () => {
+  it('marks a membership whose periods have all ended as a former member, not as a former user', () => {
     fixture.componentRef.setInput('body', {
       ...NAMI,
-      affiliations: [{ affiliation: CREW, former: true }],
+      affiliations: [
+        {
+          affiliation: CREW,
+          periods: [
+            {
+              role: { en: 'Navigator' },
+              discovered: { chapter: CHAPTER_1 },
+              ended: { chapter: CHAPTER_8, episode: EPISODE_1 },
+            },
+          ],
+        },
+      ],
     });
     fixture.detectChanges();
 
     expect(text('card-affiliations')).toContain('Former member');
     expect(text('card-affiliations')).not.toContain('Former user');
+    expect(text('card-affiliations')).toContain('Discovered: Ch. 1 — Ended: Ch. 8 · Ep. 1');
+  });
+
+  it('keeps a membership current while one of its periods has no end', () => {
+    fixture.componentRef.setInput('body', {
+      ...NAMI,
+      affiliations: [
+        {
+          affiliation: CREW,
+          periods: [
+            { discovered: { chapter: CHAPTER_1 }, ended: { chapter: CHAPTER_8 } },
+            { discovered: { chapter: CHAPTER_8 } },
+          ],
+        },
+      ],
+    });
+    fixture.detectChanges();
+
+    expect(text('card-affiliations')).not.toContain('Former');
   });
 
   it('lists its Devil Fruits linked, a past one marked as a former user', () => {
     fixture.componentRef.setInput('body', {
       ...NAMI,
-      devilFruits: [{ devilFruit: MERA, former: true }],
+      devilFruits: [
+        { devilFruit: MERA, discovered: { chapter: CHAPTER_1 }, ended: { chapter: CHAPTER_8 } },
+      ],
     });
     fixture.detectChanges();
 
@@ -367,9 +474,9 @@ describe('the card of a character', () => {
     fixture.componentRef.setInput('body', {
       ...NAMI,
       relatives: [
-        { relative: GARP, kind: 'GRANDPARENT' },
-        { relative: { ...LUFFY, gender: 'FEMALE' }, kind: 'SIBLING' },
-        { relative: { id: 'c9', romaji: 'Oda' }, kind: 'PARENT' },
+        { relative: GARP, kind: 'GRANDPARENT', discovered: { chapter: CHAPTER_1 } },
+        { relative: { ...LUFFY, gender: 'FEMALE' }, kind: 'SIBLING', discovered: {} },
+        { relative: { id: 'c9', romaji: 'Oda' }, kind: 'PARENT', discovered: {} },
       ],
     });
     fixture.detectChanges();
@@ -388,6 +495,8 @@ describe('the card of a character', () => {
       '/content/species/s1',
     );
     expect(text('card-species')).toContain('Human');
+    expect(text('card-species')).toContain('Discovered: Ch. 8');
+    expect(text('card-species')).not.toContain('Former');
     expect(text('card-epithets')).toContain('Cat Burglar');
     expect(text('card-aliases')).toContain('Miss All Sunday');
   });
@@ -627,6 +736,15 @@ describe('the editor of a character', () => {
     await settle();
   }
 
+  /** Picks in the search box of this id, as the search would. */
+  async function pickIn(id: string, reference: object): Promise<void> {
+    const picker = harness
+      .routeDebugElement!.queryAll(By.directive(RelationPicker))
+      .find((candidate) => (candidate.componentInstance as RelationPicker).inputId() === id);
+    (picker!.componentInstance as RelationPicker).picked.emit(reference as typeof HUMAN);
+    await settle();
+  }
+
   async function save(): Promise<void> {
     root.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }));
     await settle();
@@ -678,9 +796,9 @@ describe('the editor of a character', () => {
       status: 'ALIVE',
       gender: 'FEMALE',
       birthday: '--07-03',
-      species: ['s1'],
+      species: [{ species: 's1' }],
       epithets: [{ text: { en: 'Cat Burglar' } }],
-      aliases: ['Miss Nami'],
+      aliases: [{ alias: 'Miss Nami' }],
     });
     request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
     await settle();
@@ -689,37 +807,58 @@ describe('the editor of a character', () => {
   it('offers a rank only for a Navy affiliation, and saves the membership with it', async () => {
     await write('draft-romaji', 'Koby');
     await click('part-add', 1);
-    expect(root.querySelector('#draft-affiliations-0-marineRank')).toBeNull();
+    await click('sub-part-add');
+    expect(root.querySelector('#draft-affiliations-0-periods-0-marineRank')).toBeNull();
 
     await pickAffiliation(CREW);
-    expect(root.querySelector('#draft-affiliations-0-marineRank')).toBeNull();
+    expect(root.querySelector('#draft-affiliations-0-periods-0-marineRank')).toBeNull();
 
     await pickAffiliation(NAVY);
-    await choose('draft-affiliations-0-marineRank', 'VICE_ADMIRAL');
-    await write('draft-affiliations-0-role-en', ' Hero ');
+    await choose('draft-affiliations-0-periods-0-marineRank', 'VICE_ADMIRAL');
+    await write('draft-affiliations-0-periods-0-role-en', ' Hero ');
 
     await save();
     const request = httpTesting.expectOne(API);
     expect(request.request.body).toMatchObject({
       affiliations: [
-        { affiliation: 'a1', role: { en: 'Hero' }, marineRank: 'VICE_ADMIRAL', former: false },
+        { affiliation: 'a1', periods: [{ role: { en: 'Hero' }, marineRank: 'VICE_ADMIRAL' }] },
       ],
     });
     request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
     await settle();
   });
 
-  it('saves a Devil Fruit with whether its user is a former one', async () => {
+  it('offers no point of a window before the first appearance, then only on its axes', async () => {
+    await click('part-add', 2);
+    expect(root.querySelector('[data-testid="window-no-axis"]')).not.toBeNull();
+    expect(root.querySelector('#draft-devilFruits-0-discovered')).toBeNull();
+
+    await pickIn('draft-firstAppearance', CHAPTER_1);
+    expect(root.querySelector('[data-testid="window-no-axis"]')).toBeNull();
+    expect(root.querySelector<HTMLInputElement>('#draft-devilFruits-0-discovered')!.disabled).toBe(
+      false,
+    );
+    expect(
+      root.querySelector<HTMLInputElement>('#draft-devilFruits-0-discovered-episode')!.disabled,
+    ).toBe(true);
+  });
+
+  it('saves a Devil Fruit with its window, an end opened on demand', async () => {
     await write('draft-romaji', 'Portgas D. Ace');
+    await pickIn('draft-firstAppearance', CHAPTER_1);
     await click('part-add', 2);
     await pickFruit(MERA);
-    root.querySelector<HTMLInputElement>('#draft-devilFruits-0-former')!.click();
-    await settle();
+    await pickIn('draft-devilFruits-0-discovered', CHAPTER_1);
+    expect(root.querySelector('#draft-devilFruits-0-ended')).toBeNull();
+    await click('window-add-end');
+    await pickIn('draft-devilFruits-0-ended', CHAPTER_8);
 
     await save();
     const request = httpTesting.expectOne(API);
     expect(request.request.body).toMatchObject({
-      devilFruits: [{ devilFruit: 'f1', former: true }],
+      devilFruits: [
+        { devilFruit: 'f1', discovered: { chapter: 'ch1' }, ended: { chapter: 'ch8' } },
+      ],
     });
     request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
     await settle();
@@ -750,14 +889,18 @@ describe('the editor of a character', () => {
     await write('draft-romaji', 'Koby');
     await click('part-add', 1);
     await pickAffiliation(NAVY);
-    await choose('draft-affiliations-0-marineRank', 'ADMIRAL');
+    await click('sub-part-add');
+    await choose('draft-affiliations-0-periods-0-marineRank', 'ADMIRAL');
 
     await save();
     httpTesting.expectOne(API).flush(
       {
         errorCode: 'CONTENT_VALUE_INVALID',
         errors: [
-          { field: 'affiliations[0].marineRank', message: 'is allowed only in a Navy affiliation' },
+          {
+            field: 'affiliations[0].periods[0].marineRank',
+            message: 'is allowed only in a Navy affiliation',
+          },
         ],
       },
       { status: 422, statusText: 'Unprocessable Entity' },
@@ -828,6 +971,109 @@ describe('the editor of a character', () => {
 
     expect(fieldErrors()).toEqual([expected]);
     expect(TestBed.inject(MascotService).message().text).toContain('Some entry of a list');
+  });
+
+  it('asks review for the discovery of every entry, and for a period of every membership', async () => {
+    await click('part-add', 0);
+    await pickSpecies();
+    await click('part-add', 1);
+    await pickAffiliation(CREW);
+    expect(checkLabels()).toContain('!Species 1 · discoveredrequired');
+    expect(checkLabels()).toContain('!Membership 1 · at least one periodrequired');
+
+    await click('sub-part-add');
+    expect(checkLabels()).toContain('!Membership 1 · at least one periodrequired');
+
+    await write('draft-affiliations-0-periods-0-role-en', 'Sniper');
+    expect(checkLabels()).toContain('✓Membership 1 · at least one periodcomplete');
+    expect(checkLabels()).toContain('!Membership 1 · period 1 · discoveredrequired');
+  });
+
+  it('says under the picker why a point of a period is refused, and the Den Den Mushi says where', async () => {
+    await write('draft-romaji', 'Usopp');
+    await pickIn('draft-firstAppearance', CHAPTER_1);
+    await click('part-add', 1);
+    await pickAffiliation(CREW);
+    await click('sub-part-add');
+    await pickIn('draft-affiliations-0-periods-0-discovered', CHAPTER_8);
+    await click('sub-part-add');
+    await pickIn('draft-affiliations-0-periods-1-discovered', CHAPTER_1);
+
+    await save();
+    httpTesting.expectOne(API).flush(
+      {
+        errorCode: 'CONTENT_VALUE_INVALID',
+        errors: [
+          {
+            field: 'affiliations[0].periods[1]',
+            message: 'must not start before a previous period on the chapter axis',
+          },
+        ],
+      },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    await settle();
+
+    expect(fieldErrors()).toEqual(['A period cannot start before a previous one.']);
+    expect(TestBed.inject(MascotService).message().text).toContain('A point of the story');
+  });
+
+  it('says under the picker that a point must keep to the axes of the first appearance', async () => {
+    await write('draft-romaji', 'Nami');
+    await pickIn('draft-firstAppearance', CHAPTER_1);
+    await click('part-add', 5);
+    await write('draft-aliases-0-alias', 'Miss All Sunday');
+    await pickIn('draft-aliases-0-discovered', CHAPTER_8);
+
+    await save();
+    httpTesting.expectOne(API).flush(
+      {
+        errorCode: 'CONTENT_VALUE_INVALID',
+        errors: [
+          {
+            field: 'aliases[0].discovered.chapter',
+            message: 'must not be before the first appearance',
+          },
+        ],
+      },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
+    await settle();
+
+    expect(fieldErrors()).toEqual(['It cannot come before the first appearance.']);
+  });
+
+  it('keeps every value of a period written in a row, before the page has drawn the first', async () => {
+    await write('draft-romaji', 'Koby');
+    await pickIn('draft-firstAppearance', CHAPTER_1);
+    await click('part-add', 1);
+    await pickAffiliation(NAVY);
+    await click('sub-part-add');
+
+    // The point picked, then the rank chosen at once: the second write must not undo the first.
+    const picker = harness
+      .routeDebugElement!.queryAll(By.directive(RelationPicker))
+      .find(
+        (candidate) =>
+          (candidate.componentInstance as RelationPicker).inputId() ===
+          'draft-affiliations-0-periods-0-discovered',
+      )!;
+    (picker.componentInstance as RelationPicker).picked.emit(CHAPTER_1);
+    const rank = root.querySelector<HTMLSelectElement>(
+      '#draft-affiliations-0-periods-0-marineRank',
+    )!;
+    rank.value = 'VICE_ADMIRAL';
+    rank.dispatchEvent(new Event('change'));
+    await settle();
+
+    await save();
+    const request = httpTesting.expectOne(API);
+    expect(request.request.body.affiliations[0].periods[0]).toMatchObject({
+      discovered: { chapter: 'ch1' },
+      marineRank: 'VICE_ADMIRAL',
+    });
+    request.flush({ id: ID, onlineVersionNumber: null, versions: [] });
+    await settle();
   });
 
   it('says a species refused can no longer be chosen', async () => {

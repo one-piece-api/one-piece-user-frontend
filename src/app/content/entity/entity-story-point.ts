@@ -82,6 +82,25 @@ export function storyItemLabel(
   return translate(PART_KEYS[part], { item: storyItemText(item, language) });
 }
 
+/**
+ * A story point in a few words, by numbers only - "Cap. 23 · Ep. 9" - where a line has no room
+ * for titles (the window of a list entry); `null` where it names nothing.
+ */
+export function storyPointShortLabel(translate: Translate, value: unknown): string | null {
+  const point = storyPointOf(value);
+  const words = STORY_POINT_PARTS.flatMap((part) => {
+    const item = point[part];
+    return item
+      ? [
+          translate(PART_KEYS[part], {
+            item: typeof item.number === 'number' ? String(item.number) : item.id,
+          }),
+        ]
+      : [];
+  });
+  return words.length ? words.join(' · ') : null;
+}
+
 /** The texts a comparison shows of a story point: each part's number and title. */
 export type StoryPointTexts = Partial<Record<StoryPointPart, string>>;
 

@@ -1,6 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
+import { ENTITY } from './entity/entities';
 import { blockWords, type BlockLink } from './block-words';
 import { actionLabelKey, type Version } from './content.model';
 
@@ -27,6 +28,8 @@ interface NoticeView {
 })
 export class BlockedNotice {
   private readonly transloco = inject(TranslocoService);
+  /** The kind of content, where a page of one shows the version: names a field a block points to. */
+  private readonly entity = inject(ENTITY, { optional: true });
 
   readonly version = input.required<Version<unknown>>();
 
@@ -34,7 +37,7 @@ export class BlockedNotice {
     this.transloco.activeLang();
     const { blockedActions, status, number } = this.version();
     return blockedActions.map((blocked) => {
-      const words = blockWords(this.transloco, blocked);
+      const words = blockWords(this.transloco, blocked, this.entity);
       return {
         action: blocked.action,
         actionLabel: this.transloco.translate(actionLabelKey(blocked.action, status), {

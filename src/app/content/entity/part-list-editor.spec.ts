@@ -106,13 +106,14 @@ describe('the editor of a list of parts', () => {
     expect([firstUp.disabled, secondUp.disabled]).toEqual([true, false]);
     expect([firstDown.disabled, secondDown.disabled]).toEqual([false, true]);
 
+    // The page never hands the entries back here: each click builds on the editor's last write.
     secondUp.click();
     firstDown.click();
     all('part-remove')[0].click();
 
     expect(changes.map((change) => change.entries.map(({ key }) => key))).toEqual([
       ['b', 'a'],
-      ['b', 'a'],
+      ['a', 'b'],
       ['b'],
     ]);
     expect(changes.every(({ touched }) => touched === null)).toBe(true);

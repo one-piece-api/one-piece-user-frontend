@@ -1,20 +1,33 @@
 <section
-  class="grid gap-2.5 rounded-[14px] bg-parchment-200 px-4 py-3.5"
-  [attr.data-testid]="'draft-' + field().key"
+  [class]="
+    nested()
+      ? 'grid gap-2 rounded-[12px] bg-parchment-200/70 px-3 py-2.5'
+      : 'grid gap-2.5 rounded-[14px] bg-parchment-200 px-4 py-3.5'
+  "
+  [attr.data-testid]="ids()"
 >
   <div class="flex flex-wrap items-center justify-between gap-2.5">
-    <h2 class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase">
-      {{ 'content.editor.' + field().key + '.label' | transloco }}
+    <h2
+      [class]="
+        nested()
+          ? 'font-heading text-[11px] font-extrabold tracking-widest text-ocean-500/70 uppercase'
+          : 'font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase'
+      "
+    >
+      {{ 'content.editor.' + labels() + '.label' | transloco }}
     </h2>
     <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-      'content.editor.' + field().key + '.hint' | transloco
+      'content.editor.' + labels() + '.hint' | transloco
     }}</span>
   </div>
   @for (entry of views(); track entry.key; let index = $index) {
-    <div class="grid gap-2 rounded-[14px] bg-white/60 px-3 py-2.5" data-testid="part-entry">
+    <div
+      class="grid gap-2 rounded-[14px] bg-white/60 px-3 py-2.5"
+      [attr.data-testid]="testId('part-entry')"
+    >
       <div class="flex items-center justify-between gap-2">
         <span class="font-display text-[13px] font-bold text-ocean-900">
-          {{ 'content.editor.' + field().key + '.entry' | transloco: { position: entry.position } }}
+          {{ 'content.editor.' + labels() + '.entry' | transloco: { position: entry.position } }}
         </span>
         <span class="flex gap-1.5">
           <button
@@ -23,7 +36,7 @@
             [disabled]="entry.first"
             [attr.aria-label]="'content.editor.partList.up' | transloco"
             [title]="'content.editor.partList.up' | transloco"
-            data-testid="part-up"
+            [attr.data-testid]="testId('part-up')"
             (click)="move(index, -1)"
           >
             ↑
@@ -34,7 +47,7 @@
             [disabled]="entry.last"
             [attr.aria-label]="'content.editor.partList.down' | transloco"
             [title]="'content.editor.partList.down' | transloco"
-            data-testid="part-down"
+            [attr.data-testid]="testId('part-down')"
             (click)="move(index, 1)"
           >
             ↓
@@ -42,7 +55,7 @@
           <button
             type="button"
             class="cursor-pointer rounded-lg bg-flag-100 px-2.5 py-1 font-heading text-xs font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
-            data-testid="part-remove"
+            [attr.data-testid]="testId('part-remove')"
             (click)="remove(index)"
           >
             ✕ {{ 'content.editor.partList.remove' | transloco }}
@@ -61,7 +74,7 @@
                       ? 'font-heading text-[11px] font-extrabold text-ocean-500'
                       : 'sr-only'
                   "
-                  >{{ 'content.editor.' + field().key + '.' + view.part.key | transloco }}</label
+                  >{{ 'content.editor.' + labels() + '.' + view.part.key | transloco }}</label
                 >
                 @if (view.source; as source) {
                   <app-relation-picker
@@ -70,7 +83,7 @@
                     [value]="box.reference"
                     [labelOf]="view.labelOf"
                     [placeholder]="
-                      i18n() + '.placeholder.' + field().key + '.' + view.part.key | transloco
+                      i18n() + '.placeholder.' + labels() + '.' + view.part.key | transloco
                     "
                     [invalid]="!!(box.error ?? entry.error)"
                     (picked)="write(index, box, $event)"
@@ -85,7 +98,7 @@
                       ? 'font-heading text-[11px] font-extrabold text-ocean-500'
                       : 'sr-only'
                   "
-                  >{{ 'content.editor.' + field().key + '.' + view.part.key | transloco }}</label
+                  >{{ 'content.editor.' + labels() + '.' + view.part.key | transloco }}</label
                 >
                 <select
                   #choiceInput
@@ -116,7 +129,7 @@
                     (change)="write(index, box, flagInput.checked)"
                   />
                   <span class="font-heading text-[13px] font-extrabold text-ocean-800">{{
-                    'content.editor.' + field().key + '.' + view.part.key | transloco
+                    'content.editor.' + labels() + '.' + view.part.key | transloco
                   }}</span>
                 </label>
               }
@@ -129,7 +142,7 @@
                       : 'sr-only'
                   "
                   >{{
-                    'content.editor.' + field().key + '.' + view.part.key
+                    'content.editor.' + labels() + '.' + view.part.key
                       | transloco: { language: box.language?.toUpperCase() }
                   }}</label
                 >
@@ -143,7 +156,7 @@
                   [value]="box.text"
                   [attr.maxlength]="view.maxLength"
                   [placeholder]="
-                    i18n() + '.placeholder.' + field().key + '.' + view.part.key | transloco
+                    i18n() + '.placeholder.' + labels() + '.' + view.part.key | transloco
                   "
                   [attr.aria-invalid]="box.error ? true : null"
                   (input)="write(index, box, textInput.value)"
@@ -161,6 +174,111 @@
           </div>
         }
       }
+      @for (sub of entry.lists; track sub.list.key) {
+        <app-part-list-editor
+          [field]="sub.list"
+          [i18n]="i18n()"
+          [entries]="sub.entries"
+          [languages]="languages()"
+          [errors]="sub.errors"
+          [axes]="axes()"
+          [labelPath]="sub.labelPath"
+          [context]="sub.context"
+          [idPrefix]="sub.idPrefix"
+          (changed)="writeNested(index, sub.list, $event)"
+        />
+      }
+      @if (entry.windowed) {
+        <div
+          class="grid gap-2 border-t border-dashed border-ocean-800/15 pt-2"
+          data-testid="part-window"
+        >
+          @if (noAxis() && !entry.anyPoint) {
+            <p
+              class="font-heading text-[12px] font-bold text-treasure-700"
+              data-testid="window-no-axis"
+            >
+              {{ 'content.editor.window.noFirstAppearance' | transloco }}
+            </p>
+          } @else {
+            @for (
+              point of entry.endShown ? [entry.discovered, entry.ended] : [entry.discovered];
+              track point.key
+            ) {
+              <div [attr.data-testid]="'window-' + point.key">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-heading text-[11px] font-extrabold text-ocean-500">{{
+                    'content.editor.window.' + point.key | transloco
+                  }}</span>
+                  @if (point.key === 'ended') {
+                    <button
+                      type="button"
+                      class="cursor-pointer rounded-lg bg-white px-2 py-0.5 font-heading text-[11px] font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
+                      data-testid="window-remove-end"
+                      (click)="removeEnd(index, entry.key)"
+                    >
+                      ✕ {{ 'content.editor.window.removeEnd' | transloco }}
+                    </button>
+                  }
+                </div>
+                <div
+                  class="mt-1 grid grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] gap-2"
+                >
+                  @for (picker of point.pickers; track picker.axis) {
+                    <div>
+                      <label
+                        [for]="picker.id"
+                        class="font-heading text-[10px] font-extrabold text-ocean-500/70"
+                        >{{ 'content.storyPoint.' + picker.axis + 'Medium' | transloco }}</label
+                      >
+                      <app-relation-picker
+                        [inputId]="picker.id"
+                        [source]="picker.source"
+                        [value]="picker.value"
+                        [labelOf]="axisLabelOf[picker.axis]"
+                        [placeholder]="'content.storyPoint.placeholder' | transloco"
+                        [invalid]="picker.invalid"
+                        [disabled]="picker.disabled"
+                        (picked)="writePoint(index, point.key, picker.axis, $event)"
+                      />
+                      @if (picker.disabled) {
+                        <p class="mt-0.5 font-heading text-[11px] font-bold text-ocean-500/60">
+                          {{ 'content.editor.window.axisMissing.' + picker.axis | transloco }}
+                        </p>
+                      } @else if (picker.offAxis) {
+                        <p
+                          class="mt-0.5 font-heading text-[11px] font-bold text-flag-700"
+                          data-testid="window-off-axis"
+                        >
+                          {{ 'content.editor.window.offAxis.' + picker.axis | transloco }}
+                        </p>
+                      }
+                    </div>
+                  }
+                </div>
+                @if (point.error; as error) {
+                  <p
+                    class="mt-1 font-heading text-sm font-bold text-flag-700"
+                    data-testid="field-error"
+                  >
+                    {{ error }}
+                  </p>
+                }
+              </div>
+            }
+            @if (!entry.endShown) {
+              <button
+                type="button"
+                class="justify-self-start cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 hover:bg-ocean-100"
+                data-testid="window-add-end"
+                (click)="openEnd(entry.key)"
+              >
+                + {{ 'content.editor.window.addEnd' | transloco }}
+              </button>
+            }
+          }
+        </div>
+      }
       @if (entry.error; as error) {
         <p class="font-heading text-sm font-bold text-flag-700" data-testid="field-error">
           {{ error }}
@@ -169,23 +287,27 @@
     </div>
   } @empty {
     <p class="font-heading text-[13px] font-bold text-ocean-500/60">
-      {{ 'content.editor.' + field().key + '.empty' | transloco }}
+      {{ 'content.editor.' + labels() + '.empty' | transloco }}
     </p>
   }
   <div class="flex flex-wrap items-center gap-2.5">
     <button
       type="button"
-      class="cursor-pointer rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800 disabled:pointer-events-none disabled:opacity-40"
+      [class]="
+        nested()
+          ? 'cursor-pointer rounded-[11px] bg-white px-3 py-1.5 font-display text-[13px] font-bold text-ocean-900 hover:bg-ocean-100 disabled:pointer-events-none disabled:opacity-40'
+          : 'cursor-pointer rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800 disabled:pointer-events-none disabled:opacity-40'
+      "
       [disabled]="full()"
-      data-testid="part-add"
+      [attr.data-testid]="testId('part-add')"
       (click)="add()"
     >
-      + {{ 'content.editor.' + field().key + '.add' | transloco }}
+      + {{ 'content.editor.' + labels() + '.add' | transloco }}
     </button>
     @if (full()) {
       <span
         class="font-heading text-[11px] font-extrabold text-ocean-500/60"
-        data-testid="part-full"
+        [attr.data-testid]="testId('part-full')"
         >{{ 'content.editor.partList.full' | transloco: { max: field().maxEntries } }}</span
       >
     }

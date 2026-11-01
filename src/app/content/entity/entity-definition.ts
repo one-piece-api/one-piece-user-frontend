@@ -209,8 +209,15 @@ export interface MonthDayField {
   readonly key: string;
 }
 
-/** The kinds a part of a `partList` entry may have: values of one entry, never lists or files. */
-export type PartField = TextField | LocalizedTextField | RelationField | ChoiceField | BooleanField;
+/** The kinds of one value a part of a `partList` entry may have: never a file. */
+export type ValuePartField =
+  TextField | LocalizedTextField | RelationField | ChoiceField | BooleanField | StoryPointField;
+
+/**
+ * The kinds a part of a `partList` entry may have: one value, or a list of entries of its own -
+ * a membership's periods - one level deep only: a nested list holds values, never lists.
+ */
+export type PartField = ValuePartField | PartListField;
 
 /**
  * An ordered list of entries inside the version, each made of `parts` - fields of the kinds
@@ -218,6 +225,7 @@ export type PartField = TextField | LocalizedTextField | RelationField | ChoiceF
  * its own kind (`entity-part-list.ts`). A list of one part that is not localized travels as
  * bare values (`["Sogeking"]`, `[id]`); any other as one object per entry, keyed by part, a
  * localized part being a map of language to text (`{ text: { it, en } }`). Never required.
+ * A list may also be a part of another's entries (`periods` of a membership), one level deep.
  */
 export interface PartListField {
   readonly kind: 'partList';
@@ -237,6 +245,13 @@ export interface PartListField {
    * of several parts, which the list cannot work out by itself - a membership's affiliation.
    */
   readonly filterBy?: { readonly key: string; readonly part: string };
+  /**
+   * Every entry carries a window on the reader axis (workflow 3.7.2): `discovered`, asked for
+   * by review, and `ended`, optional - each a story point sent on the entry itself
+   * (`{ species, discovered, ended }`). The kind adds the two parts (`partsOf`), so `parts`
+   * never lists them; whether an entry is former is worked out from `ended`, never stored.
+   */
+  readonly windowed?: true;
 }
 
 /** One field of an entity: its kind says how it is read, written, checked and compared. */

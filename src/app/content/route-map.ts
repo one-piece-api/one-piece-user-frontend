@@ -2,6 +2,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CurrentUserService } from '../identity/current-user';
+import { ENTITY } from './entity/entities';
 import { blockWords } from './block-words';
 import {
   STATUS_LABEL_KEY,
@@ -232,6 +233,8 @@ interface ColumnView {
 })
 export class RouteMap {
   private readonly transloco = inject(TranslocoService);
+  /** The kind of content, where a page of one shows the version: names a field a block points to. */
+  private readonly entity = inject(ENTITY, { optional: true });
   private readonly currentUser = inject(CurrentUserService);
 
   /** The version; one in full also says which of its allowed actions the content refuses. */
@@ -353,7 +356,7 @@ export class RouteMap {
         });
         const blocked = blockOf(version, node.transition);
         if (blocked) {
-          const words = blockWords(this.transloco, blocked);
+          const words = blockWords(this.transloco, blocked, this.entity);
           return {
             ...base,
             blocked: true,

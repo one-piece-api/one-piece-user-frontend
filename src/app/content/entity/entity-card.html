@@ -1,3 +1,21 @@
+<!-- The value parts of a list entry, with links, in a line: "Mugiwara · Cecchino". -->
+<ng-template #entryParts let-parts>
+  @for (part of parts; track part.key; let last = $last) {
+    @if (part.text === null) {
+      <span class="text-treasure-700">{{
+        'content.card.notWritten' | transloco: { language: languageLabel() }
+      }}</span>
+    } @else if (part.link.length) {
+      <a [routerLink]="part.link" class="text-ocean-700 hover:text-ocean-800">{{ part.text }}</a>
+    } @else {
+      <span class="text-ocean-950">{{ part.text }}</span>
+    }
+    @if (!last) {
+      <span class="text-ocean-500"> · </span>
+    }
+  }
+</ng-template>
+
 <div class="flow-root rounded-[19px] bg-white px-4.5 pt-4 pb-1 ring-2 ring-card-line ring-inset">
   @if (image(); as image) {
     <app-entity-image-frame
@@ -210,21 +228,39 @@
                   class="rounded-xl bg-parchment-200/60 px-3 py-1 font-heading text-[15px] font-extrabold wrap-anywhere"
                   data-testid="card-part-entry"
                 >
-                  @for (part of entry.parts; track part.key; let last = $last) {
-                    @if (part.text === null) {
-                      <span class="text-treasure-700">{{
-                        'content.card.notWritten' | transloco: { language: languageLabel() }
-                      }}</span>
-                    } @else if (part.link.length) {
-                      <a [routerLink]="part.link" class="text-ocean-700 hover:text-ocean-800">{{
-                        part.text
-                      }}</a>
-                    } @else {
-                      <span class="text-ocean-950">{{ part.text }}</span>
-                    }
-                    @if (!last) {
-                      <span class="text-ocean-500"> · </span>
-                    }
+                  <ng-container
+                    *ngTemplateOutlet="entryParts; context: { $implicit: entry.parts }"
+                  />
+                  @if (entry.former; as former) {
+                    <span
+                      class="ml-1.5 rounded-full bg-ocean-100 px-2 py-0.5 align-middle text-[11px] text-ocean-700"
+                      data-testid="card-part-former"
+                      >{{ former }}</span
+                    >
+                  }
+                  @if (entry.window; as window) {
+                    <span
+                      class="block text-xs font-bold text-ocean-500"
+                      data-testid="card-part-window"
+                      >{{ window }}</span
+                    >
+                  }
+                  @for (sub of entry.nested; track sub.position) {
+                    <span
+                      class="mt-1 block border-l-2 border-ocean-800/15 pl-2 text-[13px]"
+                      data-testid="card-part-nested"
+                    >
+                      <ng-container
+                        *ngTemplateOutlet="entryParts; context: { $implicit: sub.parts }"
+                      />
+                      @if (sub.window; as window) {
+                        <span
+                          class="block text-xs font-bold text-ocean-500"
+                          data-testid="card-part-window"
+                          >{{ window }}</span
+                        >
+                      }
+                    </span>
                   }
                 </li>
               }

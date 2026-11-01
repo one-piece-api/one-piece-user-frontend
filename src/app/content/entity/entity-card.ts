@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, linkedSignal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -9,7 +10,16 @@ import { naturalKeyParts, type PartField, type PartListField } from './entity-de
 import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { monthDayLabel, monthDayOf, monthDayText } from './entity-month-day';
-import { choiceLabelKey, itemsOf, localizedTextsOf, partValueOf } from './entity-part-list';
+import {
+  DISCOVERED_PART,
+  ENDED_PART,
+  choiceLabelKey,
+  isFormer,
+  isWindowPart,
+  itemsOf,
+  localizedTextsOf,
+  partValueOf,
+} from './entity-part-list';
 import { isReference, referenceLabel } from './entity-reference';
 import { countryName, releaseDateLabel, releasesInOrder } from './entity-release';
 import {
@@ -17,6 +27,7 @@ import {
   STORY_POINT_TARGETS,
   storyItemLabel,
   storyPointOf,
+  storyPointShortLabel,
 } from './entity-story-point';
 import { untitledOf } from './entity-title';
 import {
@@ -84,10 +95,17 @@ interface PartView {
   readonly link: readonly string[];
 }
 
-/** An entry of a list of parts: its parts with something in them, in the definition's order. */
+/**
+ * An entry of a list of parts: its parts with something in them, in the definition's order;
+ * where the list is `windowed`, its window in a line ("Scoperta: Cap. 23 — Fine: Cap. 332");
+ * the badge of a former entry; the entries of a nested list (a membership's periods).
+ */
 interface PartEntryView {
   readonly position: number;
   readonly parts: readonly PartView[];
+  readonly window: string | null;
+  readonly former: string | null;
+  readonly nested: readonly PartEntryView[];
 }
 
 /** A content this one points to, as the card shows it: a link to its page under a heading. */
@@ -114,7 +132,7 @@ interface RelationChip {
 @Component({
   selector: 'app-entity-card',
   templateUrl: './entity-card.html',
-  imports: [EntityImageFrame, RouterLink, TranslocoPipe],
+  imports: [EntityImageFrame, NgTemplateOutlet, RouterLink, TranslocoPipe],
 })
 export class EntityCard {
   private readonly transloco = inject(TranslocoService);
@@ -399,15 +417,68 @@ export class EntityCard {
         ? [
             {
               field: field.key,
-              entries: itemsOf(this.body()[field.key]).map<PartEntryView>((item, index) => ({
-                position: index + 1,
-                parts: field.parts.flatMap((part) => this.partView(field, part, item, language)),
-              })),
+              entries: itemsOf(this.body()[field.key]).map((item, index) =>
+                this.entryView(
+                  field,
+                  item,
+                  index,
+                  language,
+                  `${this.entity.i18n}.former.${field.key}`,
+                ),
+              ),
             },
           ]
         : [],
     );
   });
+
+  /**
+   * An entry as the card shows it: its value parts, its window, its badge when former - worded
+   * by `formerKey` (`<i18n>.former.affiliations`: "Ex membro"), none for a nested entry - and
+   * its nested entries.
+   */
+  private entryView(
+    field: PartListField,
+    item: unknown,
+    index: number,
+    language: string,
+    formerKey: string | null,
+  ): PartEntryView {
+    const valueParts = field.parts.filter(
+      (part) => part.kind !== 'partList' && !isWindowPart(part),
+    );
+    const nested = field.parts.flatMap((part) =>
+      part.kind === 'partList'
+        ? itemsOf(partValueOf(field, item, part)).map((sub, subIndex) =>
+            this.entryView(part, sub, subIndex, language, null),
+          )
+        : [],
+    );
+    return {
+      position: index + 1,
+      parts: valueParts.flatMap((part) => this.partView(field, part, item, language)),
+      window: this.windowLine(field, item),
+      former: formerKey && isFormer(field, item) ? this.transloco.translate(formerKey) : null,
+      nested,
+    };
+  }
+
+  /** "Scoperta: Cap. 23 · Ep. 9 — Fine: Cap. 332": the window of an entry; `null` for none. */
+  private windowLine(field: PartListField, item: unknown): string | null {
+    if (!field.windowed) {
+      return null;
+    }
+    const translate = (key: string, params: Record<string, string>) =>
+      this.transloco.translate(key, params);
+    return (
+      [DISCOVERED_PART, ENDED_PART]
+        .flatMap((part) => {
+          const point = storyPointShortLabel(translate, partValueOf(field, item, part));
+          return point ? [translate(`content.card.window.${part.key}`, { point })] : [];
+        })
+        .join(' — ') || null
+    );
+  }
 
   /**
    * One part of an entry as the card shows it: a content pointed to by its name and linked, a
@@ -447,6 +518,9 @@ export class EntityCard {
           : [];
       case 'text':
         return textOf(value).trim() ? view(textOf(value).trim()) : [];
+      default:
+        // A story point or a nested list has a line of its own (`entryView`).
+        return [];
     }
   }
 

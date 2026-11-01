@@ -5,6 +5,7 @@ import {
   monthDayField,
   partListField,
   relationField,
+  storyPointField,
   textField,
   type EntityDefinition,
 } from '../content/entity/entity-definition';
@@ -77,3 +78,47 @@ export const CREW: EntityReference = {
   names: { en: 'Straw Hats' },
   kind: 'PIRATE_CREW',
 };
+
+/**
+ * An entity made up for the specs of the reader axis: lists whose entries have a window - one
+ * of bare texts, one whose entries hold a nested windowed list (memberships and their
+ * periods) - and the first appearance the windows keep to. Its i18n keys do not exist.
+ */
+export const CREWMATES: EntityDefinition = {
+  ...PEOPLE,
+  entityType: 'CREWMATE',
+  route: '/content/crewmates',
+  api: '/api/content/crewmates',
+  i18n: 'content.crewmates',
+  fields: [
+    textField('romaji', { maxLength: 100 }),
+    storyPointField('firstAppearance'),
+    localizedTextField('name', { maxLength: 100 }),
+    partListField('aliases', {
+      parts: [textField('alias', { maxLength: 100 })],
+      unique: 'alias',
+      windowed: true,
+    }),
+    partListField('memberships', {
+      parts: [
+        relationField('affiliation', { target: 'AFFILIATION' }),
+        partListField('periods', {
+          parts: [
+            localizedTextField('role', { maxLength: 100, optional: true }),
+            choiceField('rank', {
+              options: ['ADMIRAL', 'CAPTAIN'],
+              visibleWhen: { part: 'affiliation', field: 'kind', equals: 'NAVY' },
+            }),
+          ],
+          windowed: true,
+          maxEntries: 20,
+        }),
+      ],
+      unique: 'affiliation',
+    }),
+  ],
+};
+
+export const CHAPTER_1: EntityReference = { id: 'ch1', number: 1 };
+export const CHAPTER_8: EntityReference = { id: 'ch8', number: 8 };
+export const EPISODE_1: EntityReference = { id: 'ep1', number: 1 };

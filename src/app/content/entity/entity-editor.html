@@ -430,6 +430,7 @@
                 [entries]="list.entries"
                 [languages]="languageCodes()"
                 [errors]="list.errors"
+                [axes]="storyAxes()"
                 (changed)="setPartList(list.field.key, $event)"
               />
             }

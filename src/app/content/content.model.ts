@@ -127,11 +127,14 @@ export type BlockCause =
        * `subcategoryId`) `{ firstAppearanceChapterId, firstAppearanceChapterNumber }` or
        * `{ firstAppearanceEpisodeId, firstAppearanceEpisodeNumber }` and, for the bounty a
        * bounty replaces, `{ previousId, previousKey }`, for the character that holds a bounty
-       * `{ holderId, holderRomaji }`.
+       * `{ holderId, holderRomaji }` and, for a point of a window, `{ field, chapterId,
+       * chapterNumber }` or `{ field, episodeId, episodeNumber }` - `field` the point, e.g.
+       * `species[1].discovered`.
        */
       reason: 'RELATED_NOT_ONLINE';
       detail: Partial<Record<`${StoryRelation}Id`, string>> &
         Partial<Record<`${StoryRelation}Number`, number>> & {
+          field?: string;
           previousKey?: string;
           holderRomaji?: string;
           relativeRomaji?: string;
@@ -209,11 +212,21 @@ export type BlockCause =
       /** A bounty cannot go online when its previous one leads back to it, through the online chain. */
       reason: 'BOUNTY_CHAIN_CYCLE';
       detail: { previousId: string };
+    }
+  | {
+      /**
+       * A point of the reader axis breaks its rules on the numbers online - a chapter or an
+       * episode renumbered since the save: the part or period at fault (`field`, e.g.
+       * `affiliations[0].periods[1].discovered.chapter`) and the rule, as a save words it.
+       */
+      reason: 'STORY_POINT_OUT_OF_RANGE';
+      detail: { field: string; message: string };
     };
 
 /**
  * The relations a block can name: a saga, an arc, a volume, the chapter or episode of a first
- * appearance, the bounty a bounty replaces, the character that holds a bounty, the relative of a character.
+ * appearance, the bounty a bounty replaces, the character that holds a bounty, the relative of a character,
+ * the chapter or episode of a point of a window.
  */
 export const STORY_RELATIONS = [
   'saga',
@@ -224,6 +237,8 @@ export const STORY_RELATIONS = [
   'previous',
   'holder',
   'relative',
+  'chapter',
+  'episode',
 ] as const;
 export type StoryRelation = (typeof STORY_RELATIONS)[number];
 

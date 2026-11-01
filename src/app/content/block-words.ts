@@ -9,6 +9,9 @@ import {
   type StoryItems,
 } from './content.model';
 import { entityOf } from './entity/entities';
+import type { EntityDefinition } from './entity/entity-definition';
+import { pointRefusalKey } from './entity/point-refusals';
+import { refusedFieldWords } from './field-words';
 
 /** The section a fruit lives in - what a type that cannot be retired points to. */
 const FRUIT_ENTITY = 'DEVIL_FRUIT';
@@ -61,10 +64,18 @@ export interface BlockWords {
  * Words for why the content refuses an action. Which reasons exist is closed (the backend
  * names them), so each one is worded here - and an unknown one is not worded at all but
  * shown as the backend says it. An Adapter between the backend's reason and the page.
+ * `entity`, the kind of content refused, names in words a field the block points to - a
+ * point of a window; without it the field is named as the backend names it.
  */
-export function blockWords(transloco: TranslocoService, cause: BlockCause): BlockWords {
+export function blockWords(
+  transloco: TranslocoService,
+  cause: BlockCause,
+  entity: EntityDefinition | null = null,
+): BlockWords {
   const text = (key: string, params: Record<string, unknown> = {}) =>
     transloco.translate(`content.workflow.blocked.${key}`, params);
+  const fieldWords = (field: string) =>
+    entity ? refusedFieldWords(transloco, entity, field) : field;
   switch (cause.reason) {
     case 'TYPE_NOT_ONLINE': {
       const sentence = text('sentence.TYPE_NOT_ONLINE');
@@ -88,7 +99,11 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
     case 'RELATED_NOT_ONLINE': {
       const relation =
         STORY_RELATIONS.find((candidate) => `${candidate}Id` in cause.detail) ?? 'arc';
-      const sentence = text(`sentence.RELATED_NOT_ONLINE.${relation}`);
+      // A point of a window names its chapter or episode by number, and the point.
+      const sentence = text(`sentence.RELATED_NOT_ONLINE.${relation}`, {
+        number: cause.detail[`${relation}Number`] ?? '',
+        field: fieldWords(cause.detail.field ?? ''),
+      });
       return {
         note: text(`note.RELATED_NOT_ONLINE.${relation}`),
         sentence,
@@ -200,6 +215,19 @@ export function blockWords(transloco: TranslocoService, cause: BlockCause): Bloc
         links: [link],
         more: 0,
         titled: `${sentence} ${link.label}`,
+      };
+    }
+    case 'STORY_POINT_OUT_OF_RANGE': {
+      const sentence = text('sentence.STORY_POINT_OUT_OF_RANGE', {
+        field: fieldWords(cause.detail.field),
+        rule: transloco.translate(pointRefusalKey(cause.detail.message)),
+      });
+      return {
+        note: text('note.STORY_POINT_OUT_OF_RANGE'),
+        sentence,
+        links: [],
+        more: 0,
+        titled: sentence,
       };
     }
     case 'BOUNTY_CHAIN_CYCLE': {

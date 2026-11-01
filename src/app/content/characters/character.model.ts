@@ -1,6 +1,5 @@
 import { AFFILIATION_KINDS } from '../affiliations/affiliation.model';
 import {
-  booleanField,
   choiceField,
   choiceFilter,
   imageField,
@@ -75,9 +74,10 @@ export const RELATIVE_KINDS = [
   'SWORN_SIBLING',
 ] as const;
 
-/** The most epithets and aliases a character has - the backend's limits. */
+/** The most epithets, aliases and periods of a membership a character has - the backend's limits. */
 const MAX_EPITHETS = 20;
 const MAX_ALIASES = 20;
+const MAX_PERIODS = 20;
 
 /**
  * The Character: a person of the story, known by the romaji of its official name (plan D2).
@@ -103,25 +103,33 @@ export const CHARACTER: EntityDefinition = {
     partListField('species', {
       parts: [relationField('species', { target: 'SPECIES' })],
       unique: 'species',
+      windowed: true,
     }),
-    // A rank only where the affiliation is the Navy; the backend refuses it elsewhere (D10).
+    // A membership is a sequence of periods, each with its role and window (ADR-0011 of
+    // content-service); a rank only where the affiliation is the Navy, refused elsewhere (D10).
     partListField('affiliations', {
       parts: [
         relationField('affiliation', { target: 'AFFILIATION' }),
-        localizedTextField('role', { maxLength: 100, optional: true }),
-        choiceField('marineRank', {
-          options: MARINE_RANKS,
-          visibleWhen: { part: 'affiliation', field: 'kind', equals: 'NAVY' },
+        partListField('periods', {
+          parts: [
+            localizedTextField('role', { maxLength: 100, optional: true }),
+            choiceField('marineRank', {
+              options: MARINE_RANKS,
+              visibleWhen: { part: 'affiliation', field: 'kind', equals: 'NAVY' },
+            }),
+          ],
+          windowed: true,
+          maxEntries: MAX_PERIODS,
         }),
-        booleanField('former'),
       ],
       unique: 'affiliation',
       filterBy: { key: 'affiliation', part: 'affiliation' },
     }),
     // At most one current user per fruit, except the SMILE ones; checked on publish (D12).
     partListField('devilFruits', {
-      parts: [relationField('devilFruit', { target: 'DEVIL_FRUIT' }), booleanField('former')],
+      parts: [relationField('devilFruit', { target: 'DEVIL_FRUIT' })],
       unique: 'devilFruit',
+      windowed: true,
       filterBy: { key: 'devilFruit', part: 'devilFruit' },
     }),
     // A pair is linked once, by one of the two; the other side reads it as `relativesOf` (D13).
@@ -134,17 +142,20 @@ export const CHARACTER: EntityDefinition = {
         }),
       ],
       unique: 'relative',
+      windowed: true,
     }),
     storyPointField('firstAppearance'),
     localizedTextField('name', { maxLength: 100 }),
     partListField('epithets', {
       parts: [localizedTextField('text', { maxLength: 100 })],
       maxEntries: MAX_EPITHETS,
+      windowed: true,
     }),
     partListField('aliases', {
       parts: [textField('alias', { maxLength: 100 })],
       maxEntries: MAX_ALIASES,
       unique: 'alias',
+      windowed: true,
     }),
     localizedTextField('description', { maxLength: 2000, rows: 8 }),
   ],

@@ -8,9 +8,9 @@ import { MascotService } from '../shared/mascot/mascot';
 import { ConfirmDialog } from '../shared/ui/confirm-dialog';
 import type { VersionAction, VersionSummary } from './content.model';
 import { blockWords } from './block-words';
-import { draftFieldKey } from './entity/entity-body';
 import { entityLabelKey } from './entity/entities';
-import { naturalKeyParts, type EntityDefinition } from './entity/entity-definition';
+import type { EntityDefinition } from './entity/entity-definition';
+import { refusedFieldWords } from './field-words';
 import { discardConfirmation, discardDoneMessage } from './discard-draft';
 import { RejectDialog } from './reject-dialog';
 import {
@@ -338,7 +338,7 @@ export class VersionActions {
       case 'blocked':
         return this.transloco.translate(key('blocked'), {
           reason: refusal.cause
-            ? blockWords(this.transloco, refusal.cause).titled
+            ? blockWords(this.transloco, refusal.cause, target.entity).titled
             : this.transloco.translate(key('blockedUnknown')),
         });
       case 'noSlug':
@@ -358,35 +358,4 @@ function replacedVersion(transition: VersionTransition, target: ActionTarget): n
   return transition.target === 'PUBLISHED' && online !== null && online !== target.version.number
     ? online
     : null;
-}
-
-/** "romaji", "nome EN", "epiteto 2 EN": a field named as the backend names it, in words. */
-export function refusedFieldWords(
-  transloco: TranslocoService,
-  entity: EntityDefinition,
-  field: string,
-): string {
-  const [first, name, , language] = (draftFieldKey(entity, field) ?? field).split('.');
-  if (entity.fields.some(({ key, kind }) => key === first && kind === 'partList')) {
-    // "epiteto 2 EN": an entry of a list, the language of its part where it has one.
-    return name === undefined
-      ? transloco.translate(`content.workflow.refused.field.${first}.list`)
-      : transloco.translate(`content.workflow.refused.field.${first}.entry`, {
-          position: Number(name) + 1,
-          language: language?.toUpperCase() ?? '',
-        });
-  }
-  if (name) {
-    return transloco.translate(`content.workflow.refused.field.${name}`, {
-      language: first.toUpperCase(),
-    });
-  }
-  // A field shared by every language has words of its own where the catalog has them.
-  const shared = `content.workflow.refused.field.${first}`;
-  const worded = transloco.translate(shared);
-  return worded !== shared
-    ? worded
-    : naturalKeyParts(entity)
-        .map((key) => transloco.translate(`content.workflow.refused.field.${key}`))
-        .join(', ');
 }
