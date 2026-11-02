@@ -79,7 +79,6 @@ describe('the character definition', () => {
     expect(CHARACTER.fields.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
       'romaji:text',
       'japaneseName:text',
-      'image:image',
       'status:choice',
       'gender:choice',
       'birthday:monthDay',
@@ -92,12 +91,29 @@ describe('the character definition', () => {
       'epithets:partList',
       'aliases:partList',
       'description:partList',
+      'gallery:partList',
     ]);
   });
 
-  it('takes a 4:5 portrait without asking for transparency, as the backend profile', () => {
-    expect(CHARACTER.fields.find((field) => field.kind === 'image')).toMatchObject({
-      hint: 'content.characters.imageHint',
+  it('has a gallery of 4:5 images without transparency, as the backend profile', () => {
+    const gallery = CHARACTER.fields.find((field) => field.key === 'gallery');
+
+    expect(gallery).toMatchObject({
+      kind: 'partList',
+      maxEntries: 20,
+      windowed: true,
+      opensAtFirstAppearance: { part: 'kind', equals: 'ASPETTO' },
+      mainPortrait: { part: 'kind', equals: 'ASPETTO' },
+    });
+    const parts = gallery?.kind === 'partList' ? gallery.parts : [];
+    expect(parts.map(({ key, kind }) => `${key}:${kind}`)).toEqual([
+      'image:image',
+      'kind:choice',
+      'caption:localizedText',
+    ]);
+    expect(parts[1]).toMatchObject({ options: ['ASPETTO', 'FORMA'] });
+    expect(parts[2]).toMatchObject({ maxLength: 100 });
+    expect(parts[0]).toMatchObject({
       profile: {
         width: 320,
         height: 400,
@@ -148,6 +164,7 @@ describe('the character definition', () => {
       'epithets',
       'aliases',
       'description',
+      'gallery',
     ]);
   });
 
@@ -734,6 +751,16 @@ describe('the editor of a character', () => {
     await settle();
   }
 
+  /** Shows a list's texts in one language, with the list's own switch. */
+  async function showIn(list: string, language: string): Promise<void> {
+    root
+      .querySelector<HTMLButtonElement>(
+        `[data-testid="draft-${list}"] [data-testid="part-language-${language}"]`,
+      )!
+      .click();
+    await settle();
+  }
+
   async function choose(id: string, value: string): Promise<void> {
     const select = root.querySelector<HTMLSelectElement>(`#${id}`)!;
     select.value = value;
@@ -810,6 +837,7 @@ describe('the editor of a character', () => {
     await click('part-add', 4);
     expect(checkLabels().join(' | ')).not.toContain('Epithet');
 
+    await showIn('epithets', 'it');
     await write('draft-epithets-0-text-it', 'Gatta ladra');
     const labels = checkLabels();
     expect(labels).toContain('✓Epithet 1 · Italianocomplete');
@@ -825,6 +853,7 @@ describe('the editor of a character', () => {
     await click('part-add', 0);
     await pickSpecies();
     await click('part-add', 4);
+    await showIn('epithets', 'en');
     await write('draft-epithets-0-text-en', ' Cat Burglar ');
     await click('part-add', 5);
     await click('part-add', 5);
@@ -856,6 +885,14 @@ describe('the editor of a character', () => {
 
     await pickAffiliation(NAVY);
     await choose('draft-affiliations-0-periods-0-marineRank', 'VICE_ADMIRAL');
+    // The periods show the language of the membership list: one switch for both.
+    expect(
+      root.querySelectorAll('[data-testid="draft-affiliations"] [data-testid="part-languages"]'),
+    ).toHaveLength(1);
+    await showIn('affiliations', 'it');
+    expect(root.querySelector('#draft-affiliations-0-periods-0-role-it')).not.toBeNull();
+    expect(root.querySelector('#draft-affiliations-0-periods-0-role-en')).toBeNull();
+    await showIn('affiliations', 'en');
     await write('draft-affiliations-0-periods-0-role-en', ' Hero ');
 
     await save();
@@ -1025,6 +1062,7 @@ describe('the editor of a character', () => {
     await click('sub-part-add');
     expect(checkLabels()).toContain('!Membership 1 · at least one periodrequired');
 
+    await showIn('affiliations', 'en');
     await write('draft-affiliations-0-periods-0-role-en', 'Sniper');
     expect(checkLabels()).toContain('✓Membership 1 · at least one periodcomplete');
     expect(checkLabels()).toContain('!Membership 1 · period 1 · discoveredrequired');

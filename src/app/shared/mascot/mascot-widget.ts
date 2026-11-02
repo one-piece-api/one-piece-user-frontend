@@ -25,6 +25,8 @@ const TIPS: Record<TipTopic, readonly string[]> = {
     'mascot.tips.content.tip3',
     'mascot.tips.content.tip4',
     'mascot.tips.content.tip5',
+    'mascot.tips.content.tip6',
+    'mascot.tips.content.tip7',
   ],
 };
 

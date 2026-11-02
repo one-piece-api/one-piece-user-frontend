@@ -137,6 +137,10 @@
         "tip6": {
           "text": "A belief the reader will see disproved gets a paragraph of its own: give it an end and only that sentence goes. Add, don't rewrite: one paragraph per arc.",
           "code": "paragraphs · one belief, one paragraph"
+        },
+        "tip7": {
+          "text": "In the gallery an Appearance shows how the character looks, a Form a transformation or a disguise. The main portrait is the last Appearance without an end, never a Form; an outgrown Appearance is not removed: give it an end.",
+          "code": "gallery · appearance / form"
         }
       }
     }
@@ -668,6 +672,12 @@
               "atFirstAppearance": "a disadvantages paragraph discovered at the first appearance",
               "count": "at least one disadvantages paragraph"
             }
+          },
+          "gallery": {
+            "list": "gallery",
+            "entry": "gallery image {{position}} {{language}}",
+            "atFirstAppearance": "a gallery Appearance discovered at the first appearance",
+            "count": "at least one gallery image"
           }
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
@@ -997,7 +1007,8 @@
         "holder": "Holder",
         "devilFruits": "Devil Fruits",
         "multipleUsers": "Multiple users",
-        "relatives": "Relatives"
+        "relatives": "Relatives",
+        "gallery": "Gallery"
       },
       "noFirstAppearance": "Not set",
       "noPrevious": "none, this is the first",
@@ -1133,6 +1144,14 @@
             "discovered": "Disadvantages · paragraph {{position}} · discovered",
             "ended": "Disadvantages · paragraph {{position}} · ended"
           }
+        },
+        "gallery": {
+          "image": "Image {{position}}",
+          "kind": "Image {{position}} · kind",
+          "caption": "Image {{position}} · caption · {{language}}",
+          "position": "Image {{position}} · position",
+          "discovered": "Image {{position}} · discovered",
+          "ended": "Image {{position}} · ended"
         }
       },
       "baseLabel": "Version to compare with",
@@ -1205,6 +1224,7 @@
         "empty": "No dates."
       },
       "incomplete": "incomplete",
+      "partLanguage": "Language of the list texts",
       "refused": "to fix",
       "ready": {
         "heading": "Ready for review",
@@ -1271,6 +1291,12 @@
             "atFirstAppearance": "Disadvantages · a paragraph discovered at the first appearance",
             "count": "Disadvantages · at least one paragraph"
           }
+        },
+        "gallery": {
+          "caption": "Image {{position}} · caption · {{language}}",
+          "discovered": "Image {{position}} · discovered",
+          "atFirstAppearance": "Gallery · an Appearance discovered at the first appearance",
+          "count": "Gallery · at least one image"
         }
       },
       "save": "Save draft",
@@ -1293,7 +1319,8 @@
         "entryNotAllowed": "is not allowed with this affiliation: only the Navy has ranks",
         "entryNotLinkable": "can no longer be chosen: it needs a content already approved in review",
         "entryItself": "a character cannot be its own relative",
-        "entryAlreadyLinked": "already names this character as a relative: a pair is linked by one of the two only"
+        "entryAlreadyLinked": "already names this character as a relative: a pair is linked by one of the two only",
+        "entryImageMissing": "Choose an image for this entry."
       },
       "takenNumberMessage": "Arrr! Another content already has the same number: it must be unique.",
       "numberRefusedMessage": "Arrr! A number is off course: it must be a whole number, not below the minimum.",
@@ -1513,7 +1540,18 @@
           "empty": "No paragraphs.",
           "text": "Text · {{language}}"
         }
-      }
+      },
+      "gallery": {
+        "label": "Gallery",
+        "hint": "up to 20 images · needs an Appearance discovered at the first appearance",
+        "entry": "Image {{position}}",
+        "add": "Add image",
+        "empty": "No images.",
+        "image": "Image",
+        "kind": "Kind",
+        "caption": "Caption · {{language}}"
+      },
+      "mainPortrait": "Main portrait"
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1962,10 +2000,12 @@
           "description": {
             "text": "what the reader knows from this point of the story"
           }
+        },
+        "gallery": {
+          "caption": "what the image shows"
         }
       },
       "hintMissing": "Review takes a romaji, the status, the gender, the first appearance, the discovery of every list entry and every paragraph, at least one period for every membership, a description paragraph discovered at the first appearance and, in every language, a name, every epithet and every paragraph. Meanwhile the draft can be saved incomplete.",
-      "imageHint": "A portrait of the character, upright.",
       "options": {
         "status": {
           "ALIVE": "Alive",
@@ -2017,7 +2057,9 @@
           "SIBLING": "Sibling",
           "COUSIN": "Cousin",
           "SPOUSE": "Spouse",
-          "SWORN_SIBLING": "Sworn sibling"
+          "SWORN_SIBLING": "Sworn sibling",
+          "ASPETTO": "Appearance",
+          "FORMA": "Form"
         }
       },
       "related": {
@@ -2100,7 +2142,8 @@
         "aliases": "Former",
         "affiliations": "Former member",
         "devilFruits": "Former user",
-        "relatives": "Former"
+        "relatives": "Former",
+        "gallery": "Past"
       }
     }
   }

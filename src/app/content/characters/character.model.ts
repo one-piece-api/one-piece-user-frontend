@@ -3,7 +3,7 @@ import {
   paragraphListField,
   choiceField,
   choiceFilter,
-  imageField,
+  galleryField,
   localizedTextField,
   monthDayField,
   partListField,
@@ -17,7 +17,7 @@ import {
 } from '../entity/entity-definition';
 
 /**
- * What the portrait of a character must be - the backend's profile `character`: at least
+ * What each image of a character's gallery must be - the backend's profile `character`: at least
  * 400 × 500 and close to 4:5, a PNG or WebP with no transparency required, at most 5 MB and 25
  * megapixels. The backend fits it into a 320 × 400 canvas.
  */
@@ -84,7 +84,8 @@ const MAX_PERIODS = 20;
  * The Character: a person of the story, known by the romaji of its official name (plan D2).
  * Besides the name per language and the description in paragraphs, its epithets - a title written in each
  * language - and aliases - names it goes by, the same in every language - as ordered lists
- * (D15), the species it belongs to (D8) and a birthday without a year (D16).
+ * (D15), the species it belongs to (D8), a birthday without a year (D16) and a gallery of
+ * images in place of a single portrait (reveals plan D6).
  */
 export const CHARACTER: EntityDefinition = {
   entityType: 'CHARACTER',
@@ -97,7 +98,6 @@ export const CHARACTER: EntityDefinition = {
   fields: [
     textField('romaji', { maxLength: 100 }),
     textField('japaneseName', { maxLength: 100, optional: true, lang: 'ja' }),
-    imageField('image', CHARACTER_PORTRAIT, { hint: 'content.characters.imageHint' }),
     choiceField('status', { options: STATUSES }),
     choiceField('gender', { options: GENDERS }),
     monthDayField('birthday'),
@@ -159,6 +159,8 @@ export const CHARACTER: EntityDefinition = {
       windowed: true,
     }),
     paragraphListField('description', { rows: 5 }),
+    // Appearances and forms, each with its window; the main portrait is derived (workflow 3.5.1).
+    galleryField('gallery', CHARACTER_PORTRAIT),
   ],
   // The bounties it holds: derived from the bounties naming it, never part of its version (D11).
   counts: [countColumn('bountyCount', { of: 'BOUNTY', by: 'holder' })],

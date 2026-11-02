@@ -30,6 +30,7 @@ import {
   subcategoryText,
   type SavedSubcategory,
 } from './entity-subcategory';
+import { meetsCondition } from './entity-gallery';
 import { isAtStoryPoint } from './entity-story-point';
 import { FIELD_KINDS, isAskedByReview, sentPartEntries } from './field-kinds';
 
@@ -226,11 +227,12 @@ function windowChecks(definition: EntityDefinition, draft: EntityDraft): Readine
 const FIRST_APPEARANCE = 'firstAppearance';
 
 /**
- * What review asks of each section of paragraphs (workflow 3.7.3): a paragraph discovered at the
- * first appearance, on every axis it has, so the reader meeting the content finds it described;
- * for an entity without a first appearance - Saga, Arc - a paragraph, discovered anywhere.
+ * What review asks of a list that opens at the first appearance - each section of paragraphs
+ * (workflow 3.7.3), a gallery (3.5.1): an entry discovered at the first appearance, on every
+ * axis it has, so the reader meeting the content finds it described; for an entity without a
+ * first appearance - Saga, Arc - an entry, discovered anywhere.
  */
-export function paragraphSectionRule(
+export function openingRule(
   definition: EntityDefinition,
 ): typeof AT_FIRST_APPEARANCE | typeof COUNT_PART {
   return definition.fields.some(
@@ -244,15 +246,19 @@ export function paragraphSectionRule(
 export const AT_FIRST_APPEARANCE = 'atFirstAppearance';
 
 /**
- * The rule of each section of paragraphs, once per section: shared by every language. Only the
- * entries the JSON carries, as the backend counts them.
+ * The rule of each list that opens at the first appearance - a section of paragraphs, a
+ * gallery - once per list: shared by every language. Only the entries the JSON carries, as the
+ * backend counts them; for a gallery, only its appearances (`opensAtFirstAppearance`).
  */
-function paragraphChecks(definition: EntityDefinition, draft: EntityDraft): ReadinessCheck[] {
-  const rule = paragraphSectionRule(definition);
+function openingChecks(definition: EntityDefinition, draft: EntityDraft): ReadinessCheck[] {
+  const rule = openingRule(definition);
   return partListFields(definition)
-    .filter(({ paragraphs }) => paragraphs)
+    .filter(({ opensAtFirstAppearance }) => opensAtFirstAppearance)
     .map((field) => {
-      const entries = sentPartEntries(field, draft[field.key]);
+      const condition = field.opensAtFirstAppearance;
+      const entries = sentPartEntries(field, draft[field.key]).filter(
+        (entry) => condition === true || !condition || meetsCondition(field, entry, condition),
+      );
       return {
         field: field.key,
         language: null,
@@ -392,23 +398,30 @@ export function toBody(definition: EntityDefinition, draft: EntityDraft): Entity
   };
 }
 
-/** A file saved beside the JSON of a version, in the request part named after its field. */
+/**
+ * A file saved beside the JSON of a version: in the request part named after its field, or -
+ * an image of a gallery - in the repeated part `images`.
+ */
 export interface UploadedFile {
   readonly part: string;
   readonly file: File;
 }
 
-/** What saving a draft sends: the JSON, and the file to go beside it if one was chosen. */
+/** What saving a draft sends: the JSON, and the files to go beside it, in order. */
 export interface Upload {
   readonly body: EntityBody;
-  readonly file: UploadedFile | null;
+  readonly files: readonly UploadedFile[];
 }
+
+/** The repeated multipart part carrying the files of a gallery (content-service, R5). */
+export const GALLERY_FILES_PART = 'images';
 
 /**
  * What saving a draft sends, worked out from the draft and the version it was written from
  * (`null` for a new content). For an image: a file chosen is sent beside the JSON (replace);
  * no image where the saved version had one sets `removeImage` (remove); otherwise nothing,
- * and the backend keeps what the version had (plan D5).
+ * and the backend keeps what the version had (plan D5). For a gallery, each entry names its
+ * image (`withImageSources`).
  */
 export function uploadOf(
   definition: EntityDefinition,
@@ -416,16 +429,55 @@ export function uploadOf(
   saved: EntityBody | null,
 ): Upload {
   const flags: Record<string, true> = {};
-  let file: UploadedFile | null = null;
+  const files: UploadedFile[] = [];
   for (const field of definition.fields.filter(({ kind }) => kind === 'image')) {
     const chosen = chosenFileOf(draft[field.key]);
     if (chosen) {
-      file = { part: field.key, file: chosen };
+      files.push({ part: field.key, file: chosen });
     } else if (!isImageDraft(draft[field.key]) && isImageReference(saved?.[field.key])) {
       flags[REMOVE_IMAGE_FLAG] = true;
     }
   }
-  return { body: { ...toBody(definition, draft), ...flags }, file };
+  const body: Record<string, unknown> = { ...toBody(definition, draft), ...flags };
+  for (const field of partListFields(definition)) {
+    const image = field.parts.find(({ kind }) => kind === 'image');
+    if (image) {
+      body[field.key] = withImageSources(field, image, draft[field.key], body[field.key], files);
+    }
+  }
+  return { body: body as EntityBody, files };
+}
+
+/**
+ * The entries of a gallery as the JSON sends them, each naming where its image comes from: a
+ * file just chosen is `upload: n`, the n-th of the part `images` - added to `files` - and a
+ * saved one `imageId` (content-service R5). An entry without an image names neither: the
+ * backend refuses it on its row. The image part itself is not in the JSON.
+ */
+function withImageSources(
+  field: PartListField,
+  image: PartField,
+  draft: unknown,
+  sent: unknown,
+  files: UploadedFile[],
+): unknown[] {
+  const entries = sentPartEntries(field, draft);
+  return itemsOf(sent).map((item, index) => {
+    const entry = Object.fromEntries(
+      Object.entries(item as Record<string, unknown>).filter(([key]) => key !== image.key),
+    );
+    const value = entries[index]?.values[image.key];
+    const chosen = chosenFileOf(value);
+    if (chosen) {
+      files.push({ part: GALLERY_FILES_PART, file: chosen });
+      return { ...entry, upload: files.filter(isGalleryFile).length - 1 };
+    }
+    return isImageDraft(value) && 'saved' in value ? { ...entry, imageId: value.saved.id } : entry;
+  });
+}
+
+function isGalleryFile({ part }: UploadedFile): boolean {
+  return part === GALLERY_FILES_PART;
 }
 
 /** How the backend is told to drop the image of a draft, whatever the image field is called. */
@@ -448,7 +500,7 @@ export function readinessChecks(
       language: null,
       done: kindOf(field).isFilled(draft[field.key]),
     }));
-  checks.push(...windowChecks(definition, draft), ...paragraphChecks(definition, draft));
+  checks.push(...windowChecks(definition, draft), ...openingChecks(definition, draft));
   for (const language of languages) {
     const translation = draft.translations[language];
     checks.push(

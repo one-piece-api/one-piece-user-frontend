@@ -272,42 +272,63 @@
               @for (entry of list.entries; track entry.position) {
                 <li
                   class="rounded-xl bg-parchment-200/60 px-3 py-1 font-heading text-[15px] font-extrabold wrap-anywhere"
+                  [class.flex]="entry.image"
+                  [class.gap-2.5]="entry.image"
+                  [class.py-2]="entry.image"
                   data-testid="card-part-entry"
                 >
-                  <ng-container
-                    *ngTemplateOutlet="entryParts; context: { $implicit: entry.parts }"
-                  />
-                  @if (entry.former; as former) {
-                    <span
-                      class="ml-1.5 rounded-full bg-ocean-100 px-2 py-0.5 align-middle text-[11px] text-ocean-700"
-                      data-testid="card-part-former"
-                      >{{ former }}</span
-                    >
+                  @if (entry.image; as image) {
+                    <app-entity-image-frame
+                      class="block w-16 flex-none"
+                      [src]="image.src"
+                      [ratio]="image.ratio"
+                      [alt]="image.alt"
+                      data-testid="card-gallery-image"
+                    />
                   }
-                  @if (entry.window; as window) {
-                    <span
-                      class="block text-xs font-bold text-ocean-500"
-                      data-testid="card-part-window"
-                      >{{ window }}</span
-                    >
-                  }
-                  @for (sub of entry.nested; track sub.position) {
-                    <span
-                      class="mt-1 block border-l-2 border-ocean-800/15 pl-2 text-[13px]"
-                      data-testid="card-part-nested"
-                    >
-                      <ng-container
-                        *ngTemplateOutlet="entryParts; context: { $implicit: sub.parts }"
-                      />
-                      @if (sub.window; as window) {
-                        <span
-                          class="block text-xs font-bold text-ocean-500"
-                          data-testid="card-part-window"
-                          >{{ window }}</span
-                        >
-                      }
-                    </span>
-                  }
+                  <span [class.block]="entry.image" [class.min-w-0]="entry.image">
+                    <ng-container
+                      *ngTemplateOutlet="entryParts; context: { $implicit: entry.parts }"
+                    />
+                    @if (entry.mainPortrait) {
+                      <span
+                        class="ml-1.5 rounded-full bg-treasure-100 px-2 py-0.5 align-middle text-[11px] text-treasure-700"
+                        data-testid="card-main-portrait"
+                        >{{ 'content.editor.mainPortrait' | transloco }}</span
+                      >
+                    }
+                    @if (entry.former; as former) {
+                      <span
+                        class="ml-1.5 rounded-full bg-ocean-100 px-2 py-0.5 align-middle text-[11px] text-ocean-700"
+                        data-testid="card-part-former"
+                        >{{ former }}</span
+                      >
+                    }
+                    @if (entry.window; as window) {
+                      <span
+                        class="block text-xs font-bold text-ocean-500"
+                        data-testid="card-part-window"
+                        >{{ window }}</span
+                      >
+                    }
+                    @for (sub of entry.nested; track sub.position) {
+                      <span
+                        class="mt-1 block border-l-2 border-ocean-800/15 pl-2 text-[13px]"
+                        data-testid="card-part-nested"
+                      >
+                        <ng-container
+                          *ngTemplateOutlet="entryParts; context: { $implicit: sub.parts }"
+                        />
+                        @if (sub.window; as window) {
+                          <span
+                            class="block text-xs font-bold text-ocean-500"
+                            data-testid="card-part-window"
+                            >{{ window }}</span
+                          >
+                        }
+                      </span>
+                    }
+                  </span>
                 </li>
               }
             </ul>

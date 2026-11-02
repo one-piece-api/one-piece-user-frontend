@@ -68,7 +68,7 @@ import { ImagePicker } from './image-picker';
 import { MonthDayPicker } from './month-day-picker';
 import { PartListEditor, type PartListChange, type StoryAxes } from './part-list-editor';
 import { POINT_REFUSAL_KEYS, pointRefusalKey } from './point-refusals';
-import { imageProblemOf, imageProblemWords } from './image-words';
+import { imageProblemOf, imageProblemWords, type ImageProblem } from './image-words';
 import { RelationPicker } from './relation-picker';
 import {
   STORY_POINT_TARGETS,
@@ -165,6 +165,9 @@ const ENTRY_REFUSAL_BY_MESSAGE: Record<string, string> = {
   'already names this character as a relative': 'content.editor.error.entryAlreadyLinked',
 };
 
+/** What is said under a gallery's entry saved without an image (content-service R5). */
+const ENTRY_IMAGE_MISSING_KEY = 'content.editor.error.entryImageMissing';
+
 /** An entry of a list of parts the editor addresses as `species.1` or `epithets.1.text.en`. */
 const PART_ENTRY_KEY = /^([^.]+)\.(\d+)((?:\.[^.]+)*)$/;
 
@@ -180,6 +183,7 @@ const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
   [ENTRY_REPEATED_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
   [ENTRY_NOT_LINKABLE_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
   [ENTRY_NOT_ALLOWED_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
+  [ENTRY_IMAGE_MISSING_KEY]: ENTRY_REFUSED_MESSAGE_KEY,
   ...Object.fromEntries(
     Object.values(ENTRY_REFUSAL_BY_MESSAGE).map((text) => [text, ENTRY_REFUSED_MESSAGE_KEY]),
   ),
@@ -878,19 +882,22 @@ export class EntityEditor {
   }
 
   /**
-   * What a save sends: the JSON alone, or - with a file chosen - a multipart form with the
-   * JSON as its `version` part and the file beside it (plan D5). Keeping or removing an image
-   * needs no file: `uploadOf` says it in the JSON.
+   * What a save sends: the JSON alone, or - with files chosen - a multipart form with the
+   * JSON as its `version` part and the files beside it, in order (plan D5; a gallery's in the
+   * repeated part `images`). Keeping or removing an image needs no file: `uploadOf` says it
+   * in the JSON.
    */
   private requestOf(draft: EntityDraft): EntityBody | FormData {
     const saved = this.version.hasValue() ? this.version.value().body : null;
-    const { body, file } = uploadOf(this.entity, draft, saved);
-    if (!file) {
+    const { body, files } = uploadOf(this.entity, draft, saved);
+    if (!files.length) {
       return body;
     }
     const form = new FormData();
     form.append('version', new Blob([JSON.stringify(body)], { type: 'application/json' }));
-    form.append(file.part, file.file, file.file.name);
+    for (const { part, file } of files) {
+      form.append(part, file, file.name);
+    }
     return form;
   }
 
@@ -941,12 +948,10 @@ export class EntityEditor {
     if (!(error instanceof HttpErrorResponse) || error.status === 403 || error.status >= 500) {
       return;
     }
-    const image = this.imageView();
     const imageProblem = imageProblemOf(error);
-    if (image && imageProblem) {
-      this.refusedFields.set({
-        [image.field.key]: imageProblemWords(this.transloco, imageProblem),
-      });
+    const imageKey = imageProblem && this.refusedImageKey(imageProblem);
+    if (imageProblem && imageKey) {
+      this.refusedFields.set({ [imageKey]: imageProblemWords(this.transloco, imageProblem) });
       this.mascot.show(this.transloco.translate(IMAGE_REFUSED_MESSAGE_KEY), 'error');
       return;
     }
@@ -976,6 +981,20 @@ export class EntityEditor {
       refusedTexts.map((text) => SPECIFIC_MESSAGE_KEY[text]).find(Boolean) ??
       this.saveErrorKeyOf(errorCode);
     this.mascot.show(this.transloco.translate(messageKey, { slug: refusedSlug(error) }), 'error');
+  }
+
+  /**
+   * Where an image refused by the backend is drawn: the entry of a gallery it names
+   * (`gallery[3].image`, as the editor holds it), else the entity's own image field; `null`
+   * where neither exists.
+   */
+  private refusedImageKey(problem: ImageProblem): string | null {
+    const named = problem.field ? draftFieldKey(this.entity, problem.field) : null;
+    const draft = this.draft();
+    if (named && named.includes('.') && draft) {
+      return this.partEntryOf(named, draft);
+    }
+    return this.imageView()?.field.key ?? null;
   }
 
   /** What the Lumacofono says for a refused save without a specific field: by code, and by kind of key. */
@@ -1055,6 +1074,10 @@ export class EntityEditor {
     const part = found.part ?? field.parts[0];
     if (repeated) {
       return ENTRY_REPEATED_KEY;
+    }
+    // A gallery's entry with no image, or one the draft does not show.
+    if (part.kind === 'image') {
+      return ENTRY_IMAGE_MISSING_KEY;
     }
     if (part.kind === 'relation') {
       return ENTRY_REFUSAL_BY_MESSAGE[message ?? ''] ?? ENTRY_NOT_LINKABLE_KEY;

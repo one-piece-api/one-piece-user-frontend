@@ -1,5 +1,5 @@
 import type { TranslocoService } from '@jsverse/transloco';
-import { draftFieldKey, paragraphSectionRule } from './entity/entity-body';
+import { draftFieldKey, openingRule } from './entity/entity-body';
 import {
   labelKeyOf,
   naturalKeyParts,
@@ -34,9 +34,9 @@ export function refusedFieldWords(
     if (name !== undefined) {
       return entryWords(transloco, list, words, name, rest);
     }
-    // A section of paragraphs is named by what review asks of it (workflow 3.7.3).
+    // A section of paragraphs or a gallery is named by what review asks of it (3.7.3, 3.5.1).
     return transloco.translate(
-      list.paragraphs ? `${words}.${paragraphSectionRule(entity)}` : `${words}.list`,
+      list.opensAtFirstAppearance ? `${words}.${openingRule(entity)}` : `${words}.list`,
     );
   }
   if (name) {

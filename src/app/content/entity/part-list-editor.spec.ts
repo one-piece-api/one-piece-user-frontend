@@ -3,10 +3,12 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
-import { CREW, HUMAN, NAVY, PEOPLE } from '../../testing/part-list-entity';
+import { CHAPTER_8, CREW, HUMAN, NAVY, PEOPLE } from '../../testing/part-list-entity';
+import { CHARACTER } from '../characters/character.model';
 import type { PartListField } from './entity-definition';
 import type { PartEntryDraft } from './entity-part-list';
 import { PartListEditor, type PartListChange } from './part-list-editor';
+import { ImagePicker } from './image-picker';
 import { RelationPicker } from './relation-picker';
 
 function list(key: string): PartListField {
@@ -68,18 +70,57 @@ describe('the editor of a list of parts', () => {
     return change.entries.map(({ values }) => values);
   }
 
-  it('draws one box per language for a localized part, in the catalog order', () => {
+  /** Picks a language on the list's switch. */
+  function switchTo(language: string): void {
+    all(`part-language-${language}`)[0].click();
+    fixture.detectChanges();
+  }
+
+  function pressed(): string[] {
+    return all('part-languages')[0]
+      ? [...all('part-languages')[0].querySelectorAll('[aria-pressed="true"]')].map(
+          (button) => button.textContent?.trim() ?? '',
+        )
+      : [];
+  }
+
+  it('draws a localized part in one language at a time, the first of the catalog to start', () => {
     render('epithets', [entry('a', { text: { it: 'Gatta ladra' } })]);
 
+    expect(pressed()).toEqual(['IT']);
     expect(box('draft-epithets-0-text-it').value).toBe('Gatta ladra');
+    expect(box('draft-epithets-0-text-it').getAttribute('maxlength')).toBe('100');
+    expect(box('draft-epithets-0-text-en')).toBeNull();
+
+    switchTo('en');
+
+    expect(box('draft-epithets-0-text-it')).toBeNull();
     expect(box('draft-epithets-0-text-en').value).toBe('');
     expect(box('draft-epithets-0-text-en').getAttribute('lang')).toBe('en');
-    expect(box('draft-epithets-0-text-it').getAttribute('maxlength')).toBe('100');
+  });
+
+  it('marks a language where an entry still misses its text, or had it refused', () => {
+    render('epithets', [entry('a', { text: { it: 'Gatta ladra' } })]);
+
+    expect(all('part-language-it')[0].textContent).not.toContain('incomplete');
+    expect(all('part-language-en')[0].textContent).toContain('incomplete');
+
+    render('epithets', [entry('a', { text: { it: 'Gatta ladra', en: 'x' } })], {
+      '0.text.en': 'too long',
+    });
+    expect(all('part-language-en')[0].textContent).toContain('to fix');
+  });
+
+  it('has no switch on a list without text per language', () => {
+    render('aliases', [entry('a', { alias: 'Sogeking' })]);
+
+    expect(all('part-languages')).toHaveLength(0);
   });
 
   it('writes a text in one language, keeping the others, and says which box was written', () => {
     render('epithets', [entry('a', { text: { it: 'Gatta ladra' } })]);
 
+    switchTo('en');
     type('draft-epithets-0-text-en', 'Cat Burglar');
 
     expect(valuesOf(changes[0])).toEqual([{ text: { it: 'Gatta ladra', en: 'Cat Burglar' } }]);
@@ -143,6 +184,7 @@ describe('the editor of a list of parts', () => {
     ]);
 
     expect(box('draft-memberships-0-affiliation')).not.toBeNull();
+    switchTo('en');
     expect(box('draft-memberships-0-role-en').value).toBe('Spy');
     expect(box<HTMLSelectElement>('draft-memberships-0-rank').value).toBe('CAPTAIN');
     expect(box('draft-memberships-0-former').checked).toBe(true);
@@ -209,10 +251,70 @@ describe('the editor of a list of parts', () => {
       '1': 'already in this list',
     });
 
-    expect(box('draft-epithets-0-text-en').getAttribute('aria-invalid')).toBe('true');
     expect(box('draft-epithets-0-text-it').getAttribute('aria-invalid')).toBeNull();
+    switchTo('en');
+    expect(box('draft-epithets-0-text-en').getAttribute('aria-invalid')).toBe('true');
     const [first, second] = all('part-entry');
     expect(first.textContent).toContain('missing in English');
     expect(second.textContent).toContain('already in this list');
+  });
+});
+
+describe('the editor of a gallery', () => {
+  const GALLERY = CHARACTER.fields.find(({ key }) => key === 'gallery') as PartListField;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+  });
+
+  function render(entries: PartEntryDraft[]): {
+    root: HTMLElement;
+    changes: PartListChange[];
+    fixture: ComponentFixture<PartListEditor>;
+  } {
+    const fixture = TestBed.createComponent(PartListEditor);
+    fixture.componentRef.setInput('field', GALLERY);
+    fixture.componentRef.setInput('i18n', CHARACTER.i18n);
+    fixture.componentRef.setInput('entries', entries);
+    fixture.componentRef.setInput('languages', ['it', 'en']);
+    fixture.componentRef.setInput('errors', {});
+    const changes: PartListChange[] = [];
+    fixture.componentInstance.changed.subscribe((change) => changes.push(change));
+    fixture.detectChanges();
+    return { root: fixture.nativeElement as HTMLElement, changes, fixture };
+  }
+
+  const saved = (id: string) => ({ saved: { id, url: `/api/content/images/${id}` } });
+
+  it('gives each entry an image picker and marks the main portrait on its entry only', () => {
+    const { root } = render([
+      { key: 'a', values: { image: saved('pre'), kind: 'ASPETTO', ended: { chapter: CHAPTER_8 } } },
+      { key: 'b', values: { image: saved('post'), kind: 'ASPETTO' } },
+    ]);
+
+    expect(root.querySelector('#draft-gallery-0-image')).not.toBeNull();
+    expect(root.querySelector('#draft-gallery-1-image')).not.toBeNull();
+    const entries = [...root.querySelectorAll('[data-testid="part-entry"]')];
+    expect(
+      entries.map((entry) => !!entry.querySelector('[data-testid="part-main-portrait"]')),
+    ).toEqual([false, true]);
+  });
+
+  it('holds a file the picker passes as the image of its entry, with a preview', () => {
+    const { changes, fixture } = render([{ key: 'a', values: { kind: 'ASPETTO' } }]);
+    const file = new File(['bytes'], 'luffy.webp', { type: 'image/webp' });
+    const createObjectURL = URL.createObjectURL;
+    URL.createObjectURL = () => 'blob:luffy';
+    // The picker checks the file first (it decodes it, which the test DOM cannot); its output is the contract.
+    fixture.debugElement.query(By.directive(ImagePicker)).componentInstance.picked.emit(file);
+
+    expect(changes.at(-1)?.entries[0].values['image']).toEqual({
+      chosen: file,
+      preview: 'blob:luffy',
+    });
+    URL.createObjectURL = createObjectURL;
   });
 });

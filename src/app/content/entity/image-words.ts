@@ -10,6 +10,11 @@ const UPLOAD_TOO_LARGE = 'CONTENT_TOO_LARGE';
 export interface ImageProblem {
   readonly code: ImageRefusalCode | typeof UPLOAD_TOO_LARGE;
   readonly numbers: Readonly<Record<string, number>>;
+  /**
+   * The field the backend names - `image`, or a gallery's entry `gallery[3].image`; `null`
+   * where it names none (a file beyond the upload limit).
+   */
+  readonly field?: string | null;
 }
 
 const BYTES_PER_MEGABYTE = 1024 * 1024;
@@ -32,7 +37,8 @@ export function imageProblemOf(error: unknown): ImageProblem | null {
     Object.entries(details).filter(([, value]) => typeof value === 'number'),
   ) as Record<string, number>;
   delete numbers['status'];
-  return { code: code as ImageProblem['code'], numbers };
+  const field = typeof details['field'] === 'string' ? details['field'] : null;
+  return { code: code as ImageProblem['code'], numbers, field };
 }
 
 /**

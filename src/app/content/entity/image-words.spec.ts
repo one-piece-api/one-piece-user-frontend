@@ -31,6 +31,7 @@ describe('the words for a refused image', () => {
     expect(imageProblemOf(error)).toEqual({
       code: 'CONTENT_IMAGE_TOO_SMALL',
       numbers: { width: 600, height: 750, minWidth: 640, minHeight: 800 },
+      field: 'image',
     });
   });
 
@@ -40,6 +41,7 @@ describe('the words for a refused image', () => {
     expect(imageProblemOf(error)).toEqual({
       code: 'CONTENT_TOO_LARGE',
       numbers: { maxBytes: 10485760 },
+      field: null,
     });
   });
 

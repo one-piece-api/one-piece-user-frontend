@@ -57,13 +57,13 @@ sezione di paragrafi: `description: [{ text: {lang}, discovered, ended }]` (Frut
 nome. In revisione una sezione chiede un paragrafo scoperto alla prima apparizione (Saga e Arco,
 senza prima apparizione: almeno un paragrafo).
 
-**Decisione.** Una sezione è un `partList` con finestra e il flag `paragraphs: true`, costruito da
+**Decisione.** Una sezione è un `partList` con finestra e i flag `paragraphs: true` e `opensAtFirstAppearance: true`, costruito da
 `paragraphListField(key, { rows })`: nessun nuovo tipo di campo.
 
 - **Etichette:** `labelKeyOf` mette le sezioni sotto `paragraphs.<key>`, perché Capitolo ed Episodio
   tengono una `description` localizzata semplice con le stesse chiavi i18n.
-- **Editor:** testo in `textarea` (righe da `rows`), lingue affiancate da `xl` in su.
-- **Revisione:** `paragraphSectionRule` sceglie `atFirstAppearance` (paragrafo con `discovered`
+- **Editor:** testo in `textarea` (righe da `rows`), una lingua alla volta (vedi addendum switch di lingua).
+- **Revisione:** `openingRule` (prima `paragraphSectionRule`) sceglie `atFirstAppearance` (paragrafo con `discovered`
   sugli stessi assi della prima apparizione, `isAtStoryPoint`) o `count`; la stessa regola dà le
   parole dell'errore `description` del backend.
 - **Scheda:** tutti i paragrafi in ordine; quelli con `ended` attenuati, con badge "Superato" e la
@@ -74,3 +74,54 @@ lasciata solo al backend: la checklist non saprebbe dire cosa manca prima dell'i
 
 **Conseguenze.** Una sezione è una riga di definizione; la regola della prima apparizione vive in
 due posti (backend e checklist): se cambia nel workflow, vanno cambiati entrambi.
+
+## Addendum: galleria del personaggio (R8, 2026-11-02)
+
+**Contesto.** Con R5 (ADR-0011 di content-service, addendum galleria) il ritratto singolo del
+personaggio diventa `gallery: [{ image, kind: ASPETTO|FORMA, caption: {lang} ≤100, discovered,
+ended }]`, max 20. Il salvataggio è multipart: JSON nella parte `version`, file nella parte
+ripetuta `images`; ogni voce nomina `upload: n` (n-esimo file) o `imageId` (immagine già della
+bozza). In revisione serve un ASPETTO scoperto alla prima apparizione. Il ritratto principale senza
+filtro è l'ultimo ASPETTO senza fine, altrimenti l'ultimo ASPETTO (`Gallery.mainPortrait`).
+
+**Decisione.** La galleria è un `partList` con finestra, costruito da `galleryField(key, profile)`,
+con un nuovo tipo di parte `image` e due impostazioni della lista:
+
+- **`opensAtFirstAppearance: true | { part, equals }`:** generalizza la regola di apertura delle
+  sezioni (`openingRule`); la condizione filtra le voci contate (solo gli ASPETTO).
+- **`mainPortrait: { part, equals }`:** `mainPortraitIndex` (`entity-gallery.ts`) replica la regola
+  della libreria; badge "Ritratto principale" su editor e scheda, e la scheda usa quel ritratto come
+  immagine dell'entità quando non ha un campo immagine.
+- **Salvataggio:** `uploadOf` toglie la parte immagine dal JSON e numera i file scelti nell'ordine
+  delle voci inviate; `Upload.files` ne porta più d'uno.
+- **Errori:** un'immagine rifiutata con `field: gallery[i].image` è mostrata sulla sua voce.
+- **Confronto:** voci per posizione, l'immagine confrontata per id e mostrata in miniatura.
+
+**Alternative.** Un tipo di campo `gallery` dedicato: duplica editor, finestre, revisione e
+confronto delle liste. Regola del ritratto solo nel backend: editor e scheda non potrebbero dire
+quale immagine vedrà il lettore prima della pubblicazione.
+
+**Conseguenze.** La regola del ritratto principale vive in tre posti (libreria, vista
+`published.character`, frontend), tenuti uguali dagli stessi casi nei test; quella a una posizione
+del lettore resta solo nel backend.
+
+## Addendum: switch di lingua nelle liste (R8, 2026-11-02)
+
+**Contesto.** Le parti localizzate delle liste (epiteti, ruoli dei periodi, paragrafi, didascalie)
+mostravano un campo per lingua insieme, mentre i campi tradotti dell'editor usano le linguette
+IT/EN con un campo alla volta. Il proprietario vuole lo stesso schema ovunque.
+
+**Decisione.** Ogni lista con testo per lingua (proprio o di una lista annidata) ha uno switch IT/EN
+nell'intestazione: uno per sezione, non per voce. Parte dalla lingua delle linguette dell'editor e
+la segue quando cambia (`defaultLanguage`, `linkedSignal`), ma si cambia anche da solo. Una lista
+annidata non ha switch: segue quella che la contiene (`language`). Ogni lingua mostra "incompleta"
+se una voce inviata manca di un testo chiesto in revisione, "da correggere" se il backend ne ha
+rifiutato uno. Bottoni con `aria-pressed` in un `role="group"`, non `role="tab"`: lo switch non
+apre pannelli, cambia i campi sul posto.
+
+**Alternative.** Uno switch per voce: più flessibile, più clic per scrivere tutte le didascalie in
+una lingua. Le linguette dell'editor come unico switch: la lingua dei campi tradotti e quella delle
+liste non si potrebbero guardare separatamente.
+
+**Conseguenze.** Gli e2e scrivono le lingue passando dallo switch (`inEachLanguage`); un rifiuto
+in una lingua nascosta resta visibile come segno sullo switch.

@@ -137,6 +137,10 @@
         "tip6": {
           "text": "Una convinzione che il lettore vedrà smentita va in un paragrafo a sé: dandogli una fine, sparisce solo quella frase. Si aggiunge, non si riscrive: un paragrafo per arco.",
           "code": "paragrafi · una convinzione, un paragrafo"
+        },
+        "tip7": {
+          "text": "In galleria un Aspetto mostra com'è il personaggio, una Forma una trasformazione o un travestimento. Il ritratto principale è l'ultimo Aspetto senza fine, mai una Forma; un Aspetto superato non si toglie: gli si dà una fine.",
+          "code": "galleria · aspetto / forma"
         }
       }
     }
@@ -668,6 +672,12 @@
               "atFirstAppearance": "un paragrafo degli svantaggi scoperto alla prima apparizione",
               "count": "almeno un paragrafo degli svantaggi"
             }
+          },
+          "gallery": {
+            "list": "galleria",
+            "entry": "immagine {{position}} della galleria {{language}}",
+            "atFirstAppearance": "un Aspetto della galleria scoperto alla prima apparizione",
+            "count": "almeno un'immagine nella galleria"
           }
         },
         "blocked": "Arrr! Non si può: {{reason}}",
@@ -997,7 +1007,8 @@
         "holder": "Titolare",
         "devilFruits": "Frutti del Diavolo",
         "multipleUsers": "Più possessori",
-        "relatives": "Parenti"
+        "relatives": "Parenti",
+        "gallery": "Galleria"
       },
       "noFirstAppearance": "Non indicata",
       "noPrevious": "nessuna, è la prima",
@@ -1133,6 +1144,14 @@
             "discovered": "Svantaggi · paragrafo {{position}} · scoperta",
             "ended": "Svantaggi · paragrafo {{position}} · fine"
           }
+        },
+        "gallery": {
+          "image": "Immagine {{position}}",
+          "kind": "Immagine {{position}} · tipo",
+          "caption": "Immagine {{position}} · didascalia · {{language}}",
+          "position": "Immagine {{position}} · posizione",
+          "discovered": "Immagine {{position}} · scoperta",
+          "ended": "Immagine {{position}} · fine"
         }
       },
       "baseLabel": "Versione di partenza del confronto",
@@ -1205,6 +1224,7 @@
         "empty": "Nessuna data."
       },
       "incomplete": "incompleta",
+      "partLanguage": "Lingua dei testi della lista",
       "refused": "da correggere",
       "ready": {
         "heading": "Pronto per la revisione",
@@ -1271,6 +1291,12 @@
             "atFirstAppearance": "Svantaggi · un paragrafo scoperto alla prima apparizione",
             "count": "Svantaggi · almeno un paragrafo"
           }
+        },
+        "gallery": {
+          "caption": "Immagine {{position}} · didascalia · {{language}}",
+          "discovered": "Immagine {{position}} · scoperta",
+          "atFirstAppearance": "Galleria · un Aspetto scoperto alla prima apparizione",
+          "count": "Galleria · almeno un'immagine"
         }
       },
       "save": "Salva bozza",
@@ -1293,7 +1319,8 @@
         "entryNotAllowed": "non è ammesso con questa affiliazione: solo la Marina ha gradi",
         "entryNotLinkable": "non si può più scegliere: serve un contenuto già approvato in revisione",
         "entryItself": "un personaggio non può essere parente di se stesso",
-        "entryAlreadyLinked": "nomina già questo personaggio tra i suoi parenti: una coppia è legata da uno dei due soltanto"
+        "entryAlreadyLinked": "nomina già questo personaggio tra i suoi parenti: una coppia è legata da uno dei due soltanto",
+        "entryImageMissing": "Scegli un'immagine per questa voce."
       },
       "takenNumberMessage": "Arrr! Un altro contenuto ha già lo stesso numero: dev'essere unico.",
       "numberRefusedMessage": "Arrr! Un numero non va: dev'essere un numero intero, non sotto il minimo.",
@@ -1513,7 +1540,18 @@
           "empty": "Nessun paragrafo.",
           "text": "Testo · {{language}}"
         }
-      }
+      },
+      "gallery": {
+        "label": "Galleria",
+        "hint": "fino a 20 immagini · serve un Aspetto scoperto alla prima apparizione",
+        "entry": "Immagine {{position}}",
+        "add": "Aggiungi immagine",
+        "empty": "Nessuna immagine.",
+        "image": "Immagine",
+        "kind": "Tipo",
+        "caption": "Didascalia · {{language}}"
+      },
+      "mainPortrait": "Ritratto principale"
     },
     "dashboard": {
       "eyebrow": "Dashboard",
@@ -1962,10 +2000,12 @@
           "description": {
             "text": "cosa sa il lettore da questo punto della storia"
           }
+        },
+        "gallery": {
+          "caption": "cosa mostra l'immagine"
         }
       },
       "hintMissing": "Per la revisione servono il romaji, lo stato, il genere, la prima apparizione, la scoperta di ogni voce degli elenchi e di ogni paragrafo, almeno un periodo per ogni appartenenza, nella descrizione un paragrafo scoperto alla prima apparizione e, in ogni lingua, il nome, ogni epiteto e ogni paragrafo. Intanto la bozza si salva anche incompleta.",
-      "imageHint": "Un ritratto del personaggio, in verticale.",
       "options": {
         "status": {
           "ALIVE": "Vivo",
@@ -2017,7 +2057,9 @@
           "SIBLING": "Fratello/sorella",
           "COUSIN": "Cugino/a",
           "SPOUSE": "Coniuge",
-          "SWORN_SIBLING": "Fratello/sorella giurato/a"
+          "SWORN_SIBLING": "Fratello/sorella giurato/a",
+          "ASPETTO": "Aspetto",
+          "FORMA": "Forma"
         }
       },
       "related": {
@@ -2100,7 +2142,8 @@
         "aliases": "Ex",
         "affiliations": "Ex membro",
         "devilFruits": "Ex possessore",
-        "relatives": "Ex"
+        "relatives": "Ex",
+        "gallery": "Passata"
       }
     }
   }

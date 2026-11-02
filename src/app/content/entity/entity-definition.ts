@@ -146,7 +146,7 @@ export interface ImageProfile {
 /**
  * The image of a version - optional, not translated, not asked for by review. Saved beside
  * the version's JSON as a file, and removed through `remove<Key>`; one per entity, as the
- * backend's single `image` part allows.
+ * backend's single `image` part allows. As a part of a gallery entry, one image per entry.
  */
 export interface ImageField {
   readonly kind: 'image';
@@ -209,15 +209,30 @@ export interface MonthDayField {
   readonly key: string;
 }
 
-/** The kinds of one value a part of a `partList` entry may have: never a file. */
+/**
+ * The kinds of one value a part of a `partList` entry may have; an image only in a gallery,
+ * whose files travel beside the JSON (`uploadOf`).
+ */
 export type ValuePartField =
-  TextField | LocalizedTextField | RelationField | ChoiceField | BooleanField | StoryPointField;
+  | TextField
+  | LocalizedTextField
+  | RelationField
+  | ChoiceField
+  | BooleanField
+  | StoryPointField
+  | ImageField;
 
 /**
  * The kinds a part of a `partList` entry may have: one value, or a list of entries of its own -
  * a membership's periods - one level deep only: a nested list holds values, never lists.
  */
 export type PartField = ValuePartField | PartListField;
+
+/** The entries of a list whose choice part `part` holds `equals`: a gallery's appearances. */
+export interface EntryCondition {
+  readonly part: string;
+  readonly equals: string;
+}
 
 /**
  * An ordered list of entries inside the version, each made of `parts` - fields of the kinds
@@ -259,6 +274,17 @@ export interface PartListField {
    * from the single text of the same name on Chapter and Episode (`labelKeyOf`).
    */
   readonly paragraphs?: true;
+  /**
+   * Review asks for an entry discovered at the first appearance, on every axis it has - any
+   * entry, for a content without a first appearance (workflow 3.7.3, 3.5.1): `true` for any
+   * entry, a condition for some only (a gallery's appearances).
+   */
+  readonly opensAtFirstAppearance?: true | EntryCondition;
+  /**
+   * The list is a gallery (workflow 3.5.1): the entries meeting the condition may be the main
+   * portrait, which is derived, never stored (`mainPortraitIndex`).
+   */
+  readonly mainPortrait?: EntryCondition;
 }
 
 /** One field of an entity: its kind says how it is read, written, checked and compared. */
@@ -501,6 +527,34 @@ export function paragraphListField(key: string, options: { rows: number }): Part
     maxEntries: MAX_PARAGRAPHS,
     windowed: true,
     paragraphs: true,
+    opensAtFirstAppearance: true,
+  });
+}
+
+/** What a gallery holds - the backend's limits (workflow 3.5.1). */
+const MAX_GALLERY_IMAGES = 20;
+const MAX_CAPTION_LENGTH = 100;
+
+/** An appearance may be the main portrait; a form - a transformation, a disguise - never. */
+export const GALLERY_KINDS = ['ASPETTO', 'FORMA'] as const;
+
+/**
+ * A gallery (workflow 3.5.1, reveals plan R8): ordered images, each with its kind, a caption
+ * per language and its window on the reader axis. Review asks for an appearance discovered at
+ * the first appearance; the main portrait is the last current appearance (`mainPortraitIndex`).
+ */
+export function galleryField(key: string, profile: ImageProfile): PartListField {
+  const appearance = { part: 'kind', equals: GALLERY_KINDS[0] };
+  return partListField(key, {
+    parts: [
+      imageField('image', profile),
+      choiceField('kind', { options: GALLERY_KINDS }),
+      localizedTextField('caption', { maxLength: MAX_CAPTION_LENGTH }),
+    ],
+    maxEntries: MAX_GALLERY_IMAGES,
+    windowed: true,
+    opensAtFirstAppearance: appearance,
+    mainPortrait: appearance,
   });
 }
 

@@ -2,7 +2,8 @@ import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { provideTranslocoTesting } from '../../testing/i18n-testing';
-import { GIANT, HUMAN, NAVY, PEOPLE } from '../../testing/part-list-entity';
+import { CHAPTER_1, CHAPTER_8, GIANT, HUMAN, NAVY, PEOPLE } from '../../testing/part-list-entity';
+import { CHARACTER } from '../characters/character.model';
 import { ENTITY } from './entities';
 import type { EntityBody } from './entity-body';
 import { EntityCard } from './entity-card';
@@ -89,5 +90,47 @@ describe('the card of an entity with lists of parts and a day of the year', () =
     expect(root.querySelector('[data-testid="card-birthday"]')).toBeNull();
     expect(root.querySelector('[data-testid="card-species"]')).toBeNull();
     expect(root.querySelector('[data-testid="card-aliases"]')).toBeNull();
+  });
+});
+
+describe('the card of a character with a gallery', () => {
+  const image = (id: string, kind: string, ended: unknown = null) => ({
+    image: { id, url: `/api/content/images/${id}` },
+    kind,
+    caption: { it: `${id} it`, en: `${id} en` },
+    discovered: { chapter: CHAPTER_1 },
+    ended,
+  });
+
+  it('shows every image and takes the main portrait - not the ended one, not a form - as its own', () => {
+    TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [provideRouter([]), { provide: ENTITY, useValue: CHARACTER }],
+    });
+    const fixture = TestBed.createComponent(EntityCard);
+    fixture.componentRef.setInput('body', {
+      romaji: 'Monkey D. Luffy',
+      gallery: [
+        image('pre', 'ASPETTO', { chapter: CHAPTER_8 }),
+        image('post', 'ASPETTO'),
+        image('gear5', 'FORMA'),
+      ],
+      translations: { it: { name: 'Rufy' }, en: { name: 'Luffy' } },
+    });
+    fixture.componentRef.setInput('languages', LANGUAGES);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.querySelectorAll('[data-testid="card-gallery-image"]')).toHaveLength(3);
+    const entries = [...root.querySelectorAll('[data-testid="card-part-entry"]')];
+    const marked = entries.filter((entry) =>
+      entry.querySelector('[data-testid="card-main-portrait"]'),
+    );
+    expect(marked).toHaveLength(1);
+    expect(marked[0].textContent).toContain('post en');
+    // The first image of the card is its own: the main portrait.
+    expect(root.querySelector<HTMLImageElement>('[data-testid="entity-image"]')?.src).toContain(
+      '/api/content/images/post',
+    );
   });
 });

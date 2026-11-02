@@ -166,7 +166,7 @@ describe('the body of any entity', () => {
     it('sends nothing about an image kept, and no flag', () => {
       const upload = uploadOf(NOTE_WITH_PICTURE, draftFrom(pictured), pictured as never);
 
-      expect(upload.file).toBeNull();
+      expect(upload.files).toEqual([]);
       expect(upload.body).not.toHaveProperty('removeImage');
     });
 
@@ -174,7 +174,7 @@ describe('the body of any entity', () => {
       const draft = { ...draftFrom(pictured), picture: { chosen: file, preview: 'blob:x' } };
       const upload = uploadOf(NOTE_WITH_PICTURE, draft, pictured as never);
 
-      expect(upload.file).toEqual({ part: 'picture', file });
+      expect(upload.files).toEqual([{ part: 'picture', file }]);
       expect(upload.body).not.toHaveProperty('removeImage');
       expect(upload.body['romaji']).toBe('Memo');
     });
@@ -183,7 +183,7 @@ describe('the body of any entity', () => {
       const draft = { ...draftFrom(pictured), picture: null };
 
       expect(uploadOf(NOTE_WITH_PICTURE, draft, pictured as never)).toMatchObject({
-        file: null,
+        files: [],
         body: { removeImage: true },
       });
     });

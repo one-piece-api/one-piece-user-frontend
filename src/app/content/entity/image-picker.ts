@@ -24,6 +24,8 @@ export class ImagePicker {
   readonly inputId = input.required<string>();
   readonly value = input<ImageDraft | null>(null);
   readonly profile = input.required<ImageProfile>();
+  /** The title above the image, as a translation key: "Media", or a gallery's "Immagine". */
+  readonly heading = input('content.image.media');
   /** What the image should show, as a translation key - said above the profile's numbers. */
   readonly hint = input<string | null>(null);
   /** What the image shows, said to who cannot see it - the content's name. */

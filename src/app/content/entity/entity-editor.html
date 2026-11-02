@@ -431,6 +431,7 @@
                 [languages]="languageCodes()"
                 [errors]="list.errors"
                 [axes]="storyAxes()"
+                [defaultLanguage]="language()"
                 (changed)="setPartList(list.field.key, $event)"
               />
             }

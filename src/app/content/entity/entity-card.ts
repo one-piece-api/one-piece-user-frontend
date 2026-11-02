@@ -7,6 +7,7 @@ import { ENTITY, entityOf } from './entities';
 import { STATUS_DOT_CLASS, STATUS_SOFT_CLASS } from '../status-badge';
 import { isLanguageComplete, localizedFields, sharedFields, type EntityBody } from './entity-body';
 import { naturalKeyParts, type PartField, type PartListField } from './entity-definition';
+import { imagePartOf, mainPortraitIndex } from './entity-gallery';
 import { EntityImageFrame } from './entity-image-frame';
 import { isImageReference } from './entity-image';
 import { monthDayLabel, monthDayOf, monthDayText } from './entity-month-day';
@@ -102,6 +103,15 @@ interface PartView {
  */
 interface PartEntryView {
   readonly position: number;
+  /** The image of a gallery's entry, at the profile's ratio; `null` for any other entry. */
+  readonly image: {
+    readonly src: string | null;
+    readonly ratio: number;
+    /** What it shows, in words: the entry's other parts, "Aspetto · Dopo i due anni". */
+    readonly alt: string;
+  } | null;
+  /** The entry is the gallery's main portrait (workflow 3.5.1). */
+  readonly mainPortrait: boolean;
   readonly parts: readonly PartView[];
   readonly window: string | null;
   readonly former: string | null;
@@ -206,20 +216,45 @@ export class EntityCard {
    * in the language shown, else by its natural key, and the placeholder saying whose it would be.
    */
   protected readonly image = computed(() => {
-    const field = this.entity.fields.find((candidate) => candidate.kind === 'image');
-    if (field?.kind !== 'image') {
+    const own = this.ownImage() ?? this.mainPortrait();
+    if (!own) {
       return null;
     }
     this.transloco.activeLang();
-    const saved = this.body()[field.key];
     const named = this.name() ?? this.naturalKey() ?? '';
     return {
-      src: isImageReference(saved) ? saved.url : null,
-      ratio: field.profile.width / field.profile.height,
+      src: isImageReference(own.saved) ? own.saved.url : null,
+      ratio: own.profile.width / own.profile.height,
       alt: named,
       placeholder: this.transloco.translate('content.card.imageOf', {
         name: named || this.transloco.translate('content.card.thisContent'),
       }),
+    };
+  });
+
+  /** The image field of the entity, with what the version saved there. */
+  private readonly ownImage = computed(() => {
+    const field = this.entity.fields.find((candidate) => candidate.kind === 'image');
+    return field?.kind === 'image'
+      ? { profile: field.profile, saved: this.body()[field.key] }
+      : null;
+  });
+
+  /** The main portrait of a gallery, for an entity with one instead of an image field (D6). */
+  private readonly mainPortrait = computed(() => {
+    const gallery = this.entity.fields.find(
+      (candidate): candidate is PartListField =>
+        candidate.kind === 'partList' && !!candidate.mainPortrait,
+    );
+    const image = gallery && imagePartOf(gallery);
+    if (!gallery || !image) {
+      return null;
+    }
+    const items = itemsOf(this.body()[gallery.key]);
+    const index = mainPortraitIndex(gallery, items);
+    return {
+      profile: image.profile,
+      saved: index === null ? null : partValueOf(gallery, items[index], image),
     };
   });
 
@@ -434,15 +469,16 @@ export class EntityCard {
         ? [
             {
               field: field.key,
-              entries: itemsOf(this.body()[field.key]).map((item, index) =>
-                this.entryView(
+              entries: itemsOf(this.body()[field.key]).map((item, index, items) => ({
+                ...this.entryView(
                   field,
                   item,
                   index,
                   language,
                   `${this.entity.i18n}.former.${field.key}`,
                 ),
-              ),
+                mainPortrait: mainPortraitIndex(field, items) === index,
+              })),
             },
           ]
         : [],
@@ -498,9 +534,18 @@ export class EntityCard {
           )
         : [],
     );
+    const image = imagePartOf(field);
+    const saved = image ? partValueOf(field, item, image) : null;
+    const parts = valueParts.flatMap((part) => this.partView(field, part, item, language));
     return {
       position: index + 1,
-      parts: valueParts.flatMap((part) => this.partView(field, part, item, language)),
+      image: image && {
+        src: isImageReference(saved) ? saved.url : null,
+        ratio: image.profile.width / image.profile.height,
+        alt: parts.flatMap(({ text }) => (text ? [text] : [])).join(' · '),
+      },
+      mainPortrait: false,
+      parts,
       window: this.windowLine(field, item),
       former: formerKey && isFormer(field, item) ? this.transloco.translate(formerKey) : null,
       nested,

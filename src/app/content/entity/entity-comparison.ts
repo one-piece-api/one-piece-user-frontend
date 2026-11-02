@@ -35,7 +35,8 @@ import { EntityCard } from './entity-card';
 import { diffBodies, namesOf, type EntityBody, type EntityFieldRef } from '../entity/entity-body';
 import { ENTITY } from './entities';
 import { EntityImageFrame } from './entity-image-frame';
-import { labelKeyOf, type EntityField } from './entity-definition';
+import { labelKeyOf, type EntityField, type ImageField } from './entity-definition';
+import { imagePartOf } from './entity-gallery';
 import { monthDayLabel } from './entity-month-day';
 import { comparedStoryPointLabel } from './entity-story-point';
 import { untitledOf } from './entity-title';
@@ -324,11 +325,23 @@ export class EntityComparison {
     return field ? labelKeyOf(field) : key;
   }
 
+  /** The entity's image field named `key`, if it is one. */
+  private imageField(key: string): ImageField | undefined {
+    return this.entity.fields.find(
+      (candidate): candidate is ImageField => candidate.key === key && candidate.kind === 'image',
+    );
+  }
+
+  /** The image part of a list's entries named `part` - a gallery's image - if it is one. */
+  private entryImagePart(key: string, part: string): ImageField | undefined {
+    const list = this.entity.fields.find((candidate) => candidate.key === key);
+    const image = list?.kind === 'partList' ? imagePartOf(list) : null;
+    return image?.key === part ? image : undefined;
+  }
+
   private toRow(diff: FieldDiff<EntityFieldRef>): DiffRow {
     const { field, language, entry } = diff.field;
-    const image = this.entity.fields.find(
-      (candidate) => candidate.key === field && candidate.kind === 'image',
-    );
+    const image = entry ? this.entryImagePart(field, entry.part) : this.imageField(field);
     const storyPoint = entry
       ? entry.part === 'firstAppearance' || entry.storyPoint === true
       : this.entity.fields.some(
@@ -362,8 +375,7 @@ export class EntityComparison {
         ? this.storyPointNamed(diff.after)
         : this.valueNamed(field, diff.after, entry?.part),
       image: image !== undefined,
-      ratio:
-        image?.kind === 'image' ? image.profile.width / image.profile.height : DEFAULT_IMAGE_RATIO,
+      ratio: image ? image.profile.width / image.profile.height : DEFAULT_IMAGE_RATIO,
       sign: CHANGE_SIGN[diff.change],
       struck: diff.change === 'REMOVED',
       changeKey: `content.comparison.change.${diff.change}`,

@@ -162,6 +162,16 @@ describe('DevilFruitTypeEditor', () => {
     await settle();
   }
 
+  /** Shows a section's paragraphs in one language, with the section's own switch. */
+  async function showIn(section: string, language: string): Promise<void> {
+    root
+      .querySelector<HTMLButtonElement>(
+        `[data-testid="draft-${section}"] [data-testid="part-language-${language}"]`,
+      )!
+      .click();
+    await settle();
+  }
+
   async function pickLanguage(label: string): Promise<void> {
     tab(label).click();
     await settle();
@@ -242,8 +252,10 @@ describe('DevilFruitTypeEditor', () => {
       await open(`${SECTION}/new`);
       await type('draft-name', 'Logia');
       await addParagraph('description');
+      await showIn('description', 'it');
       await type('draft-description-0-text-it', 'Elementale.');
       expect(tab('EN').textContent).toContain('incomplete');
+      await showIn('description', 'en');
       await type('draft-description-0-text-en', 'Elemental.');
 
       expect(tab('EN').textContent).not.toContain('incomplete');
@@ -377,7 +389,7 @@ describe('DevilFruitTypeEditor', () => {
       expect(field('draft-romaji').maxLength).toBe(100);
       expect(field('draft-name').maxLength).toBe(100);
       for (const section of ['description', 'advantages', 'disadvantages']) {
-        expect(field(`draft-${section}-0-text-it`).maxLength).toBe(2000);
+        expect(field(`draft-${section}-0-text-en`).maxLength).toBe(2000);
       }
     });
 
@@ -385,11 +397,15 @@ describe('DevilFruitTypeEditor', () => {
       await open(`${SECTION}/new`);
       await addParagraph('description');
 
-      const boxes = ['it', 'en'].map((language) => field(`draft-description-0-text-${language}`));
-      expect(boxes.map((box) => box.tagName)).toEqual(['TEXTAREA', 'TEXTAREA']);
-      expect(boxes.map((box) => box.getAttribute('lang'))).toEqual(['it', 'en']);
-      expect((boxes[0] as HTMLTextAreaElement).rows).toBe(5);
-      expect(boxes[0].parentElement?.parentElement?.className).toContain('xl:grid-cols-2');
+      // One language at a time: the editor's own to start, the other one switch away.
+      const english = field('draft-description-0-text-en') as HTMLTextAreaElement;
+      expect(english.tagName).toBe('TEXTAREA');
+      expect(english.getAttribute('lang')).toBe('en');
+      expect(english.rows).toBe(5);
+      expect(field('draft-description-0-text-it')).toBeNull();
+      await showIn('description', 'it');
+      expect(field('draft-description-0-text-it').getAttribute('lang')).toBe('it');
+      expect(field('draft-description-0-text-en')).toBeNull();
       const section = root.querySelector('[data-testid="draft-description"]')!;
       expect(section.textContent).toContain('Paragraph 1');
       // No first appearance yet: the window asks for it before offering its pickers.
@@ -405,8 +421,9 @@ describe('DevilFruitTypeEditor', () => {
       expect(root.textContent).toContain('your draft v2 · v1 stays online');
       expect(field('draft-romaji').value).toBe('Shizen-kei');
       expect(field('draft-name').value).toBe('Logia');
-      expect(field('draft-description-0-text-it').value).toBe('Elementale.');
       expect(field('draft-description-0-text-en').value).toBe('');
+      await showIn('description', 'it');
+      expect(field('draft-description-0-text-it').value).toBe('Elementale.');
       expect(field('draft-advantages-0-text-en').value).toBe('');
       expect(tab('EN').textContent).toContain('incomplete');
       expect(tab('IT').textContent).not.toContain('incomplete');
