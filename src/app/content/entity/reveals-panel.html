@@ -1,0 +1,600 @@
+<div class="@container grid gap-4" data-testid="reveals-panel">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <p class="max-w-180 font-heading text-sm font-bold text-pretty text-ocean-800">
+      {{ (editable() ? 'content.reveals.leadEdit' : 'content.reveals.lead') | transloco }}
+    </p>
+    @if (languages().length > 1) {
+      <div
+        class="flex gap-1 rounded-xl bg-parchment-200 p-1"
+        role="group"
+        [attr.aria-label]="'content.reveals.textLanguage' | transloco"
+        data-testid="reveal-languages"
+      >
+        @for (language of languages(); track language) {
+          <button
+            type="button"
+            class="inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-1 font-display text-[13px] font-bold"
+            [class]="
+              textLanguage() === language
+                ? 'bg-ocean-900 text-white'
+                : 'text-ocean-800 hover:bg-white'
+            "
+            [attr.aria-pressed]="textLanguage() === language"
+            [attr.data-testid]="'reveal-language-' + language"
+            (click)="textLanguage.set(language)"
+          >
+            {{ language.toUpperCase() }}
+            @if (isLanguageRefused(language)) {
+              <span class="text-flag-600" data-testid="reveal-language-refused">!</span>
+            }
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (summary().length) {
+    <div
+      role="alert"
+      class="rounded-xl border-2 border-flag-600 bg-white px-3.5 py-2.5"
+      data-testid="reveals-summary"
+    >
+      <p class="font-display text-sm font-bold text-flag-600">
+        {{ 'content.reveals.summary' | transloco: { count: summary().length } }}
+      </p>
+      <ul class="mt-1 grid gap-0.5 pl-4.5">
+        @for (item of summary(); track $index) {
+          <li class="list-disc font-heading text-[13px] font-bold text-ocean-950">
+            <button
+              type="button"
+              class="cursor-pointer text-left underline"
+              (click)="selected.set(item.node)"
+            >
+              {{ item.text }}
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <div class="grid items-start gap-4 @2xl:grid-cols-[minmax(0,280px)_minmax(0,1fr)]">
+    <div class="grid min-w-0 content-start gap-2.5">
+      <ol
+        class="relative grid"
+        [attr.aria-label]="'content.reveals.tab' | transloco"
+        data-testid="reveal-nodes"
+      >
+        <span
+          aria-hidden="true"
+          class="absolute top-4.5 bottom-4.5 left-3.75 w-0.5 bg-ocean-100"
+        ></span>
+        @for (node of nodeViews(); track node.key) {
+          <li class="relative">
+            <button
+              type="button"
+              class="grid w-full cursor-pointer grid-cols-[22px_max-content_minmax(0,1fr)_auto] items-center gap-2 rounded-[10px] py-1.75 pr-2 pl-1.25 text-left"
+              [class]="selected() === node.key ? 'bg-ocean-900' : 'hover:bg-parchment-200'"
+              [attr.aria-pressed]="selected() === node.key"
+              [attr.data-testid]="node.kind === 'reveal' ? 'reveal-node' : 'reveal-start'"
+              (click)="select(node.key)"
+            >
+              <span
+                aria-hidden="true"
+                class="size-3 justify-self-center rounded-full border-2"
+                [class]="
+                  node.refused
+                    ? 'border-flag-600 bg-flag-600'
+                    : selected() === node.key
+                      ? 'border-treasure-500 bg-treasure-500'
+                      : node.kind === 'reveal'
+                        ? 'border-ocean-900 bg-ocean-900'
+                        : 'border-ocean-900 bg-white'
+                "
+              ></span>
+              <span
+                class="font-display text-[13px] font-bold whitespace-nowrap"
+                [class]="selected() === node.key ? 'text-white' : 'text-ocean-900'"
+                >{{ node.point ?? ('content.reveals.pointUnknown' | transloco) }}</span
+              >
+              <span
+                class="truncate font-heading text-[13px] font-extrabold"
+                [class]="selected() === node.key ? 'text-white' : 'text-ocean-950'"
+                >{{ node.label }}</span
+              >
+              <span
+                class="font-heading text-[11px] font-extrabold whitespace-nowrap"
+                [class]="
+                  node.refused
+                    ? 'text-flag-600'
+                    : selected() === node.key
+                      ? 'text-white/75'
+                      : 'text-ocean-500'
+                "
+                >{{
+                  node.refused
+                    ? '!'
+                    : node.kind === 'reveal'
+                      ? ((node.count === 1
+                          ? 'content.reveals.fieldCountOne'
+                          : 'content.reveals.fieldCountMany'
+                        ) | transloco: { count: node.count })
+                      : ''
+                }}</span
+              >
+            </button>
+          </li>
+        }
+      </ol>
+      @if (editable()) {
+        <button
+          type="button"
+          class="cursor-pointer justify-self-start rounded-[11px] bg-parchment-200 px-3.5 py-2 font-heading text-[13px] font-extrabold text-ocean-800 hover:bg-ocean-100"
+          data-testid="add-reveal"
+          (click)="addReveal()"
+        >
+          + {{ 'content.reveals.add' | transloco }}
+        </button>
+      }
+    </div>
+
+    <div class="grid min-w-0 content-start gap-2.5">
+      @if (current(); as node) {
+        <section
+          animate.enter="anim-pop-enter"
+          class="grid gap-2.5 rounded-2xl bg-white px-4 py-3.5"
+          [class]="
+            isRefused(keyOf(node))
+              ? 'shadow-[inset_0_0_0_2px_var(--color-flag-600)]'
+              : 'shadow-[inset_0_0_0_2px_var(--color-parchment-200)]'
+          "
+          data-testid="reveal-detail"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-2.5">
+            <h3 class="min-w-0 font-display text-base font-bold text-ocean-950">
+              @switch (node.kind) {
+                @case ('firstAppearance') {
+                  {{ pointText(node.point) }} · {{ 'content.reveals.firstAppearance' | transloco }}
+                }
+                @case ('reveal') {
+                  {{ pointText(node.reveal.point) }} · {{ revealTitle(node.reveal) }}
+                }
+              }
+            </h3>
+            <div class="flex items-center gap-2">
+              @if (editable() && node.kind === 'reveal') {
+                <button
+                  type="button"
+                  class="cursor-pointer rounded-[11px] bg-flag-600 px-3 py-1.5 font-heading text-xs font-extrabold text-white hover:bg-flag-700"
+                  data-testid="remove-reveal"
+                  (click)="removeReveal(node.reveal.key)"
+                >
+                  {{ 'content.reveals.remove' | transloco }}
+                </button>
+              }
+              <button
+                type="button"
+                class="cursor-pointer rounded-[11px] bg-parchment-200 px-3 py-1.5 font-heading text-xs font-extrabold text-ocean-800"
+                (click)="selected.set(null)"
+              >
+                {{ 'content.reveals.close' | transloco }}
+              </button>
+            </div>
+          </div>
+
+          @if (refusalOf(keyOf(node), 'node'); as error) {
+            <p role="alert" class="font-heading text-xs font-extrabold text-flag-600">
+              {{ error }}
+            </p>
+          }
+
+          @switch (node.kind) {
+            @case ('firstAppearance') {
+              @if (!node.groups.length) {
+                <p class="font-heading text-sm font-bold text-ocean-500">
+                  {{ 'content.reveals.noInitial' | transloco }}
+                </p>
+              } @else {
+                <p class="font-heading text-xs font-bold text-ocean-500">
+                  {{ 'content.reveals.initialHint' | transloco }}
+                </p>
+                <div class="grid gap-2" data-testid="reveal-initial">
+                  @for (group of node.groups; track group) {
+                    <div class="grid gap-1.5 rounded-xl border-2 border-parchment-200 px-3 py-2.5">
+                      <span
+                        class="font-heading text-xs font-black tracking-wider text-ocean-900 uppercase"
+                        >{{ 'content.reveals.field.' + group | transloco }}</span
+                      >
+                      <ng-container
+                        *ngTemplateOutlet="
+                          groupEditor;
+                          context: {
+                            $implicit: group,
+                            belief: node.values,
+                            node: initialNode,
+                            editable: editable(),
+                          }
+                        "
+                      />
+                    </div>
+                  }
+                </div>
+              }
+            }
+            @case ('reveal') {
+              @if (editable()) {
+                <div class="grid gap-2.5 @lg:grid-cols-2">
+                  @for (picker of pickersOf(node.reveal); track picker.axis) {
+                    <div class="grid content-start gap-1">
+                      <label
+                        [for]="picker.id"
+                        class="font-heading text-[11px] font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                        >{{ 'content.storyPoint.' + picker.axis + 'Medium' | transloco }}</label
+                      >
+                      <app-relation-picker
+                        [inputId]="picker.id"
+                        [source]="picker.source"
+                        [value]="picker.value"
+                        [labelOf]="axisLabelOf[picker.axis]"
+                        [placeholder]="'content.storyPoint.placeholder' | transloco"
+                        [invalid]="picker.offAxis || !!refusalOf(node.reveal.key, 'point')"
+                        [disabled]="picker.disabled"
+                        (picked)="setPoint(node.reveal.key, picker.axis, $event)"
+                      />
+                      @if (picker.disabled) {
+                        <p class="font-heading text-[11px] font-bold text-ocean-500/60">
+                          {{ 'content.editor.window.axisMissing.' + picker.axis | transloco }}
+                        </p>
+                      } @else if (picker.offAxis) {
+                        <p class="font-heading text-[11px] font-bold text-flag-700">
+                          {{ 'content.editor.window.offAxis.' + picker.axis | transloco }}
+                        </p>
+                      }
+                    </div>
+                  }
+                  @if (refusalOf(node.reveal.key, 'point'); as error) {
+                    <p
+                      role="alert"
+                      class="font-heading text-xs font-extrabold text-flag-600 @lg:col-span-2"
+                      data-testid="reveal-point-error"
+                    >
+                      {{ error }}
+                    </p>
+                  }
+                  @for (language of [textLanguage()]; track language) {
+                    <div class="grid gap-1 @lg:col-span-2">
+                      <label
+                        [for]="'reveal-title-' + node.reveal.key + '-' + language"
+                        class="font-heading text-[11px] font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                        >{{ 'content.reveals.title' | transloco }} ·
+                        {{ language.toUpperCase() }}</label
+                      >
+                      <input
+                        [id]="'reveal-title-' + node.reveal.key + '-' + language"
+                        class="w-full rounded-[11px] border-2 bg-white px-3 py-2 font-heading text-sm font-bold text-ocean-950"
+                        [class]="
+                          refusalOf(node.reveal.key, 'title.' + language)
+                            ? 'border-flag-600'
+                            : 'border-parchment-200'
+                        "
+                        maxlength="60"
+                        [placeholder]="'content.reveals.titlePlaceholder' | transloco"
+                        [value]="node.reveal.titles[language] ?? ''"
+                        data-testid="reveal-title"
+                        (input)="setTitle(node.reveal.key, language, $any($event.target).value)"
+                      />
+                      @if (refusalOf(node.reveal.key, 'title.' + language); as error) {
+                        <p role="alert" class="font-heading text-xs font-extrabold text-flag-600">
+                          {{ error }}
+                        </p>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (refusalOf(node.reveal.key, 'fields'); as error) {
+                <p role="alert" class="font-heading text-xs font-extrabold text-flag-600">
+                  {{ error }}
+                </p>
+              }
+
+              @if (!node.rows.length) {
+                <p class="font-heading text-sm font-bold text-ocean-500">
+                  {{ 'content.reveals.noField' | transloco }}
+                </p>
+              } @else {
+                <span
+                  class="font-heading text-[11px] font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                  >{{ 'content.reveals.changedFields' | transloco }}</span
+                >
+                <div class="grid gap-2">
+                  @for (row of node.rows; track row.group) {
+                    @let open = openRow(node.rows) === row.group;
+                    <div
+                      class="overflow-hidden rounded-xl border-2 bg-white"
+                      [class]="open ? 'border-ocean-900' : 'border-parchment-200'"
+                      data-testid="reveal-row"
+                    >
+                      <button
+                        type="button"
+                        class="grid w-full cursor-pointer grid-cols-[minmax(110px,max-content)_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 text-left hover:bg-parchment-100"
+                        [attr.aria-expanded]="open"
+                        data-testid="reveal-row-toggle"
+                        (click)="toggleRow(node.rows, row.group)"
+                      >
+                        <span
+                          class="font-heading text-xs font-black tracking-wider whitespace-nowrap text-ocean-900 uppercase"
+                          >{{ 'content.reveals.field.' + row.group | transloco }}</span
+                        >
+                        <span
+                          class="flex min-w-0 items-center gap-1.5 font-heading text-[13px] font-bold"
+                        >
+                          @if (!open) {
+                            <span
+                              class="max-w-[calc(50%-14px)] truncate rounded-md bg-flag-100 px-1.5 py-0.5 text-flag-700 line-through decoration-flag-700/40"
+                              data-testid="reveal-row-before"
+                              >{{
+                                groupText(row.before, row.group) ??
+                                  ('content.reveals.unknown' | transloco)
+                              }}</span
+                            >
+                            <span aria-hidden="true" class="flex-none text-ocean-500">→</span>
+                            <span
+                              class="max-w-[calc(50%-14px)] truncate rounded-md bg-success-100 px-1.5 py-0.5 text-success-700"
+                              data-testid="reveal-row-after"
+                              >{{
+                                groupText(row.after, row.group) ??
+                                  ('content.reveals.unknown' | transloco)
+                              }}</span
+                            >
+                          }
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          class="font-display text-base text-ocean-500 transition-transform"
+                          [class.rotate-90]="open"
+                          >›</span
+                        >
+                      </button>
+                      @if (open) {
+                        <div class="grid gap-2.5 border-t-2 border-parchment-200 p-3">
+                          <div
+                            class="grid gap-2.5 @xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]"
+                          >
+                            <div
+                              class="grid min-w-0 content-start gap-1.5 rounded-[10px] border-l-4 border-flag-600 bg-flag-100/60 px-3 py-2"
+                              data-testid="reveal-before"
+                            >
+                              <span
+                                class="font-heading text-[11px] font-extrabold tracking-wider text-flag-700 uppercase"
+                                >{{ 'content.reveals.before' | transloco }}</span
+                              >
+                              <ng-container
+                                *ngTemplateOutlet="
+                                  groupEditor;
+                                  context: {
+                                    $implicit: row.group,
+                                    belief: row.before,
+                                    node: row.beforeNode,
+                                    editable: editable(),
+                                  }
+                                "
+                              />
+                              <span class="font-heading text-[11px] font-bold text-flag-700/70">{{
+                                beforeSource(row)
+                              }}</span>
+                            </div>
+                            <span
+                              aria-hidden="true"
+                              class="hidden self-center justify-self-center font-display text-xl text-ocean-500 @xl:block"
+                              >→</span
+                            >
+                            <div
+                              class="grid min-w-0 content-start gap-1.5 rounded-[10px] border-l-4 border-success-600 bg-success-100/60 px-3 py-2"
+                              data-testid="reveal-after"
+                            >
+                              <span
+                                class="font-heading text-[11px] font-extrabold tracking-wider text-success-700 uppercase"
+                                >{{ 'content.reveals.after' | transloco }}</span
+                              >
+                              <ng-container
+                                *ngTemplateOutlet="
+                                  groupEditor;
+                                  context: {
+                                    $implicit: row.group,
+                                    belief: row.after,
+                                    node: row.afterNode,
+                                    editable: editable(),
+                                  }
+                                "
+                              />
+                              @if (row.last) {
+                                <span
+                                  class="font-heading text-[11px] font-bold text-success-700/70"
+                                  >{{
+                                    (editable()
+                                      ? 'content.reveals.isTruthEdit'
+                                      : 'content.reveals.isTruth'
+                                    ) | transloco
+                                  }}</span
+                                >
+                              }
+                            </div>
+                          </div>
+                          @if (editable()) {
+                            <button
+                              type="button"
+                              class="cursor-pointer justify-self-end rounded-[11px] bg-flag-600 px-3 py-1.5 font-heading text-xs font-extrabold text-white hover:bg-flag-700"
+                              data-testid="remove-field"
+                              (click)="removeGroup(node.reveal.key, row.group)"
+                            >
+                              {{ 'content.reveals.removeField' | transloco }}
+                            </button>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (editable() && freeGroups(node.reveal).length) {
+                <select
+                  class="cursor-pointer justify-self-start rounded-[10px] border-2 border-dashed border-ocean-100 bg-parchment-100 px-2.5 py-1.5 font-heading text-[13px] font-extrabold text-ocean-800"
+                  [attr.aria-label]="'content.reveals.addField' | transloco"
+                  data-testid="add-field"
+                  (change)="
+                    addGroup(node.reveal.key, $any($event.target).value);
+                    $any($event.target).value = ''
+                  "
+                >
+                  <option value="">+ {{ 'content.reveals.addField' | transloco }}</option>
+                  @for (group of freeGroups(node.reveal); track group) {
+                    <option [value]="group">
+                      {{ 'content.reveals.field.' + group | transloco }}
+                    </option>
+                  }
+                </select>
+              }
+            }
+          }
+        </section>
+      }
+    </div>
+  </div>
+
+  @if (!editable()) {
+    <p class="font-heading text-xs font-bold text-ocean-500">
+      {{ 'content.reveals.readOnly' | transloco }}
+    </p>
+  }
+</div>
+
+<!-- The values of one choice of a belief: each field written where it may be, else shown. -->
+<ng-template #groupEditor let-group let-belief="belief" let-node="node" let-editable="editable">
+  @for (field of fieldsOf(group); track field.key) {
+    <div class="grid gap-1">
+      @if (fieldsOf(group).length > 1) {
+        <span class="font-heading text-[11px] font-extrabold text-ocean-500">{{
+          'content.reveals.value.' + field.key | transloco
+        }}</span>
+      }
+      <ng-container
+        *ngTemplateOutlet="
+          valueEditor;
+          context: { $implicit: field, belief: belief, node: node, editable: editable }
+        "
+      />
+    </div>
+  }
+</ng-template>
+
+<!-- One value of a belief: written where it may be, else shown - "not known yet" where empty. -->
+<ng-template #valueEditor let-field let-belief="belief" let-node="node" let-editable="editable">
+  @let language = textLanguage();
+  @let id = 'reveal-' + node + '-' + field.key;
+  @if (!editable) {
+    <p class="font-heading text-sm font-bold text-pretty">
+      @if (isLocalized(field)) {
+        <span class="mr-1 font-display text-xs text-ocean-500">{{ language.toUpperCase() }}</span>
+      }
+      @if (valueText(belief, field, language); as text) {
+        <span class="text-ocean-950">{{ text }}</span>
+      } @else {
+        <em class="text-ocean-500/80">{{ 'content.reveals.unknown' | transloco }}</em>
+      }
+    </p>
+  } @else if (isLocalized(field)) {
+    @let target = language + '.' + field.key;
+    <label class="grid grid-cols-[30px_minmax(0,1fr)] items-center gap-1.5">
+      <span class="font-display text-xs font-bold text-ocean-800">{{
+        language.toUpperCase()
+      }}</span>
+      <input
+        [id]="id + '-' + language"
+        class="w-full rounded-[11px] border-2 bg-white px-3 py-2 font-heading text-sm font-bold text-ocean-950"
+        [class]="refusalOf(node, target) ? 'border-flag-600' : 'border-parchment-200'"
+        [attr.maxlength]="maxLengthOf(field)"
+        [placeholder]="'content.reveals.unknown' | transloco"
+        [value]="textValue(belief, field.key, language)"
+        (input)="setValue(node, field.key, language, $any($event.target).value)"
+      />
+    </label>
+    @if (refusalOf(node, target); as error) {
+      <p role="alert" class="font-heading text-xs font-extrabold text-flag-600">{{ error }}</p>
+    }
+  } @else if (field.kind === 'relation') {
+    @if (relationSource(field); as source) {
+      <app-relation-picker
+        [inputId]="id"
+        [source]="source"
+        [value]="belief[field.key] ?? null"
+        [placeholder]="'content.reveals.unknown' | transloco"
+        [invalid]="!!refusalOf(node, field.key)"
+        (picked)="setRelation(node, field.key, $event)"
+      />
+    }
+    @if (subcategoryOf(field.key) && subcategoryChoicesOf(belief, field.key).length) {
+      <select
+        class="w-full rounded-[11px] border-2 bg-white px-3 py-2 font-heading text-sm font-bold text-ocean-950"
+        [class]="refusalOf(node, 'subcategory') ? 'border-flag-600' : 'border-parchment-200'"
+        [attr.aria-label]="'content.editor.subcategory.label' | transloco"
+        [value]="pickedSubcategory(belief, field.key)"
+        (change)="setSubcategory(node, field.key, $any($event.target).value)"
+      >
+        <option value="">{{ 'content.editor.subcategory.none' | transloco }}</option>
+        @for (choice of subcategoryChoicesOf(belief, field.key); track choice.id) {
+          <option [value]="choice.id">{{ choice.names[uiLanguage()] ?? choice.id }}</option>
+        }
+      </select>
+    }
+    @for (target of [field.key, 'subcategory']; track target) {
+      @if (refusalOf(node, target); as error) {
+        <p role="alert" class="font-heading text-xs font-extrabold text-flag-600">{{ error }}</p>
+      }
+    }
+  } @else if (field.kind === 'choice') {
+    <select
+      [id]="id"
+      class="w-full rounded-[11px] border-2 bg-white px-3 py-2 font-heading text-sm font-bold text-ocean-950"
+      [class]="refusalOf(node, field.key) ? 'border-flag-600' : 'border-parchment-200'"
+      [value]="textValue(belief, field.key, null)"
+      (change)="setValue(node, field.key, null, $any($event.target).value)"
+    >
+      <option value="">{{ 'content.reveals.unknown' | transloco }}</option>
+      @for (option of optionsOf(field); track option) {
+        <option [value]="option">
+          {{ entity().i18n + '.options.' + field.key + '.' + option | transloco }}
+        </option>
+      }
+    </select>
+    @if (refusalOf(node, field.key); as error) {
+      <p role="alert" class="font-heading text-xs font-extrabold text-flag-600">{{ error }}</p>
+    }
+  } @else if (field.kind === 'boolean') {
+    <label class="inline-flex items-center gap-2 font-heading text-sm font-bold text-ocean-950">
+      <input
+        [id]="id"
+        type="checkbox"
+        class="size-4 accent-ocean-900"
+        [checked]="belief[field.key] === true"
+        (change)="setValue(node, field.key, null, $any($event.target).checked)"
+      />
+      {{ 'content.reveals.value.' + field.key | transloco }}
+    </label>
+  } @else {
+    <input
+      [id]="id"
+      class="w-full rounded-[11px] border-2 bg-white px-3 py-2 font-heading text-sm font-bold text-ocean-950"
+      [class]="refusalOf(node, field.key) ? 'border-flag-600' : 'border-parchment-200'"
+      [attr.maxlength]="maxLengthOf(field)"
+      [placeholder]="'content.reveals.unknown' | transloco"
+      [value]="textValue(belief, field.key, null)"
+      (input)="setValue(node, field.key, null, $any($event.target).value)"
+    />
+    @if (refusalOf(node, field.key); as error) {
+      <p role="alert" class="font-heading text-xs font-extrabold text-flag-600">{{ error }}</p>
+    }
+  }
+</ng-template>

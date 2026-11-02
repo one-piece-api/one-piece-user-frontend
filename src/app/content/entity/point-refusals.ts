@@ -12,6 +12,8 @@ const POINT_REFUSAL_BY_MESSAGE: Readonly<Record<string, string>> = {
   'must not be before the first appearance': 'content.storyPoint.refused.beforeFirstAppearance',
   'must be on an axis where discovered has a part': 'content.storyPoint.refused.endedOffAxis',
   'must not be before discovered': 'content.storyPoint.refused.endedBeforeDiscovered',
+  // A reveal comes strictly after the first appearance (3.7.1).
+  'must be after the first appearance': 'content.storyPoint.refused.notAfterFirstAppearance',
   'must not start before a previous period': 'content.storyPoint.refused.periodOutOfOrder',
   'must not overlap a previous period': 'content.storyPoint.refused.periodOverlapping',
   'must have an end: only the last period may have none': 'content.storyPoint.refused.periodOpen',

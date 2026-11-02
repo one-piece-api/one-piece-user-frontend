@@ -70,6 +70,18 @@
                 {{ 'content.comparison.count.' + item.change | transloco: { count: item.count } }}
               </span>
             }
+            @if (revealChanges()) {
+              <span
+                class="inline-flex items-center gap-1.25 rounded-full bg-ocean-500/10 px-2.5 py-0.75 font-heading text-xs font-extrabold text-ocean-700"
+                data-testid="comparison-reveals-count"
+              >
+                <span class="font-display text-sm" aria-hidden="true">✦</span>
+                {{
+                  'content.comparison.reveals.count.' + (revealChanges() === 1 ? 'one' : 'many')
+                    | transloco: { count: revealChanges() }
+                }}
+              </span>
+            }
           </div>
         }
       </div>
@@ -132,100 +144,71 @@
           @if (mode() === 'changes') {
             <div class="grid gap-2.5">
               @for (row of changedRows(); track row.key) {
-                <div
-                  class="overflow-hidden rounded-xl border border-parchment-200"
-                  data-testid="comparison-row"
-                >
-                  <div
-                    class="flex items-center justify-between gap-2.5 border-b border-parchment-200 bg-parchment-200/40 px-3.5 py-1.5"
-                  >
-                    <span class="font-heading text-xs font-extrabold text-ocean-500">{{
-                      row.label
-                    }}</span>
-                    <span
-                      class="inline-flex items-center gap-1.25 rounded-lg px-2.25 py-px font-heading text-[11px] font-extrabold whitespace-nowrap"
-                      [class]="row.classes.chip"
-                    >
-                      <span class="font-display text-sm leading-none" aria-hidden="true">{{
-                        row.sign
-                      }}</span>
-                      {{ row.changeKey | transloco }}
-                    </span>
-                  </div>
-                  @if (row.image) {
-                    <div
-                      class="grid grid-cols-2 gap-px bg-parchment-200"
-                      data-testid="comparison-images"
-                    >
-                      @for (
-                        side of [
-                          { src: row.before, classes: row.classes.before, version: baseNumber() },
-                          { src: row.after, classes: row.classes.after, version: shownNumber() },
-                        ];
-                        track $index
-                      ) {
-                        <div
-                          class="grid min-w-0 justify-items-center gap-1.5 px-3.5 py-2.5"
-                          [class]="side.classes"
-                        >
-                          <span
-                            class="font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/60"
-                            >{{ side.version === null ? '—' : 'v' + side.version }}</span
-                          >
-                          <app-entity-image-frame
-                            class="block w-full max-w-36"
-                            [src]="side.src"
-                            [ratio]="row.ratio"
-                            [alt]="row.label + (side.version === null ? '' : ' v' + side.version)"
-                            [placeholder]="'content.comparison.noImage' | transloco"
-                          />
-                        </div>
-                      }
-                    </div>
-                  } @else {
-                    <div class="grid gap-px bg-parchment-200 sm:grid-cols-2">
-                      <div
-                        class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5"
-                        [class]="row.classes.before"
-                      >
-                        <span
-                          class="w-3 flex-none font-display text-base leading-snug font-bold"
-                          aria-hidden="true"
-                          >{{ row.classes.beforeSign }}</span
-                        >
-                        <p
-                          class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
-                        >
-                          <span
-                            class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
-                            >{{ baseNumber() === null ? '' : 'v' + baseNumber() }}</span
-                          ><span [class.line-through]="row.struck">{{ row.before ?? '—' }}</span>
-                        </p>
-                      </div>
-                      <div
-                        class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5"
-                        [class]="row.classes.after"
-                      >
-                        <span
-                          class="w-3 flex-none font-display text-base leading-snug font-bold"
-                          aria-hidden="true"
-                          >{{ row.classes.afterSign }}</span
-                        >
-                        <p
-                          class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
-                        >
-                          <span
-                            class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
-                            >{{ 'v' + shownNumber() }}</span
-                          >{{ row.after ?? '—' }}
-                        </p>
-                      </div>
-                    </div>
-                  }
-                </div>
+                <ng-container
+                  *ngTemplateOutlet="rowCard; context: { $implicit: row, testid: 'comparison-row' }"
+                />
               }
 
-              @if (!changedRows().length) {
+              @if (revealsBlock(); as block) {
+                @if (block.initial.length || block.reveals.length) {
+                  <section class="grid gap-2.5" data-testid="comparison-reveals">
+                    <h3 class="font-display text-base font-bold text-ocean-950">
+                      {{ 'content.comparison.reveals.heading' | transloco }}
+                    </h3>
+                    @for (row of block.initial; track row.key) {
+                      <ng-container
+                        *ngTemplateOutlet="
+                          rowCard;
+                          context: { $implicit: row, testid: 'comparison-reveal-row' }
+                        "
+                      />
+                    }
+                    @for (card of block.reveals; track card.key) {
+                      <article
+                        class="grid gap-2 rounded-xl border border-dashed border-ocean-500/30 p-2.5"
+                        data-testid="comparison-reveal"
+                      >
+                        <div class="flex flex-wrap items-center justify-between gap-2.5">
+                          <span
+                            class="font-heading text-[13px] font-extrabold text-ocean-950"
+                            data-testid="comparison-reveal-heading"
+                            >{{ card.heading }}</span
+                          >
+                          <span
+                            class="inline-flex items-center gap-1.25 rounded-lg px-2.25 py-px font-heading text-[11px] font-extrabold whitespace-nowrap"
+                            [class]="card.chip"
+                          >
+                            <span class="font-display text-sm leading-none" aria-hidden="true">{{
+                              card.sign
+                            }}</span>
+                            {{ card.changeKey | transloco }}
+                          </span>
+                        </div>
+                        @if (card.named; as named) {
+                          <p
+                            class="font-heading text-xs font-bold text-ocean-500"
+                            data-testid="comparison-reveal-named"
+                          >
+                            {{ 'content.comparison.reveals.named' | transloco }}:
+                            <span class="line-through">{{ named.before }}</span> →
+                            <span class="text-ocean-950">{{ named.after }}</span>
+                          </p>
+                        }
+                        @for (row of card.rows; track row.key) {
+                          <ng-container
+                            *ngTemplateOutlet="
+                              rowCard;
+                              context: { $implicit: row, testid: 'comparison-reveal-row' }
+                            "
+                          />
+                        }
+                      </article>
+                    }
+                  </section>
+                }
+              }
+
+              @if (!changedRows().length && !revealChanges()) {
                 <p
                   class="rounded-xl bg-status-draft-soft px-3.5 py-3 font-heading text-[13px] font-bold text-status-draft-ink"
                   data-testid="comparison-no-changes"
@@ -290,3 +273,81 @@
     </div>
   }
 </dialog>
+
+<ng-template #rowCard let-row let-testid="testid">
+  <div class="overflow-hidden rounded-xl border border-parchment-200" [attr.data-testid]="testid">
+    <div
+      class="flex items-center justify-between gap-2.5 border-b border-parchment-200 bg-parchment-200/40 px-3.5 py-1.5"
+    >
+      <span class="font-heading text-xs font-extrabold text-ocean-500">{{ row.label }}</span>
+      <span
+        class="inline-flex items-center gap-1.25 rounded-lg px-2.25 py-px font-heading text-[11px] font-extrabold whitespace-nowrap"
+        [class]="row.classes.chip"
+      >
+        <span class="font-display text-sm leading-none" aria-hidden="true">{{ row.sign }}</span>
+        {{ row.changeKey | transloco }}
+      </span>
+    </div>
+    @if (row.image) {
+      <div class="grid grid-cols-2 gap-px bg-parchment-200" data-testid="comparison-images">
+        @for (
+          side of [
+            { src: row.before, classes: row.classes.before, version: baseNumber() },
+            { src: row.after, classes: row.classes.after, version: shownNumber() },
+          ];
+          track $index
+        ) {
+          <div
+            class="grid min-w-0 justify-items-center gap-1.5 px-3.5 py-2.5"
+            [class]="side.classes"
+          >
+            <span
+              class="font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/60"
+              >{{ side.version === null ? '—' : 'v' + side.version }}</span
+            >
+            <app-entity-image-frame
+              class="block w-full max-w-36"
+              [src]="side.src"
+              [ratio]="row.ratio"
+              [alt]="row.label + (side.version === null ? '' : ' v' + side.version)"
+              [placeholder]="'content.comparison.noImage' | transloco"
+            />
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="grid gap-px bg-parchment-200 sm:grid-cols-2">
+        <div class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5" [class]="row.classes.before">
+          <span
+            class="w-3 flex-none font-display text-base leading-snug font-bold"
+            aria-hidden="true"
+            >{{ row.classes.beforeSign }}</span
+          >
+          <p
+            class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
+          >
+            <span
+              class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
+              >{{ baseNumber() === null ? '' : 'v' + baseNumber() }}</span
+            ><span [class.line-through]="row.struck">{{ row.before ?? '—' }}</span>
+          </p>
+        </div>
+        <div class="flex min-w-0 items-start gap-2.25 px-3.5 py-2.5" [class]="row.classes.after">
+          <span
+            class="w-3 flex-none font-display text-base leading-snug font-bold"
+            aria-hidden="true"
+            >{{ row.classes.afterSign }}</span
+          >
+          <p
+            class="min-w-0 flex-1 font-heading text-sm leading-relaxed font-bold wrap-anywhere text-pretty whitespace-pre-line"
+          >
+            <span
+              class="mr-1.5 font-heading text-[10px] font-extrabold tracking-widest text-ocean-500/50 sm:hidden"
+              >{{ 'v' + shownNumber() }}</span
+            >{{ row.after ?? '—' }}
+          </p>
+        </div>
+      </div>
+    }
+  </div>
+</ng-template>

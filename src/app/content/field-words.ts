@@ -24,6 +24,10 @@ export function refusedFieldWords(
   entity: EntityDefinition,
   field: string,
 ): string {
+  const reveal = entity.reveals ? revealWords(transloco, entity, field) : null;
+  if (reveal) {
+    return reveal;
+  }
   const [first, name, ...rest] = (draftFieldKey(entity, field) ?? field).split('.');
   const list = entity.fields.find(
     (candidate): candidate is PartListField =>
@@ -50,6 +54,37 @@ export function refusedFieldWords(
     : naturalKeyParts(entity)
         .map((key) => transloco.translate(`${FIELD_WORDS}.${key}`))
         .join(', ');
+}
+
+/**
+ * A field of the reveals in words (3.7.1): "conoscenza iniziale · nome EN",
+ * "rivelazione 2 · titolo IT", "rivelazione 2 · nome EN"; `null` for any other field.
+ */
+function revealWords(
+  transloco: TranslocoService,
+  entity: EntityDefinition,
+  field: string,
+): string | null {
+  const words = `${FIELD_WORDS}.reveals`;
+  const initial = /^initialKnowledge\.(.+)$/.exec(field);
+  if (initial) {
+    return [
+      transloco.translate(`${words}.initial`),
+      refusedFieldWords(transloco, entity, initial[1]),
+    ].join(STEP_SEPARATOR);
+  }
+  const reveal = /^reveals\[(\d+)\](?:\.titles\[([^\]]+)\]|\.(.+))?$/.exec(field);
+  if (!reveal) {
+    return null;
+  }
+  const [, index, titleLanguage, value] = reveal;
+  const entry = transloco.translate(`${words}.entry`, { position: Number(index) + 1 });
+  const part = titleLanguage
+    ? transloco.translate(`${words}.title`, { language: titleLanguage.toUpperCase() })
+    : value
+      ? refusedFieldWords(transloco, entity, value)
+      : null;
+  return [entry, part].filter(Boolean).join(STEP_SEPARATOR);
 }
 
 /**

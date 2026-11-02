@@ -28,7 +28,7 @@ npm run build
 ## Key ideas (ADRs in `docs/adr/`)
 
 - 0001 runtime config injected at container start (`docker-entrypoint.d/`); 0002 runtime i18n with Transloco, language from the browser.
-- 0003 generic entity pages driven by `EntityDefinition`; 0004 relation fields and sidebar sections; 0005 image fields and multipart save; 0006 subcategory fields; 0007 part lists and day of the year; 0008 windows on list entries (reader axis), nested lists and paragraph sections.
+- 0003 generic entity pages driven by `EntityDefinition`; 0004 relation fields and sidebar sections; 0005 image fields and multipart save; 0006 subcategory fields; 0007 part lists and day of the year; 0008 windows on list entries (reader axis), nested lists and paragraph sections; 0009 field reveals (`reveals` capability, `entity-reveals.ts`).
 - Permissions, never role names, decide what is shown.
 
 Adding an entity type: skill `new-content-type`.

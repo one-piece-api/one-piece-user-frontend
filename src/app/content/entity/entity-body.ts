@@ -31,6 +31,13 @@ import {
   type SavedSubcategory,
 } from './entity-subcategory';
 import { meetsCondition } from './entity-gallery';
+import {
+  REVEALS_DRAFT_KEY,
+  incompleteLanguages,
+  revealsDraftOf,
+  revealsOfDraft,
+  revealsSaved,
+} from './entity-reveals';
 import { isAtStoryPoint } from './entity-story-point';
 import { FIELD_KINDS, isAskedByReview, sentPartEntries } from './field-kinds';
 
@@ -370,6 +377,9 @@ export function draftOf(
       ]),
     );
   }
+  if (definition.reveals) {
+    draft[REVEALS_DRAFT_KEY] = revealsDraftOf(definition, body, languages);
+  }
   return draft;
 }
 
@@ -395,6 +405,7 @@ export function toBody(definition: EntityDefinition, draft: EntityDraft): Entity
     ...Object.fromEntries(naturalKeyParts(definition).map((key) => [key, null])),
     ...body,
     translations,
+    ...(definition.reveals ? revealsSaved(definition, revealsOfDraft(draft)) : {}),
   };
 }
 
@@ -515,7 +526,32 @@ export function readinessChecks(
       ...partListChecks(definition, draft, language),
     );
   }
+  checks.push(...revealChecks(definition, draft, languages));
   return checks;
+}
+
+/** Where a readiness check on the reveals is named: one per language, while some reveal exists. */
+export const REVEALS_CHECK = 'reveals';
+
+/**
+ * What submitting asks of the reveals (3.7.1), one check per language: every title, and every
+ * translated value written, initial or learned. None while the version reveals nothing.
+ */
+function revealChecks(
+  definition: EntityDefinition,
+  draft: EntityDraft,
+  languages: readonly string[],
+): ReadinessCheck[] {
+  const reveals = revealsOfDraft(draft);
+  if (!definition.reveals || !reveals.reveals.length) {
+    return [];
+  }
+  const incomplete = incompleteLanguages(definition, reveals, languages);
+  return languages.map((language) => ({
+    field: REVEALS_CHECK,
+    language,
+    done: !incomplete.includes(language),
+  }));
 }
 
 /** The fields that are lists of releases or broadcasts, such as a volume's. */

@@ -141,6 +141,14 @@
         "tip7": {
           "text": "In galleria un Aspetto mostra com'è il personaggio, una Forma una trasformazione o un travestimento. Il ritratto principale è l'ultimo Aspetto senza fine, mai una Forma; un Aspetto superato non si toglie: gli si dà una fine.",
           "code": "galleria · aspetto / forma"
+        },
+        "tip8": {
+          "text": "Arrr, matey! Ogni rivelazione è un colpo di scena: scrivi cosa credeva la ciurma prima e cosa scopre in quel punto.",
+          "code": "una rivelazione = un colpo di scena"
+        },
+        "tip9": {
+          "text": "L’ultima rivelazione di un campo svela la verità: se la cambi lì, cambiano anche i campi principali.",
+          "code": "ultima rivelazione → verità"
         }
       }
     }
@@ -678,6 +686,11 @@
             "entry": "immagine {{position}} della galleria {{language}}",
             "atFirstAppearance": "un Aspetto della galleria scoperto alla prima apparizione",
             "count": "almeno un'immagine nella galleria"
+          },
+          "reveals": {
+            "initial": "conoscenza iniziale",
+            "entry": "rivelazione {{position}}",
+            "title": "titolo {{language}}"
           }
         },
         "blocked": "Arrr! Non si può: {{reason}}",
@@ -953,7 +966,8 @@
       "mostRecentVisible": "la più recente visibile al tuo ruolo",
       "tab": {
         "overview": "Panoramica",
-        "workflow": "Workflow"
+        "workflow": "Workflow",
+        "reveals": "Rivelazioni"
       },
       "loading": "Recuperiamo la scheda…",
       "loadingVersion": "Recuperiamo questa versione…",
@@ -1170,7 +1184,19 @@
         "many": "Nascondi {{count}} campi invariati"
       },
       "frozen": "Contenuto congelato in questa versione.",
-      "noImage": "Nessuna immagine"
+      "noImage": "Nessuna immagine",
+      "reveals": {
+        "heading": "Rivelazioni",
+        "initial": "Conoscenza iniziale",
+        "reveal": "Rivelazione {{position}}",
+        "named": "Campi nominati",
+        "revealedAt": "Punto",
+        "title": "Titolo",
+        "count": {
+          "one": "{{count}} rivelazione cambiata",
+          "many": "{{count}} rivelazioni cambiate"
+        }
+      }
     },
     "editor": {
       "crumb": "Modifica",
@@ -1297,7 +1323,8 @@
           "discovered": "Immagine {{position}} · scoperta",
           "atFirstAppearance": "Galleria · un Aspetto scoperto alla prima apparizione",
           "count": "Galleria · almeno un'immagine"
-        }
+        },
+        "reveals": "Rivelazioni · {{language}}"
       },
       "save": "Salva bozza",
       "saving": "Salvataggio…",
@@ -1870,7 +1897,8 @@
         "periodOpen": "Manca la fine: solo l'ultimo periodo può restarne senza.",
         "notLinkable": "Si può scegliere solo un capitolo o un episodio con una versione approvata.",
         "unknown": "Il capitolo o l'episodio scelto non esiste più.",
-        "invalid": "Questo punto della storia non va bene."
+        "invalid": "Questo punto della storia non va bene.",
+        "notAfterFirstAppearance": "Deve venire dopo la prima apparizione."
       }
     },
     "bounties": {
@@ -2145,6 +2173,85 @@
         "relatives": "Ex",
         "gallery": "Passata"
       }
+    },
+    "reveals": {
+      "tab": "Rivelazioni",
+      "lead": "Le rivelazioni nell’ordine in cui il lettore le scopre. Scegline una per vederne i dettagli.",
+      "leadEdit": "Le rivelazioni nell’ordine in cui il lettore le scopre. In ognuna scrivi cosa credeva prima e cosa scopre in quel punto; l’ultima di un campo rivela la verità dei campi principali.",
+      "summary": "Non si salpa: {{count}} problemi nelle rivelazioni",
+      "textLanguage": "Lingua dei testi",
+      "sections": "Sezioni dell’editor",
+      "section": {
+        "main": "Campi principali",
+        "reveals": "Rivelazioni"
+      },
+      "firstAppearance": "Prima apparizione",
+      "pointUnknown": "Punto ?",
+      "noPoint": "Punto da scegliere",
+      "add": "Aggiungi rivelazione",
+      "remove": "Rimuovi rivelazione",
+      "close": "Chiudi",
+      "noInitial": "Nessuna rivelazione ancora: alla prima apparizione il lettore conosce già tutti i valori attuali.",
+      "initialHint": "Cosa crede il lettore alla prima apparizione, per i campi che una rivelazione cambierà.",
+      "title": "Titolo breve",
+      "titlePlaceholder": "es. Il frutto è Nika",
+      "noField": "Questa rivelazione non nomina ancora nessun campo.",
+      "changedFields": "Campi che cambiano",
+      "unknown": "Non ancora rivelato",
+      "before": "Prima · cosa credeva il lettore",
+      "after": "Dopo · cosa scopre il lettore",
+      "isTruth": "È la verità attuale",
+      "isTruthEdit": "È la verità attuale: cambia anche i campi principali",
+      "removeField": "Togli campo",
+      "addField": "Aggiungi campo",
+      "fieldCountOne": "{{count}} campo",
+      "fieldCountMany": "{{count}} campi",
+      "field": {
+        "NAME": "Nome",
+        "ROMAJI": "Romaji",
+        "TYPE": "Tipo e sottocategoria",
+        "IDENTITY": "Identità",
+        "STATUS": "Stato",
+        "INACTIVE": "Taglia non più attiva"
+      },
+      "value": {
+        "romaji": "Romaji",
+        "japaneseName": "Nome giapponese",
+        "name": "Nome",
+        "status": "Stato",
+        "type": "Tipo",
+        "subcategory": "Sottocategoria",
+        "inactive": "Non più attiva"
+      },
+      "yes": "Sì",
+      "no": "No",
+      "fromReveal": "dalla rivelazione ({{point}})",
+      "fromFirstAppearance": "dalla prima apparizione",
+      "readOnly": "Sola lettura: le rivelazioni si modificano solo in bozza.",
+      "untitled": "Rivelazione · {{point}}",
+      "new": "Nuova rivelazione",
+      "target": {
+        "point": "punto",
+        "fields": "campi",
+        "title": "titolo",
+        "name": "nome",
+        "romaji": "romaji",
+        "japaneseName": "nome giapponese",
+        "status": "stato",
+        "type": "tipo",
+        "subcategory": "sottocategoria",
+        "inactive": "non più attiva"
+      },
+      "error": {
+        "fields": "Nomina almeno un campo",
+        "notNamed": "Questo valore non serve: nessuna rivelazione qui nomina il suo campo",
+        "alwaysKnown": "Va conosciuto già alla prima apparizione",
+        "keyMissing": "Serve insieme agli altri valori dello stesso campo",
+        "sharedPoint": "Un’altra rivelazione dello stesso campo è già in questo punto",
+        "point": "Scegli il punto della rivelazione",
+        "value": "Valore non accettato: controllalo"
+      },
+      "refusedMessage": "Arrr! Qualche rivelazione non torna: apri la sezione Rivelazioni e guarda le voci in rosso."
     }
   }
 }

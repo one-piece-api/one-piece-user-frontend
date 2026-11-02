@@ -85,26 +85,177 @@
                 {{ toFix }}
               </p>
             }
-            <div
-              class="grid items-start gap-3.5"
-              [class]="imageView() ? 'sm:grid-cols-[150px_minmax(0,1fr)]' : ''"
-            >
-              @if (imageView(); as image) {
-                <app-image-picker
-                  [inputId]="'draft-' + image.field.key"
-                  [value]="image.value"
-                  [profile]="image.field.profile"
-                  [hint]="image.field.hint ?? null"
-                  [alt]="title()"
-                  [error]="image.error"
-                  (picked)="setImage(image.field.key, $event)"
+            @if (revealsView(); as view) {
+              <div
+                class="flex flex-wrap gap-2"
+                role="group"
+                [attr.aria-label]="'content.reveals.sections' | transloco"
+                data-testid="editor-sections"
+              >
+                @for (tab of sections; track tab) {
+                  <button
+                    type="button"
+                    class="inline-flex cursor-pointer items-center gap-2 rounded-xl border-2 px-4 py-2 font-display text-[15px] font-bold"
+                    [class]="
+                      section() === tab
+                        ? 'border-treasure-500 bg-treasure-500 text-ocean-950'
+                        : 'border-ocean-800/20 bg-white text-ocean-800'
+                    "
+                    [attr.aria-pressed]="section() === tab"
+                    [attr.data-testid]="'editor-section-' + tab"
+                    (click)="section.set(tab)"
+                  >
+                    {{ 'content.reveals.section.' + tab | transloco }}
+                    @if (tab === 'reveals' && revealRefusalCount()) {
+                      <span
+                        class="rounded-full bg-flag-600 px-2 text-xs text-white"
+                        data-testid="reveals-refused-count"
+                        >{{ revealRefusalCount() }}</span
+                      >
+                    }
+                  </button>
+                }
+              </div>
+              @if (section() === 'reveals') {
+                <app-reveals-panel
+                  [entity]="entity"
+                  [reveals]="view.reveals"
+                  [truth]="view.truth"
+                  [firstAppearance]="view.firstAppearance"
+                  [languages]="languageCodes()"
+                  [defaultLanguage]="language()"
+                  [axes]="storyAxes()"
+                  [editable]="true"
+                  [refusals]="revealRefusals()"
+                  (changed)="setReveals($event)"
+                  (truthChanged)="setTruth($event)"
                 />
               }
-              <div class="grid min-w-0 gap-3.5">
-                @for (view of sharedViews(); track view.field.key) {
-                  @switch (view.field.kind) {
-                    @case ('relation') {
-                      @if (view.source; as source) {
+            }
+            <div class="grid min-w-0 gap-3.5" [hidden]="section() === 'reveals'">
+              <div
+                class="grid items-start gap-3.5"
+                [class]="imageView() ? 'sm:grid-cols-[150px_minmax(0,1fr)]' : ''"
+              >
+                @if (imageView(); as image) {
+                  <app-image-picker
+                    [inputId]="'draft-' + image.field.key"
+                    [value]="image.value"
+                    [profile]="image.field.profile"
+                    [hint]="image.field.hint ?? null"
+                    [alt]="title()"
+                    [error]="image.error"
+                    (picked)="setImage(image.field.key, $event)"
+                  />
+                }
+                <div class="grid min-w-0 gap-3.5">
+                  @for (view of sharedViews(); track view.field.key) {
+                    @switch (view.field.kind) {
+                      @case ('relation') {
+                        @if (view.source; as source) {
+                          <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                            <div class="flex items-center justify-between gap-2.5">
+                              <label
+                                [for]="'draft-' + view.field.key"
+                                class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                                >{{
+                                  'content.editor.' + view.field.key + '.label' | transloco
+                                }}</label
+                              >
+                              <span
+                                class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                                >{{
+                                  'content.editor.' + view.field.key + '.hint' | transloco
+                                }}</span
+                              >
+                            </div>
+                            <div class="mt-2">
+                              <app-relation-picker
+                                [inputId]="'draft-' + view.field.key"
+                                [source]="source"
+                                [value]="view.reference"
+                                [labelOf]="view.labelOf"
+                                [placeholder]="
+                                  entity.i18n + '.placeholder.' + view.field.key | transloco
+                                "
+                                [invalid]="!!view.error"
+                                (picked)="setRelation(view.field.key, $event)"
+                              />
+                            </div>
+                            @if (view.error; as error) {
+                              <p
+                                class="mt-1 font-heading text-sm font-bold text-flag-700"
+                                data-testid="field-error"
+                              >
+                                {{ error }}
+                              </p>
+                            }
+                          </div>
+                        }
+                      }
+                      @case ('storyPoint') {
+                        @if (storyPointParts.length && view.storyPoint; as point) {
+                          <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                            <div class="flex items-center justify-between gap-2.5">
+                              <span
+                                class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                                >{{
+                                  'content.editor.' + view.field.key + '.label' | transloco
+                                }}</span
+                              >
+                              <span
+                                class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                                >{{
+                                  'content.editor.' + view.field.key + '.hint' | transloco
+                                }}</span
+                              >
+                            </div>
+                            <div
+                              class="mt-2 grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-2.5"
+                            >
+                              @for (picker of storyPointParts; track picker.part) {
+                                <div>
+                                  <label
+                                    [for]="
+                                      'draft-' +
+                                      view.field.key +
+                                      (picker.part === 'chapter' ? '' : '-' + picker.part)
+                                    "
+                                    class="font-heading text-[11px] font-extrabold text-ocean-500"
+                                    >{{
+                                      'content.storyPoint.' + picker.part + 'Medium' | transloco
+                                    }}</label
+                                  >
+                                  <div class="mt-1">
+                                    <app-relation-picker
+                                      [inputId]="
+                                        'draft-' +
+                                        view.field.key +
+                                        (picker.part === 'chapter' ? '' : '-' + picker.part)
+                                      "
+                                      [source]="picker.source"
+                                      [value]="point[picker.part]"
+                                      [labelOf]="picker.labelOf"
+                                      [placeholder]="'content.storyPoint.placeholder' | transloco"
+                                      [invalid]="!!view.error"
+                                      (picked)="setStoryPoint(view.field.key, picker.part, $event)"
+                                    />
+                                  </div>
+                                </div>
+                              }
+                            </div>
+                            @if (view.error; as error) {
+                              <p
+                                class="mt-1 font-heading text-sm font-bold text-flag-700"
+                                data-testid="field-error"
+                              >
+                                {{ error }}
+                              </p>
+                            }
+                          </div>
+                        }
+                      }
+                      @case ('subcategory') {
                         <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
                           <div class="flex items-center justify-between gap-2.5">
                             <label
@@ -119,19 +270,225 @@
                               >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
                             >
                           </div>
-                          <div class="mt-2">
-                            <app-relation-picker
-                              [inputId]="'draft-' + view.field.key"
-                              [source]="source"
-                              [value]="view.reference"
-                              [labelOf]="view.labelOf"
-                              [placeholder]="
-                                entity.i18n + '.placeholder.' + view.field.key | transloco
-                              "
-                              [invalid]="!!view.error"
-                              (picked)="setRelation(view.field.key, $event)"
-                            />
+                          <select
+                            #subcategoryInput
+                            [id]="'draft-' + view.field.key"
+                            class="mt-2 w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                            [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                            [attr.aria-invalid]="view.error ? true : null"
+                            (change)="setSubcategory(view.field, subcategoryInput.value)"
+                          >
+                            <option value="" [selected]="!view.reference">
+                              {{ 'content.editor.' + view.field.key + '.none' | transloco }}
+                            </option>
+                            @for (choice of view.choices; track choice.id) {
+                              <option
+                                [value]="choice.id"
+                                [selected]="choice.id === view.reference?.id"
+                              >
+                                {{ choice.label }}
+                              </option>
+                            }
+                          </select>
+                          @if (view.error; as error) {
+                            <p
+                              class="mt-1 font-heading text-sm font-bold text-flag-700"
+                              data-testid="field-error"
+                            >
+                              {{ error }}
+                            </p>
+                          }
+                        </div>
+                      }
+                      @case ('text') {
+                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                          <div class="flex items-center justify-between gap-2.5">
+                            <label
+                              [for]="'draft-' + view.field.key"
+                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                              >{{
+                                'content.editor.' + view.field.key + '.label' | transloco
+                              }}</label
+                            >
+                            <span
+                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
+                            >
                           </div>
+                          <input
+                            #sharedInput
+                            [id]="'draft-' + view.field.key"
+                            type="text"
+                            class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                            [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                            [attr.lang]="view.field.lang ?? null"
+                            [value]="view.value"
+                            [maxLength]="view.field.maxLength"
+                            [placeholder]="
+                              entity.i18n + '.placeholder.' + view.field.key | transloco
+                            "
+                            [attr.aria-invalid]="view.error ? true : null"
+                            (input)="setShared(view.field.key, sharedInput.value)"
+                          />
+                          @if (view.error; as error) {
+                            <p
+                              class="mt-1 font-heading text-sm font-bold text-flag-700"
+                              data-testid="field-error"
+                            >
+                              {{ error }}
+                            </p>
+                          }
+                        </div>
+                      }
+                      @case ('number') {
+                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                          <div class="flex items-center justify-between gap-2.5">
+                            <label
+                              [for]="'draft-' + view.field.key"
+                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                              >{{
+                                'content.editor.' + view.field.key + '.label' | transloco
+                              }}</label
+                            >
+                            <span
+                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
+                            >
+                          </div>
+                          <input
+                            #sharedInput
+                            [id]="'draft-' + view.field.key"
+                            type="number"
+                            [min]="view.field.min ?? 0"
+                            step="1"
+                            inputmode="numeric"
+                            class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                            [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                            [value]="view.value"
+                            [placeholder]="
+                              entity.i18n + '.placeholder.' + view.field.key | transloco
+                            "
+                            [attr.aria-invalid]="view.error ? true : null"
+                            (input)="setShared(view.field.key, sharedInput.value)"
+                          />
+                          @if (view.error; as error) {
+                            <p
+                              class="mt-1 font-heading text-sm font-bold text-flag-700"
+                              data-testid="field-error"
+                            >
+                              {{ error }}
+                            </p>
+                          }
+                        </div>
+                      }
+                      @case ('choice') {
+                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                          <div class="flex items-center justify-between gap-2.5">
+                            <label
+                              [for]="'draft-' + view.field.key"
+                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                              >{{
+                                'content.editor.' + view.field.key + '.label' | transloco
+                              }}</label
+                            >
+                            <span
+                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
+                            >
+                          </div>
+                          <select
+                            #choiceInput
+                            [id]="'draft-' + view.field.key"
+                            class="mt-2 w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                            [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                            [attr.aria-invalid]="view.error ? true : null"
+                            (change)="setShared(view.field.key, choiceInput.value)"
+                          >
+                            <option value="" [selected]="!view.value">
+                              {{ 'content.editor.choiceNone' | transloco }}
+                            </option>
+                            @for (option of view.options; track option.value) {
+                              <option
+                                [value]="option.value"
+                                [selected]="option.value === view.value"
+                              >
+                                {{ option.labelKey | transloco }}
+                              </option>
+                            }
+                          </select>
+                          @if (view.error; as error) {
+                            <p
+                              class="mt-1 font-heading text-sm font-bold text-flag-700"
+                              data-testid="field-error"
+                            >
+                              {{ error }}
+                            </p>
+                          }
+                        </div>
+                      }
+                      @case ('monthDay') {
+                        @if (view.monthDay; as day) {
+                          <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                            <div class="flex items-center justify-between gap-2.5">
+                              <span
+                                class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                                >{{
+                                  'content.editor.' + view.field.key + '.label' | transloco
+                                }}</span
+                              >
+                              <span
+                                class="font-heading text-[11px] font-extrabold text-ocean-500/60"
+                                >{{
+                                  'content.editor.' + view.field.key + '.hint' | transloco
+                                }}</span
+                              >
+                            </div>
+                            <div class="mt-2">
+                              <app-month-day-picker
+                                [inputId]="'draft-' + view.field.key"
+                                [value]="day"
+                                [invalid]="!!view.error"
+                                (picked)="setMonthDay(view.field.key, $event)"
+                              />
+                            </div>
+                            @if (view.error; as error) {
+                              <p
+                                class="mt-1 font-heading text-sm font-bold text-flag-700"
+                                data-testid="field-error"
+                              >
+                                {{ error }}
+                              </p>
+                            }
+                          </div>
+                        }
+                      }
+                      @case ('boolean') {
+                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
+                          <label class="flex cursor-pointer items-start gap-3">
+                            <input
+                              #flagInput
+                              [id]="'draft-' + view.field.key"
+                              type="checkbox"
+                              class="mt-0.5 size-5 flex-none cursor-pointer accent-ocean-700"
+                              [checked]="view.checked"
+                              [attr.aria-invalid]="view.error ? true : null"
+                              (change)="setShared(view.field.key, flagInput.checked)"
+                            />
+                            <span>
+                              <span
+                                class="block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                                >{{
+                                  'content.editor.' + view.field.key + '.label' | transloco
+                                }}</span
+                              >
+                              <span
+                                class="block font-heading text-[11px] font-extrabold text-ocean-500/60"
+                                >{{
+                                  'content.editor.' + view.field.key + '.hint' | transloco
+                                }}</span
+                              >
+                            </span>
+                          </label>
                           @if (view.error; as error) {
                             <p
                               class="mt-1 font-heading text-sm font-bold text-flag-700"
@@ -143,54 +500,399 @@
                         </div>
                       }
                     }
-                    @case ('storyPoint') {
-                      @if (storyPointParts.length && view.storyPoint; as point) {
-                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                          <div class="flex items-center justify-between gap-2.5">
-                            <span
-                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                              >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</span
+                  }
+                </div>
+              </div>
+
+              @for (list of partListViews(); track list.field.key) {
+                <app-part-list-editor
+                  [field]="list.field"
+                  [i18n]="entity.i18n"
+                  [entries]="list.entries"
+                  [languages]="languageCodes()"
+                  [errors]="list.errors"
+                  [axes]="storyAxes()"
+                  [defaultLanguage]="language()"
+                  (changed)="setPartList(list.field.key, $event)"
+                />
+              }
+
+              @for (list of releaseListViews(); track list.field.key) {
+                <section
+                  class="grid gap-2.5 rounded-[14px] bg-parchment-200 px-4 py-3.5"
+                  [attr.data-testid]="'draft-' + list.field.key"
+                >
+                  <div class="flex flex-wrap items-center justify-between gap-2.5">
+                    <h2
+                      class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                    >
+                      {{ 'content.editor.' + list.field.key + '.label' | transloco }}
+                    </h2>
+                    <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                      'content.editor.' + list.field.key + '.hint' | transloco
+                    }}</span>
+                  </div>
+                  @for (row of list.rows; track row.key; let index = $index) {
+                    <div
+                      class="grid items-start gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                      data-testid="release-row"
+                    >
+                      <div class="grid gap-1">
+                        <label
+                          [for]="'draft-' + list.field.key + '-' + index + '-country'"
+                          class="sr-only"
+                          >{{ 'content.editor.release.country' | transloco }}</label
+                        >
+                        <select
+                          #countryInput
+                          [id]="'draft-' + list.field.key + '-' + index + '-country'"
+                          class="w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                          [class]="row.countryError ? 'border-flag-600' : 'border-ocean-800/20'"
+                          [attr.aria-invalid]="row.countryError ? true : null"
+                          (change)="
+                            setRelease(list.field.key, index, 'country', countryInput.value)
+                          "
+                        >
+                          <option value="" [selected]="!row.country">
+                            {{ 'content.editor.release.pickCountry' | transloco }}
+                          </option>
+                          @for (country of countries(); track country.code) {
+                            <option
+                              [value]="country.code"
+                              [selected]="country.code === row.country"
+                              [disabled]="
+                                country.code !== row.country && list.used.includes(country.code)
+                              "
                             >
-                            <span
-                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
-                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
-                            >
-                          </div>
+                              {{ country.name }}
+                            </option>
+                          }
+                        </select>
+                        @if (row.countryError; as error) {
+                          <p
+                            class="font-heading text-sm font-bold text-flag-700"
+                            data-testid="field-error"
+                          >
+                            {{ error }}
+                          </p>
+                        }
+                      </div>
+                      <div class="grid gap-1">
+                        <label
+                          [for]="'draft-' + list.field.key + '-' + index + '-date'"
+                          class="sr-only"
+                          >{{ 'content.editor.release.date' | transloco }}</label
+                        >
+                        <input
+                          #dateInput
+                          [id]="'draft-' + list.field.key + '-' + index + '-date'"
+                          type="date"
+                          class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                          [class]="row.dateError ? 'border-flag-600' : 'border-ocean-800/20'"
+                          [value]="row.date"
+                          [attr.aria-invalid]="row.dateError ? true : null"
+                          (input)="setRelease(list.field.key, index, 'date', dateInput.value)"
+                        />
+                        @if (row.dateError; as error) {
+                          <p
+                            class="font-heading text-sm font-bold text-flag-700"
+                            data-testid="field-error"
+                          >
+                            {{ error }}
+                          </p>
+                        }
+                      </div>
+                      <button
+                        type="button"
+                        class="cursor-pointer rounded-lg bg-flag-100 px-2.5 py-2.5 font-heading text-xs font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
+                        data-testid="release-remove"
+                        (click)="removeRelease(list.field.key, index)"
+                      >
+                        ✕ {{ 'content.editor.release.remove' | transloco }}
+                      </button>
+                    </div>
+                  } @empty {
+                    <p class="font-heading text-[13px] font-bold text-ocean-500/60">
+                      {{ 'content.editor.release.empty' | transloco }}
+                    </p>
+                  }
+                  <button
+                    type="button"
+                    class="cursor-pointer justify-self-start rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800"
+                    data-testid="release-add"
+                    (click)="addRelease(list.field.key)"
+                  >
+                    + {{ 'content.editor.release.add' | transloco }}
+                  </button>
+                </section>
+              }
+
+              <div class="flex flex-wrap gap-2" role="tablist">
+                @for (tab of tabs(); track tab.code) {
+                  <button
+                    type="button"
+                    role="tab"
+                    class="flex cursor-pointer items-center gap-2 rounded-xl border-2 px-4 py-2 font-display text-[15px] font-bold"
+                    [class]="
+                      tab.selected
+                        ? 'border-ocean-900 bg-ocean-900 text-white'
+                        : 'border-ocean-800/20 bg-white text-ocean-800'
+                    "
+                    [title]="tab.name"
+                    [attr.aria-selected]="tab.selected"
+                    (click)="language.set(tab.code)"
+                  >
+                    {{ tab.label }}
+                    @if (tab.refused) {
+                      <span
+                        class="rounded-full bg-flag-100 px-2 py-0.5 font-heading text-[10px] font-extrabold text-flag-700"
+                        data-testid="refused-marker"
+                        >{{ 'content.editor.refused' | transloco }}</span
+                      >
+                    } @else if (tab.incomplete) {
+                      <span
+                        class="rounded-full bg-treasure-100 px-2 py-0.5 font-heading text-[10px] font-extrabold text-treasure-700"
+                        data-testid="incomplete-marker"
+                        >{{ 'content.editor.incomplete' | transloco }}</span
+                      >
+                    }
+                  </button>
+                }
+              </div>
+
+              @for (view of localizedViews(); track view.field.key) {
+                @switch (view.field.kind) {
+                  @case ('localizedText') {
+                    <div>
+                      <label
+                        [for]="'draft-' + view.field.key"
+                        class="mb-1.5 block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                        >{{
+                          'content.card.' + view.field.key
+                            | transloco: { language: languageLabel() }
+                        }}</label
+                      >
+                      @if (view.field.rows) {
+                        <textarea
+                          #longTextInput
+                          [id]="'draft-' + view.field.key"
+                          [rows]="view.field.rows"
+                          class="w-full resize-y rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                          [value]="view.value"
+                          [maxLength]="view.field.maxLength"
+                          [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
+                          [attr.aria-invalid]="view.error ? true : null"
+                          (input)="setLocalized(view.field.key, longTextInput.value)"
+                        ></textarea>
+                      } @else {
+                        <input
+                          #lineInput
+                          [id]="'draft-' + view.field.key"
+                          type="text"
+                          class="w-full rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
+                          [value]="view.value"
+                          [maxLength]="view.field.maxLength"
+                          [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
+                          [attr.aria-invalid]="view.error ? true : null"
+                          (input)="setLocalized(view.field.key, lineInput.value)"
+                        />
+                      }
+                      @if (view.error; as error) {
+                        <p
+                          class="mt-1 font-heading text-sm font-bold text-flag-700"
+                          data-testid="field-error"
+                        >
+                          {{ error }}
+                        </p>
+                      }
+                    </div>
+                  }
+                }
+              }
+
+              @for (list of subcategoryListViews(); track list.field.key) {
+                <section class="grid gap-2.5" [attr.data-testid]="'draft-' + list.field.key">
+                  <div class="flex flex-wrap items-center justify-between gap-2.5">
+                    <h2
+                      class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
+                    >
+                      {{
+                        'content.editor.' + list.field.key + '.label'
+                          | transloco: { language: languageLabel() }
+                      }}
+                    </h2>
+                    <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
+                      'content.editor.' + list.field.key + '.hint' | transloco
+                    }}</span>
+                  </div>
+                  @for (entry of list.entries; track entry.key; let index = $index) {
+                    <div
+                      class="grid gap-2 rounded-[14px] bg-parchment-200 px-4 py-3.5"
+                      data-testid="subcategory-entry"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        <span class="font-display text-[13px] font-bold text-ocean-900">
+                          {{
+                            'content.editor.' + list.field.key + '.entry'
+                              | transloco: { position: entry.position }
+                          }}
+                        </span>
+                        <span class="flex gap-1.5">
+                          <button
+                            type="button"
+                            class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 disabled:pointer-events-none disabled:opacity-40"
+                            [disabled]="entry.first"
+                            [attr.aria-label]="
+                              'content.editor.' + list.field.key + '.up' | transloco
+                            "
+                            [title]="'content.editor.' + list.field.key + '.up' | transloco"
+                            data-testid="subcategory-up"
+                            (click)="moveSubcategory(list.field.key, index, -1)"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 disabled:pointer-events-none disabled:opacity-40"
+                            [disabled]="entry.last"
+                            [attr.aria-label]="
+                              'content.editor.' + list.field.key + '.down' | transloco
+                            "
+                            [title]="'content.editor.' + list.field.key + '.down' | transloco"
+                            data-testid="subcategory-down"
+                            (click)="moveSubcategory(list.field.key, index, 1)"
+                          >
+                            ↓
+                          </button>
+                          <button
+                            type="button"
+                            class="cursor-pointer rounded-lg bg-flag-100 px-2.5 py-1 font-heading text-xs font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
+                            data-testid="subcategory-remove"
+                            (click)="removeSubcategory(list.field.key, index)"
+                          >
+                            ✕ {{ 'content.editor.' + list.field.key + '.remove' | transloco }}
+                          </button>
+                        </span>
+                      </div>
+                      <label
+                        [for]="'draft-' + list.field.key + '-' + index + '-name'"
+                        class="sr-only"
+                        >{{ 'content.card.name' | transloco: { language: languageLabel() } }}</label
+                      >
+                      <input
+                        #subcategoryName
+                        [id]="'draft-' + list.field.key + '-' + index + '-name'"
+                        type="text"
+                        class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                        [class]="entry.nameError ? 'border-flag-600' : 'border-ocean-800/20'"
+                        [value]="entry.name"
+                        [maxLength]="list.field.nameMaxLength"
+                        [placeholder]="
+                          entity.i18n + '.placeholder.' + list.field.key + '.name' | transloco
+                        "
+                        [attr.aria-invalid]="entry.nameError ? true : null"
+                        (input)="
+                          setSubcategoryText(list.field.key, index, 'name', subcategoryName.value)
+                        "
+                      />
+                      @if (entry.nameError; as error) {
+                        <p
+                          class="font-heading text-sm font-bold text-flag-700"
+                          data-testid="field-error"
+                        >
+                          {{ error }}
+                        </p>
+                      }
+                      <label
+                        [for]="'draft-' + list.field.key + '-' + index + '-description'"
+                        class="sr-only"
+                        >{{
+                          'content.card.description' | transloco: { language: languageLabel() }
+                        }}</label
+                      >
+                      <textarea
+                        #subcategoryDescription
+                        [id]="'draft-' + list.field.key + '-' + index + '-description'"
+                        rows="3"
+                        class="w-full resize-y rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
+                        [class]="entry.descriptionError ? 'border-flag-600' : 'border-ocean-800/20'"
+                        [value]="entry.description"
+                        [maxLength]="list.field.descriptionMaxLength"
+                        [placeholder]="
+                          entity.i18n + '.placeholder.' + list.field.key + '.description'
+                            | transloco
+                        "
+                        [attr.aria-invalid]="entry.descriptionError ? true : null"
+                        (input)="
+                          setSubcategoryText(
+                            list.field.key,
+                            index,
+                            'description',
+                            subcategoryDescription.value
+                          )
+                        "
+                      ></textarea>
+                      @if (entry.descriptionError ?? entry.error; as error) {
+                        <p
+                          class="font-heading text-sm font-bold text-flag-700"
+                          data-testid="field-error"
+                        >
+                          {{ error }}
+                        </p>
+                      }
+                      @if (storyPointParts.length) {
+                        <div>
+                          <span class="font-heading text-[11px] font-extrabold text-ocean-500">{{
+                            'content.editor.subcategories.firstAppearance' | transloco
+                          }}</span>
                           <div
-                            class="mt-2 grid grid-cols-[repeat(auto-fit,minmax(min(220px,100%),1fr))] gap-2.5"
+                            class="mt-1 grid grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] gap-2"
                           >
                             @for (picker of storyPointParts; track picker.part) {
                               <div>
                                 <label
                                   [for]="
                                     'draft-' +
-                                    view.field.key +
+                                    list.field.key +
+                                    '-' +
+                                    index +
+                                    '-firstAppearance' +
                                     (picker.part === 'chapter' ? '' : '-' + picker.part)
                                   "
-                                  class="font-heading text-[11px] font-extrabold text-ocean-500"
+                                  class="font-heading text-[10px] font-extrabold text-ocean-500/70"
                                   >{{
                                     'content.storyPoint.' + picker.part + 'Medium' | transloco
                                   }}</label
                                 >
-                                <div class="mt-1">
-                                  <app-relation-picker
-                                    [inputId]="
-                                      'draft-' +
-                                      view.field.key +
-                                      (picker.part === 'chapter' ? '' : '-' + picker.part)
-                                    "
-                                    [source]="picker.source"
-                                    [value]="point[picker.part]"
-                                    [labelOf]="picker.labelOf"
-                                    [placeholder]="'content.storyPoint.placeholder' | transloco"
-                                    [invalid]="!!view.error"
-                                    (picked)="setStoryPoint(view.field.key, picker.part, $event)"
-                                  />
-                                </div>
+                                <app-relation-picker
+                                  [inputId]="
+                                    'draft-' +
+                                    list.field.key +
+                                    '-' +
+                                    index +
+                                    '-firstAppearance' +
+                                    (picker.part === 'chapter' ? '' : '-' + picker.part)
+                                  "
+                                  [source]="picker.source"
+                                  [value]="entry.firstAppearance[picker.part]"
+                                  [labelOf]="picker.labelOf"
+                                  [placeholder]="'content.storyPoint.placeholder' | transloco"
+                                  [invalid]="!!entry.firstAppearanceError"
+                                  (picked)="
+                                    setSubcategoryFirstAppearance(
+                                      list.field.key,
+                                      index,
+                                      picker.part,
+                                      $event
+                                    )
+                                  "
+                                />
                               </div>
                             }
                           </div>
-                          @if (view.error; as error) {
+                          @if (entry.firstAppearanceError; as error) {
                             <p
                               class="mt-1 font-heading text-sm font-bold text-flag-700"
                               data-testid="field-error"
@@ -200,637 +902,23 @@
                           }
                         </div>
                       }
-                    }
-                    @case ('subcategory') {
-                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                        <div class="flex items-center justify-between gap-2.5">
-                          <label
-                            [for]="'draft-' + view.field.key"
-                            class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                            >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
-                          >
-                          <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                            'content.editor.' + view.field.key + '.hint' | transloco
-                          }}</span>
-                        </div>
-                        <select
-                          #subcategoryInput
-                          [id]="'draft-' + view.field.key"
-                          class="mt-2 w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                          [attr.aria-invalid]="view.error ? true : null"
-                          (change)="setSubcategory(view.field, subcategoryInput.value)"
-                        >
-                          <option value="" [selected]="!view.reference">
-                            {{ 'content.editor.' + view.field.key + '.none' | transloco }}
-                          </option>
-                          @for (choice of view.choices; track choice.id) {
-                            <option
-                              [value]="choice.id"
-                              [selected]="choice.id === view.reference?.id"
-                            >
-                              {{ choice.label }}
-                            </option>
-                          }
-                        </select>
-                        @if (view.error; as error) {
-                          <p
-                            class="mt-1 font-heading text-sm font-bold text-flag-700"
-                            data-testid="field-error"
-                          >
-                            {{ error }}
-                          </p>
-                        }
-                      </div>
-                    }
-                    @case ('text') {
-                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                        <div class="flex items-center justify-between gap-2.5">
-                          <label
-                            [for]="'draft-' + view.field.key"
-                            class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                            >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
-                          >
-                          <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                            'content.editor.' + view.field.key + '.hint' | transloco
-                          }}</span>
-                        </div>
-                        <input
-                          #sharedInput
-                          [id]="'draft-' + view.field.key"
-                          type="text"
-                          class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                          [attr.lang]="view.field.lang ?? null"
-                          [value]="view.value"
-                          [maxLength]="view.field.maxLength"
-                          [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
-                          [attr.aria-invalid]="view.error ? true : null"
-                          (input)="setShared(view.field.key, sharedInput.value)"
-                        />
-                        @if (view.error; as error) {
-                          <p
-                            class="mt-1 font-heading text-sm font-bold text-flag-700"
-                            data-testid="field-error"
-                          >
-                            {{ error }}
-                          </p>
-                        }
-                      </div>
-                    }
-                    @case ('number') {
-                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                        <div class="flex items-center justify-between gap-2.5">
-                          <label
-                            [for]="'draft-' + view.field.key"
-                            class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                            >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
-                          >
-                          <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                            'content.editor.' + view.field.key + '.hint' | transloco
-                          }}</span>
-                        </div>
-                        <input
-                          #sharedInput
-                          [id]="'draft-' + view.field.key"
-                          type="number"
-                          [min]="view.field.min ?? 0"
-                          step="1"
-                          inputmode="numeric"
-                          class="mt-2 w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                          [value]="view.value"
-                          [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
-                          [attr.aria-invalid]="view.error ? true : null"
-                          (input)="setShared(view.field.key, sharedInput.value)"
-                        />
-                        @if (view.error; as error) {
-                          <p
-                            class="mt-1 font-heading text-sm font-bold text-flag-700"
-                            data-testid="field-error"
-                          >
-                            {{ error }}
-                          </p>
-                        }
-                      </div>
-                    }
-                    @case ('choice') {
-                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                        <div class="flex items-center justify-between gap-2.5">
-                          <label
-                            [for]="'draft-' + view.field.key"
-                            class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                            >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</label
-                          >
-                          <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                            'content.editor.' + view.field.key + '.hint' | transloco
-                          }}</span>
-                        </div>
-                        <select
-                          #choiceInput
-                          [id]="'draft-' + view.field.key"
-                          class="mt-2 w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                          [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                          [attr.aria-invalid]="view.error ? true : null"
-                          (change)="setShared(view.field.key, choiceInput.value)"
-                        >
-                          <option value="" [selected]="!view.value">
-                            {{ 'content.editor.choiceNone' | transloco }}
-                          </option>
-                          @for (option of view.options; track option.value) {
-                            <option [value]="option.value" [selected]="option.value === view.value">
-                              {{ option.labelKey | transloco }}
-                            </option>
-                          }
-                        </select>
-                        @if (view.error; as error) {
-                          <p
-                            class="mt-1 font-heading text-sm font-bold text-flag-700"
-                            data-testid="field-error"
-                          >
-                            {{ error }}
-                          </p>
-                        }
-                      </div>
-                    }
-                    @case ('monthDay') {
-                      @if (view.monthDay; as day) {
-                        <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                          <div class="flex items-center justify-between gap-2.5">
-                            <span
-                              class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                              >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</span
-                            >
-                            <span
-                              class="font-heading text-[11px] font-extrabold text-ocean-500/60"
-                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
-                            >
-                          </div>
-                          <div class="mt-2">
-                            <app-month-day-picker
-                              [inputId]="'draft-' + view.field.key"
-                              [value]="day"
-                              [invalid]="!!view.error"
-                              (picked)="setMonthDay(view.field.key, $event)"
-                            />
-                          </div>
-                          @if (view.error; as error) {
-                            <p
-                              class="mt-1 font-heading text-sm font-bold text-flag-700"
-                              data-testid="field-error"
-                            >
-                              {{ error }}
-                            </p>
-                          }
-                        </div>
-                      }
-                    }
-                    @case ('boolean') {
-                      <div class="rounded-[14px] bg-parchment-200 px-4 py-3.5">
-                        <label class="flex cursor-pointer items-start gap-3">
-                          <input
-                            #flagInput
-                            [id]="'draft-' + view.field.key"
-                            type="checkbox"
-                            class="mt-0.5 size-5 flex-none cursor-pointer accent-ocean-700"
-                            [checked]="view.checked"
-                            [attr.aria-invalid]="view.error ? true : null"
-                            (change)="setShared(view.field.key, flagInput.checked)"
-                          />
-                          <span>
-                            <span
-                              class="block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                              >{{ 'content.editor.' + view.field.key + '.label' | transloco }}</span
-                            >
-                            <span
-                              class="block font-heading text-[11px] font-extrabold text-ocean-500/60"
-                              >{{ 'content.editor.' + view.field.key + '.hint' | transloco }}</span
-                            >
-                          </span>
-                        </label>
-                        @if (view.error; as error) {
-                          <p
-                            class="mt-1 font-heading text-sm font-bold text-flag-700"
-                            data-testid="field-error"
-                          >
-                            {{ error }}
-                          </p>
-                        }
-                      </div>
-                    }
-                  }
-                }
-              </div>
-            </div>
-
-            @for (list of partListViews(); track list.field.key) {
-              <app-part-list-editor
-                [field]="list.field"
-                [i18n]="entity.i18n"
-                [entries]="list.entries"
-                [languages]="languageCodes()"
-                [errors]="list.errors"
-                [axes]="storyAxes()"
-                [defaultLanguage]="language()"
-                (changed)="setPartList(list.field.key, $event)"
-              />
-            }
-
-            @for (list of releaseListViews(); track list.field.key) {
-              <section
-                class="grid gap-2.5 rounded-[14px] bg-parchment-200 px-4 py-3.5"
-                [attr.data-testid]="'draft-' + list.field.key"
-              >
-                <div class="flex flex-wrap items-center justify-between gap-2.5">
-                  <h2
-                    class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                  >
-                    {{ 'content.editor.' + list.field.key + '.label' | transloco }}
-                  </h2>
-                  <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                    'content.editor.' + list.field.key + '.hint' | transloco
-                  }}</span>
-                </div>
-                @for (row of list.rows; track row.key; let index = $index) {
-                  <div
-                    class="grid items-start gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-                    data-testid="release-row"
-                  >
-                    <div class="grid gap-1">
-                      <label
-                        [for]="'draft-' + list.field.key + '-' + index + '-country'"
-                        class="sr-only"
-                        >{{ 'content.editor.release.country' | transloco }}</label
-                      >
-                      <select
-                        #countryInput
-                        [id]="'draft-' + list.field.key + '-' + index + '-country'"
-                        class="w-full cursor-pointer rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                        [class]="row.countryError ? 'border-flag-600' : 'border-ocean-800/20'"
-                        [attr.aria-invalid]="row.countryError ? true : null"
-                        (change)="setRelease(list.field.key, index, 'country', countryInput.value)"
-                      >
-                        <option value="" [selected]="!row.country">
-                          {{ 'content.editor.release.pickCountry' | transloco }}
-                        </option>
-                        @for (country of countries(); track country.code) {
-                          <option
-                            [value]="country.code"
-                            [selected]="country.code === row.country"
-                            [disabled]="
-                              country.code !== row.country && list.used.includes(country.code)
-                            "
-                          >
-                            {{ country.name }}
-                          </option>
-                        }
-                      </select>
-                      @if (row.countryError; as error) {
-                        <p
-                          class="font-heading text-sm font-bold text-flag-700"
-                          data-testid="field-error"
-                        >
-                          {{ error }}
-                        </p>
-                      }
                     </div>
-                    <div class="grid gap-1">
-                      <label
-                        [for]="'draft-' + list.field.key + '-' + index + '-date'"
-                        class="sr-only"
-                        >{{ 'content.editor.release.date' | transloco }}</label
-                      >
-                      <input
-                        #dateInput
-                        [id]="'draft-' + list.field.key + '-' + index + '-date'"
-                        type="date"
-                        class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                        [class]="row.dateError ? 'border-flag-600' : 'border-ocean-800/20'"
-                        [value]="row.date"
-                        [attr.aria-invalid]="row.dateError ? true : null"
-                        (input)="setRelease(list.field.key, index, 'date', dateInput.value)"
-                      />
-                      @if (row.dateError; as error) {
-                        <p
-                          class="font-heading text-sm font-bold text-flag-700"
-                          data-testid="field-error"
-                        >
-                          {{ error }}
-                        </p>
-                      }
-                    </div>
-                    <button
-                      type="button"
-                      class="cursor-pointer rounded-lg bg-flag-100 px-2.5 py-2.5 font-heading text-xs font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
-                      data-testid="release-remove"
-                      (click)="removeRelease(list.field.key, index)"
-                    >
-                      ✕ {{ 'content.editor.release.remove' | transloco }}
-                    </button>
-                  </div>
-                } @empty {
-                  <p class="font-heading text-[13px] font-bold text-ocean-500/60">
-                    {{ 'content.editor.release.empty' | transloco }}
-                  </p>
-                }
-                <button
-                  type="button"
-                  class="cursor-pointer justify-self-start rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800"
-                  data-testid="release-add"
-                  (click)="addRelease(list.field.key)"
-                >
-                  + {{ 'content.editor.release.add' | transloco }}
-                </button>
-              </section>
-            }
-
-            <div class="flex flex-wrap gap-2" role="tablist">
-              @for (tab of tabs(); track tab.code) {
-                <button
-                  type="button"
-                  role="tab"
-                  class="flex cursor-pointer items-center gap-2 rounded-xl border-2 px-4 py-2 font-display text-[15px] font-bold"
-                  [class]="
-                    tab.selected
-                      ? 'border-ocean-900 bg-ocean-900 text-white'
-                      : 'border-ocean-800/20 bg-white text-ocean-800'
-                  "
-                  [title]="tab.name"
-                  [attr.aria-selected]="tab.selected"
-                  (click)="language.set(tab.code)"
-                >
-                  {{ tab.label }}
-                  @if (tab.refused) {
-                    <span
-                      class="rounded-full bg-flag-100 px-2 py-0.5 font-heading text-[10px] font-extrabold text-flag-700"
-                      data-testid="refused-marker"
-                      >{{ 'content.editor.refused' | transloco }}</span
-                    >
-                  } @else if (tab.incomplete) {
-                    <span
-                      class="rounded-full bg-treasure-100 px-2 py-0.5 font-heading text-[10px] font-extrabold text-treasure-700"
-                      data-testid="incomplete-marker"
-                      >{{ 'content.editor.incomplete' | transloco }}</span
-                    >
+                  } @empty {
+                    <p class="font-heading text-[13px] font-bold text-ocean-500/60">
+                      {{ 'content.editor.' + list.field.key + '.empty' | transloco }}
+                    </p>
                   }
-                </button>
+                  <button
+                    type="button"
+                    class="cursor-pointer justify-self-start rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800"
+                    data-testid="subcategory-add"
+                    (click)="addSubcategory(list.field.key)"
+                  >
+                    + {{ 'content.editor.' + list.field.key + '.add' | transloco }}
+                  </button>
+                </section>
               }
             </div>
-
-            @for (view of localizedViews(); track view.field.key) {
-              @switch (view.field.kind) {
-                @case ('localizedText') {
-                  <div>
-                    <label
-                      [for]="'draft-' + view.field.key"
-                      class="mb-1.5 block font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                      >{{
-                        'content.card.' + view.field.key | transloco: { language: languageLabel() }
-                      }}</label
-                    >
-                    @if (view.field.rows) {
-                      <textarea
-                        #longTextInput
-                        [id]="'draft-' + view.field.key"
-                        [rows]="view.field.rows"
-                        class="w-full resize-y rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                        [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                        [value]="view.value"
-                        [maxLength]="view.field.maxLength"
-                        [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
-                        [attr.aria-invalid]="view.error ? true : null"
-                        (input)="setLocalized(view.field.key, longTextInput.value)"
-                      ></textarea>
-                    } @else {
-                      <input
-                        #lineInput
-                        [id]="'draft-' + view.field.key"
-                        type="text"
-                        class="w-full rounded-xl border-2 bg-white px-3.5 py-3 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                        [class]="view.error ? 'border-flag-600' : 'border-ocean-800/20'"
-                        [value]="view.value"
-                        [maxLength]="view.field.maxLength"
-                        [placeholder]="entity.i18n + '.placeholder.' + view.field.key | transloco"
-                        [attr.aria-invalid]="view.error ? true : null"
-                        (input)="setLocalized(view.field.key, lineInput.value)"
-                      />
-                    }
-                    @if (view.error; as error) {
-                      <p
-                        class="mt-1 font-heading text-sm font-bold text-flag-700"
-                        data-testid="field-error"
-                      >
-                        {{ error }}
-                      </p>
-                    }
-                  </div>
-                }
-              }
-            }
-
-            @for (list of subcategoryListViews(); track list.field.key) {
-              <section class="grid gap-2.5" [attr.data-testid]="'draft-' + list.field.key">
-                <div class="flex flex-wrap items-center justify-between gap-2.5">
-                  <h2
-                    class="font-heading text-xs font-extrabold tracking-widest text-ocean-500/70 uppercase"
-                  >
-                    {{
-                      'content.editor.' + list.field.key + '.label'
-                        | transloco: { language: languageLabel() }
-                    }}
-                  </h2>
-                  <span class="font-heading text-[11px] font-extrabold text-ocean-500/60">{{
-                    'content.editor.' + list.field.key + '.hint' | transloco
-                  }}</span>
-                </div>
-                @for (entry of list.entries; track entry.key; let index = $index) {
-                  <div
-                    class="grid gap-2 rounded-[14px] bg-parchment-200 px-4 py-3.5"
-                    data-testid="subcategory-entry"
-                  >
-                    <div class="flex items-center justify-between gap-2">
-                      <span class="font-display text-[13px] font-bold text-ocean-900">
-                        {{
-                          'content.editor.' + list.field.key + '.entry'
-                            | transloco: { position: entry.position }
-                        }}
-                      </span>
-                      <span class="flex gap-1.5">
-                        <button
-                          type="button"
-                          class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 disabled:pointer-events-none disabled:opacity-40"
-                          [disabled]="entry.first"
-                          [attr.aria-label]="'content.editor.' + list.field.key + '.up' | transloco"
-                          [title]="'content.editor.' + list.field.key + '.up' | transloco"
-                          data-testid="subcategory-up"
-                          (click)="moveSubcategory(list.field.key, index, -1)"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          class="cursor-pointer rounded-lg bg-white px-2.5 py-1 font-heading text-xs font-extrabold text-ocean-800 disabled:pointer-events-none disabled:opacity-40"
-                          [disabled]="entry.last"
-                          [attr.aria-label]="
-                            'content.editor.' + list.field.key + '.down' | transloco
-                          "
-                          [title]="'content.editor.' + list.field.key + '.down' | transloco"
-                          data-testid="subcategory-down"
-                          (click)="moveSubcategory(list.field.key, index, 1)"
-                        >
-                          ↓
-                        </button>
-                        <button
-                          type="button"
-                          class="cursor-pointer rounded-lg bg-flag-100 px-2.5 py-1 font-heading text-xs font-extrabold text-flag-700 hover:bg-flag-600 hover:text-white"
-                          data-testid="subcategory-remove"
-                          (click)="removeSubcategory(list.field.key, index)"
-                        >
-                          ✕ {{ 'content.editor.' + list.field.key + '.remove' | transloco }}
-                        </button>
-                      </span>
-                    </div>
-                    <label
-                      [for]="'draft-' + list.field.key + '-' + index + '-name'"
-                      class="sr-only"
-                      >{{ 'content.card.name' | transloco: { language: languageLabel() } }}</label
-                    >
-                    <input
-                      #subcategoryName
-                      [id]="'draft-' + list.field.key + '-' + index + '-name'"
-                      type="text"
-                      class="w-full rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] font-bold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                      [class]="entry.nameError ? 'border-flag-600' : 'border-ocean-800/20'"
-                      [value]="entry.name"
-                      [maxLength]="list.field.nameMaxLength"
-                      [placeholder]="
-                        entity.i18n + '.placeholder.' + list.field.key + '.name' | transloco
-                      "
-                      [attr.aria-invalid]="entry.nameError ? true : null"
-                      (input)="
-                        setSubcategoryText(list.field.key, index, 'name', subcategoryName.value)
-                      "
-                    />
-                    @if (entry.nameError; as error) {
-                      <p
-                        class="font-heading text-sm font-bold text-flag-700"
-                        data-testid="field-error"
-                      >
-                        {{ error }}
-                      </p>
-                    }
-                    <label
-                      [for]="'draft-' + list.field.key + '-' + index + '-description'"
-                      class="sr-only"
-                      >{{
-                        'content.card.description' | transloco: { language: languageLabel() }
-                      }}</label
-                    >
-                    <textarea
-                      #subcategoryDescription
-                      [id]="'draft-' + list.field.key + '-' + index + '-description'"
-                      rows="3"
-                      class="w-full resize-y rounded-[11px] border-2 bg-white px-3 py-2.5 font-heading text-[15px] leading-relaxed font-semibold text-ocean-950 focus:border-ocean-700 focus:outline-none"
-                      [class]="entry.descriptionError ? 'border-flag-600' : 'border-ocean-800/20'"
-                      [value]="entry.description"
-                      [maxLength]="list.field.descriptionMaxLength"
-                      [placeholder]="
-                        entity.i18n + '.placeholder.' + list.field.key + '.description' | transloco
-                      "
-                      [attr.aria-invalid]="entry.descriptionError ? true : null"
-                      (input)="
-                        setSubcategoryText(
-                          list.field.key,
-                          index,
-                          'description',
-                          subcategoryDescription.value
-                        )
-                      "
-                    ></textarea>
-                    @if (entry.descriptionError ?? entry.error; as error) {
-                      <p
-                        class="font-heading text-sm font-bold text-flag-700"
-                        data-testid="field-error"
-                      >
-                        {{ error }}
-                      </p>
-                    }
-                    @if (storyPointParts.length) {
-                      <div>
-                        <span class="font-heading text-[11px] font-extrabold text-ocean-500">{{
-                          'content.editor.subcategories.firstAppearance' | transloco
-                        }}</span>
-                        <div
-                          class="mt-1 grid grid-cols-[repeat(auto-fit,minmax(min(200px,100%),1fr))] gap-2"
-                        >
-                          @for (picker of storyPointParts; track picker.part) {
-                            <div>
-                              <label
-                                [for]="
-                                  'draft-' +
-                                  list.field.key +
-                                  '-' +
-                                  index +
-                                  '-firstAppearance' +
-                                  (picker.part === 'chapter' ? '' : '-' + picker.part)
-                                "
-                                class="font-heading text-[10px] font-extrabold text-ocean-500/70"
-                                >{{
-                                  'content.storyPoint.' + picker.part + 'Medium' | transloco
-                                }}</label
-                              >
-                              <app-relation-picker
-                                [inputId]="
-                                  'draft-' +
-                                  list.field.key +
-                                  '-' +
-                                  index +
-                                  '-firstAppearance' +
-                                  (picker.part === 'chapter' ? '' : '-' + picker.part)
-                                "
-                                [source]="picker.source"
-                                [value]="entry.firstAppearance[picker.part]"
-                                [labelOf]="picker.labelOf"
-                                [placeholder]="'content.storyPoint.placeholder' | transloco"
-                                [invalid]="!!entry.firstAppearanceError"
-                                (picked)="
-                                  setSubcategoryFirstAppearance(
-                                    list.field.key,
-                                    index,
-                                    picker.part,
-                                    $event
-                                  )
-                                "
-                              />
-                            </div>
-                          }
-                        </div>
-                        @if (entry.firstAppearanceError; as error) {
-                          <p
-                            class="mt-1 font-heading text-sm font-bold text-flag-700"
-                            data-testid="field-error"
-                          >
-                            {{ error }}
-                          </p>
-                        }
-                      </div>
-                    }
-                  </div>
-                } @empty {
-                  <p class="font-heading text-[13px] font-bold text-ocean-500/60">
-                    {{ 'content.editor.' + list.field.key + '.empty' | transloco }}
-                  </p>
-                }
-                <button
-                  type="button"
-                  class="cursor-pointer justify-self-start rounded-[13px] bg-ocean-900 px-4 py-2.5 font-display text-sm font-bold text-white hover:bg-ocean-800"
-                  data-testid="subcategory-add"
-                  (click)="addSubcategory(list.field.key)"
-                >
-                  + {{ 'content.editor.' + list.field.key + '.add' | transloco }}
-                </button>
-              </section>
-            }
           </div>
 
           <aside class="grid min-w-0 gap-2 rounded-2xl bg-parchment-200 p-4">

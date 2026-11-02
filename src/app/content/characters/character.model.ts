@@ -176,4 +176,11 @@ export const CHARACTER: EntityDefinition = {
       choiceFilter('affiliationKind', AFFILIATION_KINDS),
     ],
   },
+  // The identity is revealed whole: romaji, Japanese name and name together (ADR-0012).
+  reveals: {
+    groups: [
+      { key: 'IDENTITY', fields: ['romaji', 'japaneseName', 'name'] },
+      { key: 'STATUS', fields: ['status'] },
+    ],
+  },
 };

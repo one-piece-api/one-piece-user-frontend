@@ -64,6 +64,16 @@ import { isReference, referenceLabel, type EntityReference } from './entity-refe
 import { COUNTRY_CODES, countryName, newReleaseKey, type ReleaseDraft } from './entity-release';
 import { isNumbered, untitledOf } from './entity-title';
 import { draftEntryPath, sentReleaseRows, textOf } from './field-kinds';
+import {
+  REVEALS_DRAFT_KEY,
+  revealRefusalKey,
+  revealRefusalOf,
+  revealsOfDraft,
+  sentRevealKeys,
+  type Belief,
+  type RevealsDraft,
+} from './entity-reveals';
+import { RevealsPanel } from './reveals-panel';
 import { ImagePicker } from './image-picker';
 import { MonthDayPicker } from './month-day-picker';
 import { PartListEditor, type PartListChange, type StoryAxes } from './part-list-editor';
@@ -174,8 +184,12 @@ const PART_ENTRY_KEY = /^([^.]+)\.(\d+)((?:\.[^.]+)*)$/;
 /** What the Lumacofono says when a point of a window is refused - the reason is under it. */
 const POINT_REFUSED_MESSAGE_KEY = 'content.editor.pointRefusedMessage';
 
+/** What is pushed for a refusal on the Reveals tab: the Lumacofono points there. */
+const REVEALS_REFUSED_KEY = 'content.reveals.refusedMessage';
+
 /** What the Lumacofono says for each of the specific texts above. */
 const SPECIFIC_MESSAGE_KEY: Record<string, string> = {
+  [REVEALS_REFUSED_KEY]: REVEALS_REFUSED_KEY,
   [RELATION_REFUSED_KEY]: RELATION_REFUSED_MESSAGE_KEY,
   [NUMBER_REFUSED_KEY]: NUMBER_REFUSED_MESSAGE_KEY,
   [RELEASE_REFUSED_KEY['country']]: RELEASE_REFUSED_MESSAGE_KEY,
@@ -255,6 +269,7 @@ interface CheckView {
     MonthDayPicker,
     PartListEditor,
     RelationPicker,
+    RevealsPanel,
     RouterLink,
     TranslocoPipe,
   ],
@@ -334,6 +349,38 @@ export class EntityEditor {
 
   /** The fields the backend refused at the last save, by key (`romaji`, `it.name`), with why. */
   private readonly refusedFields = signal<Record<string, string>>({});
+
+  /** The sections of an entity with reveals: its main fields, and its reveals (reveals decision 3). */
+  protected readonly sections = ['main', 'reveals'] as const;
+
+  /** The section on screen, for an entity with reveals. */
+  protected readonly section = signal<(typeof this.sections)[number]>('main');
+
+  /** What the backend refused in the reveals at the last save, by node then target. */
+  protected readonly revealRefusals = signal<Record<string, Record<string, string>>>({});
+
+  protected readonly revealRefusalCount = computed(
+    () => Object.values(this.revealRefusals()).flatMap((targets) => Object.keys(targets)).length,
+  );
+
+  /** The keys of the reveals in the order the last save sent them: how the backend names them. */
+  private sentRevealKeys: readonly string[] = [];
+
+  /**
+   * What the Reveals tab works on: the reveals, and the main fields as what a choice's last
+   * mention reveals - the draft itself holds them where a belief does.
+   */
+  protected readonly revealsView = computed(() => {
+    const draft = this.draft();
+    if (!draft || !this.entity.reveals) {
+      return null;
+    }
+    return {
+      reveals: revealsOfDraft(draft),
+      truth: draft as Belief,
+      firstAppearance: draft['firstAppearance'] ?? null,
+    };
+  });
 
   /**
    * The fields shared by every language, each with its value and why the backend refused it.
@@ -854,6 +901,32 @@ export class EntityEditor {
     this.forgetRefusal(`${this.language()}.${key}`);
   }
 
+  /**
+   * The reveals as the tab changed them. Marks of the last save go when the order changes: the
+   * backend named the reveals by their place, which a new point may change.
+   */
+  protected setReveals(reveals: RevealsDraft): void {
+    if (sentRevealKeys(reveals).join() !== this.sentRevealKeys.join()) {
+      this.revealRefusals.set({});
+    }
+    this.draft.update((draft) => draft && { ...draft, [REVEALS_DRAFT_KEY]: reveals });
+  }
+
+  /** The main fields as a reveal's last mention wrote them. */
+  protected setTruth({ translations, ...shared }: Belief): void {
+    this.draft.update((draft) => {
+      if (!draft) {
+        return draft;
+      }
+      const held = (draft['translations'] ?? {}) as Record<string, Record<string, unknown>>;
+      const merged = Object.entries(translations).reduce(
+        (all, [language, values]) => ({ ...all, [language]: { ...all[language], ...values } }),
+        held,
+      );
+      return { ...draft, ...shared, translations: merged };
+    });
+  }
+
   /** Saves the draft as it is, complete or not, then goes to the content it belongs to. */
   protected async save(): Promise<void> {
     const draft = this.draft();
@@ -862,6 +935,8 @@ export class EntityEditor {
     }
     this.saving.set(true);
     this.refusedFields.set({});
+    this.revealRefusals.set({});
+    this.sentRevealKeys = sentRevealKeys(revealsOfDraft(draft));
     try {
       const request = this.requestOf(draft);
       const url = this.versionUrl();
@@ -962,7 +1037,19 @@ export class EntityEditor {
     if (fieldErrorKey) {
       const refused: Record<string, string> = {};
       const draft = this.draft();
+      const revealRefusals: Record<string, Record<string, string>> = {};
       for (const violation of apiError?.errors ?? []) {
+        const reveal = this.entity.reveals
+          ? revealRefusalOf(violation.field, this.sentRevealKeys)
+          : null;
+        if (reveal) {
+          revealRefusals[reveal.node] = {
+            ...revealRefusals[reveal.node],
+            [reveal.target]: this.transloco.translate(revealRefusalKey(reveal, violation.message)),
+          };
+          refusedTexts.push(REVEALS_REFUSED_KEY);
+          continue;
+        }
         const named = draftFieldKey(this.entity, violation.field);
         if (named) {
           const key = draft ? this.partEntryOf(this.releaseRowOf(named, draft), draft) : named;
@@ -976,6 +1063,7 @@ export class EntityEditor {
         }
       }
       this.refusedFields.set(refused);
+      this.revealRefusals.set(revealRefusals);
     }
     const messageKey =
       refusedTexts.map((text) => SPECIFIC_MESSAGE_KEY[text]).find(Boolean) ??

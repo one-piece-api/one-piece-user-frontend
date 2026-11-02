@@ -55,4 +55,11 @@ export const DEVIL_FRUIT: EntityDefinition = {
   ],
   // Its current users: derived from the characters naming it, never part of its version (D12).
   sections: [relatedList({ of: 'CHARACTER', by: 'devilFruit' })],
+  reveals: {
+    groups: [
+      { key: 'NAME', fields: ['name'] },
+      { key: 'ROMAJI', fields: ['romaji'] },
+      { key: 'TYPE', fields: ['type', 'subcategory'] },
+    ],
+  },
 };

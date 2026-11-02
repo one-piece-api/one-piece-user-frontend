@@ -348,6 +348,15 @@ describe('the words about characters', () => {
       'at least one description paragraph',
     );
   });
+
+  it('name a title or a value of the reveals review still lacks, by reveal and language', () => {
+    const words = (field: string) => refusedFieldWords(transloco, CHARACTER, field);
+
+    expect(words('reveals[1].titles[en]')).toBe('reveal 2 · title EN');
+    expect(words('reveals[0].translations[it].name')).toBe('reveal 1 · name IT');
+    expect(words('initialKnowledge.translations[en].name')).toBe('initial knowledge · name EN');
+    expect(words('reveals[0]')).toBe('reveal 1');
+  });
 });
 
 describe('the words about the points of a character', () => {

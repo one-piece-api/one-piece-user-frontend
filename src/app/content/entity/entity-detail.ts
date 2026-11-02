@@ -36,6 +36,8 @@ import { EntityComparison } from './entity-comparison';
 import { ChainList } from './chain-list';
 import { RelatedList } from './related-list';
 import { RelativeList } from './relative-list';
+import { revealsDraftOf, truthOf } from './entity-reveals';
+import { RevealsPanel } from './reveals-panel';
 
 /** The query parameters this page keeps its view in, so a link reopens the same version. */
 const PARAM = { version: 'v', tab: 'tab' } as const;
@@ -44,6 +46,8 @@ const TABS = [
   // The overview is drawn with the entity's own icon.
   { id: 'overview', labelKey: 'content.detail.tab.overview', icon: null },
   { id: 'workflow', labelKey: 'content.detail.tab.workflow', icon: '⚓' },
+  // Only for an entity whose contents have reveals (reveals plan R8).
+  { id: 'reveals', labelKey: 'content.detail.tab.reveals', icon: '✦' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
@@ -75,6 +79,7 @@ const NOT_FOUND_STATUSES = [400, 404];
     ChainList,
     RelativeList,
     RelatedList,
+    RevealsPanel,
     RouterLink,
     StatusBadge,
     TranslocoPipe,
@@ -236,10 +241,28 @@ export class EntityDetail {
     return { title: `v${version.number} · ${status}`, line: parts.join(' · '), compareLabel };
   });
 
-  protected readonly tabs = TABS.map((tab) => ({ ...tab, icon: tab.icon ?? this.entity.icon }));
-  protected readonly openTab = computed<TabId>(() =>
-    this.tab() === 'workflow' ? 'workflow' : 'overview',
+  protected readonly tabs = TABS.filter(({ id }) => id !== 'reveals' || !!this.entity.reveals).map(
+    (tab) => ({ ...tab, icon: tab.icon ?? this.entity.icon }),
   );
+  protected readonly openTab = computed<TabId>(
+    () => this.tabs.find(({ id }) => id === this.tab())?.id ?? 'overview',
+  );
+
+  protected readonly languageCodes = computed(() => this.languages().map(({ code }) => code));
+
+  /** What the Reveals tab shows of the version on screen, read with the editor's own shapes. */
+  protected readonly revealsView = computed(() => {
+    const version = this.shown();
+    if (!version || !this.entity.reveals) {
+      return null;
+    }
+    const languages = this.languageCodes();
+    return {
+      reveals: revealsDraftOf(this.entity, version.body, languages),
+      truth: truthOf(this.entity, version.body, languages),
+      firstAppearance: version.body['firstAppearance'] ?? null,
+    };
+  });
 
   /** The version being compared with an earlier one, `null` while the panel is closed. */
   protected readonly comparing = signal<number | null>(null);

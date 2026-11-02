@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { httpResource } from '@angular/common/http';
 import {
   Component,
@@ -38,6 +39,14 @@ import { EntityImageFrame } from './entity-image-frame';
 import { labelKeyOf, type EntityField, type ImageField } from './entity-definition';
 import { imagePartOf } from './entity-gallery';
 import { monthDayLabel } from './entity-month-day';
+import {
+  REVEALED_AT,
+  REVEAL_TITLE,
+  diffReveals,
+  revealGroups,
+  revealTitleOf,
+  type RevealChange,
+} from './entity-reveals';
 import { comparedStoryPointLabel } from './entity-story-point';
 import { untitledOf } from './entity-title';
 
@@ -89,6 +98,13 @@ const CHANGE_SIGN: Record<FieldChange, string> = {
   UNCHANGED: '=',
 };
 
+/** A reveal added, removed or changed reads as a field would. */
+const REVEAL_CHANGE: Record<RevealChange, FieldChange> = {
+  ADDED: 'ADDED',
+  REMOVED: 'REMOVED',
+  MODIFIED: 'MODIFIED',
+};
+
 /** A field of the comparison, ready to render. */
 interface DiffRow {
   readonly key: string;
@@ -106,6 +122,24 @@ interface DiffRow {
   readonly classes: (typeof CHANGE_CLASSES)[FieldChange];
 }
 
+/** A reveal of the comparison, ready to render: its heading, the choices it names, its rows. */
+interface RevealCard {
+  readonly key: string;
+  readonly heading: string;
+  readonly sign: string;
+  readonly changeKey: string;
+  readonly chip: string;
+  /** "Name, Type" before and after, where the choices it names changed. */
+  readonly named: { readonly before: string; readonly after: string } | null;
+  readonly rows: readonly DiffRow[];
+}
+
+/** The reveals block: the initial values that changed, then the reveals that changed. */
+interface RevealsBlock {
+  readonly initial: readonly DiffRow[];
+  readonly reveals: readonly RevealCard[];
+}
+
 /**
  * The comparison of a version of any entity with an earlier one (UF-CNT-21), in a
  * native `<dialog>` like the other modals. By default the base is the version it was opened
@@ -121,6 +155,7 @@ interface DiffRow {
     EntityCard,
     EntityImageFrame,
     LoadingPlaceholder,
+    NgTemplateOutlet,
     TranslocoPipe,
     VersionChain,
   ],
@@ -207,6 +242,55 @@ export class EntityComparison {
     return this.diffs()
       .filter((diff) => diff.change === 'UNCHANGED')
       .map((diff) => this.toRow(diff));
+  });
+
+  /**
+   * The reveals compared (reveals decision 2): the initial knowledge as fields, the reveals by
+   * their place in the reader's order. `null` for an entity without reveals.
+   */
+  protected readonly revealsBlock = computed<RevealsBlock | null>(() => {
+    this.transloco.activeLang();
+    const pair = this.pair();
+    if (!this.entity.reveals || !pair) {
+      return null;
+    }
+    const order = this.languages().map((language) => language.code);
+    const compared = diffReveals(this.entity, pair.base?.body ?? null, pair.shown.body, order);
+    const initialLabel = this.transloco.translate('content.comparison.reveals.initial');
+    return {
+      initial: compared.initial.map((diff) => this.revealRow(diff, initialLabel)),
+      reveals: compared.reveals.map((diff) => {
+        const heading = [
+          this.transloco.translate('content.comparison.reveals.reveal', {
+            position: diff.position,
+          }),
+          revealTitleOf(
+            (key, params) => this.transloco.translate(key, params),
+            diff.reveal,
+            this.transloco.activeLang(),
+          ),
+        ].join(' · ');
+        const change = REVEAL_CHANGE[diff.change];
+        return {
+          key: `${diff.position}.${diff.change}`,
+          heading,
+          sign: CHANGE_SIGN[change],
+          changeKey: `content.comparison.change.${change}`,
+          chip: CHANGE_CLASSES[change].chip,
+          named: diff.named && {
+            before: this.groupsNamed(diff.named.before),
+            after: this.groupsNamed(diff.named.after),
+          },
+          rows: diff.rows.map((row) => this.revealRow(row, null)),
+        };
+      }),
+    };
+  });
+
+  /** How many reveal entries changed - the initial knowledge counts as one. */
+  protected readonly revealChanges = computed(() => {
+    const block = this.revealsBlock();
+    return block ? block.reveals.length + (block.initial.length ? 1 : 0) : 0;
   });
 
   /** "Show 3 unchanged fields", or "Hide…" once they are listed. */
@@ -419,6 +503,44 @@ export class EntityComparison {
     return comparedStoryPointLabel(
       (key, params) => this.transloco.translate(key, params),
       compared,
+    );
+  }
+
+  /**
+   * A field of the reveals block as a row: the point, a title per language or a value - labelled
+   * by `prefix` ("Initial knowledge · Name IT") where it has one.
+   */
+  private revealRow(diff: FieldDiff<EntityFieldRef>, prefix: string | null): DiffRow {
+    const { field, language } = diff.field;
+    const storyPoint = field === REVEALED_AT;
+    const own =
+      field === REVEALED_AT || field === REVEAL_TITLE
+        ? this.transloco.translate(`content.comparison.reveals.${field}`)
+        : this.transloco.translate(`content.reveals.value.${field}`);
+    const label = [prefix, language ? `${own} ${language.toUpperCase()}` : own]
+      .filter(Boolean)
+      .join(' · ');
+    return {
+      key: `${prefix ?? ''}.${field}.${language ?? ''}`,
+      label,
+      before: storyPoint ? this.storyPointNamed(diff.before) : this.valueNamed(field, diff.before),
+      after: storyPoint ? this.storyPointNamed(diff.after) : this.valueNamed(field, diff.after),
+      image: false,
+      ratio: DEFAULT_IMAGE_RATIO,
+      sign: CHANGE_SIGN[diff.change],
+      struck: diff.change === 'REMOVED',
+      changeKey: `content.comparison.change.${diff.change}`,
+      classes: CHANGE_CLASSES[diff.change],
+    };
+  }
+
+  /** The choices a reveal names, in words and in the definition's order: "Name, Type". */
+  private groupsNamed(groups: readonly string[]): string {
+    return (
+      revealGroups(this.entity)
+        .filter((group) => groups.includes(group.key))
+        .map((group) => this.transloco.translate(`content.reveals.field.${group.key}`))
+        .join(', ') || '—'
     );
   }
 

@@ -80,4 +80,5 @@ export const BOUNTY: EntityDefinition = {
     columns: [berryColumn('amount', { sortable: true }), badgeColumn('validity')],
     filters: [choiceFilter('validity', VALIDITIES), choiceFilter('condition', CONDITIONS)],
   },
+  reveals: { groups: [{ key: 'INACTIVE', fields: ['inactive'] }] },
 };

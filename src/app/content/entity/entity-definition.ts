@@ -427,6 +427,29 @@ export interface EntityDefinition {
   readonly sections?: readonly EntitySection[];
   /** What its list shows besides what every list shows. */
   readonly list?: ListDefinition;
+  /** What the reader learns of it over time (workflow 3.7.1); absent where nothing is revealed. */
+  readonly reveals?: RevealsCapability;
+}
+
+/**
+ * One choice a reveal may name, as the backend's enum names it (`NAME`, `IDENTITY`), and the
+ * fields of the definition that carry its values: a Character's identity is its romaji,
+ * Japanese name and name together, a fruit's type its type and subcategory.
+ */
+export interface RevealGroup {
+  readonly key: string;
+  readonly fields: readonly string[];
+}
+
+/**
+ * What the reader learns of a content over time (workflow 3.7.1, ADR-0012 of the backend): the
+ * main fields are the current value, `initialKnowledge` what the reader believes at the first
+ * appearance and each reveal what they learn at its point. The editor and the detail get a
+ * "Reveals" tab beside the main fields (`entity-reveals.ts`).
+ */
+export interface RevealsCapability {
+  /** The choices a reveal may name, in the order they are shown. */
+  readonly groups: readonly RevealGroup[];
 }
 
 export function textField(key: string, options: Omit<TextField, 'kind' | 'key'>): TextField {

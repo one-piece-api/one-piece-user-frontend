@@ -141,6 +141,14 @@
         "tip7": {
           "text": "In the gallery an Appearance shows how the character looks, a Form a transformation or a disguise. The main portrait is the last Appearance without an end, never a Form; an outgrown Appearance is not removed: give it an end.",
           "code": "gallery · appearance / form"
+        },
+        "tip8": {
+          "text": "Arrr, matey! Each reveal is a plot twist: write what the crew believed before and what they learn at that point.",
+          "code": "one reveal = one plot twist"
+        },
+        "tip9": {
+          "text": "The last reveal of a field uncovers the truth: change it there and the main fields change with it.",
+          "code": "last reveal → truth"
         }
       }
     }
@@ -678,6 +686,11 @@
             "entry": "gallery image {{position}} {{language}}",
             "atFirstAppearance": "a gallery Appearance discovered at the first appearance",
             "count": "at least one gallery image"
+          },
+          "reveals": {
+            "initial": "initial knowledge",
+            "entry": "reveal {{position}}",
+            "title": "title {{language}}"
           }
         },
         "blocked": "Arrr! It cannot be done: {{reason}}",
@@ -953,7 +966,8 @@
       "mostRecentVisible": "the most recent visible to your role",
       "tab": {
         "overview": "Overview",
-        "workflow": "Workflow"
+        "workflow": "Workflow",
+        "reveals": "Reveals"
       },
       "loading": "Fetching the card…",
       "loadingVersion": "Fetching this version…",
@@ -1170,7 +1184,19 @@
         "many": "Hide {{count}} unchanged fields"
       },
       "frozen": "Content frozen in this version.",
-      "noImage": "No image"
+      "noImage": "No image",
+      "reveals": {
+        "heading": "Reveals",
+        "initial": "Initial knowledge",
+        "reveal": "Reveal {{position}}",
+        "named": "Fields named",
+        "revealedAt": "Point",
+        "title": "Title",
+        "count": {
+          "one": "{{count}} reveal changed",
+          "many": "{{count}} reveals changed"
+        }
+      }
     },
     "editor": {
       "crumb": "Edit",
@@ -1297,7 +1323,8 @@
           "discovered": "Image {{position}} · discovered",
           "atFirstAppearance": "Gallery · an Appearance discovered at the first appearance",
           "count": "Gallery · at least one image"
-        }
+        },
+        "reveals": "Reveals · {{language}}"
       },
       "save": "Save draft",
       "saving": "Saving…",
@@ -1870,7 +1897,8 @@
         "periodOpen": "The end is missing: only the last period may go without one.",
         "notLinkable": "Only a chapter or an episode with an approved version can be picked.",
         "unknown": "The chapter or episode picked no longer exists.",
-        "invalid": "This point of the story is not valid."
+        "invalid": "This point of the story is not valid.",
+        "notAfterFirstAppearance": "It must come after the first appearance."
       }
     },
     "bounties": {
@@ -2145,6 +2173,85 @@
         "relatives": "Former",
         "gallery": "Past"
       }
+    },
+    "reveals": {
+      "tab": "Reveals",
+      "lead": "The reveals in the order the reader discovers them. Pick one to see its details.",
+      "leadEdit": "The reveals in the order the reader discovers them. In each one write what the reader believed before and what they learn at that point; the last one of a field reveals the truth of the main fields.",
+      "summary": "Can’t set sail: {{count}} issues in the reveals",
+      "textLanguage": "Language of the texts",
+      "sections": "Editor sections",
+      "section": {
+        "main": "Main fields",
+        "reveals": "Reveals"
+      },
+      "firstAppearance": "First appearance",
+      "pointUnknown": "Point ?",
+      "noPoint": "Point to pick",
+      "add": "Add reveal",
+      "remove": "Remove reveal",
+      "close": "Close",
+      "noInitial": "No reveals yet: at the first appearance the reader already knows every current value.",
+      "initialHint": "What the reader believes at the first appearance, for the fields a reveal will change.",
+      "title": "Short title",
+      "titlePlaceholder": "e.g. The fruit is Nika",
+      "noField": "This reveal does not name any field yet.",
+      "changedFields": "Fields that change",
+      "unknown": "Not revealed yet",
+      "before": "Before · what the reader believed",
+      "after": "After · what the reader learns",
+      "isTruth": "This is the current truth",
+      "isTruthEdit": "This is the current truth: it changes the main fields too",
+      "removeField": "Remove field",
+      "addField": "Add field",
+      "fieldCountOne": "{{count}} field",
+      "fieldCountMany": "{{count}} fields",
+      "field": {
+        "NAME": "Name",
+        "ROMAJI": "Romaji",
+        "TYPE": "Type and subcategory",
+        "IDENTITY": "Identity",
+        "STATUS": "Status",
+        "INACTIVE": "Bounty no longer active"
+      },
+      "value": {
+        "romaji": "Romaji",
+        "japaneseName": "Japanese name",
+        "name": "Name",
+        "status": "Status",
+        "type": "Type",
+        "subcategory": "Subcategory",
+        "inactive": "No longer active"
+      },
+      "yes": "Yes",
+      "no": "No",
+      "fromReveal": "from the reveal ({{point}})",
+      "fromFirstAppearance": "from the first appearance",
+      "readOnly": "Read only: reveals can be edited in a draft only.",
+      "untitled": "Reveal · {{point}}",
+      "new": "New reveal",
+      "target": {
+        "point": "point",
+        "fields": "fields",
+        "title": "title",
+        "name": "name",
+        "romaji": "romaji",
+        "japaneseName": "Japanese name",
+        "status": "status",
+        "type": "type",
+        "subcategory": "subcategory",
+        "inactive": "no longer active"
+      },
+      "error": {
+        "fields": "Name at least one field",
+        "notNamed": "This value is not needed: no reveal here names its field",
+        "alwaysKnown": "It must be known from the first appearance",
+        "keyMissing": "It is needed together with the other values of the same field",
+        "sharedPoint": "Another reveal of the same field is already at this point",
+        "point": "Pick the point of the reveal",
+        "value": "Value not accepted: check it"
+      },
+      "refusedMessage": "Arrr! Some reveals don’t add up: open the Reveals section and look at the entries in red."
     }
   }
 }
