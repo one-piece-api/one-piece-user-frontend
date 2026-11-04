@@ -138,6 +138,9 @@ export type BlockCause =
           previousKey?: string;
           holderRomaji?: string;
           relativeRomaji?: string;
+          speciesRomaji?: string;
+          affiliationRomaji?: string;
+          devilFruitRomaji?: string;
         };
     }
   | {
@@ -247,6 +250,9 @@ export const STORY_RELATIONS = [
   'previous',
   'holder',
   'relative',
+  'species',
+  'affiliation',
+  'devilFruit',
   'chapter',
   'episode',
 ] as const;

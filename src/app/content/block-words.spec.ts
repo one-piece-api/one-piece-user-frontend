@@ -215,6 +215,36 @@ describe('blockWords of the bounties', () => {
     expect(words.links).toEqual([]);
   });
 
+  it.each([
+    [
+      'species',
+      { speciesId: 's1', speciesRomaji: 'Human' },
+      'Species not online',
+      'species "Human"',
+    ],
+    [
+      'affiliation',
+      { affiliationId: 'a1', affiliationRomaji: 'Kaigun' },
+      'Affiliation not online',
+      'affiliation "Kaigun"',
+    ],
+    [
+      'devil fruit',
+      { devilFruitId: 'f1', devilFruitRomaji: 'Mera Mera no Mi' },
+      'Devil Fruit not online',
+      'Devil Fruit "Mera Mera no Mi"',
+    ],
+  ] as const)(
+    'tells a character that its %s is not online, naming it',
+    (_, detail, note, named) => {
+      const words = blockWords(transloco, { reason: 'RELATED_NOT_ONLINE', detail });
+
+      expect(words.note).toBe(note);
+      expect(words.sentence).toContain(named);
+      expect(words.sentence).not.toContain('arc');
+    },
+  );
+
   it('tells a content that the episode of its first appearance is not online', () => {
     const words = blockWords(transloco, {
       reason: 'RELATED_NOT_ONLINE',

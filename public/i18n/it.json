@@ -760,6 +760,9 @@
             "previous": "Taglia precedente non online",
             "holder": "Titolare non online",
             "relative": "Parente non online",
+            "species": "Specie non online",
+            "affiliation": "Affiliazione non online",
+            "devilFruit": "Frutto del Diavolo non online",
             "chapter": "Capitolo di un punto non online",
             "episode": "Episodio di un punto non online"
           },
@@ -804,6 +807,9 @@
             "previous": "Arrr! La taglia che questa sostituisce non è ancora online, compare. Pubblica prima quella.",
             "holder": "Arrr! Il personaggio titolare di questa taglia non è ancora online, compare. Pubblica prima il personaggio.",
             "relative": "Arrr! Un parente di questo personaggio non è ancora online, compare. Pubblica prima il personaggio.",
+            "species": "Arrr! La specie «{{name}}» di questo personaggio non è ancora online, compare. Pubblica prima la specie.",
+            "affiliation": "Arrr! L'affiliazione «{{name}}» di questo personaggio non è ancora online, compare. Pubblica prima l'affiliazione.",
+            "devilFruit": "Arrr! Il Frutto del Diavolo «{{name}}» di questo personaggio non è ancora online, compare. Pubblica prima il frutto.",
             "chapter": "Arrr! Il capitolo {{number}} usato in «{{field}}» non è ancora online, compare. Pubblica prima il capitolo.",
             "episode": "Arrr! L'episodio {{number}} usato in «{{field}}» non è ancora online, compare. Pubblica prima l'episodio."
           },

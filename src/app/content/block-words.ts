@@ -103,6 +103,7 @@ export function blockWords(
       const sentence = text(`sentence.RELATED_NOT_ONLINE.${relation}`, {
         number: cause.detail[`${relation}Number`] ?? '',
         field: fieldWords(cause.detail.field ?? ''),
+        name: cause.detail[`${relation}Romaji` as keyof typeof cause.detail] ?? '',
       });
       return {
         note: text(`note.RELATED_NOT_ONLINE.${relation}`),
