@@ -54,3 +54,28 @@ tradotti per lingua). Logica pura in `entity-reveals.ts`, vista in `reveals-pane
 - L'anteprima "come la vede il lettore" arriva dal backend in R9, non qui.
 - Un inserimento in mezzo appare nel confronto come modifica di tutte le rivelazioni successive.
 - La tabella dei messaggi va aggiornata se `FieldRevealRules` cambia un testo.
+
+## Addendum: anteprima a N (R9)
+
+**Contesto.** Rivelazioni, finestre e paragrafi si scrivono nell'editor, ma serve vedere la scheda
+come la vede il lettore a un capitolo o a un episodio. Le regole "com'è a N" vivono nella libreria
+`one-piece-reader-time`, usata da content-service (ADR-0013 di là): il frontend non le ripete.
+
+**Decisione.** Tab "Anteprima del lettore" nella scheda, per le entità con `readerPreview: true`
+(tutte tranne Volume, Capitolo, Episodio, che sono l'asse).
+
+- Asse e numero nell'URL (`axis`, `n`); un solo asse per richiesta, N intero ≥ 1, anche inesistente.
+  La chiamata parte con Invio o all'uscita dal campo; senza posizione valida non parte.
+- La risposta del backend (`body` risolto a N, `mainPortrait`, `hiddenEntries`) si disegna con la
+  stessa `EntityCard`; `visible: false` dà un messaggio, non una scheda vuota.
+- Il ritratto principale a N arriva dal backend (input `mainPortraitAt` della card); la card non lo
+  ricalcola, così la regola resta in un posto solo.
+- Logica pura in `entity-preview.ts`, vista in `reader-preview`; nessun ramo per entità.
+
+**Alternative.** Selettore dentro la Panoramica (verità e anteprima nella stessa vista, facili da
+scambiare); pannello affiancato alla card (pesante su mobile); menu coi capitoli esistenti
+(richiede di caricarli tutti e vieta N inesistenti).
+
+**Conseguenze.** Una chiamata per posizione scelta, nessuna cache lato client. Il confronto delle
+versioni (rivelazioni, paragrafi, galleria) era già completo con R8: non cambia. La cronologia del
+lettore, che unisce tutto in ordine, è rimandata.

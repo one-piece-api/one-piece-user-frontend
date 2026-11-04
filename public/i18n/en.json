@@ -149,6 +149,14 @@
         "tip9": {
           "text": "The last reveal of a field uncovers the truth: change it there and the main fields change with it.",
           "code": "last reveal → truth"
+        },
+        "tip10": {
+          "text": "In the preview, pick a chapter or an episode and see the card as the reader sees it at that point. The number need not exist.",
+          "code": "preview · axis + number"
+        },
+        "tip11": {
+          "text": "If an entry is missing in the preview and you wonder why, read the list under the card: it says whether it points to a content the reader meets later, to one that is not online, or whose discovery is not set on that axis.",
+          "code": "hidden entries · reason"
         }
       }
     }
@@ -2274,10 +2282,10 @@
       "error": "The preview could not be loaded.",
       "notVisible": "At this point the reader has not met this content yet.",
       "hidden": {
-        "title": "Entries hidden for a reason worth a look",
+        "title": "Entries hidden for a reason worth checking",
         "TARGET_NOT_VISIBLE": "points to a content the reader meets later",
         "TARGET_NOT_ONLINE": "points to a content with no online version",
-        "NOT_ON_AXIS": "its discovery point has no part on this axis",
+        "NOT_ON_AXIS": "its discovery is not set on this axis",
         "from": {
           "CHAPTER": "visible from chapter {{number}}",
           "EPISODE": "visible from episode {{number}}"

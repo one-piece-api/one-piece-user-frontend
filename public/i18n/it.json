@@ -149,6 +149,14 @@
         "tip9": {
           "text": "L’ultima rivelazione di un campo svela la verità: se la cambi lì, cambiano anche i campi principali.",
           "code": "ultima rivelazione → verità"
+        },
+        "tip10": {
+          "text": "Nell’anteprima scegli un capitolo o un episodio e vedi la scheda come la vede il lettore a quel punto. Il numero non deve per forza esistere.",
+          "code": "anteprima · asse + numero"
+        },
+        "tip11": {
+          "text": "Se in anteprima manca una voce e non sai perché, guarda l’elenco sotto la scheda: dice se punta a un contenuto che il lettore incontra dopo, a uno non online, o se la scoperta non è su quell’asse.",
+          "code": "voci nascoste · motivo"
         }
       }
     }
@@ -2261,7 +2269,7 @@
       "refusedMessage": "Arrr! Qualche rivelazione non torna: apri la sezione Rivelazioni e guarda le voci in rosso."
     },
     "preview": {
-      "lead": "La scheda come la vede il lettore a un capitolo o a un episodio: solo ciò che è già stato rivelato. Il numero può anche non esistere.",
+      "lead": "La scheda come la vede il lettore a un certo capitolo o episodio: solo ciò che a quel punto è già stato rivelato. Il numero non deve per forza esistere.",
       "axis": "Asse",
       "axisName": {
         "chapter": "Capitolo",
@@ -2270,14 +2278,14 @@
       "number": "Numero",
       "numberRefused": "Scrivi un numero intero, da 1 in su.",
       "idle": "Scegli un asse e un numero per vedere la scheda a quel punto.",
-      "loading": "Carico l’anteprima…",
-      "error": "Non sono riuscito a caricare l’anteprima.",
+      "loading": "Recuperiamo l’anteprima…",
+      "error": "Non è stato possibile caricare l’anteprima.",
       "notVisible": "A questo punto il lettore non ha ancora incontrato questo contenuto.",
       "hidden": {
-        "title": "Voci nascoste per un motivo da controllare",
+        "title": "Voci nascoste per un motivo da verificare",
         "TARGET_NOT_VISIBLE": "punta a un contenuto che il lettore incontra più avanti",
         "TARGET_NOT_ONLINE": "punta a un contenuto senza versione online",
-        "NOT_ON_AXIS": "il suo punto di scoperta non ha una parte su questo asse",
+        "NOT_ON_AXIS": "la sua scoperta non è indicata su questo asse",
         "from": {
           "CHAPTER": "visibile dal capitolo {{number}}",
           "EPISODE": "visibile dall’episodio {{number}}"
