@@ -53,6 +53,7 @@ function bountyLabel(body: Readonly<Record<string, unknown>>, language: string):
 export const BOUNTY: EntityDefinition = {
   entityType: 'BOUNTY',
   naturalKey: ['posterName', 'amount'],
+  readerPreview: true,
   label: bountyLabel,
   route: '/content/bounties',
   api: '/api/content/bounties',

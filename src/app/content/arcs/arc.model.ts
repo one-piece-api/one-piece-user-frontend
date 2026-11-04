@@ -14,6 +14,7 @@ import {
 export const ARC: EntityDefinition = {
   entityType: 'ARC',
   naturalKey: 'number',
+  readerPreview: true,
   labelField: 'title',
   route: '/content/arcs',
   api: '/api/content/arcs',

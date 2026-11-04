@@ -12,6 +12,7 @@ import {
 export const SAGA: EntityDefinition = {
   entityType: 'SAGA',
   naturalKey: 'number',
+  readerPreview: true,
   labelField: 'title',
   route: '/content/sagas',
   api: '/api/content/sagas',

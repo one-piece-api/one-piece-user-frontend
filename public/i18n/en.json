@@ -973,7 +973,8 @@
       "tab": {
         "overview": "Overview",
         "workflow": "Workflow",
-        "reveals": "Reveals"
+        "reveals": "Reveals",
+        "preview": "Reader preview"
       },
       "loading": "Fetching the card…",
       "loadingVersion": "Fetching this version…",
@@ -2258,6 +2259,30 @@
         "value": "Value not accepted: check it"
       },
       "refusedMessage": "Arrr! Some reveals don’t add up: open the Reveals section and look at the entries in red."
+    },
+    "preview": {
+      "lead": "The card as the reader sees it at a chapter or an episode: only what is revealed by then. The number need not exist.",
+      "axis": "Axis",
+      "axisName": {
+        "chapter": "Chapter",
+        "episode": "Episode"
+      },
+      "number": "Number",
+      "numberRefused": "Enter a whole number, 1 or more.",
+      "idle": "Pick an axis and a number to see the card at that point.",
+      "loading": "Fetching the preview…",
+      "error": "The preview could not be loaded.",
+      "notVisible": "At this point the reader has not met this content yet.",
+      "hidden": {
+        "title": "Entries hidden for a reason worth a look",
+        "TARGET_NOT_VISIBLE": "points to a content the reader meets later",
+        "TARGET_NOT_ONLINE": "points to a content with no online version",
+        "NOT_ON_AXIS": "its discovery point has no part on this axis",
+        "from": {
+          "CHAPTER": "visible from chapter {{number}}",
+          "EPISODE": "visible from episode {{number}}"
+        }
+      }
     }
   }
 }

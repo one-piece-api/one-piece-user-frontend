@@ -38,9 +38,11 @@ import { RelatedList } from './related-list';
 import { RelativeList } from './relative-list';
 import { revealsDraftOf, truthOf } from './entity-reveals';
 import { RevealsPanel } from './reveals-panel';
+import { positionOf, type ReaderPosition } from './entity-preview';
+import { ReaderPreview } from './reader-preview';
 
 /** The query parameters this page keeps its view in, so a link reopens the same version. */
-const PARAM = { version: 'v', tab: 'tab' } as const;
+const PARAM = { version: 'v', tab: 'tab', axis: 'axis', number: 'n' } as const;
 
 const TABS = [
   // The overview is drawn with the entity's own icon.
@@ -48,6 +50,8 @@ const TABS = [
   { id: 'workflow', labelKey: 'content.detail.tab.workflow', icon: '⚓' },
   // Only for an entity whose contents have reveals (reveals plan R8).
   { id: 'reveals', labelKey: 'content.detail.tab.reveals', icon: '✦' },
+  // Only for an entity the backend can show at a reader position (reveals plan R9).
+  { id: 'preview', labelKey: 'content.detail.tab.preview', icon: '◉' },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
@@ -79,6 +83,7 @@ const NOT_FOUND_STATUSES = [400, 404];
     ChainList,
     RelativeList,
     RelatedList,
+    ReaderPreview,
     RevealsPanel,
     RouterLink,
     StatusBadge,
@@ -101,6 +106,8 @@ export class EntityDetail {
   readonly id = input.required<string>();
   readonly v = input<string>();
   readonly tab = input<string>();
+  readonly axis = input<string>();
+  readonly n = input<string>();
 
   private readonly content = httpResource<Content>(() => `${this.entity.api}/${this.id()}`);
 
@@ -241,9 +248,11 @@ export class EntityDetail {
     return { title: `v${version.number} · ${status}`, line: parts.join(' · '), compareLabel };
   });
 
-  protected readonly tabs = TABS.filter(({ id }) => id !== 'reveals' || !!this.entity.reveals).map(
-    (tab) => ({ ...tab, icon: tab.icon ?? this.entity.icon }),
-  );
+  protected readonly tabs = TABS.filter(
+    ({ id }) =>
+      (id !== 'reveals' || !!this.entity.reveals) &&
+      (id !== 'preview' || !!this.entity.readerPreview),
+  ).map((tab) => ({ ...tab, icon: tab.icon ?? this.entity.icon }));
   protected readonly openTab = computed<TabId>(
     () => this.tabs.find(({ id }) => id === this.tab())?.id ?? 'overview',
   );
@@ -263,6 +272,10 @@ export class EntityDetail {
       firstAppearance: version.body['firstAppearance'] ?? null,
     };
   });
+
+  /** Where the Preview tab reads the reader: from the URL, `null` until a valid one is there. */
+  protected readonly previewPosition = computed(() => positionOf(this.axis(), this.n()));
+  protected readonly previewVersionUrl = computed(() => this.versionUrl() ?? '');
 
   /** The version being compared with an earlier one, `null` while the panel is closed. */
   protected readonly comparing = signal<number | null>(null);
@@ -351,6 +364,10 @@ export class EntityDetail {
       this.version.reload();
       this.versionEvents.reload();
     }
+  }
+
+  protected choosePreviewPosition(position: ReaderPosition): void {
+    this.navigate({ [PARAM.axis]: position.axis, [PARAM.number]: position.number });
   }
 
   protected selectTab(tab: TabId): void {

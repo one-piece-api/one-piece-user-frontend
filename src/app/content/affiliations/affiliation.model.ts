@@ -43,6 +43,7 @@ export const AFFILIATION_KINDS = [
 export const AFFILIATION: EntityDefinition = {
   entityType: 'AFFILIATION',
   naturalKey: 'romaji',
+  readerPreview: true,
   route: '/content/affiliations',
   api: '/api/content/affiliations',
   i18n: 'content.affiliations',

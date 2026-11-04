@@ -973,7 +973,8 @@
       "tab": {
         "overview": "Panoramica",
         "workflow": "Workflow",
-        "reveals": "Rivelazioni"
+        "reveals": "Rivelazioni",
+        "preview": "Anteprima del lettore"
       },
       "loading": "Recuperiamo la scheda…",
       "loadingVersion": "Recuperiamo questa versione…",
@@ -2258,6 +2259,30 @@
         "value": "Valore non accettato: controllalo"
       },
       "refusedMessage": "Arrr! Qualche rivelazione non torna: apri la sezione Rivelazioni e guarda le voci in rosso."
+    },
+    "preview": {
+      "lead": "La scheda come la vede il lettore a un capitolo o a un episodio: solo ciò che è già stato rivelato. Il numero può anche non esistere.",
+      "axis": "Asse",
+      "axisName": {
+        "chapter": "Capitolo",
+        "episode": "Episodio"
+      },
+      "number": "Numero",
+      "numberRefused": "Scrivi un numero intero, da 1 in su.",
+      "idle": "Scegli un asse e un numero per vedere la scheda a quel punto.",
+      "loading": "Carico l’anteprima…",
+      "error": "Non sono riuscito a caricare l’anteprima.",
+      "notVisible": "A questo punto il lettore non ha ancora incontrato questo contenuto.",
+      "hidden": {
+        "title": "Voci nascoste per un motivo da controllare",
+        "TARGET_NOT_VISIBLE": "punta a un contenuto che il lettore incontra più avanti",
+        "TARGET_NOT_ONLINE": "punta a un contenuto senza versione online",
+        "NOT_ON_AXIS": "il suo punto di scoperta non ha una parte su questo asse",
+        "from": {
+          "CHAPTER": "visibile dal capitolo {{number}}",
+          "EPISODE": "visibile dall’episodio {{number}}"
+        }
+      }
     }
   }
 }

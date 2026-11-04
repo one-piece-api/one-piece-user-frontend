@@ -133,4 +133,33 @@ describe('the card of a character with a gallery', () => {
       '/api/content/images/post',
     );
   });
+
+  it('in a preview takes the main portrait the backend resolved at N, not its own', () => {
+    TestBed.configureTestingModule({
+      imports: [provideTranslocoTesting()],
+      providers: [provideRouter([]), { provide: ENTITY, useValue: CHARACTER }],
+    });
+    const fixture = TestBed.createComponent(EntityCard);
+    fixture.componentRef.setInput('body', {
+      romaji: 'Monkey D. Luffy',
+      gallery: [image('pre', 'ASPETTO'), image('post', 'ASPETTO')],
+      translations: { it: { name: 'Rufy' }, en: { name: 'Luffy' } },
+    });
+    fixture.componentRef.setInput('languages', LANGUAGES);
+    fixture.componentRef.setInput('mainPortraitAt', {
+      id: 'pre',
+      url: '/api/content/images/pre',
+    });
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+
+    const marked = [...root.querySelectorAll('[data-testid="card-part-entry"]')].filter((entry) =>
+      entry.querySelector('[data-testid="card-main-portrait"]'),
+    );
+    expect(marked).toHaveLength(1);
+    expect(marked[0].textContent).toContain('pre en');
+    expect(root.querySelector<HTMLImageElement>('[data-testid="entity-image"]')?.src).toContain(
+      '/api/content/images/pre',
+    );
+  });
 });

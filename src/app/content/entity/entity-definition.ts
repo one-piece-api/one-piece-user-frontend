@@ -429,6 +429,11 @@ export interface EntityDefinition {
   readonly list?: ListDefinition;
   /** What the reader learns of it over time (workflow 3.7.1); absent where nothing is revealed. */
   readonly reveals?: RevealsCapability;
+  /**
+   * The backend can show a version as the reader sees it at chapter or episode N (reveals plan
+   * R6): every entity but the ones that are the axis itself (volume, chapter, episode).
+   */
+  readonly readerPreview?: boolean;
 }
 
 /**

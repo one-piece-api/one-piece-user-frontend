@@ -207,6 +207,13 @@
                 [languages]="languageCodes()"
               />
             }
+          } @else if (openTab() === 'preview') {
+            <app-reader-preview
+              [versionUrl]="previewVersionUrl()"
+              [languages]="languages()"
+              [position]="previewPosition()"
+              (chosen)="choosePreviewPosition($event)"
+            />
           } @else {
             <app-version-workflow
               [version]="version"

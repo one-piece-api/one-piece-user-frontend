@@ -1,0 +1,105 @@
+<div class="grid gap-4" data-testid="reader-preview">
+  <p class="max-w-180 font-heading text-sm font-bold text-pretty text-ocean-800">
+    {{ 'content.preview.lead' | transloco }}
+  </p>
+
+  <div class="flex flex-wrap items-end gap-3">
+    <div
+      class="flex gap-1 rounded-xl bg-parchment-200 p-1"
+      role="group"
+      [attr.aria-label]="'content.preview.axis' | transloco"
+    >
+      @for (axis of axes; track axis) {
+        <button
+          type="button"
+          class="cursor-pointer rounded-lg px-3 py-1 font-display text-[13px] font-bold"
+          [class]="
+            axisDraft() === axis ? 'bg-ocean-900 text-white' : 'text-ocean-800 hover:bg-white'
+          "
+          [attr.aria-pressed]="axisDraft() === axis"
+          [attr.data-testid]="'preview-axis-' + axis"
+          (click)="pickAxis(axis)"
+        >
+          {{ 'content.preview.axisName.' + axis | transloco }}
+        </button>
+      }
+    </div>
+    <label class="grid gap-0.5 font-heading text-[11px] font-extrabold text-ocean-500 uppercase">
+      {{ 'content.preview.number' | transloco }}
+      <input
+        type="text"
+        inputmode="numeric"
+        class="w-28 rounded-[10px] border-2 border-ocean-100 bg-white px-2.5 py-1 font-heading text-sm font-bold text-ocean-950"
+        [value]="numberDraft()"
+        [attr.aria-invalid]="numberRefused()"
+        data-testid="preview-number"
+        (input)="typed($event)"
+        (keydown.enter)="submit()"
+        (blur)="submit()"
+      />
+    </label>
+  </div>
+  @if (numberRefused()) {
+    <p class="font-heading text-sm font-bold text-flag-700" data-testid="preview-number-refused">
+      {{ 'content.preview.numberRefused' | transloco }}
+    </p>
+  }
+
+  @switch (state()) {
+    @case ('idle') {
+      <p class="font-heading text-sm text-ocean-500" data-testid="preview-idle">
+        {{ 'content.preview.idle' | transloco }}
+      </p>
+    }
+    @case ('loading') {
+      <p class="font-heading text-sm text-ocean-500">{{ 'content.preview.loading' | transloco }}</p>
+    }
+    @case ('error') {
+      <p class="font-heading text-sm font-bold text-flag-700" data-testid="preview-error">
+        {{ 'content.preview.error' | transloco }}
+      </p>
+    }
+    @case ('ready') {
+      @let preview = result()!;
+      @if (preview.visible && preview.body) {
+        <app-entity-card
+          [body]="preview.body"
+          [languages]="languages()"
+          [mainPortraitAt]="preview.mainPortrait"
+        />
+        @if (hiddenEntries().length) {
+          <section
+            class="rounded-[14px] border-2 border-ocean-100 bg-white px-3.5 py-3"
+            data-testid="preview-hidden-entries"
+          >
+            <h3 class="font-display text-sm font-bold text-ocean-950">
+              {{ 'content.preview.hidden.title' | transloco }}
+            </h3>
+            <ul class="mt-1 grid gap-0.5 font-heading text-sm text-ocean-800">
+              @for (entry of hiddenEntries(); track entry.path) {
+                <li>
+                  <code class="font-bold">{{ entry.path }}</code> ·
+                  {{ 'content.preview.hidden.' + entry.reason | transloco }}
+                  @if (entry.visibleFrom !== null) {
+                    ·
+                    {{
+                      'content.preview.hidden.from.' + preview.asOf.axis
+                        | transloco: { number: entry.visibleFrom }
+                    }}
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      } @else {
+        <p
+          class="rounded-[14px] bg-parchment-200/50 px-3.5 py-3 font-heading text-sm font-bold text-ocean-800"
+          data-testid="preview-not-visible"
+        >
+          {{ 'content.preview.notVisible' | transloco }}
+        </p>
+      }
+    }
+  }
+</div>

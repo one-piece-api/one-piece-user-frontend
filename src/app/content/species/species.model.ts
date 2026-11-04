@@ -32,6 +32,7 @@ const SPECIES_PICTURE = {
 export const SPECIES: EntityDefinition = {
   entityType: 'SPECIES',
   naturalKey: 'romaji',
+  readerPreview: true,
   route: '/content/species',
   api: '/api/content/species',
   i18n: 'content.species',

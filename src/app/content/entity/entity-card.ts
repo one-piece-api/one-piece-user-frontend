@@ -9,7 +9,7 @@ import { isLanguageComplete, localizedFields, sharedFields, type EntityBody } fr
 import { naturalKeyParts, type PartField, type PartListField } from './entity-definition';
 import { imagePartOf, mainPortraitIndex } from './entity-gallery';
 import { EntityImageFrame } from './entity-image-frame';
-import { isImageReference } from './entity-image';
+import { isImageReference, type ImageReference } from './entity-image';
 import { monthDayLabel, monthDayOf, monthDayText } from './entity-month-day';
 import {
   DISCOVERED_PART,
@@ -167,6 +167,11 @@ export class EntityCard {
 
   readonly body = input.required<EntityBody>();
   readonly languages = input.required<readonly LanguageEntry[]>();
+  /**
+   * The main portrait the backend resolved at a reader position (preview at N), `null` for
+   * none; `undefined` outside a preview, where the card finds it itself, without a filter.
+   */
+  readonly mainPortraitAt = input<ImageReference | null>();
 
   /** The language shown: the UI's own when the catalog has it, until the reader picks another. */
   protected readonly language = linkedSignal<string | null>(() => {
@@ -250,6 +255,10 @@ export class EntityCard {
     if (!gallery || !image) {
       return null;
     }
+    const resolved = this.mainPortraitAt();
+    if (resolved !== undefined) {
+      return { profile: image.profile, saved: resolved };
+    }
     const items = itemsOf(this.body()[gallery.key]);
     const index = mainPortraitIndex(gallery, items);
     return {
@@ -257,6 +266,17 @@ export class EntityCard {
       saved: index === null ? null : partValueOf(gallery, items[index], image),
     };
   });
+
+  /** Whether the entry is the main portrait: the one the backend resolved in a preview. */
+  private isMainPortrait(field: PartListField, items: readonly unknown[], index: number): boolean {
+    const resolved = this.mainPortraitAt();
+    const image = imagePartOf(field);
+    if (resolved === undefined || !image) {
+      return mainPortraitIndex(field, items) === index;
+    }
+    const own = partValueOf(field, items[index], image);
+    return resolved !== null && isImageReference(own) && own.id === resolved.id;
+  }
 
   /**
    * The contents this one points to, named in the language shown - a story point by its
@@ -477,7 +497,7 @@ export class EntityCard {
                   language,
                   `${this.entity.i18n}.former.${field.key}`,
                 ),
-                mainPortrait: mainPortraitIndex(field, items) === index,
+                mainPortrait: this.isMainPortrait(field, items, index),
               })),
             },
           ]

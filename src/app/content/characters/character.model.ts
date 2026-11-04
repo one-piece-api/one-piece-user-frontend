@@ -90,6 +90,7 @@ const MAX_PERIODS = 20;
 export const CHARACTER: EntityDefinition = {
   entityType: 'CHARACTER',
   naturalKey: 'romaji',
+  readerPreview: true,
   route: '/content/characters',
   api: '/api/content/characters',
   i18n: 'content.characters',

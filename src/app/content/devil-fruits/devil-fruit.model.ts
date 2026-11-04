@@ -36,6 +36,7 @@ const DEVIL_FRUIT_IMAGE = {
 export const DEVIL_FRUIT: EntityDefinition = {
   entityType: 'DEVIL_FRUIT',
   naturalKey: 'romaji',
+  readerPreview: true,
   route: '/content/devil-fruits',
   api: '/api/content/devil-fruits',
   i18n: 'content.devilFruits',
